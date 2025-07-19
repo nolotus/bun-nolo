@@ -28,7 +28,7 @@ const DeleteContentButton: React.FC<DeleteContentButtonProps> = ({
   className,
   as: Component = "button",
 }) => {
-  const { t } = useTranslation(["common"]);
+  const { t } = useTranslation(["chat"]);
   const dispatch = useAppDispatch();
   const currentSpaceId = useAppSelector(selectCurrentSpaceId);
 

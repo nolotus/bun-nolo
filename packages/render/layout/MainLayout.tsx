@@ -1,4 +1,4 @@
-// MainLayout.tsx (完整最终版)
+// MainLayout.tsx (完整修复版)
 
 import { useAuth } from "auth/hooks/useAuth";
 import ChatSidebar from "chat/web/ChatSidebar";
@@ -10,6 +10,7 @@ import React, {
   useState,
 } from "react";
 import { useDispatch, useSelector } from "react-redux";
+// 假设 settingSlice 路径正确
 import { setSidebarWidth, selectSidebarWidth } from "app/settings/settingSlice";
 import { zIndex } from "render/styles/zIndex";
 
@@ -28,8 +29,10 @@ const MainLayout: React.FC = () => {
   const [isResizing, setIsResizing] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const lastWidthRef = useRef(sidebarWidth);
-  // [重新引入] 用于处理移动端初始化的 Ref
   const isInitialMount = useRef(true);
+
+  // [新增] 用于存储防抖计时器的 Ref
+  const resizeDebounceTimer = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (sidebarWidth > 0) {
@@ -72,20 +75,38 @@ const MainLayout: React.FC = () => {
     [isResizing, dispatch]
   );
 
+  // [修改] 优化 resize 和 keydown 的副作用钩子
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    // 防抖处理窗口大小变化
+    const debouncedHandleResize = () => {
+      if (resizeDebounceTimer.current) {
+        clearTimeout(resizeDebounceTimer.current);
+      }
+      resizeDebounceTimer.current = setTimeout(() => {
+        setIsMobile(window.innerWidth < 768);
+      }, 150); // 150ms 的防抖延迟
+    };
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "b" && hasSidebar) {
         e.preventDefault();
         toggleSidebar();
       }
     };
-    handleResize();
-    window.addEventListener("resize", handleResize);
+
+    // 立即执行一次以设置初始状态
+    setIsMobile(window.innerWidth < 768);
+
+    window.addEventListener("resize", debouncedHandleResize);
     document.addEventListener("keydown", handleKeyDown);
+
+    // 清理副作用
     return () => {
-      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("resize", debouncedHandleResize);
       document.removeEventListener("keydown", handleKeyDown);
+      if (resizeDebounceTimer.current) {
+        clearTimeout(resizeDebounceTimer.current);
+      }
     };
   }, [toggleSidebar, hasSidebar]);
 
@@ -100,7 +121,6 @@ const MainLayout: React.FC = () => {
     };
   }, [resize, isResizing]);
 
-  // [重新引入] 移动端初始化副作用：确保在移动设备上强制关闭侧边栏，防止闪烁
   useEffect(() => {
     if (isInitialMount.current) {
       if (isMobile && isOpen) {

@@ -1,5 +1,6 @@
-// render/layout/SidebarTop.tsx
-import React, { useCallback, useEffect, useRef, useState } from "react";
+// render/layout/SidebarTop.tsx (已更新图标)
+
+import React, { useCallback, useEffect, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "app/store";
@@ -10,26 +11,30 @@ import {
   selectSpaceLoading,
 } from "create/space/spaceSlice";
 import { createSpaceKey } from "create/space/spaceKeys";
-
 import { SpaceItem } from "create/space/components/SpaceItem";
 
-import { HomeIcon, ChevronDownIcon } from "@primer/octicons-react";
+// [修复] 遵循技术栈规范，并根据指示使用 LuHouse
+import { LuHouse, LuChevronDown } from "react-icons/lu";
 import { zIndex } from "../styles/zIndex";
 
 // Custom hook to detect clicks outside a specified element
 const useClickOutside = (
   ref: React.RefObject<HTMLElement>,
-  handler: (event: MouseEvent) => void
+  handler: (event: MouseEvent | TouchEvent) => void
 ) => {
   useEffect(() => {
-    const listener = (event: MouseEvent) => {
+    const listener = (event: MouseEvent | TouchEvent) => {
       if (!ref.current || ref.current.contains(event.target as Node)) {
         return;
       }
       handler(event);
     };
     document.addEventListener("mousedown", listener);
-    return () => document.removeEventListener("mousedown", listener);
+    document.addEventListener("touchstart", listener);
+    return () => {
+      document.removeEventListener("mousedown", listener);
+      document.removeEventListener("touchstart", listener);
+    };
   }, [ref, handler]);
 };
 
@@ -44,6 +49,7 @@ export const SidebarTop: React.FC = () => {
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const menuId = useId();
 
   useClickOutside(dropdownRef, () => setIsDropdownOpen(false));
 
@@ -75,7 +81,8 @@ export const SidebarTop: React.FC = () => {
           className="SidebarTop__homeButton"
           aria-label={t("home")}
         >
-          <HomeIcon size={16} />
+          {/* [修正] 根据指示，使用 LuHouse 图标 */}
+          <LuHouse size={16} />
         </NavLink>
 
         <div className="SidebarTop__dropdown" ref={dropdownRef}>
@@ -86,15 +93,16 @@ export const SidebarTop: React.FC = () => {
             disabled={loading}
             aria-haspopup="true"
             aria-expanded={isDropdownOpen}
+            aria-controls={isDropdownOpen ? menuId : undefined}
           >
             <span className="SidebarTop__label" title={space?.name}>
               {loading ? t("loading") : space?.name || t("select_space")}
             </span>
-            <ChevronDownIcon size={16} className="SidebarTop__chevron" />
+            <LuChevronDown size={16} className="SidebarTop__chevron" />
           </button>
 
           {isDropdownOpen && (
-            <div className="SidebarTop__menu">
+            <div id={menuId} className="SidebarTop__menu" role="menu">
               <div className="SidebarTop__content">
                 {spaces.length > 0 ? (
                   spaces.map((s) => (
@@ -126,13 +134,13 @@ export const SidebarTop: React.FC = () => {
 
       <style href="SidebarTop-styles" precedence="component">{`
         @keyframes SidebarTop-slideIn {
-          from { 
-            opacity: 0; 
-            transform: translateY(-8px) scale(0.96); 
+          from {
+            opacity: 0;
+            transform: translateY(calc(var(--space-1) * -1)) scale(0.98);
           }
-          to { 
-            opacity: 1; 
-            transform: translateY(0) scale(1); 
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
           }
         }
 
@@ -142,9 +150,10 @@ export const SidebarTop: React.FC = () => {
           gap: var(--space-2);
           padding: var(--space-2);
           height: var(--headerHeight);
-          background-color: var(--background);
+          background-color: transparent;
           flex-shrink: 0;
           box-sizing: border-box;
+          border-bottom: 1px solid var(--border);
         }
 
         .SidebarTop__homeButton {
@@ -154,7 +163,7 @@ export const SidebarTop: React.FC = () => {
           width: 32px;
           height: 32px;
           flex-shrink: 0;
-          border-radius: var(--space-2);
+          border-radius: 6px;
           color: var(--textTertiary);
           background: transparent;
           border: none;
@@ -185,7 +194,7 @@ export const SidebarTop: React.FC = () => {
           width: 100%;
           height: 32px;
           padding: 0 var(--space-2) 0 var(--space-3);
-          border-radius: var(--space-2);
+          border-radius: 6px;
           border: 1px solid var(--border);
           background-color: var(--background);
           cursor: pointer;
@@ -199,15 +208,13 @@ export const SidebarTop: React.FC = () => {
         }
 
         .SidebarTop__trigger[aria-expanded="true"] {
-          background-color: var(--backgroundSelected);
           border-color: var(--primary);
-          box-shadow: 0 0 0 2px var(--focus);
+          box-shadow: 0 0 0 3px var(--focus);
         }
 
         .SidebarTop__trigger:disabled {
           opacity: 0.6;
           cursor: not-allowed;
-          background-color: var(--backgroundTertiary);
         }
 
         .SidebarTop__label {
@@ -225,6 +232,7 @@ export const SidebarTop: React.FC = () => {
           color: var(--textTertiary);
           transition: transform 0.25s ease, color 0.25s ease;
           flex-shrink: 0;
+          margin-left: var(--space-1);
         }
 
         .SidebarTop__trigger[aria-expanded="true"] .SidebarTop__chevron {
@@ -241,8 +249,8 @@ export const SidebarTop: React.FC = () => {
           border-radius: var(--space-2);
           border: 1px solid var(--border);
           box-shadow: 0 8px 24px var(--shadowMedium), 0 2px 6px var(--shadowLight);
-          z-index: ${zIndex.spaceDropdownZIndex};
-          animation: SidebarTop-slideIn 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+          z-index: ${zIndex.dropdown};
+          animation: SidebarTop-slideIn 0.15s cubic-bezier(0.1, 0, 0, 1);
           transform-origin: top;
           backdrop-filter: blur(12px);
           min-width: 200px;
@@ -252,24 +260,6 @@ export const SidebarTop: React.FC = () => {
           max-height: 40vh;
           overflow-y: auto;
           padding: var(--space-1);
-          scrollbar-width: thin;
-          scrollbar-color: var(--textLight) transparent;
-        }
-        
-        .SidebarTop__content::-webkit-scrollbar {
-          width: 4px;
-        }
-        .SidebarTop__content::-webkit-scrollbar-track {
-          background: transparent;
-          margin: var(--space-1) 0;
-        }
-        .SidebarTop__content::-webkit-scrollbar-thumb {
-          background-color: var(--textLight);
-          border-radius: var(--space-2);
-          transition: background-color 0.2s ease;
-        }
-        .SidebarTop__content::-webkit-scrollbar-thumb:hover {
-          background-color: var(--textTertiary);
         }
         
         .SidebarTop__item {
@@ -278,7 +268,7 @@ export const SidebarTop: React.FC = () => {
           width: 100%;
           gap: var(--space-2);
           padding: var(--space-2) var(--space-3);
-          border-radius: var(--space-2);
+          border-radius: 6px;
           font-size: 0.875rem;
           text-align: left;
           cursor: pointer;
