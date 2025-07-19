@@ -1,17 +1,43 @@
 // render/styles/zIndex.ts
+
+/**
+ * zIndex 统一管理
+ *
+ * 规则：
+ * - 数值越大，层级越高。
+ * - 按功能对层级进行分组，方便维护。
+ * - 在组内和组间预留数值空间，便于未来扩展。
+ *
+ * 层级结构：
+ * - 基础布局 (10-100): 页面主要结构的层级，如 TopBar。
+ * - 页面覆盖层 (101-300): 用于覆盖主要布局的组件，如侧边栏及其遮罩。
+ * - 浮动组件 (301-500): 页面内的下拉菜单、工具提示等。
+ * - 模态框与全局菜单 (900+): 需要打断用户流程、显示在最顶层的组件。
+ */
 export const zIndex = {
-  // General Layout
-  sidebarBackdrop: 9,
-  sidebar: 10,
-  sidebarResizeArea: 14,
-  sidebarResizeHandle: 15,
+  // --- 1. 基础布局层 ---
+  // 页面顶栏，作为基础的固定/粘性元素
   topbar: 100,
 
-  // Components
-  messageInputContainerZIndex: 10, // MessageInputContainer 的 zIndex
-  spaceDropdownZIndex: 10, // SpaceDropdown 的 zIndex
+  // --- 2. 页面覆盖层 ---
+  // 用于在移动端打开侧边栏时，覆盖在 TopBar 和主内容之上
+  sidebarBackdrop: 200,
+  // 侧边栏本身，需要比它的遮罩层更高
+  sidebar: 210,
+  // 侧边栏尺寸拖拽区域（仅桌面端），需要比侧边栏内容更高以便交互
+  sidebarResizeHandle: 220,
 
-  // Modals & Dropdowns
-  mobileMenuBackdrop: 998,
-  mobileMenuDropdown: 999,
+  // --- 3. 浮动组件层 (例如页面内的下拉菜单) ---
+  // 适用于在特定组件上下文中弹出的菜单，例如 Space切换、消息输入框附件等
+  dropdown: 400,
+
+  // --- 4. 模态框与全局菜单层 (最高层级) ---
+  // 全局模态框的遮罩层
+  modalBackdrop: 990,
+  // 全局模态框（例如确认删除对话框）
+  modal: 1000,
+
+  // TopBar 上的移动端菜单，属于最高优先级交互，需要覆盖一切，包括可能打开的侧边栏
+  topbarMenuBackdrop: 1010,
+  topbarMenu: 1020,
 };
