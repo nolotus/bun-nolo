@@ -196,6 +196,15 @@ export default function UsersPage() {
     });
   };
 
+  // 新增：发送邮件
+  const handleSendEmail = useCallback((email: string) => {
+    if (!email) {
+      alert("邮箱地址不存在");
+      return;
+    }
+    window.location.href = `mailto:${email}`;
+  }, []);
+
   if (!currentServer) {
     return <div className="no-server">请先选择服务器以查看用户列表</div>;
   }
@@ -272,6 +281,7 @@ export default function UsersPage() {
                         >
                           充值
                         </Button>
+
                         {user.isDisabled ? (
                           <Button
                             onClick={() =>
@@ -284,17 +294,27 @@ export default function UsersPage() {
                             启用
                           </Button>
                         ) : (
-                          <Button
-                            onClick={() =>
-                              setConfirmModal({ type: "disable", user })
-                            }
-                            variant="secondary"
-                            status="warning"
-                            size="small"
-                          >
-                            停用
-                          </Button>
+                          <>
+                            <Button
+                              onClick={() =>
+                                setConfirmModal({ type: "disable", user })
+                              }
+                              variant="secondary"
+                              status="warning"
+                              size="small"
+                            >
+                              停用
+                            </Button>
+                            <Button
+                              onClick={() => handleSendEmail(user.email)}
+                              variant="secondary"
+                              size="small"
+                            >
+                              发送邮件
+                            </Button>
+                          </>
                         )}
+
                         <Button
                           onClick={() =>
                             setConfirmModal({ type: "delete", user })
@@ -370,6 +390,7 @@ export default function UsersPage() {
           display: flex;
           flex-direction: column;
           gap: 24px;
+        }
 
         .page-header {
           display: flex;
