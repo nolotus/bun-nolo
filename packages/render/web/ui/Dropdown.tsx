@@ -1,4 +1,3 @@
-// render/web/ui/Dropdown.tsx
 import React, {
   useState,
   useRef,
@@ -7,8 +6,8 @@ import React, {
   useMemo,
   useCallback,
 } from "react";
-import { useTheme } from "app/theme";
-import { ChevronDownIcon, CheckIcon } from "@primer/octicons-react";
+import { useTranslation } from "react-i18next";
+import { LuChevronDown, LuCheck, LuX } from "react-icons/lu";
 import {
   FloatingPortal,
   useFloating,
@@ -52,7 +51,7 @@ export const Dropdown = forwardRef<HTMLButtonElement, DropdownProps>(
     {
       items = [],
       onChange,
-      placeholder = "选择...",
+      placeholder,
       labelField = "label",
       valueField = "value",
       disabled = false,
@@ -70,20 +69,22 @@ export const Dropdown = forwardRef<HTMLButtonElement, DropdownProps>(
     },
     ref
   ) => {
-    const theme = useTheme();
+    const { t } = useTranslation();
     const [open, setOpen] = useState(false);
     const [highlightedIndex, setHighlightedIndex] = useState(-1);
     const [searchTerm, setSearchTerm] = useState("");
     const dropdownListRef = useRef<HTMLDivElement>(null);
     const searchInputRef = useRef<HTMLInputElement>(null);
 
-    const inputId = `dropdown-${Math.random().toString(36).substr(2, 9)}`;
+    const inputId = useMemo(
+      () => `dropdown-${Math.random().toString(36).substring(2, 9)}`,
+      []
+    );
     const helperTextId = helperText ? `${inputId}-helper` : undefined;
 
-    // 打开/关闭 时聚焦或清空
     useEffect(() => {
       if (open && searchable) {
-        setTimeout(() => searchInputRef.current?.focus(), 0);
+        setTimeout(() => searchInputRef.current?.focus(), 50); // Small delay for transition
       }
       if (!open) {
         setSearchTerm("");
@@ -91,7 +92,6 @@ export const Dropdown = forwardRef<HTMLButtonElement, DropdownProps>(
       }
     }, [open, searchable]);
 
-    // 过滤项目
     const filteredItems = useMemo(
       () =>
         searchable && searchTerm
@@ -104,8 +104,7 @@ export const Dropdown = forwardRef<HTMLButtonElement, DropdownProps>(
       [items, searchTerm, labelField, searchable]
     );
 
-    // floating-ui 核心
-    const { x, y, strategy, context, refs, update } = useFloating({
+    const { x, y, strategy, context, refs } = useFloating({
       open,
       onOpenChange: setOpen,
       placement: "bottom-start",
@@ -113,22 +112,22 @@ export const Dropdown = forwardRef<HTMLButtonElement, DropdownProps>(
       whileElementsMounted: autoUpdate,
     });
 
-    // 交互 Hook
-    const click = useClick(context);
-    const dismiss = useDismiss(context);
-    const role = useRole(context, { role: "listbox" });
-    const listNavigation = useListNavigation(context, {
-      listRef: dropdownListRef,
-      activeIndex: highlightedIndex,
-      onNavigate: setHighlightedIndex,
-    });
     const { getReferenceProps, getFloatingProps, getItemProps } =
-      useInteractions([click, dismiss, role, listNavigation]);
+      useInteractions([
+        useClick(context),
+        useDismiss(context),
+        useRole(context, { role: "listbox" }),
+        useListNavigation(context, {
+          listRef: dropdownListRef,
+          activeIndex: highlightedIndex,
+          onNavigate: setHighlightedIndex,
+        }),
+      ]);
 
     const handleSelect = useCallback(
       (item: any) => {
         onChange?.(item);
-        // 这里关闭会触发 useEffect 清空搜索、高亮
+        setOpen(false);
       },
       [onChange]
     );
@@ -141,7 +140,9 @@ export const Dropdown = forwardRef<HTMLButtonElement, DropdownProps>(
       [onChange]
     );
 
-    const displayValue = selectedItem ? selectedItem[labelField] : placeholder;
+    const displayValue = selectedItem
+      ? selectedItem[labelField]
+      : placeholder || t("dropdown.placeholder", "选择...");
 
     return (
       <>
@@ -149,34 +150,28 @@ export const Dropdown = forwardRef<HTMLButtonElement, DropdownProps>(
         .dropdown-container {
           display: flex;
           flex-direction: column;
-          gap: ${theme.space[1]};
+          gap: var(--space-1);
           width: 100%;
         }
 
         .dropdown-label {
           font-size: 0.875rem;
           font-weight: 550;
-          color: ${theme.text};
-          margin-bottom: ${theme.space[1]};
+          color: var(--text);
+          margin-bottom: var(--space-1);
           letter-spacing: -0.01em;
           line-height: 1.4;
         }
+        .dropdown-label.error { color: var(--error); }
 
-        .dropdown-label.error {
-          color: ${theme.error};
-        }
-
-        .dropdown-wrapper {
-          position: relative;
-          width: 100%;
-        }
+        .dropdown-wrapper { position: relative; width: 100%; }
 
         .dropdown-toggle {
           width: 100%;
-          border-radius: ${theme.space[3]};
-          border: 1px solid ${error ? theme.error : theme.border};
-          background: ${theme.background};
-          color: ${selectedItem ? theme.text : theme.placeholder || theme.textQuaternary};
+          border-radius: var(--space-3);
+          border: 1px solid var(--border);
+          background: var(--background);
+          color: var(--placeholder);
           font-size: 0.925rem;
           font-weight: 500;
           text-align: left;
@@ -187,340 +182,151 @@ export const Dropdown = forwardRef<HTMLButtonElement, DropdownProps>(
           align-items: center;
           justify-content: space-between;
           transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+          font-family: inherit;
           letter-spacing: -0.01em;
-          box-shadow: 0 1px 3px ${theme.shadow1}, inset 0 1px 0 rgba(255, 255, 255, 0.1);
+          box-shadow: 0 1px 3px var(--shadowLight), inset 0 1px 0 rgba(255, 255, 255, 0.1);
           outline: none;
         }
+        .dropdown-toggle.has-selection { color: var(--text); }
+        .dropdown-toggle.error { border-color: var(--error); }
 
-        /* 尺寸系统 */
-        .dropdown-toggle.size-small {
-          height: 36px;
-          border-radius: ${theme.space[2]};
-          font-size: 0.875rem;
-        }
+        /* --- 尺寸系统 --- */
+        .dropdown-toggle.size-small { height: 36px; border-radius: var(--space-2); font-size: 0.875rem; }
+        .dropdown-toggle.size-small.has-icon { padding: 0 32px 0 40px; }
+        .dropdown-toggle.size-small.has-none { padding: 0 32px 0 var(--space-3); }
+        .dropdown-toggle.size-medium { height: 42px; font-size: 0.925rem; }
+        .dropdown-toggle.size-medium.has-icon { padding: 0 36px 0 44px; }
+        .dropdown-toggle.size-medium.has-none { padding: 0 36px 0 var(--space-4); }
+        .dropdown-toggle.size-large { height: 48px; font-size: 1rem; border-radius: var(--space-4); }
+        .dropdown-toggle.size-large.has-icon { padding: 0 40px 0 48px; }
+        .dropdown-toggle.size-large.has-none { padding: 0 40px 0 var(--space-5); }
+        
+        /* --- 变体样式 --- */
+        .dropdown-toggle.variant-filled { background: var(--backgroundSecondary); border-color: var(--borderLight); }
+        .dropdown-toggle.variant-ghost { background: transparent; border-color: transparent; box-shadow: none; }
+        .dropdown-toggle.variant-filled.error, .dropdown-toggle.variant-ghost.error { border-color: var(--error); }
+        
+        /* --- 交互状态 --- */
+        .dropdown-toggle:hover:not(:disabled) { border-color: var(--primary); }
+        .dropdown-toggle.error:hover:not(:disabled) { border-color: var(--error); }
 
-        .dropdown-toggle.size-small.has-icon {
-          padding: 0 32px 0 40px;
-        }
-
-        .dropdown-toggle.size-small.has-none {
-          padding: 0 32px 0 ${theme.space[3]};
-        }
-
-        .dropdown-toggle.size-medium {
-          height: 42px;
-          font-size: 0.925rem;
-        }
-
-        .dropdown-toggle.size-medium.has-icon {
-          padding: 0 36px 0 44px;
-        }
-
-        .dropdown-toggle.size-medium.has-none {
-          padding: 0 36px 0 ${theme.space[4]};
-        }
-
-        .dropdown-toggle.size-large {
-          height: 48px;
-          font-size: 1rem;
-          border-radius: ${theme.space[4]};
-        }
-
-        .dropdown-toggle.size-large.has-icon {
-          padding: 0 40px 0 48px;
-        }
-
-        .dropdown-toggle.size-large.has-none {
-          padding: 0 40px 0 ${theme.space[5]};
-        }
-
-        /* 变体样式 */
-        .dropdown-toggle.variant-filled {
-          background: ${theme.backgroundSecondary};
-          border-color: ${error ? theme.error : theme.borderLight};
-        }
-
-        .dropdown-toggle.variant-ghost {
-          background: transparent;
-          border-color: ${error ? theme.error : theme.borderLight};
-          box-shadow: none;
-        }
-
-        /* 交互状态 */
-        .dropdown-toggle:hover:not(:disabled) {
-          border-color: ${error ? theme.error : theme.primary}40;
-          box-shadow: 0 2px 6px ${theme.shadow1}, inset 0 1px 0 rgba(255, 255, 255, 0.15);
-        }
-
-        .dropdown-toggle:focus:not(:disabled) {
-          border-color: ${error ? theme.error : theme.primary};
-          box-shadow: 0 0 0 3px ${error ? `${theme.error}20` : `${theme.primary}20`}, 
-                     0 2px 8px ${theme.shadow2}, 
-                     inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        .dropdown-toggle:focus:not(:disabled), .dropdown-toggle.open {
+          border-color: var(--primary);
+          box-shadow: 0 0 0 3px var(--focus), 0 2px 8px var(--shadowMedium), inset 0 1px 0 rgba(255, 255, 255, 0.2);
           transform: translateY(-1px);
+        }
+        .dropdown-toggle.error:focus:not(:disabled), .dropdown-toggle.error.open {
+          border-color: var(--error);
+          box-shadow: 0 0 0 3px var(--error-focus, rgba(239, 68, 68, 0.25)); /* Fallback for --error-focus */
         }
 
         .dropdown-toggle:disabled {
-          background: ${theme.backgroundTertiary};
-          color: ${theme.textQuaternary};
+          background: var(--backgroundTertiary);
+          color: var(--textQuaternary);
           cursor: not-allowed;
           opacity: 0.6;
           box-shadow: none;
         }
 
-        .dropdown-toggle.open {
-          border-color: ${theme.primary};
-          box-shadow: 0 0 0 3px ${theme.primary}20;
-        }
-
-        /* 图标 */
+        /* --- 图标 & 控件 --- */
         .dropdown-icon {
           position: absolute;
           top: 50%;
           transform: translateY(-50%);
-          color: ${theme.textSecondary};
+          color: var(--textSecondary);
           display: flex;
-          align-items: center;
-          justify-content: center;
           pointer-events: none;
-          transition: color 0.3s ease;
           z-index: 1;
         }
+        .dropdown-icon.size-small { left: var(--space-3); font-size: 16px; }
+        .dropdown-icon.size-medium { left: var(--space-4); font-size: 18px; }
+        .dropdown-icon.size-large { left: var(--space-5); font-size: 20px; }
+        .dropdown-icon.error { color: var(--error); }
 
-        .dropdown-icon.size-small {
-          left: ${theme.space[3]};
-          width: 16px;
-          height: 16px;
-        }
-
-        .dropdown-icon.size-medium {
-          left: ${theme.space[4]};
-          width: 18px;
-          height: 18px;
-        }
-
-        .dropdown-icon.size-large {
-          left: ${theme.space[5]};
-          width: 20px;
-          height: 20px;
-        }
-
-        .dropdown-icon.error {
-          color: ${theme.error};
-        }
-
-        /* 控制按钮区域 */
         .dropdown-controls {
           position: absolute;
           top: 50%;
-          right: ${theme.space[2]};
+          right: var(--space-2);
           transform: translateY(-50%);
           display: flex;
           align-items: center;
-          gap: ${theme.space[1]};
+          gap: var(--space-1);
           z-index: 2;
         }
 
         .dropdown-clear {
-          background: none;
-          border: none;
-          color: ${theme.textTertiary};
-          cursor: pointer;
-          padding: ${theme.space[1]};
-          border-radius: ${theme.space[1]};
-          transition: all 0.3s ease;
-          display: flex;
-          align-items: center;
-          justify-content: center;
+          background: none; border: none; color: var(--textTertiary);
+          cursor: pointer; padding: var(--space-1); border-radius: var(--space-1);
+          transition: all 0.3s ease; display: flex;
         }
-
-        .dropdown-clear:hover {
-          color: ${theme.text};
-          background: ${theme.backgroundHover};
-        }
+        .dropdown-clear:hover { color: var(--text); background: var(--backgroundHover); }
 
         .dropdown-chevron {
-          color: ${theme.textTertiary};
+          color: var(--textTertiary);
           transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-          transform: ${open ? "rotate(180deg)" : "rotate(0)"};
         }
-
-        /* 下拉菜单 */
+        .dropdown-toggle.open .dropdown-chevron { transform: rotate(180deg); }
+        
+        /* --- 下拉菜单 --- */
         .dropdown-menu {
-          position: absolute;
           z-index: 1000;
-          width: 100%;
-          margin-top: ${theme.space[1]};
-          padding: ${theme.space[2]};
-          background: ${theme.background};
-          border: 1px solid ${theme.border};
-          border-radius: ${theme.space[3]};
-          box-shadow: 0 8px 32px -4px ${theme.shadow2}, 
-                     0 4px 16px -8px ${theme.shadow3};
-          max-height: 320px;
+          padding: var(--space-2);
+          background: var(--background);
+          border: 1px solid var(--border);
+          border-radius: var(--space-3);
+          box-shadow: 0 8px 32px -4px var(--shadowMedium), 0 4px 16px -8px var(--shadowHeavy);
           overflow: hidden;
           animation: dropdownSlideIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
-
-        @keyframes dropdownSlideIn {
-          from {
-            opacity: 0;
-            transform: translateY(-12px) scale(0.95);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-          }
-        }
-
+        @keyframes dropdownSlideIn { from { opacity: 0; transform: translateY(-12px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        
         .dropdown-search {
-          width: 100%;
-          height: 32px;
-          padding: 0 ${theme.space[3]};
-          border: 1px solid ${theme.borderLight};
-          border-radius: ${theme.space[2]};
-          background: ${theme.backgroundSecondary};
-          color: ${theme.text};
-          font-size: 0.875rem;
-          outline: none;
-          margin-bottom: ${theme.space[2]};
+          width: 100%; height: 32px; padding: 0 var(--space-3);
+          border: 1px solid var(--borderLight); border-radius: var(--space-2);
+          background: var(--backgroundSecondary); color: var(--text);
+          font-size: 0.875rem; outline: none; margin-bottom: var(--space-2);
           transition: all 0.3s ease;
         }
-
         .dropdown-search:focus {
-          border-color: ${theme.primary};
-          background: ${theme.background};
-          box-shadow: 0 0 0 2px ${theme.primary}20;
+          border-color: var(--primary);
+          background: var(--background);
+          box-shadow: 0 0 0 2px var(--focus);
         }
 
-        .dropdown-list {
-          max-height: 240px;
-          overflow-y: auto;
-        }
-
+        .dropdown-list { max-height: 240px; overflow-y: auto; padding-right: 4px; }
         .dropdown-item {
-          padding: ${theme.space[2]} ${theme.space[3]};
-          margin: ${theme.space[1]} 0;
-          border-radius: ${theme.space[2]};
-          cursor: pointer;
-          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-          font-size: 0.9rem;
-          color: ${theme.text};
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          letter-spacing: -0.01em;
-          position: relative;
+          padding: var(--space-2) var(--space-3); margin: var(--space-1) 0;
+          border-radius: var(--space-2); cursor: pointer;
+          transition: background 0.2s ease, color 0.2s ease;
+          font-size: 0.9rem; color: var(--text); display: flex;
+          align-items: center; justify-content: space-between;
         }
+        .dropdown-item:hover, .dropdown-item.highlighted { background: var(--backgroundHover); }
+        .dropdown-item.highlighted { color: var(--primary); }
+        .dropdown-item.selected { background: var(--primaryHover); color: var(--primary); font-weight: 550; }
+        
+        .dropdown-item-check { opacity: 0; color: var(--primary); transition: opacity 0.2s ease; }
+        .dropdown-item.selected .dropdown-item-check { opacity: 1; }
 
-        .dropdown-item:hover {
-          background: ${theme.backgroundHover};
-          color: ${theme.primary};
+        .dropdown-empty, .dropdown-loading {
+          padding: var(--space-4); color: var(--textTertiary);
+          font-size: 0.875rem; text-align: center;
         }
-
-        .dropdown-item.highlighted {
-          background: ${theme.primary}12;
-          color: ${theme.primary};
-        }
-
-        .dropdown-item.selected {
-          background: ${theme.primary}15;
-          color: ${theme.primary};
-          font-weight: 550;
-        }
-
-        .dropdown-item-check {
-          opacity: 0;
-          color: ${theme.primary};
-          transition: opacity 0.2s ease;
-        }
-
-        .dropdown-item.selected .dropdown-item-check {
-          opacity: 1;
-        }
-
-        .dropdown-empty,
-        .dropdown-loading {
-          padding: ${theme.space[4]};
-          color: ${theme.textTertiary};
-          font-size: 0.875rem;
-          text-align: center;
-          font-style: italic;
-        }
-
+        
         .dropdown-helper {
-          font-size: 0.8125rem;
-          line-height: 1.4;
-          margin-top: ${theme.space[1]};
-          letter-spacing: -0.01em;
+          font-size: 0.8125rem; line-height: 1.4;
+          margin-top: var(--space-1); color: var(--textTertiary);
         }
+        .dropdown-helper.error { color: var(--error); }
 
-        .dropdown-helper.error {
-          color: ${theme.error};
-        }
+        /* --- 滚动条 --- */
+        .dropdown-list::-webkit-scrollbar { width: 6px; }
+        .dropdown-list::-webkit-scrollbar-track { background: transparent; }
+        .dropdown-list::-webkit-scrollbar-thumb { background: var(--borderHover); border-radius: 3px; }
+        .dropdown-list::-webkit-scrollbar-thumb:hover { background: var(--textTertiary); }
 
-        .dropdown-helper.normal {
-          color: ${theme.textTertiary};
-        }
-
-        /* 滚动条 */
-        .dropdown-list::-webkit-scrollbar {
-          width: 6px;
-        }
-
-        .dropdown-list::-webkit-scrollbar-track {
-          background: transparent;
-        }
-
-        .dropdown-list::-webkit-scrollbar-thumb {
-          background: ${theme.borderHover || theme.border};
-          border-radius: 3px;
-        }
-
-        .dropdown-list::-webkit-scrollbar-thumb:hover {
-          background: ${theme.textTertiary};
-        }
-
-        /* 响应式 */
-        @media (max-width: 768px) {
-          .dropdown-toggle.size-medium {
-            height: 44px;
-            font-size: 1rem;
-          }
-
-          .dropdown-toggle.size-large {
-            height: 50px;
-            font-size: 1.0625rem;
-          }
-        }
-
-        @media (max-width: 480px) {
-          .dropdown-toggle {
-            border-radius: ${theme.space[2]};
-          }
-
-          .dropdown-toggle.size-large {
-            border-radius: ${theme.space[3]};
-          }
-
-          .dropdown-menu {
-            border-radius: ${theme.space[2]};
-          }
-        }
-
-        /* 减少动画偏好 */
         @media (prefers-reduced-motion: reduce) {
-          .dropdown-menu {
-            animation: none;
-          }
-          
-          .dropdown-toggle,
-          .dropdown-item,
-          .dropdown-chevron,
-          .dropdown-clear {
-            transition: none;
-          }
+          .dropdown-menu, .dropdown-toggle, .dropdown-chevron { animation: none; transition: none; }
         }
       `}</style>
 
@@ -543,7 +349,6 @@ export const Dropdown = forwardRef<HTMLButtonElement, DropdownProps>(
               </div>
             )}
 
-            {/* reference 按钮 */}
             <button
               {...getReferenceProps({
                 ref(node) {
@@ -555,7 +360,9 @@ export const Dropdown = forwardRef<HTMLButtonElement, DropdownProps>(
                 type: "button",
                 className: `dropdown-toggle size-${size} variant-${variant} ${
                   icon ? "has-icon" : "has-none"
-                } ${open ? "open" : ""}`,
+                } ${open ? "open" : ""} ${error ? "error" : ""} ${
+                  selectedItem ? "has-selection" : ""
+                }`,
                 disabled: disabled || loading,
                 "aria-haspopup": "listbox",
                 "aria-expanded": open,
@@ -570,31 +377,18 @@ export const Dropdown = forwardRef<HTMLButtonElement, DropdownProps>(
                     type="button"
                     className="dropdown-clear"
                     onClick={handleClear}
-                    aria-label="清除选择"
+                    aria-label={t("dropdown.clear", "清除选择")}
                   >
-                    <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 12 12"
-                      fill="currentColor"
-                    >
-                      <path
-                        d="M9 3L3 9M3 3l6 6"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                      />
-                    </svg>
+                    <LuX size={14} />
                   </button>
                 )}
-                <ChevronDownIcon
+                <LuChevronDown
                   size={size === "small" ? 14 : 16}
                   className="dropdown-chevron"
                 />
               </div>
             </button>
 
-            {/* 浮层部分 */}
             <FloatingPortal>
               {open && (
                 <div
@@ -605,18 +399,12 @@ export const Dropdown = forwardRef<HTMLButtonElement, DropdownProps>(
                       position: strategy,
                       top: y ?? 0,
                       left: x ?? 0,
-                      // 同步宽度
-                      width: refs.reference.current
-                        ? refs.reference.current.getBoundingClientRect().width
-                        : undefined,
+                      width:
+                        refs.reference.current?.getBoundingClientRect().width,
                     },
-                    // 在浮层上处理回车选中
                     onKeyDown(e: React.KeyboardEvent) {
-                      if (
-                        e.key === "Enter" &&
-                        highlightedIndex >= 0 &&
-                        filteredItems[highlightedIndex]
-                      ) {
+                      if (e.key === "Enter" && highlightedIndex !== -1) {
+                        e.preventDefault();
                         handleSelect(filteredItems[highlightedIndex]);
                       }
                     },
@@ -627,11 +415,11 @@ export const Dropdown = forwardRef<HTMLButtonElement, DropdownProps>(
                       ref={searchInputRef}
                       type="text"
                       className="dropdown-search"
-                      placeholder="搜索..."
+                      placeholder={t("dropdown.search", "搜索...")}
                       value={searchTerm}
                       onChange={(e) => {
                         setSearchTerm(e.target.value);
-                        setHighlightedIndex(-1);
+                        setHighlightedIndex(0);
                       }}
                     />
                   )}
@@ -639,10 +427,12 @@ export const Dropdown = forwardRef<HTMLButtonElement, DropdownProps>(
                   <div
                     ref={dropdownListRef}
                     className="dropdown-list"
-                    role="group"
+                    role="listbox"
                   >
                     {loading ? (
-                      <div className="dropdown-loading">加载中...</div>
+                      <div className="dropdown-loading">
+                        {t("dropdown.loading", "加载中...")}
+                      </div>
                     ) : filteredItems.length > 0 ? (
                       filteredItems.map((item, index) => {
                         const isSelected = selectedItem === item;
@@ -651,36 +441,37 @@ export const Dropdown = forwardRef<HTMLButtonElement, DropdownProps>(
                           <div
                             key={item[valueField] ?? index}
                             {...getItemProps({
-                              key: item[valueField] ?? index,
-                              index,
-                              item,
-                              onClick: () => handleSelect(item),
-                              onMouseEnter: () => setHighlightedIndex(index),
+                              role: "option",
                               className: `dropdown-item ${
                                 isHighlighted ? "highlighted" : ""
                               } ${isSelected ? "selected" : ""}`,
                               "aria-selected": isSelected,
+                              onClick: () => handleSelect(item),
                             })}
                           >
-                            <span>
-                              {renderOptionContent
-                                ? renderOptionContent(
-                                    item,
-                                    isHighlighted,
-                                    isSelected
-                                  )
-                                : item[labelField]}
-                            </span>
-                            <CheckIcon
-                              size={14}
-                              className="dropdown-item-check"
-                            />
+                            {renderOptionContent ? (
+                              renderOptionContent(
+                                item,
+                                isHighlighted,
+                                isSelected
+                              )
+                            ) : (
+                              <>
+                                <span>{item[labelField]}</span>
+                                <LuCheck
+                                  size={14}
+                                  className="dropdown-item-check"
+                                />
+                              </>
+                            )}
                           </div>
                         );
                       })
                     ) : (
                       <div className="dropdown-empty">
-                        {searchTerm ? "没有匹配的选项" : "没有可用选项"}
+                        {searchTerm
+                          ? t("dropdown.noResults", "没有匹配的选项")
+                          : t("dropdown.noOptions", "没有可用选项")}
                       </div>
                     )}
                   </div>
@@ -692,8 +483,8 @@ export const Dropdown = forwardRef<HTMLButtonElement, DropdownProps>(
           {helperText && (
             <div
               id={helperTextId}
-              className={`dropdown-helper ${error ? "error" : "normal"}`}
-              role={error ? "alert" : "note"}
+              className={`dropdown-helper ${error ? "error" : ""}`}
+              role={error ? "alert" : undefined}
             >
               {helperText}
             </div>
