@@ -1,7 +1,10 @@
+// src/components/AllModelsSelector.tsx
+
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Dropdown } from "render/web/ui/Dropdown";
-import { LuEye, LuCheck } from "react-icons/lu";
+// [更新] 引入 LuImage 替代 LuEye
+import { LuImage, LuCheck } from "react-icons/lu";
 import { ALL_MODELS, type ModelWithProvider } from "./models";
 
 interface AllModelsSelectorProps {
@@ -27,7 +30,6 @@ const AllModelsSelector: React.FC<AllModelsSelectorProps> = ({
 
   return (
     <>
-      {/* [简化] CSS 已适配更扁平的单行布局 */}
       <style href="model-selector" precedence="medium">{`
         .model-selector-container {
           display: flex;
@@ -47,7 +49,7 @@ const AllModelsSelector: React.FC<AllModelsSelectorProps> = ({
           display: flex;
           align-items: center;
           gap: var(--space-2);
-          padding: 0 var(--space-1); /* 左右内边距，垂直由min-height控制 */
+          padding: 0 var(--space-1);
           min-height: 40px;
           width: 100%;
           transition: all 0.2s ease-in-out;
@@ -55,13 +57,12 @@ const AllModelsSelector: React.FC<AllModelsSelectorProps> = ({
           overflow: hidden;
         }
         
-        /* [简化] 左侧内容包装器，用于实现文本溢出 */
         .model-details {
           display: flex;
           align-items: center;
           gap: var(--space-2);
-          flex: 1; /* 占据所有可用空间 */
-          min-width: 0; /* 允许flex item收缩 */
+          flex: 1;
+          min-width: 0;
         }
 
         .model-name {
@@ -83,11 +84,10 @@ const AllModelsSelector: React.FC<AllModelsSelectorProps> = ({
           border-radius: var(--space-1);
           white-space: nowrap;
           text-transform: uppercase;
-          flex-shrink: 0; /* 防止被压缩 */
+          flex-shrink: 0;
           transition: all 0.2s ease;
         }
         
-        /* [简化] Vision 徽章简化为纯图标 */
         .vision-icon {
           color: var(--primary);
           flex-shrink: 0;
@@ -98,7 +98,7 @@ const AllModelsSelector: React.FC<AllModelsSelectorProps> = ({
         .check-icon {
           color: var(--primary);
           flex-shrink: 0;
-          margin-left: auto; /* 关键：将Check图标推到最右边 */
+          margin-left: auto;
           transition: transform 0.2s ease;
         }
 
@@ -131,7 +131,7 @@ const AllModelsSelector: React.FC<AllModelsSelectorProps> = ({
           transform: scale(1.1);
         }
 
-        .dropdown-item.selected .model-name { /* dropdown组件会添加 .selected class */
+        .dropdown-item.selected .model-name {
           color: var(--primary);
           font-weight: 600;
         }
@@ -141,8 +141,6 @@ const AllModelsSelector: React.FC<AllModelsSelectorProps> = ({
         .model-selector-container.error .model-helper {
           color: var(--error);
         }
-
-        /* [简化] 响应式代码已移除，单行布局天然适配 */
       `}</style>
 
       <div
@@ -160,12 +158,14 @@ const AllModelsSelector: React.FC<AllModelsSelectorProps> = ({
           error={error}
           size={size}
           renderOptionContent={(item, isHighlighted, isSelected) => (
-            // [简化] 最终的单行、扁平化JSX结构
             <div className="model-option">
               <div className="model-details">
                 <span className="model-name">{item.name}</span>
                 <span className="provider-badge">{item.provider}</span>
-                {item.hasVision && <LuEye size={14} className="vision-icon" />}
+                {/* [更新] 使用 LuImage 并微调大小 */}
+                {item.hasVision && (
+                  <LuImage size={15} className="vision-icon" />
+                )}
               </div>
               {isSelected && <LuCheck size={16} className="check-icon" />}
             </div>
