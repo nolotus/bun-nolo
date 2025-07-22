@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
-import { useAppDispatch, useAppSelector } from "app/store";
+import { useAppDispatch } from "app/store";
 import { remove } from "database/dbSlice";
 import { Agent } from "app/types";
 import { useCouldEdit } from "auth/hooks/useCouldEdit";
@@ -48,7 +48,7 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
     try {
       await createNewDialog({ agents: [agentKey] });
     } catch (error) {
-      toast.error(t("createDialogError", "创建对话失败"));
+      toast.error(t("createDialogError"));
     }
   };
 
@@ -61,11 +61,11 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
       element?.classList.add("agent-exit");
       await new Promise((r) => setTimeout(r, 250));
       await dispatch(remove(agentKey));
-      toast.success(t("deleteSuccess", "删除成功"));
+      toast.success(t("deleteSuccess"));
       await reload();
     } catch (error) {
       setDeleting(false);
-      toast.error(t("deleteError", "删除失败"));
+      toast.error(t("deleteError"));
     }
   }, [item.id, agentKey, deleting, dispatch, reload, t]);
 
@@ -98,9 +98,7 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           <div className="agent__info">
             <div className="agent__title-row">
               <div className="agent__title-container clickable">
-                <h3 className="agent__title">
-                  {item.name || t("unnamed", "未命名")}
-                </h3>
+                <h3 className="agent__title">{item.name || t("unnamed")}</h3>
                 <button onClick={handleViewDetails} className="agent__view-btn">
                   <LuArrowRight size={14} />
                 </button>
@@ -112,7 +110,7 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
                 <LuCoins size={12} />
                 <span>{item.outputPrice.toFixed(2)}</span>
                 <span className="agent__price-unit">
-                  {t("priceUnit", "/ M tokens")}
+                  / {t("perMillionTokens")}
                 </span>
               </div>
             )}
@@ -121,7 +119,7 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
               {item.hasVision && (
                 <span className="agent__tag agent__vision">
                   <LuEye size={11} />
-                  <span>{t("vision", "视觉")}</span>
+                  <span>{t("vision")}</span>
                 </span>
               )}
               {item.tags?.slice(0, 3).map((tag, i) => (
@@ -140,7 +138,7 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
 
         {/* Description */}
         <div className="agent__desc clickable">
-          {item.introduction || t("noDescription", "暂无描述...")}
+          {item.introduction || t("noDescription")}
         </div>
 
         {/* Actions */}
@@ -153,9 +151,7 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
             size="medium"
             className="agent__primary"
           >
-            {isLoading
-              ? t("starting", "启动中...")
-              : t("startChat", "开始对话")}
+            {isLoading ? t("starting") : t("startChat")}
           </Button>
 
           {allowEdit && (
@@ -183,7 +179,7 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
         <Dialog
           isOpen={editVisible}
           onClose={closeEdit}
-          title={`${t("edit", "编辑")} ${item.name || t("agent", "智能体")}`}
+          title={`${t("edit")} ${item.name || t("agent")}`}
           size="large"
         >
           <AgentForm
@@ -337,10 +333,27 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           font-size: 0.9rem;
           line-height: 1.5;
           color: var(--textSecondary);
-          display: -webkit-box;
-          -webkit-line-clamp: 3;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
+          white-space: pre-wrap;
+          overflow-y: auto;
+          max-height: 90px; /* Limit height (approx 4 lines) */
+          padding: var(--space-2) var(--space-3);
+          background: var(--backgroundSecondary);
+          border-radius: var(--space-2);
+          scrollbar-width: thin;
+          scrollbar-color: var(--border) transparent;
+        }
+        
+        .agent__desc::-webkit-scrollbar {
+          width: 4px;
+        }
+        
+        .agent__desc::-webkit-scrollbar-track {
+          background: transparent;
+        }
+
+        .agent__desc::-webkit-scrollbar-thumb {
+          background-color: var(--border);
+          border-radius: 4px;
         }
 
         .agent__actions {
