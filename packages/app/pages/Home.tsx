@@ -1,7 +1,6 @@
 // file: src/pages/Home.tsx
 import React, { useState, useEffect, useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "app/store";
-import { selectTheme } from "app/settings/settingSlice";
 import {
   selectIsLoggedIn,
   selectCurrentUser,
@@ -16,17 +15,16 @@ import { useCreateDialog } from "chat/dialog/useCreateDialog";
 import { NavLink, useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 
-// Icons
+// Icons (统一使用 Lucide Icons)
 import {
-  GlobeIcon,
-  ChevronRightIcon,
-  PlusIcon,
-  BookIcon,
-  CopilotIcon,
-  CommentDiscussionIcon,
-  PencilIcon,
-} from "@primer/octicons-react";
-import { FiDollarSign } from "react-icons/fi";
+  LuGlobe,
+  LuChevronRight,
+  LuBook,
+  LuBot,
+  LuMessagesSquare,
+  LuPencil,
+  LuDollarSign,
+} from "react-icons/lu";
 
 // Components
 import WelcomeSection from "./WelcomeSection";
@@ -60,7 +58,7 @@ const EmptyPlaceholder = ({ message }: { message: string }) => (
   <>
     <div className="empty-container">
       <div className="empty-icon">
-        <CopilotIcon size={48} />
+        <LuBot size={48} />
       </div>
       <p className="empty-text">{message}</p>
     </div>
@@ -130,13 +128,7 @@ const Home = () => {
   const currentUserId = useAppSelector(selectUserId);
   const currentSpaceId = useAppSelector(selectCurrentSpaceId);
   const { isLoading: isChatLoading, createNewDialog } = useCreateDialog();
-  const [activeTab, setActiveTab] = useState(
-    isLoggedIn ? "myAI" : "communityAI"
-  );
-
-  useEffect(() => {
-    setActiveTab(isLoggedIn ? "myAI" : "communityAI");
-  }, [isLoggedIn]);
+  const [activeTab, setActiveTab] = useState("communityAI");
 
   const handleActionClick = useCallback(
     (action) => {
@@ -171,7 +163,7 @@ const Home = () => {
     {
       id: "quick-chat",
       text: "立即聊天",
-      icon: <CommentDiscussionIcon size={22} />,
+      icon: <LuMessagesSquare size={22} />,
       description: "与AI助手开始对话，获得即时帮助",
       type: "action",
       payload: startQuickChat,
@@ -180,7 +172,7 @@ const Home = () => {
     {
       id: "create-ai",
       text: "创建 AI 助手",
-      icon: <CopilotIcon size={22} />,
+      icon: <LuBot size={22} />,
       description: "智能对话，定制专属AI工作伙伴",
       type: "navigate",
       payload: `/${CreateRoutePaths.CREATE_CYBOT}`,
@@ -188,7 +180,7 @@ const Home = () => {
     {
       id: "create-note",
       text: "创建笔记",
-      icon: <PencilIcon size={22} />,
+      icon: <LuPencil size={22} />,
       description: "记录想法，构建知识体系",
       type: "action",
       payload: createNewPage,
@@ -196,19 +188,19 @@ const Home = () => {
     {
       id: "pricing-help",
       text: "价格与帮助",
-      icon: <BookIcon size={22} />,
+      icon: <LuBook size={22} />,
       description: "查看计费详情和使用指南",
       type: "mixed",
       subActions: [
         {
           text: "计费详情",
-          icon: <FiDollarSign size={14} />,
+          icon: <LuDollarSign size={14} />,
           type: "navigate",
           payload: "/pricing",
         },
         {
           text: "使用指南",
-          icon: <BookIcon size={14} />,
+          icon: <LuBook size={14} />,
           type: "navigate",
           payload:
             "/page-0e95801d90-01JRDMA6Q85PQDCEAC7EXHWF67?spaceId=01JRDM39VSNYD1PKS4B53W6BGE",
@@ -223,7 +215,7 @@ const Home = () => {
           {
             id: "myAI",
             label: "我的工作台",
-            icon: <CopilotIcon size={20} />,
+            icon: <LuBot size={20} />,
             component: <CybotList queryUserId={currentUserId} limit={6} />,
           },
         ]
@@ -231,7 +223,7 @@ const Home = () => {
     {
       id: "communityAI",
       label: "AI 广场",
-      icon: <GlobeIcon size={20} />,
+      icon: <LuGlobe size={20} />,
       component: <PubCybots limit={6} />,
     },
   ];
@@ -320,7 +312,7 @@ const Home = () => {
                   className="view-all-link"
                 >
                   <span>查看全部</span>
-                  <ChevronRightIcon size={16} />
+                  <LuChevronRight size={16} />
                 </NavLink>
               )}
             </header>
