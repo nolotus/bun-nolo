@@ -1,18 +1,14 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
-import { useAppSelector } from "app/store";
-import { selectTheme } from "app/settings/settingSlice";
-
-import { BsFileEarmarkText, BsShieldLock, BsLaptop } from "react-icons/bs";
+import { LuFileText, LuShieldCheck, LuLaptop } from "react-icons/lu";
 import { useTranslation } from "react-i18next";
 
 const WelcomeSection = () => {
-  const theme = useAppSelector(selectTheme);
   const { t } = useTranslation();
 
   const features = [
     {
-      icon: <BsFileEarmarkText size={24} />,
+      icon: <LuFileText size={24} />,
       title: t("welcomeSection.feature1.title"),
       description: t("welcomeSection.feature1.description"),
       highlights: [
@@ -20,10 +16,9 @@ const WelcomeSection = () => {
         t("welcomeSection.feature1.highlights.1"),
         t("welcomeSection.feature1.highlights.2"),
       ],
-      gradient: "from-blue-500 to-purple-600",
     },
     {
-      icon: <BsShieldLock size={24} />,
+      icon: <LuShieldCheck size={24} />,
       title: t("welcomeSection.feature2.title"),
       description: t("welcomeSection.feature2.description"),
       highlights: [
@@ -31,10 +26,9 @@ const WelcomeSection = () => {
         t("welcomeSection.feature2.highlights.1"),
         t("welcomeSection.feature2.highlights.2"),
       ],
-      gradient: "from-green-500 to-emerald-600",
     },
     {
-      icon: <BsLaptop size={24} />,
+      icon: <LuLaptop size={24} />,
       title: t("welcomeSection.feature3.title"),
       description: t("welcomeSection.feature3.description"),
       highlights: [
@@ -42,20 +36,14 @@ const WelcomeSection = () => {
         t("welcomeSection.feature3.highlights.1"),
         t("welcomeSection.feature3.highlights.2"),
       ],
-      gradient: "from-purple-500 to-pink-600",
     },
   ];
 
   return (
     <section className="welcome-section">
-      {/* 幕后光效 */}
       <div className="ambient-light"></div>
 
       <div className="hero-content">
-        <div className="hero-badge">
-          <span className="badge-text">✨ 私密 • 智能 • 开源</span>
-        </div>
-
         <h1 className="hero-title">
           <span className="gradient-text">{t("welcomeSection.heroTitle")}</span>
           <span className="lock-emoji" aria-hidden="true">
@@ -111,16 +99,12 @@ const WelcomeSection = () => {
 
       <style jsx>{`
         .welcome-section {
-          background: ${theme.backgroundSecondary};
-          border-radius: 24px;
-          padding: ${theme.space[16]} ${theme.space[12]};
+          padding: var(--space-16) var(--space-12);
           max-width: 1200px;
           margin: 0 auto;
           animation: sectionFadeIn 0.8s ease-out;
           overflow: hidden;
           position: relative;
-          border: 1px solid ${theme.borderLight};
-          box-shadow: 0 20px 60px ${theme.shadowLight};
         }
 
         .ambient-light {
@@ -131,7 +115,7 @@ const WelcomeSection = () => {
           bottom: -50%;
           background: radial-gradient(
             circle at 50% 50%,
-            ${theme.primary}08 0%,
+            var(--primaryGhost) 0%,
             transparent 50%
           );
           animation: ambientPulse 4s ease-in-out infinite;
@@ -141,46 +125,22 @@ const WelcomeSection = () => {
         .hero-content {
           text-align: center;
           max-width: 760px;
-          margin: 0 auto ${theme.space[16]};
+          margin: 0 auto var(--space-16);
           position: relative;
           z-index: 2;
-        }
-
-        .hero-badge {
-          display: inline-block;
-          padding: ${theme.space[2]} ${theme.space[4]};
-          background: ${theme.primaryGhost}15;
-          border: 1px solid ${theme.primaryLight}30;
-          border-radius: 20px;
-          margin-bottom: ${theme.space[6]};
-          animation: badgeSlideIn 0.8s ease forwards;
-          opacity: 0;
-          transform: translateY(-10px);
-        }
-
-        .badge-text {
-          font-size: 0.9rem;
-          font-weight: 500;
-          background: linear-gradient(
-            135deg,
-            ${theme.primary},
-            ${theme.primaryDark}
-          );
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
         }
 
         .hero-title {
           font-size: 3.2rem;
           font-weight: 800;
           line-height: 1.1;
-          margin-bottom: ${theme.space[8]};
-          color: ${theme.text};
+          margin-top: var(--space-6);
+          margin-bottom: var(--space-8);
+          color: var(--text);
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: ${theme.space[4]};
+          gap: var(--space-4);
           animation: titleSlideIn 1s ease forwards;
           animation-delay: 0.2s;
           opacity: 0;
@@ -190,8 +150,8 @@ const WelcomeSection = () => {
         .gradient-text {
           background: linear-gradient(
             135deg,
-            ${theme.primary} 0%,
-            ${theme.primaryDark} 50%,
+            var(--primary) 0%,
+            var(--primaryDark) 50%,
             #8b5cf6 100%
           );
           -webkit-background-clip: text;
@@ -204,14 +164,14 @@ const WelcomeSection = () => {
           display: inline-block;
           animation: lockFloat 3s ease-in-out infinite;
           font-size: 2.8rem;
-          filter: drop-shadow(0 4px 12px rgba(139, 92, 246, 0.3));
+          filter: drop-shadow(0 4px 12px var(--focus));
         }
 
         .hero-description {
           font-size: 1.35rem;
           line-height: 1.65;
-          color: ${theme.textSecondary};
-          margin-bottom: ${theme.space[10]};
+          color: var(--textSecondary);
+          margin-bottom: var(--space-10);
           animation: descSlideIn 1s ease forwards;
           animation-delay: 0.4s;
           opacity: 0;
@@ -232,23 +192,18 @@ const WelcomeSection = () => {
         .cta-button {
           position: relative;
           display: inline-block;
-          padding: ${theme.space[5]} ${theme.space[10]};
-          background: linear-gradient(
-            135deg,
-            ${theme.primary} 0%,
-            ${theme.primaryDark} 100%
-          );
+          padding: var(--space-3) var(--space-10);
+          background: var(--primaryGradient);
           color: white;
           text-decoration: none;
-          border-radius: 16px;
-          font-weight: 600;
-          font-size: 1.1rem;
+          border-radius: 9999px;
+          font-weight: 500;
+          font-size: 1.05rem;
+          letter-spacing: 0.5px;
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          border: 1px solid ${theme.primary};
+          border: 1px solid transparent;
           overflow: hidden;
-          box-shadow:
-            0 8px 25px ${theme.primary}25,
-            0 0 0 1px ${theme.primaryLight}20;
+          box-shadow: 0 4px 15px var(--focus);
         }
 
         .button-text {
@@ -273,9 +228,7 @@ const WelcomeSection = () => {
 
         .cta-button:hover {
           transform: translateY(-2px);
-          box-shadow:
-            0 12px 35px ${theme.primary}35,
-            0 0 0 1px ${theme.primaryLight}30;
+          box-shadow: 0 7px 20px var(--primaryGhost);
         }
 
         .cta-button:hover .button-shine {
@@ -285,23 +238,23 @@ const WelcomeSection = () => {
         .features-container {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
-          gap: ${theme.space[8]};
+          gap: var(--space-8);
           margin: 0 auto;
           position: relative;
           z-index: 1;
         }
 
         .feature-card {
-          background: ${theme.background};
+          background: var(--background);
           border-radius: 20px;
-          padding: ${theme.space[8]};
+          padding: var(--space-8);
           transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
           opacity: 0;
           animation: cardSlideIn 0.8s ease forwards;
           display: flex;
           flex-direction: column;
           height: 100%;
-          border: 1px solid ${theme.border};
+          border: 1px solid var(--border);
           position: relative;
           overflow: hidden;
         }
@@ -315,7 +268,7 @@ const WelcomeSection = () => {
           background: linear-gradient(
             90deg,
             transparent,
-            ${theme.primary}60,
+            var(--primaryLight),
             transparent
           );
           opacity: 0;
@@ -325,9 +278,9 @@ const WelcomeSection = () => {
         .feature-card:hover {
           transform: translateY(-8px);
           box-shadow:
-            0 20px 40px ${theme.shadowMedium},
-            0 0 0 1px ${theme.primaryLight}20;
-          border-color: ${theme.primaryLight}40;
+            0 20px 40px var(--shadowMedium),
+            0 0 0 1px var(--focus);
+          border-color: var(--primaryLight);
         }
 
         .feature-card:hover .feature-glow {
@@ -337,8 +290,8 @@ const WelcomeSection = () => {
         .feature-header {
           display: flex;
           align-items: center;
-          gap: ${theme.space[5]};
-          margin-bottom: ${theme.space[6]};
+          gap: var(--space-5);
+          margin-bottom: var(--space-6);
         }
 
         .feature-icon-container {
@@ -354,11 +307,11 @@ const WelcomeSection = () => {
         }
 
         .gradient-0 {
-          background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+          background: var(--primaryGradient);
         }
 
         .gradient-1 {
-          background: linear-gradient(135deg, #10b981, #059669);
+          background: var(--success);
         }
 
         .gradient-2 {
@@ -369,19 +322,19 @@ const WelcomeSection = () => {
           flex-grow: 1;
           display: flex;
           flex-direction: column;
-          gap: ${theme.space[5]};
+          gap: var(--space-5);
         }
 
         .feature-title {
           font-size: 1.3rem;
           font-weight: 700;
           margin: 0;
-          color: ${theme.text};
+          color: var(--text);
           line-height: 1.3;
         }
 
         .feature-description {
-          color: ${theme.textSecondary};
+          color: var(--textSecondary);
           font-size: 1rem;
           line-height: 1.7;
           margin: 0;
@@ -392,11 +345,11 @@ const WelcomeSection = () => {
         .feature-highlights {
           display: flex;
           flex-wrap: wrap;
-          gap: ${theme.space[3]};
+          gap: var(--space-3);
         }
 
         .highlight-tag {
-          padding: ${theme.space[2]} ${theme.space[4]};
+          padding: var(--space-2) var(--space-4);
           border-radius: 12px;
           font-size: 0.9rem;
           font-weight: 500;
@@ -405,26 +358,26 @@ const WelcomeSection = () => {
         }
 
         .highlight-0 {
-          background: ${theme.primaryGhost}08;
-          color: #3b82f6;
-          border-color: #3b82f620;
+          background: var(--backgroundAccent);
+          color: var(--primary);
+          border-color: var(--borderAccent);
         }
 
         .highlight-1 {
-          background: #10b98108;
-          color: #059669;
-          border-color: #10b98120;
+          background: rgba(16, 185, 129, 0.08);
+          color: var(--success);
+          border-color: rgba(16, 185, 129, 0.12);
         }
 
         .highlight-2 {
-          background: #8b5cf608;
+          background: rgba(139, 92, 246, 0.08);
           color: #8b5cf6;
-          border-color: #8b5cf620;
+          border-color: rgba(139, 92, 246, 0.12);
         }
 
         .highlight-tag:hover {
           transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 4px 12px var(--shadowLight);
         }
 
         @keyframes sectionFadeIn {
@@ -437,7 +390,6 @@ const WelcomeSection = () => {
             transform: translateY(0);
           }
         }
-
         @keyframes ambientPulse {
           0%,
           100% {
@@ -449,42 +401,30 @@ const WelcomeSection = () => {
             opacity: 0.5;
           }
         }
-
-        @keyframes badgeSlideIn {
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
         @keyframes titleSlideIn {
           to {
             opacity: 1;
             transform: translateY(0);
           }
         }
-
         @keyframes descSlideIn {
           to {
             opacity: 1;
             transform: translateY(0);
           }
         }
-
         @keyframes ctaSlideIn {
           to {
             opacity: 1;
             transform: translateY(0);
           }
         }
-
         @keyframes cardSlideIn {
           to {
             opacity: 1;
             transform: translateY(0);
           }
         }
-
         @keyframes lockFloat {
           0%,
           100% {
@@ -497,76 +437,60 @@ const WelcomeSection = () => {
             transform: translateY(-3px) rotate(-1deg);
           }
         }
-
         @media (max-width: 1024px) {
           .welcome-section {
-            padding: ${theme.space[12]} ${theme.space[8]};
+            padding: var(--space-12) var(--space-8);
           }
-
           .hero-title {
             font-size: 2.8rem;
           }
-
           .features-container {
-            gap: ${theme.space[6]};
+            gap: var(--space-6);
           }
         }
-
         @media (max-width: 768px) {
           .welcome-section {
-            padding: ${theme.space[10]} ${theme.space[6]};
+            padding: var(--space-10) var(--space-6);
           }
-
           .hero-title {
             font-size: 2.4rem;
             flex-direction: column;
-            gap: ${theme.space[3]};
+            gap: var(--space-3);
           }
-
           .hero-description {
             font-size: 1.2rem;
           }
-
           .features-container {
             grid-template-columns: 1fr;
-            gap: ${theme.space[5]};
+            gap: var(--space-5);
           }
-
           .feature-card {
-            padding: ${theme.space[6]};
+            padding: var(--space-6);
           }
         }
-
         @media (max-width: 480px) {
           .welcome-section {
-            padding: ${theme.space[8]} ${theme.space[4]};
-            border-radius: 18px;
+            padding: var(--space-8) var(--space-4);
           }
-
           .hero-title {
             font-size: 2rem;
           }
-
           .lock-emoji {
             font-size: 2.2rem;
           }
-
           .hero-description {
             font-size: 1.1rem;
-            margin-bottom: ${theme.space[8]};
+            margin-bottom: var(--space-8);
           }
-
           .cta-button {
             width: 100%;
-            padding: ${theme.space[4]} ${theme.space[8]};
+            padding: var(--space-4) var(--space-8);
           }
-
           .feature-card {
-            padding: ${theme.space[5]};
+            padding: var(--space-5);
           }
-
           .feature-header {
-            gap: ${theme.space[4]};
+            gap: var(--space-4);
           }
         }
       `}</style>

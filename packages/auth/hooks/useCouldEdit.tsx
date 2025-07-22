@@ -1,7 +1,8 @@
 import { useAppSelector } from "app/store";
 import { extractUserId } from "core/prefix";
-import { selectUserId } from "../authSlice";
 import { nolotusId } from "core/init";
+
+import { selectUserId } from "../authSlice";
 
 export const useCouldEdit = (dbKey?: string) => {
   // 如果 id 不存在或为空字符串，直接返回 false
