@@ -1,31 +1,31 @@
 import { useCallback, useState } from "react";
-import { selectTheme } from "app/settings/settingSlice";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import toast from "react-hot-toast";
 import { useAppDispatch, useAppSelector } from "app/store";
+import { remove } from "database/dbSlice";
+import { Agent } from "app/types";
 import { useCouldEdit } from "auth/hooks/useCouldEdit";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
 import { useModal } from "render/ui/Modal";
-import { useNavigate } from "react-router-dom";
-import toast from "react-hot-toast";
 
+// UI Components
 import Avatar from "render/web/ui/Avatar";
-import { Agent } from "app/types";
-import { remove } from "database/dbSlice";
+import Button from "render/web/ui/Button";
 import { Dialog } from "render/web/ui/Dialog";
 import AgentForm from "ai/llm/web/AgentForm";
-import Button from "render/web/ui/Button";
 
-// Icons
+// Icons from Lucide
 import {
-  CommentDiscussionIcon,
-  PencilIcon,
-  TrashIcon,
-  EyeIcon,
-  ArrowRightIcon,
-  SyncIcon,
-  PlusIcon,
-} from "@primer/octicons-react";
-import { FaYenSign } from "react-icons/fa";
+  LuArrowRight,
+  LuCoins,
+  LuEye,
+  LuMessageSquare,
+  LuPencil,
+  LuPlus,
+  LuRefreshCw,
+  LuTrash2,
+} from "react-icons/lu";
 
 interface AgentBlockProps {
   item: Agent;
@@ -34,7 +34,6 @@ interface AgentBlockProps {
 
 const AgentBlock = ({ item, reload }: AgentBlockProps) => {
   const { t } = useTranslation("ai");
-  const theme = useAppSelector(selectTheme);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
@@ -49,7 +48,7 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
     try {
       await createNewDialog({ agents: [agentKey] });
     } catch (error) {
-      toast.error(t("createDialogError"));
+      toast.error(t("createDialogError", "创建对话失败"));
     }
   };
 
@@ -62,11 +61,11 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
       element?.classList.add("agent-exit");
       await new Promise((r) => setTimeout(r, 250));
       await dispatch(remove(agentKey));
-      toast.success(t("deleteSuccess"));
+      toast.success(t("deleteSuccess", "删除成功"));
       await reload();
     } catch (error) {
       setDeleting(false);
-      toast.error(t("deleteError"));
+      toast.error(t("deleteError", "删除失败"));
     }
   }, [item.id, agentKey, deleting, dispatch, reload, t]);
 
@@ -84,7 +83,7 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
         onClick={(e) => {
           if (
             e.target === e.currentTarget ||
-            (e.target as Element).className.includes("clickable")
+            (e.target as Element).classList.contains("clickable")
           ) {
             handleViewDetails(e);
           }
@@ -99,25 +98,30 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           <div className="agent__info">
             <div className="agent__title-row">
               <div className="agent__title-container clickable">
-                <h3 className="agent__title">{item.name || t("unnamed")}</h3>
+                <h3 className="agent__title">
+                  {item.name || t("unnamed", "未命名")}
+                </h3>
                 <button onClick={handleViewDetails} className="agent__view-btn">
-                  <ArrowRightIcon size={14} />
+                  <LuArrowRight size={14} />
                 </button>
               </div>
-
-              {item.outputPrice && (
-                <div className="agent__price">
-                  <FaYenSign size={10} />
-                  <span>{item.outputPrice.toFixed(2)}</span>
-                </div>
-              )}
             </div>
+
+            {item.outputPrice && (
+              <div className="agent__price">
+                <LuCoins size={12} />
+                <span>{item.outputPrice.toFixed(2)}</span>
+                <span className="agent__price-unit">
+                  {t("priceUnit", "/ M tokens")}
+                </span>
+              </div>
+            )}
 
             <div className="agent__tags">
               {item.hasVision && (
                 <span className="agent__tag agent__vision">
-                  <EyeIcon size={11} />
-                  <span>{t("vision")}</span>
+                  <LuEye size={11} />
+                  <span>{t("vision", "视觉")}</span>
                 </span>
               )}
               {item.tags?.slice(0, 3).map((tag, i) => (
@@ -136,32 +140,34 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
 
         {/* Description */}
         <div className="agent__desc clickable">
-          {item.introduction || t("noDescription")}
+          {item.introduction || t("noDescription", "暂无描述...")}
         </div>
 
         {/* Actions */}
         <div className="agent__actions">
           <Button
-            icon={<CommentDiscussionIcon size={16} />}
+            icon={<LuMessageSquare size={16} />}
             onClick={startDialog}
             disabled={isLoading}
             loading={isLoading}
             size="medium"
             className="agent__primary"
           >
-            {isLoading ? t("starting") : t("startChat")}
+            {isLoading
+              ? t("starting", "启动中...")
+              : t("startChat", "开始对话")}
           </Button>
 
           {allowEdit && (
             <div className="agent__secondary">
               <Button
-                icon={<PencilIcon size={14} />}
+                icon={<LuPencil size={14} />}
                 onClick={openEdit}
                 variant="secondary"
                 size="medium"
               />
               <Button
-                icon={<TrashIcon size={14} />}
+                icon={<LuTrash2 size={14} />}
                 onClick={handleDelete}
                 disabled={deleting}
                 loading={deleting}
@@ -177,15 +183,15 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
         <Dialog
           isOpen={editVisible}
           onClose={closeEdit}
-          title={`${t("edit")} ${item.name || t("agent")}`}
+          title={`${t("edit", "编辑")} ${item.name || t("agent", "智能体")}`}
           size="large"
         >
           <AgentForm
             mode="edit"
             initialValues={item}
             onClose={closeEdit}
-            CreateIcon={PlusIcon}
-            EditIcon={SyncIcon}
+            CreateIcon={LuPlus}
+            EditIcon={LuRefreshCw}
           />
         </Dialog>
       )}
@@ -238,8 +244,6 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
         .agent__title-row {
           display: flex;
           align-items: flex-start;
-          justify-content: space-between;
-          gap: var(--space-2);
         }
 
         .agent__title-container {
@@ -274,25 +278,29 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           cursor: pointer;
           transition: all 0.2s ease;
           opacity: 0;
+          transform: translateX(-4px);
           flex-shrink: 0;
         }
 
         .agent:hover .agent__view-btn {
           opacity: 1;
+          transform: translateX(0);
           color: var(--primary);
         }
-
+        
         .agent__price {
-          font-size: 0.75rem;
+          font-size: 0.8rem;
           color: var(--textTertiary);
-          padding: var(--space-1) var(--space-2);
-          background: var(--backgroundTertiary);
-          border-radius: var(--space-1);
           display: flex;
           align-items: center;
-          gap: 4px;
-          font-weight: 550;
-          flex-shrink: 0;
+          gap: var(--space-1);
+          font-weight: 400;
+          align-self: flex-start;
+        }
+        
+        .agent__price-unit {
+          color: var(--textQuaternary);
+          font-size: 0.75rem;
         }
 
         .agent__tags {
@@ -356,116 +364,41 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           transition: all 0.25s ease;
         }
 
-        /* 响应式设计 - 移动端优化 */
+        /* Responsive Design */
         @media (max-width: 768px) {
           .agent {
             padding: var(--space-4);
             gap: var(--space-3);
           }
-
-          .agent__header {
-            gap: var(--space-2);
-          }
-
-          .agent__info {
-            gap: var(--space-1);
-          }
-
-          .agent__title-row {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: var(--space-1);
-          }
-
-          .agent__title-container {
-            width: 100%;
-          }
-
           .agent__view-btn {
             opacity: 1;
+            transform: none;
             position: absolute;
             top: var(--space-2);
             right: var(--space-2);
           }
-
-          .agent__price {
-            align-self: flex-start;
-          }
-
-          .agent__tags {
-            gap: var(--space-1);
-          }
-
-          .agent__actions {
-            gap: var(--space-2);
-          }
-
-          .agent__secondary {
-            gap: var(--space-1);
-          }
-
-          /* 移动端更小的屏幕 */
-          @media (max-width: 480px) {
-            .agent {
-              padding: var(--space-3);
-            }
-
-            .agent__actions {
-              flex-direction: column;
-              gap: var(--space-2);
-            }
-
-            .agent__secondary {
-              justify-content: center;
-            }
-
-            .agent__title {
-              font-size: 1rem;
-            }
-          }
         }
-
-        /* 触屏设备优化 */
+        
         @media (hover: none) and (pointer: coarse) {
-          .agent {
-            /* 移除hover效果，使用touch反馈 */
-            touch-action: manipulation;
-          }
-
           .agent:hover {
             transform: none;
           }
-
           .agent__view-btn {
             opacity: 1;
+            transform: none;
           }
-
           .agent:active {
             transform: scale(0.98);
             background: var(--backgroundHover);
           }
         }
 
-        /* 高对比度模式支持 */
-        @media (prefers-contrast: high) {
-          .agent {
-            border-width: 2px;
-          }
-
-          .agent__tag,
-          .agent__price {
-            border: 1px solid var(--border);
-          }
-        }
-
-        /* 减少动画 */
         @media (prefers-reduced-motion: reduce) {
           .agent,
           .agent__view-btn,
           .agent-exit {
             transition: none;
           }
-
           .agent:hover {
             transform: none;
           }

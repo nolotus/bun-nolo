@@ -5,7 +5,7 @@ import { SyncIcon } from "@primer/octicons-react";
 import { useAppSelector } from "app/store";
 import { selectTheme } from "app/settings/settingSlice";
 import { usePubCybots } from "ai/llm/hooks/usePubCybots";
-import AgentBlock from "ai/llm/web/AgentBlock";
+import AgentBlock from "ai/agent/web/AgentBlock";
 import toast from "react-hot-toast";
 
 interface PubCybotsProps {

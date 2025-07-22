@@ -28,7 +28,7 @@ import {
 
 // Components
 import WelcomeSection from "./WelcomeSection";
-import AgentBlock from "ai/llm/web/AgentBlock";
+import AgentBlock from "ai/agent/web/AgentBlock";
 import PubCybots from "ai/cybot/web/PubCybots";
 import Tabs, { TabItem } from "render/web/ui/Tabs";
 

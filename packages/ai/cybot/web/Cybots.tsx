@@ -7,7 +7,7 @@ import { DataType } from "create/types";
 import { useUserData } from "database/hooks/useUserData";
 import { SyncIcon } from "@primer/octicons-react";
 import { toast } from "react-hot-toast";
-import AgentBlock from "ai/llm/web/AgentBlock";
+import AgentBlock from "ai/agent/web/AgentBlock";
 
 interface CybotsProps {
   queryUserId: string;
