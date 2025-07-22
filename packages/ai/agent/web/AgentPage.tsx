@@ -1,35 +1,33 @@
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useAppDispatch, useAppSelector } from "app/store";
+import { useAppDispatch } from "app/store";
 import { useFetchData } from "app/hooks";
 import { useCouldEdit } from "auth/hooks/useCouldEdit";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
 import { useModal } from "render/ui/Modal";
 import { format } from "date-fns";
-
 import toast from "react-hot-toast";
+
+import {
+  LuPlus,
+  LuRefreshCw,
+  LuMessageSquare,
+  LuPencil,
+  LuTrash2,
+  LuEye,
+  LuCalendarDays,
+  LuTag,
+  LuCpu,
+  LuEyeOff,
+  LuJapaneseYen,
+} from "react-icons/lu";
+
 import Button from "render/web/ui/Button";
 import { Dialog } from "render/web/ui/Dialog";
 import Avatar from "render/web/ui/Avatar";
 import AgentForm from "ai/llm/web/AgentForm";
-
-import { selectTheme } from "app/settings/settingSlice";
 import { Agent } from "app/types";
 import { remove } from "database/dbSlice";
-
-import {
-  PlusIcon,
-  SyncIcon,
-  CommentDiscussionIcon,
-  PencilIcon,
-  TrashIcon,
-  EyeIcon,
-  CalendarIcon,
-  TagIcon,
-  CpuIcon,
-  EyeClosedIcon,
-} from "@primer/octicons-react";
-import { FaYenSign } from "react-icons/fa";
 
 interface AgentPageProps {
   agentKey: string;
@@ -37,7 +35,6 @@ interface AgentPageProps {
 
 const AgentPage = ({ agentKey }: AgentPageProps) => {
   const { t } = useTranslation("ai");
-  const theme = useAppSelector(selectTheme);
   const dispatch = useAppDispatch();
   const { isLoading: dialogLoading, createNewDialog } = useCreateDialog();
   const { visible: editVisible, open: openEdit, close: closeEdit } = useModal();
@@ -115,29 +112,28 @@ const AgentPage = ({ agentKey }: AgentPageProps) => {
               <div className="agent-page__badges">
                 {item.hasVision ? (
                   <span className="agent-page__badge agent-page__badge--vision">
-                    <EyeIcon size={14} />
+                    <LuEye size={14} />
                     {t("vision")}
                   </span>
                 ) : (
                   <span className="agent-page__badge agent-page__badge--text-only">
-                    <EyeClosedIcon size={14} />
+                    <LuEyeOff size={14} />
                     {t("textOnly")}
                   </span>
                 )}
 
                 {item.outputPrice && (
                   <span className="agent-page__badge agent-page__badge--price">
-                    <FaYenSign size={12} />
-                    {item.outputPrice.toFixed(2)}
+                    <LuJapaneseYen size={12} />
+                    {item.outputPrice.toFixed(2)} / {t("perMillionTokens")}
                   </span>
                 )}
               </div>
 
               <div className="agent-page__meta">
-                <span className="agent-page__id">#{item.id}</span>
                 {item.createdAt && (
                   <span className="agent-page__date">
-                    <CalendarIcon size={14} />
+                    <LuCalendarDays size={14} />
                     {format(new Date(item.createdAt), "yyyy-MM-dd")}
                   </span>
                 )}
@@ -151,17 +147,17 @@ const AgentPage = ({ agentKey }: AgentPageProps) => {
           {item.introduction && (
             <section className="agent-page__section">
               <h2 className="agent-page__section-title">
-                <CpuIcon size={18} />
+                <LuCpu size={18} />
                 {t("introduction")}
               </h2>
               <p className="agent-page__description">{item.introduction}</p>
             </section>
           )}
 
-          {item.tags && item.tags.length > 0 && (
+          {item.tags?.length > 0 && (
             <section className="agent-page__section">
               <h2 className="agent-page__section-title">
-                <TagIcon size={18} />
+                <LuTag size={18} />
                 {t("tags")}
               </h2>
               <div className="agent-page__tags">
@@ -183,22 +179,6 @@ const AgentPage = ({ agentKey }: AgentPageProps) => {
                   {item.model || t("notSpecified")}
                 </span>
               </div>
-              <div className="agent-page__detail-item">
-                <span className="agent-page__detail-label">
-                  {t("temperature")}
-                </span>
-                <span className="agent-page__detail-value">
-                  {item.temperature ?? t("notSpecified")}
-                </span>
-              </div>
-              <div className="agent-page__detail-item">
-                <span className="agent-page__detail-label">
-                  {t("maxTokens")}
-                </span>
-                <span className="agent-page__detail-value">
-                  {item.maxTokens || t("notSpecified")}
-                </span>
-              </div>
             </div>
           </section>
         </main>
@@ -206,7 +186,7 @@ const AgentPage = ({ agentKey }: AgentPageProps) => {
         {/* Actions */}
         <footer className="agent-page__actions-footer">
           <Button
-            icon={<CommentDiscussionIcon size={16} />}
+            icon={<LuMessageSquare size={16} />}
             onClick={startDialog}
             disabled={dialogLoading}
             loading={dialogLoading}
@@ -219,7 +199,7 @@ const AgentPage = ({ agentKey }: AgentPageProps) => {
           {allowEdit && (
             <div className="agent-page__secondary-actions">
               <Button
-                icon={<PencilIcon size={16} />}
+                icon={<LuPencil size={16} />}
                 onClick={openEdit}
                 variant="secondary"
                 size="large"
@@ -227,7 +207,7 @@ const AgentPage = ({ agentKey }: AgentPageProps) => {
                 {t("edit")}
               </Button>
               <Button
-                icon={<TrashIcon size={16} />}
+                icon={<LuTrash2 size={16} />}
                 onClick={handleDelete}
                 disabled={deleting}
                 loading={deleting}
@@ -252,8 +232,8 @@ const AgentPage = ({ agentKey }: AgentPageProps) => {
             mode="edit"
             initialValues={item}
             onClose={closeEdit}
-            CreateIcon={PlusIcon}
-            EditIcon={SyncIcon}
+            CreateIcon={LuPlus}
+            EditIcon={LuRefreshCw}
           />
         </Dialog>
       )}
@@ -261,8 +241,8 @@ const AgentPage = ({ agentKey }: AgentPageProps) => {
       <style href="agent-page" precedence="medium">{`
         .agent-page {
           min-height: 100vh;
-          background: linear-gradient(135deg, ${theme.background} 0%, ${theme.backgroundSecondary} 100%);
-          padding: ${theme.space[3]};
+          background: var(--backgroundSecondary);
+          padding: var(--space-4);
         }
 
         .agent-page__container {
@@ -270,15 +250,15 @@ const AgentPage = ({ agentKey }: AgentPageProps) => {
           margin: 0 auto;
           display: flex;
           flex-direction: column;
-          gap: ${theme.space[6]};
+          gap: var(--space-6);
         }
 
         .agent-page__hero {
-          background: ${theme.background};
+          background: var(--background);
           border-radius: 24px;
-          padding: ${theme.space[8]};
-          border: 1px solid ${theme.border};
-          box-shadow: 0 8px 32px ${theme.shadow1};
+          padding: var(--space-8);
+          border: 1px solid var(--border);
+          box-shadow: 0 8px 32px var(--shadowMedium);
           position: relative;
           overflow: hidden;
         }
@@ -290,7 +270,7 @@ const AgentPage = ({ agentKey }: AgentPageProps) => {
           left: 0;
           right: 0;
           height: 120px;
-          background: linear-gradient(135deg, ${theme.primary}08 0%, transparent 70%);
+          background: linear-gradient(135deg, var(--primaryGhost) 0%, transparent 70%);
           pointer-events: none;
         }
 
@@ -298,7 +278,7 @@ const AgentPage = ({ agentKey }: AgentPageProps) => {
           position: relative;
           display: flex;
           align-items: center;
-          gap: ${theme.space[6]};
+          gap: var(--space-6);
         }
 
         .agent-page__avatar {
@@ -311,7 +291,7 @@ const AgentPage = ({ agentKey }: AgentPageProps) => {
           position: absolute;
           inset: -8px;
           border-radius: 50%;
-          background: linear-gradient(135deg, ${theme.primary}20 0%, transparent 60%);
+          background: linear-gradient(135deg, var(--primary)20 0%, transparent 60%);
           opacity: 0.6;
           z-index: -1;
         }
@@ -324,162 +304,157 @@ const AgentPage = ({ agentKey }: AgentPageProps) => {
         .agent-page__name {
           font-size: 2.5rem;
           font-weight: 700;
-          margin: 0 0 ${theme.space[4]} 0;
-          color: ${theme.text};
+          margin: 0 0 var(--space-4) 0;
+          color: var(--text);
           line-height: 1.1;
           letter-spacing: -0.03em;
         }
 
         .agent-page__badges {
           display: flex;
-          gap: ${theme.space[2]};
-          margin-bottom: ${theme.space[4]};
+          gap: var(--space-2);
+          margin-bottom: var(--space-4);
           flex-wrap: wrap;
         }
 
         .agent-page__badge {
           display: flex;
           align-items: center;
-          gap: ${theme.space[1]};
-          padding: ${theme.space[2]} ${theme.space[3]};
+          gap: var(--space-1);
+          padding: var(--space-2) var(--space-3);
           border-radius: 12px;
           font-size: 0.875rem;
           font-weight: 600;
           border: 1px solid;
+          white-space: nowrap;
         }
 
         .agent-page__badge--vision {
-          background: ${theme.primary}15;
-          color: ${theme.primary};
-          border-color: ${theme.primary}30;
+          background: var(--primaryBg);
+          color: var(--primary);
+          border-color: var(--borderAccent);
         }
 
         .agent-page__badge--text-only {
-          background: ${theme.backgroundTertiary};
-          color: ${theme.textTertiary};
-          border-color: ${theme.border};
+          background: var(--backgroundTertiary);
+          color: var(--textTertiary);
+          border-color: var(--border);
         }
 
         .agent-page__badge--price {
-          background: ${theme.backgroundSecondary};
-          color: ${theme.textSecondary};
-          border-color: ${theme.border};
+          background: var(--backgroundSecondary);
+          color: var(--textSecondary);
+          border-color: var(--border);
         }
 
         .agent-page__meta {
           display: flex;
-          gap: ${theme.space[4]};
+          gap: var(--space-4);
           align-items: center;
           font-size: 0.875rem;
-          color: ${theme.textTertiary};
-        }
-
-        .agent-page__id {
-          font-family: 'SF Mono', Monaco, monospace;
-          background: ${theme.backgroundTertiary};
-          padding: ${theme.space[1]} ${theme.space[2]};
-          border-radius: 8px;
-          font-size: 0.75rem;
-          font-weight: 600;
+          color: var(--textTertiary);
+          justify-content: flex-start; /* Aligns items to the start */
+          min-height: 24px; /* Ensures consistent height even when empty */
         }
 
         .agent-page__date {
           display: flex;
           align-items: center;
-          gap: ${theme.space[1]};
+          gap: var(--space-1);
         }
 
         .agent-page__content {
           display: flex;
           flex-direction: column;
-          gap: ${theme.space[5]};
+          gap: var(--space-5);
         }
 
         .agent-page__section {
-          background: ${theme.background};
+          background: var(--background);
           border-radius: 20px;
-          padding: ${theme.space[6]};
-          border: 1px solid ${theme.border};
-          box-shadow: 0 4px 16px ${theme.shadow1};
+          padding: var(--space-6);
+          border: 1px solid var(--border);
+          box-shadow: 0 4px 16px var(--shadowLight);
         }
 
         .agent-page__section-title {
           display: flex;
           align-items: center;
-          gap: ${theme.space[2]};
+          gap: var(--space-2);
           font-size: 1.25rem;
           font-weight: 650;
-          margin: 0 0 ${theme.space[4]} 0;
-          color: ${theme.text};
+          margin: 0 0 var(--space-4) 0;
+          color: var(--text);
         }
 
         .agent-page__description {
           font-size: 1rem;
           line-height: 1.7;
-          color: ${theme.textSecondary};
+          color: var(--textSecondary);
           margin: 0;
           white-space: pre-wrap;
         }
 
         .agent-page__tags {
           display: flex;
-          gap: ${theme.space[2]};
+          gap: var(--space-2);
           flex-wrap: wrap;
         }
 
         .agent-page__tag {
-          background: ${theme.backgroundTertiary};
-          color: ${theme.textSecondary};
-          padding: ${theme.space[2]} ${theme.space[3]};
+          background: var(--backgroundTertiary);
+          color: var(--textSecondary);
+          padding: var(--space-2) var(--space-3);
           border-radius: 10px;
           font-size: 0.875rem;
           font-weight: 550;
-          border: 1px solid ${theme.border};
+          border: 1px solid var(--border);
           transition: all 0.2s ease;
         }
 
         .agent-page__tag:hover {
-          background: ${theme.backgroundSelected};
-          color: ${theme.text};
+          background: var(--backgroundHover);
+          color: var(--text);
         }
 
         .agent-page__details-grid {
           display: grid;
-          gap: ${theme.space[4]};
+          gap: var(--space-4);
           grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         }
 
         .agent-page__detail-item {
           display: flex;
           flex-direction: column;
-          gap: ${theme.space[1]};
+          gap: var(--space-1);
         }
 
         .agent-page__detail-label {
           font-size: 0.75rem;
           font-weight: 600;
-          color: ${theme.textTertiary};
+          color: var(--textTertiary);
           text-transform: uppercase;
           letter-spacing:  0.08em;
         }
 
         .agent-page__detail-value {
           font-size: 0.9rem;
-          color: ${theme.textSecondary};
+          color: var(--textSecondary);
           font-family: 'SF Mono', Monaco, monospace;
           font-weight: 500;
+          text-transform: capitalize;
         }
 
         .agent-page__actions-footer {
           position: sticky;
-          bottom: ${theme.space[3]};
-          background: ${theme.background}cc;
-          border: 1px solid ${theme.border};
+          bottom: var(--space-4);
+          background: var(--backgroundGhost);
+          border: 1px solid var(--border);
           border-radius: 20px;
-          padding: ${theme.space[4]};
+          padding: var(--space-4);
           display: flex;
-          gap: ${theme.space[3]};
-          box-shadow: 0 8px 32px ${theme.shadow2};
+          gap: var(--space-3);
+          box-shadow: 0 8px 32px var(--shadowMedium);
           backdrop-filter: blur(16px);
           -webkit-backdrop-filter: blur(16px);
         }
@@ -490,7 +465,7 @@ const AgentPage = ({ agentKey }: AgentPageProps) => {
 
         .agent-page__secondary-actions {
           display: flex;
-          gap: ${theme.space[2]};
+          gap: var(--space-2);
         }
 
         .agent-page__state-indicator {
@@ -498,25 +473,25 @@ const AgentPage = ({ agentKey }: AgentPageProps) => {
           flex-direction: column;
           align-items: stretch;
           justify-content: center;
-          gap: ${theme.space[4]};
-          padding: ${theme.space[12]} ${theme.space[4]};
+          gap: var(--space-4);
+          padding: var(--space-12) var(--space-4);
           text-align: center;
-          background: ${theme.background};
+          background: var(--background);
           border-radius: 20px;
-          border: 1px solid ${theme.border};
+          border: 1px solid var(--border);
           min-height: 50vh;
         }
 
         .agent-page__skeleton {
           width: 100%;
-          background: linear-gradient(90deg, ${theme.backgroundTertiary} 25%, ${theme.backgroundSecondary} 50%, ${theme.backgroundTertiary} 75%);
+          background: linear-gradient(90deg, var(--backgroundTertiary) 25%, var(--backgroundSecondary) 50%, var(--backgroundTertiary) 75%);
           background-size: 200% 100%;
           animation: agent-page-loading 1.5s infinite;
           border-radius: 12px;
         }
 
-        .agent-page__skeleton--header { height: 160px; margin-bottom: ${theme.space[5]}; }
-        .agent-page__skeleton--content { height: 240px; margin-bottom: ${theme.space[5]}; }
+        .agent-page__skeleton--header { height: 160px; margin-bottom: var(--space-5); }
+        .agent-page__skeleton--content { height: 240px; margin-bottom: var(--space-5); }
         .agent-page__skeleton--actions { height: 60px; }
 
         @keyframes agent-page-loading {
@@ -528,11 +503,15 @@ const AgentPage = ({ agentKey }: AgentPageProps) => {
           .agent-page__hero-content {
             flex-direction: column;
             text-align: center;
-            gap: ${theme.space[4]};
+            gap: var(--space-4);
           }
-
+          
           .agent-page__name {
             font-size: 2rem;
+          }
+
+          .agent-page__meta {
+            justify-content: center; /* Center the date when in column layout */
           }
 
           .agent-page__actions-footer {
@@ -544,7 +523,7 @@ const AgentPage = ({ agentKey }: AgentPageProps) => {
             border-left: 0;
             border-right: 0;
             border-bottom: 0;
-            margin: 0;
+            padding: var(--space-3);
             z-index: 10;
           }
 
@@ -560,11 +539,8 @@ const AgentPage = ({ agentKey }: AgentPageProps) => {
 
           .agent-page__secondary-actions {
             width: 100%;
-            justify-content: stretch;
-          }
-
-          .agent-page__secondary-actions > * {
-            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
           }
 
           .agent-page__details-grid {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { read } from "database/dbSlice";
+import { read, readAndWait } from "database/dbSlice";
 
 export function useFetchData<T>(dbKey: string) {
   const dispatch = useDispatch();
@@ -14,7 +14,7 @@ export function useFetchData<T>(dbKey: string) {
     const getData = async () => {
       try {
         setLoading(true);
-        const readAction = await dispatch(read(dbKey)).unwrap();
+        const readAction = await dispatch(readAndWait(dbKey)).unwrap();
         if (mounted) {
           setData(readAction);
         }

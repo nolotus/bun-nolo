@@ -8,7 +8,7 @@ import { useParams, useLocation } from "react-router-dom";
 import { resetPage } from "./pageSlice";
 import { changeSpace } from "create/space/spaceSlice";
 import DialogPage from "chat/dialog/DialogPage";
-import AgentPage from "ai/llm/web/AgentPage";
+import AgentPage from "ai/agent/web/AgentPage";
 // 懒加载子组件
 const RenderPage = lazy(() => import("./RenderPage"));
 

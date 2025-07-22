@@ -1,7 +1,7 @@
 export default {
   en: {
     translation: {
-      // General Actions
+      // General Actions & Status
       cancel: "Cancel",
       update: "Update",
       updating: "Updating...",
@@ -14,8 +14,22 @@ export default {
       startChat: "Start Chat",
       starting: "Starting...",
       viewDetails: "View Details",
+      deleteSuccess: "Deleted successfully!",
+
+      // Component Specific
+      agent: "Agent",
       unnamed: "Unnamed",
       noDescription: "No description",
+      notSpecified: "Not specified",
+      vision: "Vision",
+      textOnly: "Text-only",
+      details: "Details",
+      perMillionTokens: "per 1M tokens",
+
+      // Errors
+      loadError: "Failed to load details",
+      createDialogError: "Failed to create dialog",
+      deleteError: "Failed to delete. Please try again.",
 
       // Main AI Form
       createAgent: "Create a New AI",
@@ -117,13 +131,12 @@ export default {
           "Custom Provider URL is required for the 'custom' provider",
       },
 
-      // Errors and Status
+      // Legacy Errors (kept for compatibility)
       errors: {
         noUserId: "No user ID available. Please log in again.",
         createDialog: "Failed to create dialog",
         delete: "Failed to delete. Please try again.",
       },
-      deleteSuccess: "Deleted successfully!",
 
       // References Tab Specific
       references: {
@@ -149,7 +162,7 @@ export default {
   },
   "zh-CN": {
     translation: {
-      // 通用操作
+      // 通用操作和状态
       cancel: "取消",
       update: "更新",
       updating: "更新中...",
@@ -162,8 +175,22 @@ export default {
       startChat: "开始聊天",
       starting: "启动中...",
       viewDetails: "查看详情",
+      deleteSuccess: "删除成功！",
+
+      // 组件特定
+      agent: "AI",
       unnamed: "未命名",
       noDescription: "暂无描述",
+      notSpecified: "未指定",
+      vision: "视觉",
+      textOnly: "纯文本",
+      details: "详细信息",
+      perMillionTokens: "每百万Token",
+
+      // 错误提示
+      loadError: "加载详情失败",
+      createDialogError: "创建对话失败",
+      deleteError: "删除失败，请重试。",
 
       // AI 表单主标题
       createAgent: "创建新的AI",
@@ -261,13 +288,12 @@ export default {
         customUrlRequired: "使用自定义服务商时，URL为必填项",
       },
 
-      // 错误和状态
+      // 旧版错误（保留以兼容）
       errors: {
         noUserId: "无法获取用户ID，请重新登录。",
         createDialog: "创建对话失败",
         delete: "删除失败，请重试。",
       },
-      deleteSuccess: "删除成功！",
 
       // 知识与指令Tab
       references: {
@@ -293,7 +319,7 @@ export default {
   },
   "zh-Hant": {
     translation: {
-      // 通用操作
+      // 通用操作與狀態
       cancel: "取消",
       update: "更新",
       updating: "更新中...",
@@ -306,8 +332,22 @@ export default {
       startChat: "開始對話",
       starting: "啟動中...",
       viewDetails: "檢視詳情",
+      deleteSuccess: "刪除成功！",
+
+      // 組件特定
+      agent: "AI",
       unnamed: "未命名",
       noDescription: "暫無描述",
+      notSpecified: "未指定",
+      vision: "視覺",
+      textOnly: "純文字",
+      details: "詳細資訊",
+      perMillionTokens: "每百萬Token",
+
+      // 錯誤提示
+      loadError: "載入詳情失敗",
+      createDialogError: "建立對話失敗",
+      deleteError: "刪除失敗，請重試。",
 
       // AI 表單主標題
       createAgent: "建立新的AI",
@@ -405,13 +445,12 @@ export default {
         customUrlRequired: "使用自訂服務提供者時，URL為必填項",
       },
 
-      // 錯誤與狀態
+      // 舊版錯誤（保留以相容）
       errors: {
         noUserId: "無法獲取使用者ID，請重新登入。",
         createDialog: "建立對話失敗",
         delete: "刪除失敗，請重試。",
       },
-      deleteSuccess: "刪除成功！",
 
       // 知識與指令Tab
       references: {
@@ -437,7 +476,7 @@ export default {
   },
   ja: {
     translation: {
-      // 一般的なアクション
+      // 一般的なアクションとステータス
       cancel: "キャンセル",
       update: "更新",
       updating: "更新中...",
@@ -450,8 +489,22 @@ export default {
       startChat: "チャットを開始",
       starting: "開始中...",
       viewDetails: "詳細を表示",
+      deleteSuccess: "正常に削除されました！",
+
+      // コンポーネント固有
+      agent: "AI",
       unnamed: "無名",
       noDescription: "説明なし",
+      notSpecified: "指定なし",
+      vision: "ビジョン",
+      textOnly: "テキストのみ",
+      details: "詳細",
+      perMillionTokens: "100万トークンあたり",
+
+      // エラー
+      loadError: "詳細の読み込みに失敗しました",
+      createDialogError: "対話の作成に失敗しました",
+      deleteError: "削除に失敗しました。もう一度お試しください。",
 
       // AIフォームのメインタイトル
       createAgent: "新しいAIを作成",
@@ -556,14 +609,13 @@ export default {
         customUrlRequired: "カスタムプロバイダーを使用する場合、URLは必須です",
       },
 
-      // エラーとステータス
+      // レガシーエラー（互換性のため保持）
       errors: {
         noUserId:
           "ユーザーIDが取得できませんでした。再度ログインしてください。",
         createDialog: "対話の作成に失敗しました",
         delete: "削除に失敗しました。もう一度お試しください。",
       },
-      deleteSuccess: "正常に削除されました！",
 
       // 知識と指示タブ
       references: {
