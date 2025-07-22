@@ -75,14 +75,6 @@ export const handleToken = async (
 
 export const handleCybot = async (data: any, res: any, customKey: string) => {
   try {
-    logger.info({
-      event: "cybot_save",
-      id: customKey,
-      name: data.name,
-      userId: data.userId,
-      isPublic: data.isPublic,
-    });
-
     await serverDb.put(customKey, data);
     const savedData = await serverDb.get(customKey);
 

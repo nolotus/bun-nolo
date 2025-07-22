@@ -12,7 +12,7 @@ import { normalizeReferences } from "../common/createAgentSchema";
 import BasicInfoTab from "./BasicInfoTab";
 import ReferencesTab from "./ReferencesTab";
 import ToolsTab from "./ToolsTab";
-import PublishSettingsTab from "./PublishSettingsTab";
+import PublishSettingsTab from "../../agent/web/PublishSettingsTab";
 import AdvancedSettingsTab from "./AdvancedSettingsTab";
 
 import Button from "render/web/ui/Button";

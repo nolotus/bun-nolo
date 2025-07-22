@@ -15,7 +15,7 @@ import { TagsInput } from "render/web/form/TagsInput";
 import { useAppSelector } from "app/store";
 import { selectCurrentSpace } from "create/space/spaceSlice";
 import ToggleSwitch from "render/web/ui/ToggleSwitch";
-import PublishSettingsTab from "./PublishSettingsTab";
+import PublishSettingsTab from "../../agent/web/PublishSettingsTab";
 import ReferencesSelector from "./ReferencesSelector"; // 确保路径正确
 
 const CreateCustomCybot: React.FC = () => {

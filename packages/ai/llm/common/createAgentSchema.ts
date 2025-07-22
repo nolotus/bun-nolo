@@ -1,8 +1,10 @@
-import { ReferenceItem } from "app/types";
+// 路径: app/features/ai/common/createAgentSchema.ts (替换后的完整文件)
+
+import { ReferenceItem } from "app/types"; // 确保 app/types 里有 ReferenceItem 定义
 import { TFunction } from "i18next";
 import { z } from "zod";
 
-// --- 恢复所有模型参数的常量默认值 ---
+// --- 所有常量和辅助 schema 保持不变 ---
 export const DEFAULT_TEMPERATURE = 1.0;
 export const DEFAULT_TOP_P = 1.0;
 export const DEFAULT_FREQUENCY_PENALTY = 0.0;
@@ -16,17 +18,18 @@ const referenceItemSchema = z
   .object({
     dbKey: z.string(),
     title: z.string(),
-    type: z.enum(["knowledge", "instruction", "page"]), // Allow legacy 'page' type
+    type: z.enum(["knowledge", "instruction", "page"]),
   })
   .transform((data) => ({
     ...data,
     type: data.type === "page" ? "knowledge" : data.type,
   }));
 
-// 将 schema 定义包装在一个函数中，接收 t 函数作为参数
+// --- 核心修改在这里 ---
 export const getCreateAgentSchema = (t: TFunction) =>
   z
     .object({
+      // --- 所有现有字段的校验保持完全不变 ---
       name: z
         .string()
         .trim()
@@ -46,7 +49,7 @@ export const getCreateAgentSchema = (t: TFunction) =>
       useServerProxy: z.boolean().default(true),
       prompt: z.string().trim().optional().or(z.string().length(0)),
       tools: z.array(z.string()).default([]),
-      isPublic: z.boolean().default(false),
+      isPublic: z.boolean().default(false), // isPublic 字段保持不变
       greeting: z.string().trim().optional().or(z.string().length(0)),
       introduction: z.string().trim().optional().or(z.string().length(0)),
       inputPrice: z.number().min(0, t("validation.priceMin")).default(0),
@@ -95,7 +98,15 @@ export const getCreateAgentSchema = (t: TFunction) =>
         })
         .default(DEFAULT_REASONING_EFFORT)
         .optional(),
+
+      /**
+       * [战术热修新增] 增加 whitelist 字段的校验。
+       * 这是一个可选的 (optional)、由非空字符串组成的数组 (array of non-empty strings)。
+       * 使用 .default([]) 确保即使表单中没有这个字段，它也会被视为空数组，而不是 undefined。
+       */
+      whitelist: z.array(z.string().trim().min(1)).optional().default([]),
     })
+    // --- 所有 .refine 的逻辑保持完全不变 ---
     .refine(
       (data) => {
         const providerLower = data.provider.toLowerCase();
@@ -126,8 +137,10 @@ export const getCreateAgentSchema = (t: TFunction) =>
       }
     );
 
+// FormData 类型推断会自动包含新的 whitelist 字段，无需手动修改
 export type FormData = z.infer<ReturnType<typeof getCreateAgentSchema>>;
 
+// normalizeReferences 函数保持不变
 export const normalizeReferences = (references: any[]): ReferenceItem[] => {
   if (!Array.isArray(references)) return [];
   return references.map((ref) => ({

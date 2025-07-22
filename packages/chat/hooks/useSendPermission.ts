@@ -1,3 +1,5 @@
+// 路径: ai/hooks/useSendPermission.ts (最终修正版)
+
 import { useAppSelector } from "app/store";
 import { selectUserId } from "auth/authSlice";
 import { useTranslation } from "react-i18next";
@@ -6,7 +8,11 @@ import { getModelPricing, getFinalPrice, getPrices } from "ai/llm/getPricing";
 
 export interface SendPermissionCheck {
   allowed: boolean;
-  reason?: "NO_CONFIG" | "NO_MODEL_PRICING" | "INSUFFICIENT_BALANCE";
+  reason?:
+    | "NO_CONFIG"
+    | "NO_MODEL_PRICING"
+    | "INSUFFICIENT_BALANCE"
+    | "NOT_IN_WHITELIST";
   requiredAmount?: number;
   pricing?: {
     modelName: string;
@@ -15,8 +21,8 @@ export interface SendPermissionCheck {
 }
 
 export const useSendPermission = (userBalance: number = 0) => {
-  const { t } = useTranslation("chat"); // 修改为 chat 命名空间
-  const userId = useAppSelector(selectUserId);
+  const { t } = useTranslation("chat");
+  const currentUserId = useAppSelector(selectUserId); // 获取当前登录用户的ID
   const cybotConfig = useAgentConfig();
   const serverPrices = cybotConfig
     ? getModelPricing(cybotConfig.provider, cybotConfig.model)
@@ -27,14 +33,32 @@ export const useSendPermission = (userBalance: number = 0) => {
       return { allowed: false, reason: "NO_CONFIG" };
     }
 
-    // 如果 provider 是 "Custom"，直接允许发送，不验证定价
+    // [最终修正的核心改动]
+    // 1. 检查Agent的所有者ID是否就是当前登录用户ID
+    const isOwner = currentUserId && cybotConfig.userId === currentUserId;
+
+    // 2. 仅在“不是所有者”的情况下，才执行白名单检查
+    if (!isOwner) {
+      const hasWhitelist =
+        Array.isArray(cybotConfig.whitelist) &&
+        cybotConfig.whitelist.length > 0;
+
+      if (hasWhitelist) {
+        const isUserInWhitelist =
+          currentUserId && cybotConfig.whitelist.includes(currentUserId);
+
+        if (!isUserInWhitelist) {
+          return { allowed: false, reason: "NOT_IN_WHITELIST" };
+        }
+      }
+    }
+
+    // ---- 如果是所有者，或者通过了白名单检查，才会继续执行后续逻辑 ----
+
     if (cybotConfig.provider === "Custom") {
       return {
         allowed: true,
-        pricing: {
-          modelName: cybotConfig.model,
-          pricePerMessage: 0, // Custom 不需要定价，设为 0
-        },
+        pricing: { modelName: cybotConfig.model, pricePerMessage: 0 },
       };
     }
 
@@ -58,9 +82,12 @@ export const useSendPermission = (userBalance: number = 0) => {
   };
 
   const getErrorMessage = (
-    reason?: string,
+    reason?: SendPermissionCheck["reason"],
     pricing?: SendPermissionCheck["pricing"]
   ) => {
+    if (reason === "NOT_IN_WHITELIST") {
+      return t("notInWhitelist", "您不在该应用的白名单中，无法使用。");
+    }
     if (reason === "INSUFFICIENT_BALANCE" && pricing) {
       return t("insufficientBalanceDetailed", {
         modelName: pricing.modelName,
@@ -68,7 +95,6 @@ export const useSendPermission = (userBalance: number = 0) => {
         balance: userBalance.toFixed(2),
       });
     }
-
     return t(
       reason === "NO_CONFIG"
         ? "cybotConfigMissing"

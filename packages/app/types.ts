@@ -18,15 +18,14 @@ export type ReferenceItem = {
   type: "knowledge" | "instruction";
 };
 export interface Agent {
+  // --- 你已有的所有字段 ---
   provider: string;
   model: string;
   prompt?: string;
-
   name?: string;
-  [key: string]: any;
+  [key: string]: any; // 保留以兼容未知属性
   tools?: string[];
   userId: string;
-
   useServerProxy: boolean;
   apiKey?: string;
   customProviderUrl?: string;
@@ -36,8 +35,8 @@ export interface Agent {
   presence_penalty?: number;
   max_tokens?: number;
   reasoning_effort?: string;
-  updatedAt: string;
-  createdAt: number;
+  updatedAt: string; // 注意：在最终方案中这个字段类型会变为 number
+  createdAt: number; // 注意：在最终方案中这个字段类型会变为 number
   categoryId?: string;
   spaceId?: string;
   references?: ReferenceItem[];
@@ -49,8 +48,14 @@ export interface Agent {
   inputPrice?: number;
   introduction?: string;
   greeting?: string;
-  isPublic: boolean;
+  isPublic: boolean; // 保留这个字段
   endpointKey?: string;
+
+  /**
+   * [战术热修新增] 白名单用户ID列表。
+   * 这是一个可选的字符串数组。
+   */
+  whitelist?: string[];
 }
 
 // --- 内容相关 (核心修改处) ---
