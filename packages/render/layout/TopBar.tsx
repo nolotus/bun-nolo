@@ -1,15 +1,15 @@
-import React, { useState, Suspense, lazy } from "react";
+import React, { useState, useEffect, Suspense, lazy } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
-  SignInIcon,
-  ThreeBarsIcon,
-  HomeIcon,
-  KebabHorizontalIcon,
-  TrashIcon,
-  PlusIcon,
-} from "@primer/octicons-react";
+  LuLogIn,
+  LuMenu,
+  LuHouse,
+  LuEllipsis,
+  LuTrash2,
+  LuPlus,
+} from "react-icons/lu";
 import { useAppDispatch, useAppSelector } from "app/store";
 import { useAuth } from "auth/hooks/useAuth";
 import {
@@ -45,7 +45,14 @@ import { LoggedInMenu } from "auth/web/IsLoggedInMenu";
 const CreateMenuButton = lazy(() => import("./CreateMenuButton"));
 const Spinner = () => <div className="topbar__spinner" />;
 
-const DeleteButton = ({ cfg, mobile }: { cfg: any; mobile?: boolean }) => {
+// CHANGE: Renamed cfg to currentDialog for clarity
+const DeleteButton = ({
+  currentDialog,
+  mobile,
+}: {
+  currentDialog: any;
+  mobile?: boolean;
+}) => {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const dispatch = useAppDispatch();
@@ -53,10 +60,12 @@ const DeleteButton = ({ cfg, mobile }: { cfg: any; mobile?: boolean }) => {
   const { t } = useTranslation();
 
   const doDelete = async () => {
-    if (!cfg.dbKey && !cfg.id) return;
+    if (!currentDialog.dbKey && !currentDialog.id) return;
     setBusy(true);
     try {
-      await dispatch(deleteCurrentDialog(cfg.dbKey || cfg.id)).unwrap();
+      await dispatch(
+        deleteCurrentDialog(currentDialog.dbKey || currentDialog.id)
+      ).unwrap();
       toast.success(t("deleteSuccess"));
       nav("/");
     } catch {
@@ -73,7 +82,7 @@ const DeleteButton = ({ cfg, mobile }: { cfg: any; mobile?: boolean }) => {
       disabled={busy}
       aria-label={t("delete")}
     >
-      <TrashIcon size={16} />
+      <LuTrash2 size={16} />
       {mobile && t("delete")}
     </button>
   );
@@ -85,7 +94,7 @@ const DeleteButton = ({ cfg, mobile }: { cfg: any; mobile?: boolean }) => {
         isOpen={open}
         onClose={() => setOpen(false)}
         onConfirm={doDelete}
-        title={t("deleteDialogTitle", { title: cfg.title })}
+        title={t("deleteDialogTitle", { title: currentDialog.title })}
         message={t("deleteDialogConfirmation")}
         confirmText={t("delete")}
         cancelText={t("cancel")}
@@ -96,13 +105,14 @@ const DeleteButton = ({ cfg, mobile }: { cfg: any; mobile?: boolean }) => {
   );
 };
 
-const MobileMenu = ({ cfg }: { cfg: any }) => {
+// CHANGE: Renamed cfg to currentDialog
+const MobileMenu = ({ currentDialog }: { currentDialog: any }) => {
   const [open, setOpen] = useState(false);
   const { t } = useTranslation("chat");
   const { isLoading, createNewDialog } = useCreateDialog();
 
   const onCreate = () => {
-    createNewDialog({ agents: cfg.cybots });
+    createNewDialog({ agents: currentDialog.cybots });
     setOpen(false);
   };
 
@@ -113,7 +123,7 @@ const MobileMenu = ({ cfg }: { cfg: any }) => {
         onClick={() => setOpen(!open)}
         aria-label={t("moreOptions")}
       >
-        <KebabHorizontalIcon size={16} />
+        <LuEllipsis size={16} />
       </button>
       {open && (
         <>
@@ -128,10 +138,10 @@ const MobileMenu = ({ cfg }: { cfg: any }) => {
                 onClick={onCreate}
                 disabled={isLoading}
               >
-                {isLoading ? <Spinner /> : <PlusIcon size={16} />}
+                {isLoading ? <Spinner /> : <LuPlus size={16} />}
                 <span>{t("newchat")}</span>
               </button>
-              <DeleteButton cfg={cfg} mobile />
+              <DeleteButton currentDialog={currentDialog} mobile />
             </div>
           </div>
         </>
@@ -146,7 +156,8 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
   const nav = useNavigate();
   const { isLoggedIn, user } = useAuth();
   const { pageKey } = useParams();
-  const cfg = useAppSelector(selectCurrentDialogConfig);
+  // CHANGE: Renamed cfg to currentDialog
+  const currentDialog = useAppSelector(selectCurrentDialogConfig);
   const page = useAppSelector(selectPageData);
   const readOnly = useAppSelector(selectIsReadOnly);
   const dbSpace = useAppSelector(selectPageDbSpaceId);
@@ -156,6 +167,16 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
 
   const [delPgOpen, setDelPgOpen] = useState(false);
   const [deletingPg, setDeletingPg] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 0);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const creator = pageKey ? extractUserId(pageKey) : null;
   const isCreator = creator === user?.userId;
@@ -191,14 +212,15 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
     setDelPgOpen(false);
   };
 
+  // CHANGE: Restructured JSX for new Grid layout
   return (
     <>
-      <div className="topbar">
-        <div className="topbar__section">
+      <div className={`topbar ${isScrolled ? "topbar--scrolled" : ""}`}>
+        <div className="topbar__section topbar__section--left">
           {!isLoggedIn && (
             <NavListItem
               label={t("home")}
-              icon={<HomeIcon size={16} />}
+              icon={<LuHouse size={16} />}
               path="/"
             />
           )}
@@ -208,21 +230,22 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
               onClick={toggleSidebar}
               aria-label={t("toggleSidebar")}
             >
-              <ThreeBarsIcon size={16} />
+              <LuMenu size={16} />
             </button>
           )}
         </div>
+
         <div className="topbar__center">
-          {cfg && !showEdit ? (
+          {currentDialog && !showEdit ? (
             <>
-              <h1 className="topbar__title" title={cfg.title}>
-                {cfg.title}
+              <h1 className="topbar__title" title={currentDialog.title}>
+                {currentDialog.title}
               </h1>
               <div className="topbar__actions">
                 <DialogInfoPanel />
-                <DeleteButton cfg={cfg} />
+                <DeleteButton currentDialog={currentDialog} />
               </div>
-              <MobileMenu cfg={cfg} />
+              <MobileMenu currentDialog={currentDialog} />
             </>
           ) : (
             showEdit && (
@@ -238,7 +261,7 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
                     disabled={deletingPg}
                     title={t("delete")}
                   >
-                    <TrashIcon size={16} />
+                    <LuTrash2 size={16} />
                   </button>
                   <Button
                     variant="primary"
@@ -258,14 +281,15 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
                     disabled={deletingPg}
                     title={t("delete")}
                   >
-                    <TrashIcon size={16} />
+                    <LuTrash2 size={16} />
                   </button>
                 </div>
               </>
             )
           )}
         </div>
-        <div className="topbar__section">
+
+        <div className="topbar__section topbar__section--right">
           {isLoggedIn ? (
             <>
               <Suspense fallback={<div style={{ width: 24 }} />}>
@@ -278,7 +302,7 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
               <LanguageSwitcher />
               <NavListItem
                 label={t("login")}
-                icon={<SignInIcon size={16} />}
+                icon={<LuLogIn size={16} />}
                 path={RoutePaths.LOGIN}
               />
             </>
@@ -302,10 +326,11 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
         />
       )}
 
+      {/* CHANGE: Updated CSS to use Grid for true centering */}
       <style href="topbar-styles" precedence="default">{`
         .topbar {
-          display: flex;
-          justify-content: space-between;
+          display: grid;
+          grid-template-columns: 1fr auto 1fr;
           align-items: center;
           background: var(--background);
           position: sticky;
@@ -313,22 +338,29 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
           padding: 0 var(--space-4);
           z-index: ${zIndex.topbar};
           height: var(--headerHeight);
-          border-bottom: 1px solid var(--border);
+          border-bottom: 1px solid transparent;
+          transition: border-color 0.2s ease-in-out;
           gap: var(--space-4);
+        }
+        .topbar--scrolled {
+            border-bottom-color: var(--border);
         }
         .topbar__section {
           display: flex;
           align-items: center;
           gap: var(--space-2);
-          flex-shrink: 0;
+        }
+        .topbar__section--left {
+            justify-content: flex-start;
+        }
+        .topbar__section--right {
+            justify-content: flex-end;
         }
         .topbar__center {
-          flex: 1;
           display: flex;
           align-items: center;
-          justify-content: center;
           gap: var(--space-4);
-          min-width: 0;
+          min-width: 0; /* Prevents long titles from pushing layout */
         }
         .topbar__actions {
           display: flex;
@@ -343,7 +375,6 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
-          max-width: 30ch;
         }
         .topbar__button {
           display: flex;
@@ -401,7 +432,7 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
           left: 0;
           width: 100%;
           height: 100%;
-          z-index: ${zIndex.mobileMenuBackdrop};
+          z-index: ${zIndex.topbarMenuBackdrop};
           background: transparent;
         }
         .topbar__dropdown {
@@ -413,7 +444,7 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
           border-radius: 8px;
           min-width: 240px;
           padding: var(--space-2);
-          z-index: ${zIndex.mobileMenuDropdown};
+          z-index: ${zIndex.topbarMenu};
           box-shadow: var(--shadowHeavy);
         }
         .topbar__menu-section {
@@ -429,17 +460,19 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
           padding: 0;
           border: none;
         }
+        /* CHANGE: Simplified media query for the new grid layout */
         @media (max-width: 768px) {
           .topbar {
+            grid-template-columns: auto 1fr auto; /* Allow center to take more space */
             padding: 0 var(--space-2);
             gap: var(--space-2);
           }
           .topbar__center {
-            gap: var(--space-2);
+            justify-content: center; /* Center the content within the available space */
           }
           .topbar__title {
             font-size: 15px;
-            max-width: 20ch;
+            max-width: calc(100vw - 200px); /* Give it a max-width to prevent overlap */
           }
           .topbar__actions {
             display: none !important;
@@ -453,13 +486,6 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
         @media (max-width: 480px) {
           .topbar__title {
             font-size: 14px;
-            max-width: 15ch;
-          }
-          .topbar__section:first-child > .topbar__button {
-            display: flex;
-          }
-          .topbar__section > * {
-            transform: scale(.95);
           }
         }
       `}</style>

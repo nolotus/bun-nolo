@@ -324,7 +324,7 @@ const Home = () => {
       <style href="home-optimized" precedence="high">{`
         .home-layout { 
           min-height: 100vh; 
-          background: linear-gradient(180deg, var(--backgroundSecondary) 0%, var(--background) 40%);
+          background: var(--background); /* CHANGE: Removed gradient and set to solid background */
         }
         
         .home-main { 
