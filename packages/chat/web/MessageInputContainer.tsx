@@ -1,11 +1,11 @@
-import { useAppSelector } from "app/store";
-import { selectTheme } from "app/settings/settingSlice";
+// /chat/MessageInputContainer.tsx
+
 import React, { Suspense, lazy } from "react";
-import { useSendPermission } from "../hooks/useSendPermission";
-import { useBalance } from "auth/hooks/useBalance";
-import { zIndex } from "render/styles/zIndex";
-import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
+import { zIndex } from "render/styles/zIndex";
+import { useBalance } from "auth/hooks/useBalance";
+import { useSendPermission } from "../hooks/useSendPermission";
 
 // 懒加载 MessageInput 组件
 const MessageInput = lazy(() => import("./MessageInput"));
@@ -21,88 +21,83 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({
   isInsufficientBalance = false,
   onRechargeClick,
 }) => {
-  const theme = useAppSelector(selectTheme);
   const { t } = useTranslation("chat");
 
   return (
-    <div
-      className="error-message"
-      style={{ zIndex: zIndex.messageInputContainerZIndex }}
-    >
-      <span>{message}</span>
-      {isInsufficientBalance && (
-        <span className="recharge-link" onClick={onRechargeClick}>
-          {t("recharge")}
-        </span>
-      )}
-      <style>{`
+    <div className="error-message">
+      <style href="error-message-styles" precedence="component">{`
         .error-message {
-          color: ${theme.error};
-          font-size: 14px;
-          padding: 0.5rem 1rem;
-          background-color: ${theme.errorBg || theme.backgroundSecondary};
-          border-radius: 8px;
-          margin-top: 16px;
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 8px;
-          box-shadow: 0 2px 4px ${theme.shadow1};
+          gap: var(--space-2);
+          margin-top: var(--space-4);
+          padding: var(--space-2) var(--space-4);
+          
+          font-size: 0.875rem; /* 14px */
+          color: var(--error);
+          background-color: var(--backgroundSecondary);
+          border: 1px solid var(--error);
+          border-radius: var(--space-2); /* 8px */
+          
+          box-shadow: 0 2px 4px var(--shadow1);
           animation: fadeIn 0.3s ease-out;
+          z-index: ${zIndex.messageInputContainer}; /* 修正 */
         }
         .recharge-link {
-          color: ${theme.primary};
+          color: var(--primary);
           cursor: pointer;
           text-decoration: underline;
+          text-underline-offset: 2px;
+          transition: color 0.2s ease;
         }
         .recharge-link:hover {
-          color: ${theme.primaryHover};
+          color: var(--hover);
         }
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(4px); }
           to { opacity: 1; transform: translateY(0); }
         }
       `}</style>
+      <span>{message}</span>
+      {isInsufficientBalance && (
+        <span className="recharge-link" onClick={onRechargeClick}>
+          {t("recharge", "充值")}
+        </span>
+      )}
     </div>
   );
 };
 
 const LoadingAnimation: React.FC = () => {
-  const theme = useAppSelector(selectTheme);
-
   return (
-    <div
-      className="loading-container"
-      style={{ zIndex: zIndex.messageInputContainerZIndex }}
-    >
-      <div className="loading-dots">
-        <div className="dot"></div>
-        <div className="dot"></div>
-        <div className="dot"></div>
-      </div>
-      <style>{`
+    <div className="loading-container">
+      <style href="loading-animation-styles" precedence="component">{`
         .loading-container {
-          padding: ${theme.space[4]};
           display: flex;
           justify-content: center;
-          margin-top: 16px;
-          background-color: ${theme.backgroundSecondary};
-          border-radius: 8px;
+          margin-top: var(--space-4);
+          padding: var(--space-4);
+          background-color: var(--backgroundSecondary);
+          border-radius: var(--space-2);
           animation: slideIn 0.4s ease-out;
+          z-index: ${zIndex.messageInputContainer}; /* 修正 */
         }
         .loading-dots {
           display: flex;
-          gap: ${theme.space[1]};
+          gap: var(--space-2);
         }
         .dot {
-          width: 6px;
-          height: 6px;
-          background-color: ${theme.primary};
+          width: 8px;
+          height: 8px;
+          background-color: var(--primary);
           border-radius: 50%;
           animation: pulse 1.4s ease-in-out infinite;
         }
         .dot:nth-child(1) { animation-delay: -0.32s; }
         .dot:nth-child(2) { animation-delay: -0.16s; }
+        .dot:nth-child(3) { animation-delay: 0s; }
+        
         @keyframes pulse {
           0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
           40% { opacity: 1; transform: scale(1); }
@@ -112,53 +107,35 @@ const LoadingAnimation: React.FC = () => {
           to { opacity: 1; transform: translateY(0); }
         }
       `}</style>
+      <div className="loading-dots">
+        <div className="dot"></div>
+        <div className="dot"></div>
+        <div className="dot"></div>
+      </div>
     </div>
   );
 };
 
 const InputLoadingPlaceholder: React.FC = () => {
-  const theme = useAppSelector(selectTheme);
-
   return (
     <div className="input-loading-placeholder">
-      <div className="placeholder-bar"></div>
-      <div className="placeholder-button"></div>
-      <style>{`
+      <style href="input-placeholder-styles" precedence="component">{`
         .input-loading-placeholder {
-          display: flex;
-          align-items: center;
-          gap: ${theme.space[3]};
-          padding: ${theme.space[4]};
-          background-color: ${theme.backgroundSecondary};
-          border-radius: 8px;
-          margin-top: 16px;
-          animation: fadeIn 0.3s ease-out;
+          margin-top: var(--space-4);
+          padding: var(--container-padding, var(--space-4));
         }
         .placeholder-bar {
-          flex: 1;
-          height: 20px;
-          background: linear-gradient(90deg, ${theme.backgroundTertiary}, ${theme.backgroundHover}, ${theme.backgroundTertiary});
-          background-size: 200% 100%;
-          border-radius: 4px;
-          animation: shimmer 1.5s ease-in-out infinite;
-        }
-        .placeholder-button {
-          width: 32px;
-          height: 20px;
-          background: linear-gradient(90deg, ${theme.backgroundTertiary}, ${theme.backgroundHover}, ${theme.backgroundTertiary});
-          background-size: 200% 100%;
-          border-radius: 4px;
-          animation: shimmer 1.5s ease-in-out infinite;
-        }
-        @keyframes shimmer {
-          0% { background-position: -200% 0; }
-          100% { background-position: 200% 0; }
+          height: 44px; /* 与实际输入框最小高度对齐 */
+          background-color: var(--backgroundTertiary);
+          border-radius: var(--container-border-radius, var(--space-3));
+          animation: fadeIn 0.5s ease-out;
         }
         @keyframes fadeIn {
           from { opacity: 0; }
           to { opacity: 1; }
         }
-      `}</style>
+       `}</style>
+      <div className="placeholder-bar"></div>
     </div>
   );
 };
@@ -169,12 +146,17 @@ const MessageInputContainer: React.FC = () => {
   const navigate = useNavigate();
 
   const handleRechargeClick = () => {
-    console.log("点击了充值链接，跳转至充值页面"); // 添加调试信息
-    navigate("/recharge"); // 跳转到充值页面
+    navigate("/recharge");
   };
 
-  if (loading) return <LoadingAnimation />;
-  if (balanceError) return <ErrorMessage message={balanceError} />;
+  if (loading) {
+    return <LoadingAnimation />;
+  }
+
+  if (balanceError) {
+    return <ErrorMessage message={balanceError} />;
+  }
+
   if (!sendPermission.allowed) {
     const errorMessage = getErrorMessage(
       sendPermission.reason,
@@ -182,6 +164,7 @@ const MessageInputContainer: React.FC = () => {
     );
     const isInsufficientBalance =
       sendPermission.reason === "INSUFFICIENT_BALANCE";
+
     return (
       <ErrorMessage
         message={errorMessage}

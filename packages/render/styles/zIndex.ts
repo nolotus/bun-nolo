@@ -19,6 +19,9 @@ export const zIndex = {
   // 页面顶栏，作为基础的固定/粘性元素
   topbar: 100,
 
+  // 新增: 消息输入框容器，作为基础布局的一部分，与顶栏同级
+  messageInputContainer: 100,
+
   // --- 2. 页面覆盖层 ---
   // 用于在移动端打开侧边栏时，覆盖在 TopBar 和主内容之上
   sidebarBackdrop: 200,

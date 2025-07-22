@@ -55,42 +55,33 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
     const lastMessage = messages[messages.length - 1];
 
     // 【需求 3: 载入时滚动到最下】
-    // 判断条件：这是不是组件的第一次有效渲染（从没有消息到有消息）
     if (stateRef.current.isInitialLoad && messages.length > 0) {
-      // 动作：直接滚动到底部，不使用平滑效果，以立即定位
       listEl.scrollTop = listEl.scrollHeight;
-      stateRef.current.isInitialLoad = false; // 标记初始加载已完成
-      return; // 完成本次任务，退出
+      stateRef.current.isInitialLoad = false;
+      return;
     }
 
     // 【需求 1: 用户发送消息滚动最下】
-    // 判断条件：消息数量增加，且最新一条消息的角色是 'user'
     if (
       messages.length > stateRef.current.prevMessagesLength &&
       lastMessage?.role === "user"
     ) {
-      // 动作：无条件平滑滚动到底部
       listEl.scrollTo({ top: listEl.scrollHeight, behavior: "smooth" });
     }
     // 【需求 2 & 4: stream 跟随滚动 & 用户往上滚动时不要阻止】
-    // 判断条件：适用于所有其他情况，如AI新消息或AI流式更新
     else {
-      // 检查用户是否已经滚动到了接近底部的位置
       const isNearBottom =
-        listEl.scrollHeight - listEl.clientHeight <= listEl.scrollTop + 150; // 150px的缓冲区域
+        listEl.scrollHeight - listEl.clientHeight <= listEl.scrollTop + 150;
 
-      // 动作：只有在接近底部时，才自动滚动，以避免打断用户查看历史记录
       if (isNearBottom) {
         listEl.scrollTo({ top: listEl.scrollHeight, behavior: "smooth" });
       }
     }
 
-    // 在 Effect 的最后，更新上一轮的消息数量，为下一次对比做准备
     stateRef.current.prevMessagesLength = messages.length;
-  }, [messages, lastStreamTimestamp]); // 依赖项确保了任何消息变动都会触发此逻辑
+  }, [messages, lastStreamTimestamp]);
 
   const handleLoadOlder = useCallback(() => {
-    // 使用 stateRef 获取最新的状态，避免回调依赖问题
     if (
       stateRef.current.isLoadingOlder ||
       !stateRef.current.hasMoreOlder ||
@@ -99,7 +90,6 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
       return;
 
     if (listRef.current) {
-      // 在加载前记录当前滚动高度，加载后用于恢复位置，防止跳动
       const prevScrollHeight = listRef.current.scrollHeight;
       const prevScrollTop = listRef.current.scrollTop;
 
@@ -144,19 +134,91 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
   }, []);
 
   const css = `
-    .chat-messages__container { display: flex; flex-direction: column; height: 100%; position: relative; overflow: hidden; background: ${theme.background}; }
-    .chat-messages__list { flex: 1 1 auto; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; gap: ${theme.space?.[4] || "16px"}; padding: ${theme.space?.[6] || "24px"} 15%; scroll-behavior: auto; overscroll-behavior: contain; z-index: 1; scrollbar-width: thin; scrollbar-color: ${theme.border} transparent; }
+    .chat-messages__container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      position: relative;
+      overflow: hidden;
+      background: var(--background);
+    }
+    .chat-messages__list {
+      flex: 1 1 auto;
+      overflow-y: auto;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      
+      /* Mobile First: 默认 (手机) */
+      padding: var(--space-4) var(--space-3); /* 16px 12px */
+      gap: var(--space-2); /* 8px */
+
+      scroll-behavior: auto;
+      overscroll-behavior: contain;
+      z-index: 1;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
     .chat-messages__list::-webkit-scrollbar { width: 8px; }
     .chat-messages__list::-webkit-scrollbar-track { background: transparent; }
-    .chat-messages__list::-webkit-scrollbar-thumb { background-color: ${theme.border}; border-radius: 4px; border: 2px solid ${theme.background}; transition: background-color 0.2s ease; }
-    .chat-messages__list::-webkit-scrollbar-thumb:hover { background-color: ${theme.borderHover}; }
-    @keyframes chat-messages__message-appear { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-    .chat-messages__item-wrapper { opacity: 0; transform: translateY(15px); animation: chat-messages__message-appear 0.3s ease-out forwards; will-change: transform, opacity; }
-    .top-loading { animation: slide-down 0.3s ease-out; }
-    @keyframes slide-down { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-    @media (max-width: 1024px) { .chat-messages__list { padding: ${theme.space?.[5] || "20px"} 10%; gap: ${theme.space?.[3] || "12px"}; } .chat-messages__item-wrapper { animation-duration: 0.25s; } }
-    @media (max-width: 768px) { .chat-messages__list { padding: ${theme.space?.[4] || "16px"} ${theme.space?.[3] || "12px"}; gap: ${theme.space?.[2] || "8px"}; } .chat-messages__item-wrapper { animation-duration: 0.2s; } }
-    @media (prefers-reduced-motion: reduce) { .chat-messages__item-wrapper, .top-loading { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; } }
+    .chat-messages__list::-webkit-scrollbar-thumb {
+      background-color: var(--border);
+      border-radius: 4px;
+      border: 2px solid var(--background);
+      transition: background-color 0.2s ease;
+    }
+    .chat-messages__list::-webkit-scrollbar-thumb:hover { background-color: var(--borderHover); }
+    
+    /* Tablet & Portrait iPads (7寸, 8寸平板) */
+    @media (min-width: 768px) {
+      .chat-messages__list {
+        padding: var(--space-5) var(--space-8); /* 20px 32px */
+        gap: var(--space-3); /* 12px */
+      }
+    }
+
+    /* Small Laptops & Landscape iPads (13寸笔记本) */
+    @media (min-width: 1024px) {
+      .chat-messages__list {
+        padding: var(--space-6) var(--space-12); /* 24px 48px */
+        gap: var(--space-4); /* 16px */
+      }
+    }
+
+    /* Large Laptops & Desktops (14, 16寸笔记本, 台式机) */
+    @media (min-width: 1440px) {
+      .chat-messages__list {
+        padding-left: var(--space-16); /* 64px */
+        padding-right: var(--space-16); /* 64px */
+        margin-left: auto;
+        margin-right: auto;
+        max-width: 980px; /* 关键：限制内容最大宽度以保证可读性 */
+      }
+    }
+    
+    .chat-messages__item-wrapper {
+      opacity: 0;
+      transform: translateY(15px);
+      animation: chat-messages__message-appear 0.3s ease-out forwards;
+      will-change: transform, opacity;
+    }
+    .top-loading {
+      animation: slide-down 0.3s ease-out;
+    }
+    @keyframes chat-messages__message-appear {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes slide-down {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .chat-messages__item-wrapper, .top-loading {
+        animation-duration: 0.01ms !important;
+      }
+    }
   `;
 
   return (
@@ -186,7 +248,9 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
         isVisible={showScrollToBottom}
         onClick={scrollToBottom}
       />
-      <style>{css}</style>
+      <style href="chat-messages-list-styles" precedence="component">
+        {css}
+      </style>
     </div>
   );
 };
