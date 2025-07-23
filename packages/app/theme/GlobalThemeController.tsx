@@ -1,6 +1,5 @@
 // app/theme/GlobalThemeController.tsx
 
-import { useEffect } from "react";
 import { useAppSelector } from "app/store";
 import { selectTheme } from "app/settings/settingSlice";
 
@@ -10,7 +9,7 @@ const STYLE_TAG_ID = "global-theme-variables";
  * 递归地将 JavaScript 主题对象转换为 CSS 自定义属性 (CSS 变量) 字符串数组。
  * @param themeObject - 主题对象，可以包含嵌套对象。
  * @param prefix - 用于递归时生成变量名的前缀 (例如 "space")。
- * @returns 一个包含所有 CSS 变量定义的字符串数组，例如 ["--primary:#1677FF;", "--space-4:16px;"]。
+ * @returns 一个包含所有 CSS 变量定义的字符串数组。
  */
 const generateCssVariables = (
   themeObject: Record<string, any>,
@@ -19,15 +18,12 @@ const generateCssVariables = (
   return Object.entries(themeObject).flatMap(([key, value]) => {
     const newKey = prefix ? `${prefix}-${key}` : key;
 
-    // 如果值是对象且不为 null/数组，则递归处理
     if (typeof value === "object" && value !== null && !Array.isArray(value)) {
       return generateCssVariables(value, newKey);
     }
-    // 如果是有效的基础类型值，则创建 CSS 变量
     if (value !== null && value !== undefined) {
       return [`--${newKey}:${value};`];
     }
-    // 忽略 null 或 undefined 的值
     return [];
   });
 };
@@ -43,37 +39,22 @@ const generateCssString = (theme: Record<string, any>): string => {
 };
 
 /**
- * 全局主题控制器 (无头组件)。
- * 它的唯一职责是：通过副作用(useEffect)来管理文档 <head> 中的一个 <style> 标签，
- * 以此将 Redux 中的动态主题应用为全局 CSS 变量。
+ * 全局主题控制器 (React 19+ 版本)。
+ * 它的职责是声明式地渲染一个 <style> 标签。
+ * 在服务端 (SSR)，React 19 会自动将此标签提升到 HTML <head>。
+ * 在客户端，React 会接管此标签，并在主题变化时高效地更新它。
+ * 这移除了所有手动的 DOM 操作。
  */
 const GlobalThemeController = () => {
+  // 1. 在服务端和客户端都能从 Redux store 获取到主题状态
   const theme = useAppSelector(selectTheme);
 
-  useEffect(() => {
-    const cssString = generateCssString(theme);
-    let styleTag = document.getElementById(STYLE_TAG_ID);
+  // 2. 根据当前主题状态生成 CSS 变量字符串
+  const cssString = generateCssString(theme);
 
-    if (!styleTag) {
-      styleTag = document.createElement("style");
-      styleTag.id = STYLE_TAG_ID;
-      document.head.appendChild(styleTag);
-    }
-
-    // 只有当内容实际发生变化时才更新，以减少不必要的 DOM 操作
-    if (styleTag.innerHTML !== cssString) {
-      styleTag.innerHTML = cssString;
-    }
-
-    return () => {
-      const tagToRemove = document.getElementById(STYLE_TAG_ID);
-      if (tagToRemove) {
-        document.head.removeChild(tagToRemove);
-      }
-    };
-  }, [theme]);
-
-  return null;
+  // 3. 直接渲染 <style> 标签。React 19 会处理剩下的一切。
+  //    我们甚至不需要导出 generateCssString 了，因为它只在这里使用。
+  return <style id={STYLE_TAG_ID}>{cssString}</style>;
 };
 
 export default GlobalThemeController;
