@@ -1,4 +1,4 @@
-// render/layout/SidebarTop.tsx (已更新图标)
+// render/layout/SidebarTop.tsx (最终简化版 - 透明)
 
 import React, { useCallback, useEffect, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -13,30 +13,9 @@ import {
 import { createSpaceKey } from "create/space/spaceKeys";
 import { SpaceItem } from "create/space/components/SpaceItem";
 
-// [修复] 遵循技术栈规范，并根据指示使用 LuHouse
+import { useClickOutside } from "app/hooks/useClickOutside";
 import { LuHouse, LuChevronDown } from "react-icons/lu";
 import { zIndex } from "../styles/zIndex";
-
-// Custom hook to detect clicks outside a specified element
-const useClickOutside = (
-  ref: React.RefObject<HTMLElement>,
-  handler: (event: MouseEvent | TouchEvent) => void
-) => {
-  useEffect(() => {
-    const listener = (event: MouseEvent | TouchEvent) => {
-      if (!ref.current || ref.current.contains(event.target as Node)) {
-        return;
-      }
-      handler(event);
-    };
-    document.addEventListener("mousedown", listener);
-    document.addEventListener("touchstart", listener);
-    return () => {
-      document.removeEventListener("mousedown", listener);
-      document.removeEventListener("touchstart", listener);
-    };
-  }, [ref, handler]);
-};
 
 export const SidebarTop: React.FC = () => {
   const { t } = useTranslation("space");
@@ -81,7 +60,6 @@ export const SidebarTop: React.FC = () => {
           className="SidebarTop__homeButton"
           aria-label={t("home")}
         >
-          {/* [修正] 根据指示，使用 LuHouse 图标 */}
           <LuHouse size={16} />
         </NavLink>
 
@@ -122,7 +100,7 @@ export const SidebarTop: React.FC = () => {
                     />
                   ))
                 ) : (
-                  <div className="SidebarTop__item SidebarTop__item--empty">
+                  <div className="SidebarTop__emptyMessage">
                     {t("no_spaces_yet")}
                   </div>
                 )}
@@ -150,10 +128,11 @@ export const SidebarTop: React.FC = () => {
           gap: var(--space-2);
           padding: var(--space-2);
           height: var(--headerHeight);
+          /* [修改] 完全透明，无边框 */
           background-color: transparent;
+          border-bottom: none; 
           flex-shrink: 0;
           box-sizing: border-box;
-          border-bottom: 1px solid var(--border);
         }
 
         .SidebarTop__homeButton {
@@ -165,10 +144,8 @@ export const SidebarTop: React.FC = () => {
           flex-shrink: 0;
           border-radius: 6px;
           color: var(--textTertiary);
-          background: transparent;
-          border: none;
-          cursor: pointer;
           text-decoration: none;
+          background-color: transparent;
           transition: background-color 0.2s ease, color 0.2s ease;
         }
 
@@ -195,21 +172,21 @@ export const SidebarTop: React.FC = () => {
           height: 32px;
           padding: 0 var(--space-2) 0 var(--space-3);
           border-radius: 6px;
-          border: 1px solid var(--border);
-          background-color: var(--background);
+          /* [修改] 移除背景和边框 */
+          background-color: transparent;
+          border: 1px solid transparent; /* 使用透明边框防止悬停时布局抖动 */
           cursor: pointer;
           font-family: inherit;
-          transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+          transition: background-color 0.2s ease, box-shadow 0.2s ease;
         }
 
         .SidebarTop__trigger:hover:not(:disabled):not([aria-expanded="true"]) {
           background-color: var(--backgroundHover);
-          border-color: var(--borderHover);
         }
 
         .SidebarTop__trigger[aria-expanded="true"] {
-          border-color: var(--primary);
-          box-shadow: 0 0 0 3px var(--focus);
+          background-color: var(--backgroundSelected);
+          /* [修改] 移除边框和阴影，仅用背景色表示激活 */
         }
 
         .SidebarTop__trigger:disabled {
@@ -262,41 +239,13 @@ export const SidebarTop: React.FC = () => {
           padding: var(--space-1);
         }
         
-        .SidebarTop__item {
-          display: flex;
-          align-items: center;
-          width: 100%;
-          gap: var(--space-2);
+        .SidebarTop__emptyMessage {
           padding: var(--space-2) var(--space-3);
-          border-radius: 6px;
-          font-size: 0.875rem;
-          text-align: left;
-          cursor: pointer;
-          border: none;
-          background-color: transparent;
-          color: var(--text);
-          font-family: inherit;
-          transition: background-color 0.2s ease, color 0.2s ease;
-        }
-
-        .SidebarTop__item:hover {
-          background-color: var(--backgroundHover);
-        }
-        
-        .SidebarTop__item--empty {
           color: var(--textTertiary);
-          justify-content: center;
-          cursor: default;
+          text-align: center;
           font-style: italic;
           font-size: 0.8rem;
-        }
-
-        .SidebarTop__item--empty:hover {
-          background-color: transparent;
-        }
-
-        .SidebarTop__item svg {
-          flex-shrink: 0;
+          cursor: default;
         }
       `}</style>
     </>

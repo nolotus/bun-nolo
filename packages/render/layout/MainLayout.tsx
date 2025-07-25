@@ -1,4 +1,4 @@
-// MainLayout.tsx (完整修复版 - Borderless)
+// render/layout/MainLayout.tsx (已移除所有光晕效果)
 
 import { useAuth } from "auth/hooks/useAuth";
 import ChatSidebar from "chat/web/ChatSidebar";
@@ -10,9 +10,9 @@ import React, {
   useState,
 } from "react";
 import { useDispatch } from "react-redux";
-import { setSidebarWidth, selectSidebarWidth } from "app/settings/settingSlice";
-import { useAppSelector } from "app/store"; // [新增] 导入 useAppSelector
+import { useAppSelector } from "app/store";
 import { zIndex } from "render/styles/zIndex";
+import { setSidebarWidth, selectSidebarWidth } from "app/settings/settingSlice";
 
 import TopBar from "./TopBar";
 import { SidebarTop } from "./SidebarTop";
@@ -23,7 +23,7 @@ const MainLayout: React.FC = () => {
   const location = useLocation();
   const { isLoggedIn } = useAuth();
   const dispatch = useDispatch();
-  const sidebarWidth = useAppSelector(selectSidebarWidth); // [修正] 使用 useAppSelector
+  const sidebarWidth = useAppSelector(selectSidebarWidth);
   const isOpen = sidebarWidth > 0;
 
   const [isResizing, setIsResizing] = useState(false);
@@ -92,7 +92,6 @@ const MainLayout: React.FC = () => {
     };
 
     setIsMobile(window.innerWidth < 768);
-
     window.addEventListener("resize", debouncedHandleResize);
     document.addEventListener("keydown", handleKeyDown);
 
@@ -170,20 +169,16 @@ const MainLayout: React.FC = () => {
         .MainLayout {
           display: flex;
           min-height: 100vh;
-          background: var(--background);
         }
 
         .MainLayout__sidebar {
           height: 100vh;
           display: flex;
           flex-direction: column;
-          background: var(--backgroundSecondary);
           flex-shrink: 0;
           position: relative;
           z-index: ${zIndex.sidebar};
           overflow: hidden;
-          /* [核心修改] 移除了右侧边框 */
-          border-right: none;
           transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
