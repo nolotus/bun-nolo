@@ -42,7 +42,7 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({
           
           box-shadow: 0 2px 4px var(--shadow1);
           animation: fadeIn 0.3s ease-out;
-          z-index: ${zIndex.messageInputContainer}; /* 修正 */
+          z-index: ${zIndex.messageInputContainer};
         }
         .recharge-link {
           color: var(--primary);
@@ -81,7 +81,7 @@ const LoadingAnimation: React.FC = () => {
           background-color: var(--backgroundSecondary);
           border-radius: var(--space-2);
           animation: slideIn 0.4s ease-out;
-          z-index: ${zIndex.messageInputContainer}; /* 修正 */
+          z-index: ${zIndex.messageInputContainer};
         }
         .loading-dots {
           display: flex;
@@ -116,26 +116,73 @@ const LoadingAnimation: React.FC = () => {
   );
 };
 
+// --- [核心修改] 重构 InputLoadingPlaceholder 以实现完美对齐 ---
 const InputLoadingPlaceholder: React.FC = () => {
   return (
-    <div className="input-loading-placeholder">
+    // 使用与真实组件一致的容器结构和样式，确保无缝切换
+    <div className="input-loading-container">
       <style href="input-placeholder-styles" precedence="component">{`
-        .input-loading-placeholder {
-          margin-top: var(--space-4);
-          padding: var(--container-padding, var(--space-4));
+        .input-loading-container {
+          padding: var(--space-4);
+          padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
+          background: var(--background);
+          animation: placeholderFadeIn 0.5s ease-out;
+        }
+        .input-loading-wrapper {
+          max-width: 100%;
+          margin: 0 auto;
         }
         .placeholder-bar {
-          height: 44px; /* 与实际输入框最小高度对齐 */
-          background-color: var(--backgroundTertiary);
-          border-radius: var(--container-border-radius, var(--space-3));
-          animation: fadeIn 0.5s ease-out;
+          height: 48px; /* 匹配桌面端输入框的最新高度 */
+          background-color: var(--backgroundSecondary);
+          border-radius: var(--space-2);
         }
-        @keyframes fadeIn {
+        
+        @keyframes placeholderFadeIn {
           from { opacity: 0; }
           to { opacity: 1; }
         }
-       `}</style>
-      <div className="placeholder-bar"></div>
+
+        /* 复制 MessageInput.tsx 中的所有媒体查询，确保骨架屏布局完全一致 */
+        @media (max-width: 768px) {
+          .input-loading-container {
+            padding: var(--space-3);
+            padding-bottom: calc(var(--space-3) + env(safe-area-inset-bottom, 0px));
+          }
+          .input-loading-wrapper {
+            padding-left: 0;
+            padding-right: 0;
+          }
+          .placeholder-bar {
+            height: 44px; /* 匹配移动端输入框的最新高度 */
+          }
+        }
+        @media (min-width: 768px) {
+          .input-loading-wrapper {
+            padding-left: var(--space-8);
+            padding-right: var(--space-8);
+          }
+        }
+        @media (min-width: 1024px) {
+          .input-loading-wrapper {
+            padding-left: var(--space-12);
+            padding-right: var(--space-12);
+          }
+        }
+        @media (min-width: 1440px) {
+          .input-loading-wrapper {
+            max-width: 960px; /* 匹配 MessageInput 最新宽度 */
+          }
+        }
+        @media (min-width: 1600px) {
+          .input-loading-wrapper {
+            max-width: 1080px; /* 匹配 MessageInput 最新宽度 */
+          }
+        }
+      `}</style>
+      <div className="input-loading-wrapper">
+        <div className="placeholder-bar"></div>
+      </div>
     </div>
   );
 };

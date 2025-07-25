@@ -290,7 +290,7 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
           {isLoggedIn ? (
             <>
               <Suspense fallback={<div style={{ width: 24 }} />}>
-                <CreateMenuButton />
+                <CreateMenuButton currentDialogConfig={currentDialog} />
               </Suspense>
               <LoggedInMenu />
             </>

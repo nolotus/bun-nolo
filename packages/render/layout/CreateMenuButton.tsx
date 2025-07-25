@@ -111,6 +111,20 @@ const CreateMenuButton: React.FC<{
 
         {isMenuOpen && (
           <div className="create-menu">
+            {currentDialogConfig && (
+              <button
+                className="menu-item"
+                onClick={handleCreateDialog}
+                disabled={isCreatingDialog}
+              >
+                {isCreatingDialog ? (
+                  <div className="spinner" />
+                ) : (
+                  <LuMessageSquare size={16} />
+                )}
+                <span>{t("chat:newchat", "新建对话")}</span>
+              </button>
+            )}
             <button
               className="menu-item"
               onClick={handleCreatePage}
@@ -128,21 +142,6 @@ const CreateMenuButton: React.FC<{
               <LuFolderPlus size={16} />
               <span>{t("space:create_new_space", "新建空间")}</span>
             </button>
-
-            {currentDialogConfig && (
-              <button
-                className="menu-item"
-                onClick={handleCreateDialog}
-                disabled={isCreatingDialog}
-              >
-                {isCreatingDialog ? (
-                  <div className="spinner" />
-                ) : (
-                  <LuMessageSquare size={16} />
-                )}
-                <span>{t("chat:newchat", "新建对话")}</span>
-              </button>
-            )}
           </div>
         )}
       </div>
