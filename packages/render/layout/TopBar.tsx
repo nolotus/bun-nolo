@@ -250,9 +250,6 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
           ) : (
             showEdit && (
               <>
-                <h1 className="topbar__title" title={page.title || ""}>
-                  {page.title || t("loading")}
-                </h1>
                 <div className="topbar__actions">
                   <ModeToggle isEdit={!readOnly} onChange={toggleEdit} />
                   <button
