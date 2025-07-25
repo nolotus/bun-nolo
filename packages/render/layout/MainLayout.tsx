@@ -1,4 +1,4 @@
-// MainLayout.tsx (完整修复版)
+// MainLayout.tsx (完整修复版 - Borderless)
 
 import { useAuth } from "auth/hooks/useAuth";
 import ChatSidebar from "chat/web/ChatSidebar";
@@ -9,9 +9,9 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { useDispatch, useSelector } from "react-redux";
-// 假设 settingSlice 路径正确
+import { useDispatch } from "react-redux";
 import { setSidebarWidth, selectSidebarWidth } from "app/settings/settingSlice";
+import { useAppSelector } from "app/store"; // [新增] 导入 useAppSelector
 import { zIndex } from "render/styles/zIndex";
 
 import TopBar from "./TopBar";
@@ -23,7 +23,7 @@ const MainLayout: React.FC = () => {
   const location = useLocation();
   const { isLoggedIn } = useAuth();
   const dispatch = useDispatch();
-  const sidebarWidth = useSelector(selectSidebarWidth);
+  const sidebarWidth = useAppSelector(selectSidebarWidth); // [修正] 使用 useAppSelector
   const isOpen = sidebarWidth > 0;
 
   const [isResizing, setIsResizing] = useState(false);
@@ -31,7 +31,6 @@ const MainLayout: React.FC = () => {
   const lastWidthRef = useRef(sidebarWidth);
   const isInitialMount = useRef(true);
 
-  // [新增] 用于存储防抖计时器的 Ref
   const resizeDebounceTimer = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -75,16 +74,14 @@ const MainLayout: React.FC = () => {
     [isResizing, dispatch]
   );
 
-  // [修改] 优化 resize 和 keydown 的副作用钩子
   useEffect(() => {
-    // 防抖处理窗口大小变化
     const debouncedHandleResize = () => {
       if (resizeDebounceTimer.current) {
         clearTimeout(resizeDebounceTimer.current);
       }
       resizeDebounceTimer.current = setTimeout(() => {
         setIsMobile(window.innerWidth < 768);
-      }, 150); // 150ms 的防抖延迟
+      }, 150);
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -94,13 +91,11 @@ const MainLayout: React.FC = () => {
       }
     };
 
-    // 立即执行一次以设置初始状态
     setIsMobile(window.innerWidth < 768);
 
     window.addEventListener("resize", debouncedHandleResize);
     document.addEventListener("keydown", handleKeyDown);
 
-    // 清理副作用
     return () => {
       window.removeEventListener("resize", debouncedHandleResize);
       document.removeEventListener("keydown", handleKeyDown);
@@ -187,7 +182,8 @@ const MainLayout: React.FC = () => {
           position: relative;
           z-index: ${zIndex.sidebar};
           overflow: hidden;
-          border-right: 1px solid var(--border);
+          /* [核心修改] 移除了右侧边框 */
+          border-right: none;
           transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 

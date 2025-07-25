@@ -1,3 +1,5 @@
+// /chat/web/MessageInput.tsx (宽度对齐最终版)
+
 import React, { useCallback, useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "app/theme";
@@ -25,7 +27,7 @@ import DocxPreviewDialog from "render/web/DocxPreviewDialog";
 import AttachmentsPreview, { PendingImagePreview } from "./AttachmentsPreview";
 import SendButton from "./ActionButton";
 import FileUploadButton from "./FileUploadButton";
-import { UploadIcon } from "@primer/octicons-react"; // <--- 修正：重新导入 UploadIcon
+import { UploadIcon } from "@primer/octicons-react";
 import toast from "react-hot-toast";
 
 const MessageInput: React.FC = () => {
@@ -265,118 +267,125 @@ const MessageInput: React.FC = () => {
   return (
     <>
       <style href="message-input" precedence="medium">{`
-        /* ... 样式代码和之前一样，保持不变 ... */
         .message-input-container {
           --container-padding: var(--space-4);
-          --container-gap: var(--space-3);
-          --container-border-radius: var(--space-3);
-          --element-transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-          position: relative;
-          bottom: 0; left: 0; right: 0; width: 100%;
+          --container-gap: var(--space-2);
+          --container-border-radius: var(--space-2);
+          --element-transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+          
+          position: sticky; bottom: 0; width: 100%;
           padding: var(--container-padding);
-          padding-bottom: calc(var(--container-padding)+env(safe-area-inset-bottom,0px));
-          display: flex; flex-direction: column; gap: var(--container-gap);
+          padding-bottom: calc(var(--container-padding) + env(safe-area-inset-bottom, 0px));
           background: var(--background);
-          border-top: 1px solid var(--borderLight);
-          box-shadow: 0 -4px 12px var(--shadowLight), inset 0 1px 0 rgba(255,255,255,0.05);
           z-index: ${zIndex.messageInputContainerZIndex};
-          transition: var(--element-transition);
         }
-        .message-input-container.processing { opacity: 0.85; }
-        .input-controls { display: flex; gap: var(--container-gap); width:100%; align-items:flex-end; }
+        .input-wrapper {
+          max-width: 100%; margin: 0 auto;
+        }
+        .input-controls { 
+          display: flex; gap: var(--container-gap); align-items: flex-end; width: 100%;
+        }
         .message-textarea {
-          flex:1; min-height:44px; max-height:200px;
+          flex: 1; min-height: 44px; max-height: 160px;
           padding: var(--container-gap) var(--container-padding);
-          font-size:0.925rem; line-height:1.5;
-          border:1px solid var(--border);
-          border-radius:var(--container-border-radius);
-          resize:none; overflow-y:auto; scroll-behavior:smooth; -webkit-overflow-scrolling: touch;
-          font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,sans-serif;
-          background:var(--backgroundSecondary); color:var(--text);
-          transition:var(--element-transition); letter-spacing:-0.01em;
-          box-shadow:0 1px 3px var(--shadowLight), inset 0 1px 0 rgba(255,255,255,0.03);
+          font-size: 15px; line-height: 1.45;
+          border: none; border-radius: var(--container-border-radius);
+          background: var(--backgroundSecondary);
+          box-shadow: inset 0 1px 2px var(--shadowLight);
+          color: var(--text); resize: none; outline: none;
+          font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+          transition: var(--element-transition);
+          letter-spacing: -0.01em;
         }
-        .message-textarea::placeholder { color:var(--placeholder); opacity:1; }
-        .message-textarea:disabled { opacity:0.65; cursor:wait; background:var(--backgroundTertiary); }
+        .message-textarea::placeholder { color: var(--textTertiary); }
         .message-textarea:focus {
-          outline:none; border-color:var(--primary); background:var(--background);
-          box-shadow:0 0 0 3px var(--focus),0 2px 8px var(--shadowMedium),inset 0 1px 0 rgba(255,255,255,0.05);
-          transform:translateY(-1px);
+          background: var(--background);
+          box-shadow: 0 0 0 3px var(--focus), inset 0 1px 2px var(--shadowMedium);
+          transform: translateY(-1px);
         }
         .message-textarea:hover:not(:focus):not(:disabled) {
-          border-color:var(--borderHover);
-          box-shadow:0 2px 6px var(--shadowLight), inset 0 1px 0 rgba(255,255,255,0.03);
+          background: var(--backgroundHover);
+          box-shadow: inset 0 1px 3px var(--shadowMedium);
+        }
+        .message-textarea:disabled { 
+          opacity: 0.6; background: var(--backgroundTertiary); 
         }
         .drop-zone {
-          position:absolute; inset:var(--space-2); border-radius:var(--space-4);
-          display:flex; align-items:center; justify-content:center;
-          background:var(--backgroundGhost); backdrop-filter:blur(12px);
-          border:2px dashed var(--primary); color:var(--primary); pointer-events:none;
-          z-index:10; opacity:0; animation:dropZoneFadeIn 0.2s ease-out forwards;
-        }
-        @keyframes dropZoneFadeIn {
-          from { opacity:0; transform:scale(0.95); }
-          to { opacity:1; transform:scale(1); }
-        }
-        @keyframes spin {
-          0% { transform:rotate(0deg); }
-          100% { transform:rotate(360deg); }
-        }
-        .drop-zone-content {
-          display:flex; flex-direction:column; align-items:center; gap:var(--space-3);
-          font-size:0.95rem; font-weight:550; letter-spacing:-0.01em;
-          padding:var(--space-5); border-radius:var(--container-border-radius);
-          background:rgba(var(--background),0.9); backdrop-filter:blur(8px);
-          box-shadow:0 4px 20px var(--shadowMedium);
+          position: absolute; inset: var(--space-2); 
+          background: var(--primaryBg); backdrop-filter: blur(8px);
+          border: 2px dashed var(--primary); border-radius: var(--container-border-radius);
+          display: flex; align-items: center; justify-content: center;
+          color: var(--primary); font-weight: 500; letter-spacing: -0.01em;
+          opacity: 0; animation: dropZoneFadeIn 0.2s ease-out forwards;
         }
         .processing-indicator {
-          position:absolute; top:var(--space-2); right:var(--space-2);
-          display:flex; align-items:center; gap:var(--space-2);
-          padding:var(--space-2) var(--space-3);
-          background:var(--backgroundSecondary); border:1px solid var(--border);
-          border-radius:var(--space-2); font-size:0.75rem; color:var(--textSecondary);
-          z-index:5; box-shadow:0 2px 8px var(--shadowMedium);
+          position: absolute; top: var(--space-2); right: var(--space-2);
+          display: flex; align-items: center; gap: var(--space-1);
+          padding: var(--space-1) var(--space-2); border-radius: var(--space-1);
+          background: var(--backgroundGhost); backdrop-filter: blur(4px);
+          font-size: 12px; color: var(--textSecondary);
+          box-shadow: 0 2px 4px var(--shadowLight);
         }
         .processing-spinner {
-          width:12px; height:12px;
-          border:1.5px solid var(--primary); border-top:1.5px solid transparent;
-          border-radius:50%; animation:spin 1s linear infinite;
+          width: 10px; height: 10px; border-radius: 50%;
+          border: 1px solid var(--primary); border-top: 1px solid transparent;
+          animation: spin 1s linear infinite;
         }
-        @media (max-width:768px) {
-          .message-input-container { --container-padding:var(--space-3); --container-gap:var(--space-2); --container-border-radius:var(--space-2); }
-          .message-textarea { min-height:40px; max-height:150px; padding:var(--space-2) var(--space-3); font-size:1rem; }
-          .drop-zone-content { padding:var(--space-4); font-size:0.875rem; }
-          .processing-indicator { top:var(--space-1); right:var(--space-1); padding:var(--space-1) var(--space-2); font-size:0.7rem; }
-          .processing-spinner { width:10px; height:10px; border-width:1px; }
+        
+        @keyframes dropZoneFadeIn {
+          from { opacity: 0; transform: scale(0.95); }
+          to { opacity: 1; transform: scale(1); }
         }
-        @media (max-width:480px) {
-          .message-input-container { --container-padding:var(--space-2); }
-          .message-textarea { padding:var(--space-2); font-size:1rem; }
-        }
-        @media (min-width:769px) {
-          .message-input-container {
-            max-width:900px; margin:0 auto; padding:var(--space-6) var(--container-padding);
-            border-top:none; box-shadow:none; background:transparent;
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        /* [核心优化] 调整宽度与 MessageList.tsx 保持完全一致，以获得最佳视觉连续性 */
+        @media (max-width: 768px) {
+          .message-input-container { 
+            --container-padding: var(--space-3); 
+            --container-gap: var(--space-2);
           }
-          .message-textarea { min-height:48px; max-height:200px; font-size:1rem; padding:var(--space-3) var(--space-5); }
-        }
-        @media (min-width:1400px) {
-          .message-input-container { max-width:1000px; }
-        }
-        @media (prefers-reduced-motion:reduce) {
-          .message-input-container, .message-textarea, .processing-spinner {
-            transition:border-color 0.1s ease, background-color 0.1s ease; animation:none;
+          .input-wrapper {
+             /* 移动端保持全宽 */
+             padding-left: 0;
+             padding-right: 0;
           }
-          .message-textarea:hover, .message-textarea:focus { transform:none; }
-          .drop-zone { animation:none; }
-          .processing-spinner { border:2px solid var(--primary); border-radius:50%; }
+          .message-textarea { min-height: 40px; font-size: 16px; }
         }
-        @media (prefers-contrast:high) {
-          .message-textarea, .processing-indicator { border-width:2px; }
-          .drop-zone { border-width:3px; }
+        @media (min-width: 768px) {
+            .input-wrapper {
+                padding-left: var(--space-8);
+                padding-right: var(--space-8);
+            }
+        }
+        @media (min-width: 1024px) {
+            .input-wrapper {
+                padding-left: var(--space-12);
+                padding-right: var(--space-12);
+            }
+        }
+        @media (min-width: 1440px) {
+          .input-wrapper {
+            max-width: 1080px;
+          }
+        }
+        @media (min-width: 1600px) {
+          .input-wrapper {
+            max-width: 1280px;
+          }
+        }
+        
+        @media (prefers-reduced-motion: reduce) {
+          .message-textarea, .drop-zone, .processing-spinner {
+            transition: none !important; animation: none !important;
+          }
+          .message-textarea:focus { transform: none; }
+        }
+        @media (prefers-contrast: high) {
+          .message-textarea { border: 2px solid var(--border); }
+          .drop-zone { border-width: 3px; }
         }
         @media print {
-          .message-input-container { display:none; }
+          .message-input-container { display: none; }
         }
       `}</style>
 
@@ -390,45 +399,49 @@ const MessageInput: React.FC = () => {
         onDrop={handleDrop}
         aria-label={t("messageInputArea", "消息输入区域")}
       >
-        <AttachmentsPreview
-          imagePreviews={localImagePreviews}
-          pendingFiles={enhancedPendingFiles}
-          onRemoveImage={(id) =>
-            setLocalImagePreviews((prev) => prev.filter((img) => img.id !== id))
-          }
-          onPreviewFile={setLocalPreviewingFile}
-          processingFiles={processingFiles}
-          isMobile={isMobile}
-        />
-
-        <div className="input-controls">
-          <FileUploadButton
-            disabled={isDisabled}
-            onFilesSelected={(files) => {
-              if (!isDisabled) processFiles(files);
-            }}
-          />
-
-          <textarea
-            ref={textareaRef}
-            className="message-textarea"
-            value={textContent}
-            placeholder={
-              isDisabled
-                ? t("waitForProcessing", "等待文件处理完成...")
-                : t("messageOrFileHere", "输入消息或拖入文件...")
+        <div className="input-wrapper">
+          <AttachmentsPreview
+            imagePreviews={localImagePreviews}
+            pendingFiles={enhancedPendingFiles}
+            onRemoveImage={(id) =>
+              setLocalImagePreviews((prev) =>
+                prev.filter((img) => img.id !== id)
+              )
             }
-            onChange={handleTextareaChange}
-            onKeyDown={handleKeyDown}
-            onPaste={handlePaste}
-            aria-label={t("messageInput", "消息输入框")}
-            disabled={isDisabled}
+            onPreviewFile={setLocalPreviewingFile}
+            processingFiles={processingFiles}
+            isMobile={isMobile}
           />
 
-          <SendButton
-            onClick={sendMessage}
-            disabled={!hasContent || isDisabled}
-          />
+          <div className="input-controls">
+            <FileUploadButton
+              disabled={isDisabled}
+              onFilesSelected={(files) => {
+                if (!isDisabled) processFiles(files);
+              }}
+            />
+
+            <textarea
+              ref={textareaRef}
+              className="message-textarea"
+              value={textContent}
+              placeholder={
+                isDisabled
+                  ? t("waitForProcessing", "等待文件处理完成...")
+                  : t("messageOrFileHere", "输入消息或拖入文件...")
+              }
+              onChange={handleTextareaChange}
+              onKeyDown={handleKeyDown}
+              onPaste={handlePaste}
+              aria-label={t("messageInput", "消息输入框")}
+              disabled={isDisabled}
+            />
+
+            <SendButton
+              onClick={sendMessage}
+              disabled={!hasContent || isDisabled}
+            />
+          </div>
         </div>
 
         {processingFiles.size > 0 && (
@@ -444,11 +457,8 @@ const MessageInput: React.FC = () => {
 
         {isDragOver && (
           <div className="drop-zone" aria-live="polite">
-            <div className="drop-zone-content">
-              {/* 修正：现在可以正确找到 UploadIcon */}
-              <UploadIcon size={32} />
-              <span>{t("dropToUpload", "松开即可上传")}</span>
-            </div>
+            <UploadIcon size={20} style={{ marginRight: "var(--space-2)" }} />
+            {t("dropToUpload", "松开即可上传")}
           </div>
         )}
 

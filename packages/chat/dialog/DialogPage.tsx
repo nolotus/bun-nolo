@@ -1,4 +1,4 @@
-// pages/DialogPage.tsx
+// pages/DialogPage.tsx (完整修复版)
 
 import React, { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "app/store";
@@ -23,7 +23,7 @@ import {
 import { extractCustomId } from "core/prefix";
 import Button from "render/web/ui/Button";
 
-// --- 子组件 ---
+// --- 子组件 (保持不变) ---
 
 const spinKeyframes = `
   @keyframes spin {
@@ -35,12 +35,13 @@ const spinKeyframes = `
 const LoadingSpinner = () => (
   <>
     <style>{spinKeyframes}</style>
+    {/* [核心修复] 将 height: '100%' 改为 flex: '1 1 0%'，使其在flex布局中撑满空间 */}
     <div
       style={{
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        height: "100%",
+        flex: "1 1 0%",
       }}
     >
       <div
@@ -188,18 +189,16 @@ const DialogPage = ({ pageKey }: { pageKey: string }) => {
     if (!isLoggedIn) return <NotLoggedIn />;
     if (isLoadingInitial) return <LoadingSpinner />;
     if (error) return <ErrorDisplay error={error} />;
+
     if (currentDialogConfig && dialogId) {
       return (
-        <div
-          style={{ display: "flex", flexDirection: "column", height: "100%" }}
-        >
-          <div style={{ flexGrow: 1, overflow: "hidden" }}>
-            <MessagesList dialogId={dialogId} />
-          </div>
+        <>
+          <MessagesList dialogId={dialogId} />
           <MessageInputContainer />
-        </div>
+        </>
       );
     }
+
     return (
       <div
         style={{
@@ -220,9 +219,8 @@ const DialogPage = ({ pageKey }: { pageKey: string }) => {
         style={{
           display: "flex",
           flexDirection: "column",
-          height: "100%", // 核心修复：填满 MainLayout 提供的容器
+          minHeight: "100%",
           backgroundColor: "var(--background)",
-          overflow: "hidden", // 确保内容不会溢出此容器
         }}
       >
         {renderContent()}
