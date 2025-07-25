@@ -1,4 +1,4 @@
-// render/layout/SidebarTop.tsx (最终简化版 - 透明)
+// render/layout/SidebarTop.tsx (已更新)
 
 import React, { useCallback, useEffect, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -12,7 +12,6 @@ import {
 } from "create/space/spaceSlice";
 import { createSpaceKey } from "create/space/spaceKeys";
 import { SpaceItem } from "create/space/components/SpaceItem";
-
 import { useClickOutside } from "app/hooks/useClickOutside";
 import { LuHouse, LuChevronDown } from "react-icons/lu";
 import { zIndex } from "../styles/zIndex";
@@ -100,7 +99,7 @@ export const SidebarTop: React.FC = () => {
                     />
                   ))
                 ) : (
-                  <div className="SidebarTop__emptyMessage">
+                  <div className="SidebarTop__item SidebarTop__item--empty">
                     {t("no_spaces_yet")}
                   </div>
                 )}
@@ -128,11 +127,19 @@ export const SidebarTop: React.FC = () => {
           gap: var(--space-2);
           padding: var(--space-2);
           height: var(--headerHeight);
-          /* [修改] 完全透明，无边框 */
-          background-color: transparent;
-          border-bottom: none; 
           flex-shrink: 0;
           box-sizing: border-box;
+          
+          /* [修改] 使用放射状渐变模拟左上角的光源效果 */
+          background-color: var(--background); /* 保持基础背景色 */
+          background-image: radial-gradient(
+            ellipse 80% 150% at 0% 0%, /* 一个源自左上角的柔和椭圆渐变 */
+            var(--focus) 0%,           /* 从主题的焦点色开始（自带透明度） */
+            transparent 70%             /* 在70%的半径处完全过渡到透明 */
+          );
+          background-repeat: no-repeat;
+          
+          /* [修改] 移除底部边框，完全靠光晕和留白区分 */
         }
 
         .SidebarTop__homeButton {
@@ -144,8 +151,10 @@ export const SidebarTop: React.FC = () => {
           flex-shrink: 0;
           border-radius: 6px;
           color: var(--textTertiary);
+          background: transparent;
+          border: none;
+          cursor: pointer;
           text-decoration: none;
-          background-color: transparent;
           transition: background-color 0.2s ease, color 0.2s ease;
         }
 
@@ -172,21 +181,21 @@ export const SidebarTop: React.FC = () => {
           height: 32px;
           padding: 0 var(--space-2) 0 var(--space-3);
           border-radius: 6px;
-          /* [修改] 移除背景和边框 */
-          background-color: transparent;
-          border: 1px solid transparent; /* 使用透明边框防止悬停时布局抖动 */
+          border: 1px solid var(--border);
+          background-color: var(--background);
           cursor: pointer;
           font-family: inherit;
-          transition: background-color 0.2s ease, box-shadow 0.2s ease;
+          transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
         }
 
         .SidebarTop__trigger:hover:not(:disabled):not([aria-expanded="true"]) {
           background-color: var(--backgroundHover);
+          border-color: var(--borderHover);
         }
 
         .SidebarTop__trigger[aria-expanded="true"] {
-          background-color: var(--backgroundSelected);
-          /* [修改] 移除边框和阴影，仅用背景色表示激活 */
+          border-color: var(--primary);
+          box-shadow: 0 0 0 3px var(--focus);
         }
 
         .SidebarTop__trigger:disabled {
@@ -239,13 +248,41 @@ export const SidebarTop: React.FC = () => {
           padding: var(--space-1);
         }
         
-        .SidebarTop__emptyMessage {
+        .SidebarTop__item {
+          display: flex;
+          align-items: center;
+          width: 100%;
+          gap: var(--space-2);
           padding: var(--space-2) var(--space-3);
+          border-radius: 6px;
+          font-size: 0.875rem;
+          text-align: left;
+          cursor: pointer;
+          border: none;
+          background-color: transparent;
+          color: var(--text);
+          font-family: inherit;
+          transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .SidebarTop__item:hover {
+          background-color: var(--backgroundHover);
+        }
+        
+        .SidebarTop__item--empty {
           color: var(--textTertiary);
-          text-align: center;
+          justify-content: center;
+          cursor: default;
           font-style: italic;
           font-size: 0.8rem;
-          cursor: default;
+        }
+
+        .SidebarTop__item--empty:hover {
+          background-color: transparent;
+        }
+
+        .SidebarTop__item svg {
+          flex-shrink: 0;
         }
       `}</style>
     </>
