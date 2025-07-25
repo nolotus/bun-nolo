@@ -6,7 +6,7 @@ import {
   createSelector,
   type PayloadAction,
 } from "@reduxjs/toolkit";
-
+import { omit } from "rambda";
 import type { RootState } from "app/store";
 import { isProduction } from "utils/env";
 import { read, patch } from "database/dbSlice";
@@ -83,7 +83,12 @@ const settingSlice = createSliceWithThunks({
       },
       {
         fulfilled: (state, action) => {
-          if (action.payload) Object.assign(state, action.payload);
+          if (action.payload) {
+            // 使用 rambda 的 omit 函数创建一个不含 'currentServer' 的新对象
+            const settingsToApply = omit(["currentServer"], action.payload);
+            // 将处理过的设置合并到状态中
+            Object.assign(state, settingsToApply);
+          }
         },
       }
     ),
