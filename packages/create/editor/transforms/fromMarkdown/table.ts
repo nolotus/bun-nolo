@@ -11,7 +11,7 @@ type MdastTable = {
   children: MdastTableRow[];
 };
 
-type SlateTableCell = SlateElement & { header?: boolean };
+export type SlateTableCell = SlateElement & { header?: boolean };
 type SlateTableRow = SlateElement & { children: SlateTableCell[] };
 type SlateTableColumn = { align: string; width: null | number };
 export type SlateTable = SlateElement & {

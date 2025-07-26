@@ -1,13 +1,14 @@
 import { Editor, Transforms, Element as SlateElement, Path } from "slate";
 import { ReactEditor } from "slate-react";
 
+// 不再需要 rambda
+// import { clone } from 'rambda';
+
 type CustomEditor = ReactEditor & {
   nodeToDecorations?: Map<SlateElement, Range[]>;
 };
 
-// ... (isSelectionInTable, getCurrentTable, createTableCell, insertRow, insertColumn, deleteRow, deleteColumn, deleteTable 函数保持不变)
-
-// --- Helper Functions ---
+// ... (isSelectionInTable, getCurrentTable, etc. 保持不变) ...
 export const isSelectionInTable = (editor: CustomEditor): boolean => {
   const [table] = Editor.nodes(editor, {
     match: (n) =>
@@ -31,7 +32,6 @@ const createTableCell = (): SlateElement => ({
   children: [{ type: "paragraph", children: [{ text: "" }] }],
 });
 
-// --- Command Functions ---
 export const insertRow = (
   editor: CustomEditor,
   direction: "above" | "below"
@@ -113,46 +113,19 @@ export const deleteTable = (editor: CustomEditor) => {
   if (table) Transforms.removeNodes(editor, { at: table[1] });
 };
 
-// --- vvvv 新增导航逻辑 vvvv ---
-
-/**
- * 获取表格中所有单元格的节点入口
- */
-const getAllCellsInTable = (editor: CustomEditor): [SlateElement, Path][] => {
-  const table = getCurrentTable(editor);
-  if (!table) return [];
-  const [, tablePath] = table;
-  return Array.from(
-    Editor.nodes(editor, {
-      at: tablePath,
-      match: (n) =>
-        !Editor.isEditor(n) &&
-        SlateElement.isElement(n) &&
-        n.type === "table-cell",
-    })
-  ) as [SlateElement, Path][];
-};
-
-/**
- * 移动到下一个单元格。如果在最后一个单元格，则创建新行。
- */
 export const moveToNextCell = (editor: CustomEditor) => {
   const [currentCell] = Editor.nodes(editor, {
     match: (n) => n.type === "table-cell",
   });
   if (!currentCell) return;
-
   const allCells = getAllCellsInTable(editor);
   const currentIndex = allCells.findIndex((c) =>
     Path.equals(c[1], currentCell[1])
   );
-
   if (currentIndex < allCells.length - 1) {
-    // 移动到下一个单元格
     const nextCellPath = allCells[currentIndex + 1][1];
     Transforms.select(editor, Editor.start(editor, nextCellPath));
   } else {
-    // 在表格末尾，插入新行并移动到新行的第一个单元格
     insertRow(editor, "below");
     const newAllCells = getAllCellsInTable(editor);
     if (newAllCells.length > allCells.length) {
@@ -162,23 +135,69 @@ export const moveToNextCell = (editor: CustomEditor) => {
   }
 };
 
-/**
- * 移动到上一个单元格。
- */
+const getAllCellsInTable = (editor: CustomEditor): [SlateElement, Path][] => {
+  const table = getCurrentTable(editor);
+  if (!table) return [];
+  const [, tablePath] = table;
+  return Array.from(
+    Editor.nodes(editor, {
+      at: tablePath,
+      match: (n) => n.type === "table-cell",
+    })
+  ) as [SlateElement, Path][];
+};
+
 export const moveToPreviousCell = (editor: CustomEditor) => {
   const [currentCell] = Editor.nodes(editor, {
     match: (n) => n.type === "table-cell",
   });
   if (!currentCell) return;
-
   const allCells = getAllCellsInTable(editor);
   const currentIndex = allCells.findIndex((c) =>
     Path.equals(c[1], currentCell[1])
   );
-
   if (currentIndex > 0) {
     const prevCellPath = allCells[currentIndex - 1][1];
     Transforms.select(editor, Editor.start(editor, prevCellPath));
   }
 };
-// --- ^^^^ 新增导航逻辑结束 ^^^^ ---
+
+// --- vvvv 这里是修正的部分 vvvv ---
+
+/**
+ * 设置指定表格列的宽度
+ */
+export const setColumnWidth = (
+  editor: CustomEditor,
+  tablePath: Path,
+  columnIndex: number,
+  newWidth: number
+) => {
+  console.log(
+    `[Commands] setColumnWidth called with: colIndex=${columnIndex}, newWidth=${newWidth}`
+  ); // DEBUG
+
+  const tableNode = Editor.node(editor, tablePath)[0] as SlateElement;
+  if (!tableNode || tableNode.type !== "table" || !tableNode.columns) {
+    console.error(
+      "[Commands] Invalid table node or columns property.",
+      tableNode
+    ); // DEBUG
+    return;
+  }
+
+  const newColumns = JSON.parse(JSON.stringify(tableNode.columns));
+
+  if (newColumns[columnIndex]) {
+    newColumns[columnIndex].width = Math.max(newWidth, 40);
+  } else {
+    console.error(`[Commands] Column index ${columnIndex} is out of bounds.`); // DEBUG
+    return;
+  }
+
+  console.log(
+    "[Commands] Applying new columns with Transforms.setNodes:",
+    newColumns
+  ); // DEBUG
+  Transforms.setNodes(editor, { columns: newColumns }, { at: tablePath });
+};

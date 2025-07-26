@@ -1,4 +1,18 @@
 import React from "react";
+import { Path } from "slate";
+
+// 导入我们创建的列宽调整器组件
+import { ColumnResizer } from "create/editor/ColumnResizer";
+
+// 从您的类型定义文件中导入 Slate 节点类型，确保 props 类型安全
+// 请确保这个路径是正确的
+
+import {
+  SlateTable,
+  SlateTableCell as SlateTableCellType,
+} from "create/editor/transforms/fromMarkdown/table";
+
+// --- 通用 Props 定义 ---
 
 interface TableBaseProps {
   attributes?: any;
@@ -6,17 +20,21 @@ interface TableBaseProps {
   style?: React.CSSProperties;
 }
 
-export const Table: React.FC<TableBaseProps> = ({
+// --- Table 组件 ---
+
+interface TableProps extends TableBaseProps {
+  element: SlateTable;
+  path: Path; // 表格需要 path 来传递给子组件
+}
+
+export const Table: React.FC<TableProps> = ({
   attributes,
   children,
+  element,
   style,
 }) => {
   return (
     <>
-      {/* 
-        我们不再需要在容器上设置边框了，
-        所有的边框逻辑都交由 <table> 自身处理。
-      */}
       <style href="table-container" precedence="high">{`
         .table-container {
           overflow-x: auto;
@@ -26,29 +44,38 @@ export const Table: React.FC<TableBaseProps> = ({
 
         .data-table {
           width: 100%;
-          /* 关键改动 (1): 切换到 separate 模式以启用 border-radius */
           border-collapse: separate;
-          /* 关键改动 (2): 移除单元格间距 */
           border-spacing: 0;
-          /* 关键改动 (3): 表格自身拥有边框和圆角 */
           border: 1px solid var(--border);
           border-radius: var(--space-2);
-          overflow: hidden; /* 确保子元素被剪裁以适应圆角 */
-          
+          overflow: hidden;
           background: var(--background);
           font-size: 0.875rem;
           line-height: 1.65;
           font-family: system-ui, -apple-system, sans-serif;
+          /* 关键改动: table-layout: fixed 是让列宽生效的前提 */
+          table-layout: fixed;
         }
       `}</style>
       <div className="table-container">
         <table className="data-table" style={style} {...attributes}>
+          {/* 关键改动: 使用 colgroup 定义每一列的宽度 */}
+          <colgroup>
+            {element.columns?.map((col, index) => (
+              <col
+                key={index}
+                style={{ width: col.width ? `${col.width}px` : "auto" }}
+              />
+            ))}
+          </colgroup>
           {children}
         </table>
       </div>
     </>
   );
 };
+
+// --- TableRow 组件 (保持不变) ---
 
 export const TableRow: React.FC<TableBaseProps> = ({
   attributes,
@@ -61,7 +88,6 @@ export const TableRow: React.FC<TableBaseProps> = ({
         .table-row {
           transition: background-color 0.15s ease;
         }
-        /* 关键改动 (4): 移除最后一行的下边框，避免与 table 的外框重叠 */
         .table-row:last-child .table-cell {
           border-bottom: none;
         }
@@ -76,19 +102,25 @@ export const TableRow: React.FC<TableBaseProps> = ({
   );
 };
 
+// --- TableCell 组件 ---
+
 interface TableCellProps extends TableBaseProps {
-  element: {
-    header?: boolean;
-  };
+  element: SlateTableCellType;
+  path: Path; // 单元格需要自己的 path 来计算列索引和表格路径
+  isFirstRow: boolean; // 需要此属性来判断是否渲染 Resizer
 }
 
 export const TableCell: React.FC<TableCellProps> = ({
   attributes,
   children,
   element,
+  path,
+  isFirstRow, // 使用新 prop
   style,
 }) => {
   const Component = element.header ? "th" : "td";
+  const columnIndex = path[path.length - 1];
+  const tablePath = path.slice(0, -2); // 计算得到父级 table 的路径
 
   return (
     <>
@@ -103,12 +135,13 @@ export const TableCell: React.FC<TableCellProps> = ({
           word-wrap: break-word;
           hyphens: auto;
           
-          /* 关键改动 (5): 为每个单元格绘制下边框和右边框 */
           border-bottom: 1px solid var(--border);
           border-right: 1px solid var(--border);
+          
+          /* 关键改动: position: relative 是 Resizer 绝对定位的前提 */
+          position: relative; 
         }
 
-        /* 关键改动 (6): 移除最后一列的右边框，避免与 table 的外框重叠 */
         .table-cell:last-child {
           border-right: none;
         }
@@ -143,6 +176,10 @@ export const TableCell: React.FC<TableCellProps> = ({
         {...attributes}
       >
         {children}
+        {/* 关键改动: 只在第一行的单元格中渲染列宽调整器 */}
+        {isFirstRow && (
+          <ColumnResizer columnIndex={columnIndex} tablePath={tablePath} />
+        )}
       </Component>
     </>
   );

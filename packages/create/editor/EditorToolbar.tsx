@@ -42,26 +42,29 @@ const isTableActive = (editor: Editor) => {
 const insertTable = (editor: Editor) => {
   if (isTableActive(editor)) return;
 
-  // 创建一个包含空段落的单元格
   const createTableCell = (): SlateElement => ({
     type: "table-cell",
     children: [{ type: "paragraph", children: [{ text: "" }] }],
   });
 
-  // 根据指定的列数创建一行
   const createTableRow = (cols: number): SlateElement => ({
     type: "table-row",
     children: Array.from({ length: cols }, createTableCell),
   });
 
-  // 创建一个 2x2 的表格节点
+  // 关键修正: 在这里为新表格定义 columns 属性
   const tableNode: SlateElement = {
     type: "table",
+    // 为一个 2x2 的表格创建列定义
+    columns: [
+      { width: null, align: "left" },
+      { width: null, align: "left" },
+    ],
     children: [createTableRow(2), createTableRow(2)],
   };
 
   Transforms.insertNodes(editor, tableNode);
-  // 将光标移动到新创建的第一个单元格中
+
   const [tableEntry] = Editor.nodes(editor, {
     match: (n) => n.type === "table",
   });

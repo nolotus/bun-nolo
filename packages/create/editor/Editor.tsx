@@ -26,6 +26,7 @@ import { ElementWrapper } from "./ElementWrapper";
 import { EditorToolbar } from "./EditorToolbar";
 import { HoveringToolbar } from "./HoveringToolbar";
 import { TableContextMenu } from "./TableContextMenu"; // <--- 1. 导入新组件
+import { withTables } from "./withTables";
 
 // 定义自定义编辑器类型
 // 注意：此类型也在 syntaxHighlighting.tsx 中使用。
@@ -48,9 +49,11 @@ const NoloEditor: React.FC<NoloEditorProps> = ({
 }) => {
   // 使用 useMemo 创建 editor 实例，确保在组件重渲染时保持稳定
   const editor = useMemo(() => {
-    const baseEditor = withShortcuts(
-      withLayout(
-        withLinks(withHistory(withReact(createEditor() as ReactEditor)))
+    const baseEditor = withTables(
+      withShortcuts(
+        withLayout(
+          withLinks(withHistory(withReact(createEditor() as ReactEditor)))
+        )
       )
     );
     // 保留 inline-code 的内联特性，其他遵循 Slate 默认行为

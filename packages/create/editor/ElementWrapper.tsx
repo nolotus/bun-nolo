@@ -1,11 +1,12 @@
-// create/editor/ElementWrapper.tsx
 import React from "react";
-import { useSlateStatic } from "slate-react";
+import { useSlateStatic, ReactEditor } from "slate-react"; // <--- 引入 ReactEditor
 
+// 您的类型定义导入
 import { CodeBlockType, CodeLineType } from "./types";
 
-// web
+// 您的 UI 组件导入
 import { Table, TableRow, TableCell } from "render/web/ui/Table";
+
 import CodeBlock from "render/web/elements/CodeBlock";
 import { ImageElement } from "render/web/elements/ImageElement";
 import { List, ListItem } from "render/web/elements/List";
@@ -27,9 +28,9 @@ const TEXT_BLOCK_TYPES = [
 ];
 
 export const ElementWrapper: React.FC<any> = (props) => {
+  // 核心修正：不再从 props 解构 path，因为它不存在
   const { attributes, children, element } = props;
   const editor = useSlateStatic();
-  // 确保主题 CSS 变量已注入
 
   const getStyle = (additionalStyle: React.CSSProperties = {}) => ({
     ...(element.align ? { textAlign: element.align } : {}),
@@ -122,10 +123,14 @@ export const ElementWrapper: React.FC<any> = (props) => {
         </ListItem>
       );
 
+    // --- vvvv 以下是核心修正 vvvv ---
     case "table":
+      // 核心修正：在这里按需查找 path
+      const tablePath = ReactEditor.findPath(editor, element);
       return (
         <Table
-          attributes={attributes}
+          {...props}
+          path={tablePath} // 传递查找到的 path
           style={getStyle({ margin: "var(--space-4) 0" })}
         >
           {children}
@@ -140,10 +145,14 @@ export const ElementWrapper: React.FC<any> = (props) => {
       );
 
     case "table-cell":
+      // 核心修正：在这里按需查找 path
+      const cellPath = ReactEditor.findPath(editor, element);
+      const isFirstRow = cellPath[cellPath.length - 2] === 0;
       return (
         <TableCell
-          attributes={attributes}
-          element={element}
+          {...props}
+          path={cellPath} // 传递查找到的 path
+          isFirstRow={isFirstRow} // 传递计算出的 isFirstRow
           style={getStyle({
             padding: "var(--space-2) var(--space-3)",
             lineHeight: 1.4,
@@ -152,6 +161,7 @@ export const ElementWrapper: React.FC<any> = (props) => {
           {children}
         </TableCell>
       );
+    // --- ^^^^ 以上是核心修正 ^^^^ ---
 
     case "html-inline":
       return (
