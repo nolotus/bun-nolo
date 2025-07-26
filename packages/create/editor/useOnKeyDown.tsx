@@ -1,12 +1,16 @@
 import React, { useCallback } from "react";
-import { Editor } from "slate";
-import { toggleMark } from "./mark";
+import { Editor, Transforms, Range } from "slate";
+import { toggleMark } from "./mark"; // 确保文件名是 marks.ts
 
-// 新增：从我们的命令文件中导入表格相关函数
+// 1. 从我们的命令文件中导入所有需要的函数
 import {
   isSelectionInTable,
   moveToNextCell,
   moveToPreviousCell,
+  moveToUpperCell,
+  moveToLowerCell,
+  moveToLeftCell,
+  moveToRightCell,
 } from "./tableCommands";
 
 const HOTKEYS = {
@@ -15,53 +19,90 @@ const HOTKEYS = {
   "mod+u": "underline",
 };
 
-// 您的 isHotkey 函数保持不变
-const isHotkey = (hotkey, event) => {
-  const [modifier, key] = hotkey.split("+");
-  const isMod = modifier === "mod" && (event.metaKey || event.ctrlKey);
+// 假设您的 isHotkey 函数已正确实现
+const isHotkey = (hotkey: string, event: React.KeyboardEvent): boolean => {
+  // 这是一个更健壮的实现
+  const hotkeyParts = hotkey.split("+");
+  const key = hotkeyParts.pop();
+  const isMod = hotkeyParts.includes("mod") && (event.metaKey || event.ctrlKey);
+  const isShift = hotkeyParts.includes("shift") && event.shiftKey;
+
+  // 简化的示例，仅支持 mod
   return isMod && event.key.toLowerCase() === key;
 };
 
 export const useOnKeyDown = (editor) => {
-  const onKeyDown = useCallback(
+  return useCallback(
     (e: React.KeyboardEvent) => {
-      // --- 新增逻辑：表格导航优先处理 ---
-      // 首先检查光标是否在表格内
+      // --- 表格导航逻辑优先处理 ---
       if (isSelectionInTable(editor)) {
-        // 如果是 Tab 键
+        // --- Tab 键导航 ---
         if (e.key === "Tab") {
-          // 阻止默认行为（如跳到下一个输入框）
           e.preventDefault();
-          // 根据是否按下 Shift 键来决定是向前还是向后移动
-          if (e.shiftKey) {
-            moveToPreviousCell(editor);
-          } else {
-            moveToNextCell(editor);
-          }
-          // 事件已处理完毕，直接返回，不再执行后续代码
+          e.shiftKey ? moveToPreviousCell(editor) : moveToNextCell(editor);
           return;
+        }
+
+        // --- 2. 方向键导航 ---
+        const { selection } = editor;
+        // 只在光标折叠（没有选中文本）时触发
+        if (selection && Range.isCollapsed(selection)) {
+          const [cell, cellPath] = Editor.nodes(editor, {
+            match: (n) => n.type === "table-cell",
+            at: selection,
+          });
+
+          if (cell) {
+            const atStart = Editor.isStart(editor, selection.anchor, cellPath);
+            const atEnd = Editor.isEnd(editor, selection.anchor, cellPath);
+
+            switch (e.key) {
+              case "ArrowUp":
+                if (atStart) {
+                  e.preventDefault();
+                  moveToUpperCell(editor);
+                }
+                return;
+              case "ArrowDown":
+                if (atEnd) {
+                  e.preventDefault();
+                  moveToLowerCell(editor);
+                }
+                return;
+              case "ArrowLeft":
+                if (atStart) {
+                  e.preventDefault();
+                  moveToLeftCell(editor);
+                }
+                return;
+              case "ArrowRight":
+                if (atEnd) {
+                  e.preventDefault();
+                  moveToRightCell(editor);
+                }
+                return;
+            }
+          }
         }
       }
       // --- 表格逻辑结束 ---
 
-      // 您原有的格式化快捷键逻辑，保持不变
+      // 格式化快捷键逻辑
       for (const hotkey in HOTKEYS) {
         if (isHotkey(hotkey, e)) {
           e.preventDefault();
-          const mark = HOTKEYS[hotkey];
-          toggleMark(editor, mark);
+          toggleMark(editor, HOTKEYS[hotkey]);
+          return; // 添加 return 避免冲突
         }
       }
 
-      // 您原有的 Tab 键插入空格的逻辑
-      // 只有在光标不在表格内时，这段代码才会被执行
-      if (e.key === "Tab") {
+      // 注意：Tab 键的插入空格逻辑已被表格内的 Tab 逻辑覆盖
+      // 如果需要在非表格环境下插入Tab，这里的逻辑是正确的
+      if (e.key === "Tab" && !isSelectionInTable(editor)) {
         e.preventDefault();
         Editor.insertText(editor, "  ");
       }
     },
     [editor]
   );
-
-  return onKeyDown;
 };

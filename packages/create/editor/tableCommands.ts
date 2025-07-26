@@ -1,14 +1,10 @@
 import { Editor, Transforms, Element as SlateElement, Path } from "slate";
 import { ReactEditor } from "slate-react";
 
-// 不再需要 rambda
-// import { clone } from 'rambda';
-
 type CustomEditor = ReactEditor & {
   nodeToDecorations?: Map<SlateElement, Range[]>;
 };
 
-// ... (isSelectionInTable, getCurrentTable, etc. 保持不变) ...
 export const isSelectionInTable = (editor: CustomEditor): boolean => {
   const [table] = Editor.nodes(editor, {
     match: (n) =>
@@ -113,6 +109,18 @@ export const deleteTable = (editor: CustomEditor) => {
   if (table) Transforms.removeNodes(editor, { at: table[1] });
 };
 
+const getAllCellsInTable = (editor: CustomEditor): [SlateElement, Path][] => {
+  const table = getCurrentTable(editor);
+  if (!table) return [];
+  const [, tablePath] = table;
+  return Array.from(
+    Editor.nodes(editor, {
+      at: tablePath,
+      match: (n) => n.type === "table-cell",
+    })
+  ) as [SlateElement, Path][];
+};
+
 export const moveToNextCell = (editor: CustomEditor) => {
   const [currentCell] = Editor.nodes(editor, {
     match: (n) => n.type === "table-cell",
@@ -127,24 +135,15 @@ export const moveToNextCell = (editor: CustomEditor) => {
     Transforms.select(editor, Editor.start(editor, nextCellPath));
   } else {
     insertRow(editor, "below");
-    const newAllCells = getAllCellsInTable(editor);
-    if (newAllCells.length > allCells.length) {
-      const nextCellPath = newAllCells[currentIndex + 1][1];
-      Transforms.select(editor, Editor.start(editor, nextCellPath));
+    // After inserting, we need to find the new cell path
+    const [row] = Editor.above(editor, {
+      match: (n) => n.type === "table-row",
+    });
+    if (row) {
+      const nextRowPath = Path.next(row[1]);
+      Transforms.select(editor, Editor.start(editor, nextRowPath));
     }
   }
-};
-
-const getAllCellsInTable = (editor: CustomEditor): [SlateElement, Path][] => {
-  const table = getCurrentTable(editor);
-  if (!table) return [];
-  const [, tablePath] = table;
-  return Array.from(
-    Editor.nodes(editor, {
-      at: tablePath,
-      match: (n) => n.type === "table-cell",
-    })
-  ) as [SlateElement, Path][];
 };
 
 export const moveToPreviousCell = (editor: CustomEditor) => {
@@ -162,42 +161,110 @@ export const moveToPreviousCell = (editor: CustomEditor) => {
   }
 };
 
-// --- vvvv 这里是修正的部分 vvvv ---
-
-/**
- * 设置指定表格列的宽度
- */
 export const setColumnWidth = (
   editor: CustomEditor,
   tablePath: Path,
   columnIndex: number,
   newWidth: number
 ) => {
-  console.log(
-    `[Commands] setColumnWidth called with: colIndex=${columnIndex}, newWidth=${newWidth}`
-  ); // DEBUG
-
   const tableNode = Editor.node(editor, tablePath)[0] as SlateElement;
   if (!tableNode || tableNode.type !== "table" || !tableNode.columns) {
-    console.error(
-      "[Commands] Invalid table node or columns property.",
-      tableNode
-    ); // DEBUG
     return;
   }
-
-  const newColumns = JSON.parse(JSON.stringify(tableNode.columns));
+  // 使用 structuredClone 替代 JSON.parse(JSON.stringify(...))，更现代、性能更好
+  const newColumns = structuredClone(tableNode.columns);
 
   if (newColumns[columnIndex]) {
+    // 确保宽度不小于一个最小值，比如40px
     newColumns[columnIndex].width = Math.max(newWidth, 40);
   } else {
-    console.error(`[Commands] Column index ${columnIndex} is out of bounds.`); // DEBUG
     return;
   }
-
-  console.log(
-    "[Commands] Applying new columns with Transforms.setNodes:",
-    newColumns
-  ); // DEBUG
   Transforms.setNodes(editor, { columns: newColumns }, { at: tablePath });
 };
+
+// --- vvvv 方向键导航逻辑 (新增) vvvv ---
+
+/**
+ * 内部辅助函数，处理向相邻单元格移动的核心逻辑
+ * @param editor 编辑器实例
+ * @param direction 移动方向: 'up', 'down', 'left', 'right'
+ */
+const moveToAdjacentCell = (
+  editor: CustomEditor,
+  direction: "up" | "down" | "left" | "right"
+) => {
+  const { selection } = editor;
+  if (!selection) return;
+
+  const [cell, cellPath] = Editor.nodes(editor, {
+    match: (n) => n.type === "table-cell",
+    at: selection,
+  });
+
+  if (!cell || !cellPath) return;
+
+  const [table, tablePath] = Editor.above(editor, {
+    match: (n) => n.type === "table",
+  });
+  const [row, rowPath] = Editor.above(editor, {
+    match: (n) => n.type === "table-row",
+  });
+
+  // @ts-ignore
+  if (
+    !rowPath ||
+    !tablePath ||
+    !table ||
+    !row ||
+    !table.children ||
+    !row.children
+  )
+    return;
+
+  const rowIndex = rowPath[rowPath.length - 1];
+  const colIndex = cellPath[cellPath.length - 1];
+
+  let targetPath: Path | undefined;
+
+  switch (direction) {
+    case "up":
+      if (rowIndex > 0) {
+        targetPath = [...tablePath, rowIndex - 1, colIndex];
+      }
+      break;
+    case "down":
+      // @ts-ignore
+      if (rowIndex < table.children.length - 1) {
+        targetPath = [...tablePath, rowIndex + 1, colIndex];
+      }
+      break;
+    case "left":
+      if (colIndex > 0) {
+        targetPath = [...rowPath, colIndex - 1];
+      }
+      break;
+    case "right":
+      // @ts-ignore
+      if (colIndex < row.children.length - 1) {
+        targetPath = [...rowPath, colIndex + 1];
+      }
+      break;
+  }
+
+  if (targetPath && Editor.hasPath(editor, targetPath)) {
+    // 移动光标到目标单元格的开头
+    Transforms.select(editor, Editor.start(editor, targetPath));
+  }
+};
+
+export const moveToUpperCell = (editor: CustomEditor) =>
+  moveToAdjacentCell(editor, "up");
+export const moveToLowerCell = (editor: CustomEditor) =>
+  moveToAdjacentCell(editor, "down");
+export const moveToLeftCell = (editor: CustomEditor) =>
+  moveToAdjacentCell(editor, "left");
+export const moveToRightCell = (editor: CustomEditor) =>
+  moveToAdjacentCell(editor, "right");
+
+// --- ^^^^ 方向键导航逻辑 (结束) ^^^^ ---
