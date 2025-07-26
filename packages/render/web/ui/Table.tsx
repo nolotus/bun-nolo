@@ -1,12 +1,6 @@
 import React from "react";
 import { Path } from "slate";
-
-// 导入我们创建的列宽调整器组件
 import { ColumnResizer } from "create/editor/ColumnResizer";
-
-// 从您的类型定义文件中导入 Slate 节点类型，确保 props 类型安全
-// 请确保这个路径是正确的
-
 import {
   SlateTable,
   SlateTableCell as SlateTableCellType,
@@ -20,11 +14,11 @@ interface TableBaseProps {
   style?: React.CSSProperties;
 }
 
-// --- Table 组件 ---
+// --- Table 组件 (已优化，保持不变) ---
 
 interface TableProps extends TableBaseProps {
   element: SlateTable;
-  path: Path; // 表格需要 path 来传递给子组件
+  path: Path;
 }
 
 export const Table: React.FC<TableProps> = ({
@@ -33,6 +27,8 @@ export const Table: React.FC<TableProps> = ({
   element,
   style,
 }) => {
+  const { columns = [] } = element || {};
+
   return (
     <>
       <style href="table-container" precedence="high">{`
@@ -53,15 +49,13 @@ export const Table: React.FC<TableProps> = ({
           font-size: 0.875rem;
           line-height: 1.65;
           font-family: system-ui, -apple-system, sans-serif;
-          /* 关键改动: table-layout: fixed 是让列宽生效的前提 */
           table-layout: fixed;
         }
       `}</style>
       <div className="table-container">
         <table className="data-table" style={style} {...attributes}>
-          {/* 关键改动: 使用 colgroup 定义每一列的宽度 */}
           <colgroup>
-            {element.columns?.map((col, index) => (
+            {columns.map((col, index) => (
               <col
                 key={index}
                 style={{ width: col.width ? `${col.width}px` : "auto" }}
@@ -102,12 +96,12 @@ export const TableRow: React.FC<TableBaseProps> = ({
   );
 };
 
-// --- TableCell 组件 ---
+// --- TableCell 组件 (已优化) ---
 
 interface TableCellProps extends TableBaseProps {
   element: SlateTableCellType;
-  path: Path; // 单元格需要自己的 path 来计算列索引和表格路径
-  isFirstRow: boolean; // 需要此属性来判断是否渲染 Resizer
+  path: Path;
+  isFirstRow: boolean;
 }
 
 export const TableCell: React.FC<TableCellProps> = ({
@@ -115,12 +109,20 @@ export const TableCell: React.FC<TableCellProps> = ({
   children,
   element,
   path,
-  isFirstRow, // 使用新 prop
+  isFirstRow,
   style,
 }) => {
   const Component = element.header ? "th" : "td";
-  const columnIndex = path[path.length - 1];
-  const tablePath = path.slice(0, -2); // 计算得到父级 table 的路径
+
+  // --- 关键改动: 添加卫语句 (Guard Clause) ---
+  // 在使用 path 之前，先检查它是否存在且是一个有效的数组。
+  // 如果 path 无效，我们将无法计算列索引和表格路径。
+  // 此时，渲染一个不带 ColumnResizer 的基础单元格，以避免程序崩溃。
+  // 这样可以优雅地处理异常情况，增强组件的健壮性。
+  const isPathInvalid = !path || !Array.isArray(path) || path.length < 2;
+
+  const columnIndex = isPathInvalid ? 0 : path[path.length - 1];
+  const tablePath = isPathInvalid ? [] : path.slice(0, -2);
 
   return (
     <>
@@ -134,11 +136,8 @@ export const TableCell: React.FC<TableCellProps> = ({
           vertical-align: top;
           word-wrap: break-word;
           hyphens: auto;
-          
           border-bottom: 1px solid var(--border);
           border-right: 1px solid var(--border);
-          
-          /* 关键改动: position: relative 是 Resizer 绝对定位的前提 */
           position: relative; 
         }
 
@@ -176,8 +175,8 @@ export const TableCell: React.FC<TableCellProps> = ({
         {...attributes}
       >
         {children}
-        {/* 关键改动: 只在第一行的单元格中渲染列宽调整器 */}
-        {isFirstRow && (
+        {/* 现在，只有在 path 有效且是第一行时，才渲染调整器 */}
+        {isFirstRow && !isPathInvalid && (
           <ColumnResizer columnIndex={columnIndex} tablePath={tablePath} />
         )}
       </Component>
