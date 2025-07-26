@@ -86,7 +86,7 @@ const NoloEditor: React.FC<NoloEditorProps> = ({
           <div className="toolbar-container">
             <EditorToolbar />
             <HoveringToolbar />
-            <TableContextMenu /> {/* <--- 2. 在这里添加新组件 */}
+            <TableContextMenu />
           </div>
         )}
         {/* "无头"组件，负责在后台计算语法高亮 */}

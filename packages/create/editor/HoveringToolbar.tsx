@@ -1,6 +1,18 @@
+// create/editor/HoveringToolbar.tsx (使用 @floating-ui/react 最终修复版)
+
 import React, { useRef, useEffect, useState, useCallback } from "react";
 import { Editor, Range, Element as SlateElement, Transforms } from "slate";
 import { useFocused, useSlate, ReactEditor } from "slate-react";
+
+// 1. 导入 @floating-ui/react
+import {
+  useFloating,
+  autoUpdate,
+  offset,
+  flip,
+  shift,
+} from "@floating-ui/react";
+
 import { Menu, Portal, Button } from "./components";
 import { LuBold, LuItalic, LuUnderline, LuLink2 } from "react-icons/lu";
 import { isMarkActive, toggleMark } from "./mark";
@@ -30,53 +42,44 @@ const FormatButton = ({
 };
 
 export const HoveringToolbar = () => {
-  const ref = useRef<HTMLDivElement | null>(null);
   const editor = useSlate();
   const inFocus = useFocused();
 
+  // 2. 设置 useFloating Hook
+  const { x, y, strategy, refs } = useFloating({
+    placement: "top",
+    whileElementsMounted: autoUpdate,
+    middleware: [offset(8), flip(), shift({ padding: 8 })],
+  });
+
   const [isLinkEditorOpen, setLinkEditorOpen] = useState(false);
-  const [toolbarAnchorRect, setToolbarAnchorRect] = useState<DOMRect | null>(
-    null
-  );
+  const [showToolbar, setShowToolbar] = useState(false);
   const [savedSelection, setSavedSelection] = useState<Range | null>(null);
 
+  // 3. 重写 useEffect，只负责更新浮动UI的引用和可见性
   useEffect(() => {
-    const el = ref.current;
     const { selection } = editor;
 
-    const shouldHide =
-      !el ||
-      !selection ||
-      !inFocus ||
-      isLinkEditorOpen ||
-      Range.isCollapsed(selection) ||
-      Editor.string(editor, selection) === "";
+    const shouldShow =
+      selection &&
+      inFocus &&
+      !isLinkEditorOpen &&
+      !Range.isCollapsed(selection) &&
+      Editor.string(editor, selection) !== "";
 
-    if (shouldHide) {
-      el.style.opacity = "0";
-      el.style.visibility = "hidden";
-      setToolbarAnchorRect(null);
-      return;
+    setShowToolbar(shouldShow);
+
+    if (shouldShow) {
+      const domSelection = window.getSelection();
+      if (domSelection && domSelection.rangeCount > 0) {
+        // 创建一个基于用户文本选择的“虚拟”引用元素
+        const domRange = domSelection.getRangeAt(0);
+        refs.setReference({
+          getBoundingClientRect: () => domRange.getBoundingClientRect(),
+        });
+      }
     }
-
-    const domSelection = window.getSelection();
-    if (!domSelection || domSelection.rangeCount === 0) {
-      el.style.opacity = "0";
-      el.style.visibility = "hidden";
-      return;
-    }
-
-    const domRange = domSelection.getRangeAt(0);
-    const rect = domRange.getBoundingClientRect();
-    setToolbarAnchorRect(rect);
-
-    el.style.opacity = "1";
-    el.style.visibility = "visible";
-    el.style.top = `${rect.top + window.pageYOffset - el.offsetHeight - 6}px`;
-    el.style.left = `${
-      rect.left + window.pageXOffset - el.offsetWidth / 2 + rect.width / 2
-    }px`;
-  }, [editor.selection, inFocus, isLinkEditorOpen]);
+  }, [editor.selection, inFocus, isLinkEditorOpen, refs, editor]);
 
   const getActiveLinkUrl = useCallback(() => {
     const [linkNode] = Editor.nodes(editor, {
@@ -124,45 +127,48 @@ export const HoveringToolbar = () => {
   return (
     <>
       <Portal>
-        <Menu
-          ref={ref}
-          style={{
-            padding: "6px 8px",
-            position: "absolute",
-            zIndex: 9998,
-            backgroundColor: "#222",
-            borderRadius: "6px",
-            transition: "opacity 0.2s, visibility 0.2s, top 0.1s, left 0.1s",
-            display: "flex",
-            gap: "4px",
-            opacity: 0,
-            visibility: "hidden",
-          }}
-          onMouseDown={(e) => e.preventDefault()}
-        >
-          <FormatButton format="bold" icon={LuBold} />
-          <FormatButton format="italic" icon={LuItalic} />
-          <FormatButton format="underline" icon={LuUnderline} />
-          <Button
-            reversed
-            active={LinkCommands.isLinkActive(editor)}
-            onMouseDown={(e) => {
-              e.preventDefault();
-              handleOpenLinkEditor();
+        {showToolbar && (
+          <Menu
+            ref={refs.setFloating}
+            style={{
+              position: strategy,
+              top: y ?? 0,
+              left: x ?? 0,
+              padding: "6px 8px",
+              zIndex: 9998,
+              backgroundColor: "#222",
+              borderRadius: "6px",
+              transition: "opacity 0.2s",
+              display: "flex",
+              gap: "4px",
             }}
+            onMouseDown={(e) => e.preventDefault()}
           >
-            <LuLink2 size={16} />
-          </Button>
-        </Menu>
+            <FormatButton format="bold" icon={LuBold} />
+            <FormatButton format="italic" icon={LuItalic} />
+            <FormatButton format="underline" icon={LuUnderline} />
+            <Button
+              reversed
+              active={LinkCommands.isLinkActive(editor)}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                handleOpenLinkEditor();
+              }}
+            >
+              <LuLink2 size={16} />
+            </Button>
+          </Menu>
+        )}
       </Portal>
 
+      {/* LinkEditorPopover 现在也需要改造以接收浮动UI的上下文 */}
       <LinkEditorPopover
         isOpen={isLinkEditorOpen}
-        anchorRect={toolbarAnchorRect}
-        initialUrl={getActiveLinkUrl()}
+        // [核心修改] 不再传递 DOMRect，让 LinkEditorPopover 自己处理定位
         onConfirm={handleConfirmLink}
         onRemove={handleRemoveLink}
         onClose={handleCloseLinkEditor}
+        initialUrl={getActiveLinkUrl()}
       />
     </>
   );

@@ -1,6 +1,6 @@
-// components/page/RenderPage.tsx
+// components/page/RenderPage.tsx (最终正确版)
 
-import React, { useEffect, useMemo, useCallback } from "react";
+import React, { useEffect, useMemo, useCallback, Suspense, lazy } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "app/store";
 import toast from "react-hot-toast";
@@ -10,7 +10,8 @@ import { markdownToSlate } from "create/editor/transforms/markdownToSlate";
 import SaveStatusIndicator, { SaveStatus } from "./SaveStatusIndicator";
 import { selectTheme } from "app/settings/settingSlice";
 
-const Editor = React.lazy(() => import("create/editor/Editor"));
+// 懒加载 Editor 以提升初始加载性能
+const Editor = lazy(() => import("create/editor/Editor"));
 
 import {
   initPage,
@@ -29,6 +30,7 @@ import {
 
 const STATUS_RESET_DELAY_MS = 2000;
 
+// --- Helper Hooks (保持不变) ---
 function useKeyboardSave(onSave: () => void, isReadOnly: boolean) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -106,6 +108,7 @@ function useInitialValue(page: any, isInitialized: boolean): EditorContent {
   }, [page, isInitialized]);
 }
 
+// --- Helper Components (保持不变) ---
 function PageSaveStatus() {
   const dispatch = useAppDispatch();
   const isSaving = useAppSelector(selectIsSaving);
@@ -153,7 +156,8 @@ const Loader = () => {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        height: "100%",
+        // 让加载指示器撑满父容器(MainLayout__pageContent)的可见高度
+        height: "calc(100dvh - var(--headerHeight))",
         color: theme.textSecondary,
         fontSize: 14,
       }}
@@ -177,11 +181,7 @@ const EditorLoader = () => {
 // ======================================================================
 // 【核心组件】: RenderPage
 // ======================================================================
-export default React.memo(function RenderPage({
-  pageKey,
-}: {
-  pageKey: string;
-}) {
+const RenderPage = ({ pageKey }: { pageKey: string }) => {
   const [params] = useSearchParams();
   const dispatch = useAppDispatch();
   const urlEditMode = params.get("edit") === "true";
@@ -217,66 +217,67 @@ export default React.memo(function RenderPage({
   return (
     <>
       <div className="RenderPage-container">
-        <main className="RenderPage-main">
-          <div className="RenderPage-scrollable">
-            <div className="RenderPage-wrapper">
-              <React.Suspense fallback={<EditorLoader />}>
-                <div key={pageKey}>
-                  <Editor
-                    initialValue={initialValue}
-                    onChange={handleChange}
-                    readOnly={isReadOnly}
-                    onBlur={handleBlur}
-                  />
-                </div>
-              </React.Suspense>
+        <div className="RenderPage-editor-wrapper">
+          <Suspense fallback={<EditorLoader />}>
+            <div key={pageKey}>
+              <Editor
+                initialValue={initialValue}
+                onChange={handleChange}
+                readOnly={isReadOnly}
+                onBlur={handleBlur}
+              />
             </div>
-          </div>
-        </main>
+          </Suspense>
+        </div>
         {!isReadOnly && <PageSaveStatus />}
       </div>
+
       <style href="RenderPage-styles" precedence="low">{`
         .RenderPage-container {
-          display: flex;
-          flex-direction: column;
-          height: 100%; /* 核心修复：填满 MainLayout__pageContent 提供的空间 */
+          /* [核心修复]
+           * 移除所有 height, min-height, 和 overflow 属性。
+           * 这个组件不再关心自己的高度或滚动，它只是一个内容容器。
+           * 它的高度将由其内部的 .RenderPage-editor-wrapper 的内容自然撑开。
+           * 所有的滚动都由父级 MainLayout__pageContent 处理。
+           */
+          width: 100%;
           background: var(--background);
           color: var(--text);
         }
-        .RenderPage-main {
-          flex: 1;
-          display: flex;
-          overflow: hidden; /* 防止内容溢出 */
-        }
-        .RenderPage-scrollable {
-          flex: 1;
-          overflow-y: auto; /* 关键：由它自己负责滚动 */
-          scroll-behavior: smooth;
-        }
-        .RenderPage-wrapper {
+
+        .RenderPage-editor-wrapper {
+          /* 这个 wrapper 的唯一职责就是限制内容宽度、居中并提供边距。 */
           max-width: 800px;
           margin: 0 auto;
-          padding: 20px 16px;
+          padding: var(--space-5) var(--space-4); /* 20px 16px */
         }
+        
         [contenteditable="true"] {
           outline: none;
           caret-color: var(--primary);
-          padding: 4px;
+          padding: var(--space-1);
           font-size: 16px;
           line-height: 1.7;
           color: var(--text);
         }
-        .RenderPage-scrollable::-webkit-scrollbar { width: 6px; }
-        .RenderPage-scrollable::-webkit-scrollbar-thumb { background: var(--borderHover); border-radius: 3px; }
-        .RenderPage-scrollable::-webkit-scrollbar-thumb:hover { background: var(--textQuaternary); }
+        
         @media (max-width: 768px) {
-          .RenderPage-wrapper { padding: 16px 12px; }
+          .RenderPage-editor-wrapper { 
+            padding: var(--space-4) var(--space-3); /* 16px 12px */
+          }
         }
+        
+        /* 打印时，移除最大宽度限制，让内容填满纸张 */
         @media print {
-          .RenderPage-container, .RenderPage-scrollable { overflow: visible; height: auto; }
-          .RenderPage-wrapper { max-width: 100%; padding: 0; margin: 0; }
+          .RenderPage-editor-wrapper { 
+            max-width: 100%; 
+            padding: 0; 
+            margin: 0; 
+          }
         }
       `}</style>
     </>
   );
-});
+};
+
+export default React.memo(RenderPage);
