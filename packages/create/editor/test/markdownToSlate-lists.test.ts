@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { markdownToSlate } from "../markdownToSlate";
+import { markdownToSlate } from "../transforms/markdownToSlate";
 
 describe("markdownToSlate - lists", () => {
   test("should convert unordered list", () => {

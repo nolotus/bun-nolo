@@ -19,7 +19,7 @@ import {
 } from "create/space/spaceSlice";
 import { useAppDispatch, useAppSelector } from "app/store";
 import { deleteMessage } from "../messageSlice";
-import { markdownToSlate } from "create/editor/markdownToSlate";
+import { markdownToSlate } from "create/editor/transforms/markdownToSlate";
 import { useTranslation } from "react-i18next";
 import { Tooltip } from "render/web/ui/Tooltip";
 import toast from "react-hot-toast";

@@ -1,5 +1,6 @@
 import { visit } from "unist-util-visit";
-import { processInlineNodes } from "./processInlineNodes";
+import { processInlineNodes } from "./inline";
+import { transformTable } from "./table"; // (1) 导入新的、独立的表格转换器
 
 interface SlateNode {
   type: string;
@@ -15,8 +16,9 @@ interface SlateNode {
   header?: boolean;
   checked?: boolean;
   html?: string;
-  start?: number; // 添加 start 属性
-  value?: number; // 添加 value 属性
+  start?: number;
+  value?: number;
+  columns?: any[]; // 为表格节点添加 columns 属性
 }
 
 function ensureValidNode(node: any): boolean {
@@ -39,6 +41,7 @@ export function mdastToSlate(mdastTree: any): SlateNode[] {
   const slateNodes: SlateNode[] = [];
   const processedNodes = new Set();
 
+  // processBlockChildren 和 processNode 函数保持不变
   function processBlockChildren(children: any[]): any[] {
     if (!Array.isArray(children)) return [{ text: "" }];
     return children.map((child) => {
@@ -76,6 +79,7 @@ export function mdastToSlate(mdastTree: any): SlateNode[] {
     return null;
   }
 
+  // processListItemChildren 函数保持不变
   function processListItemChildren(item: any): any[] {
     if (!ensureValidNode(item)) {
       return [{ text: "" }];
@@ -98,7 +102,7 @@ export function mdastToSlate(mdastTree: any): SlateNode[] {
               }
               const nestedItemNode: SlateNode = {
                 type: "list-item",
-                value: (child.start || 1) + index, // 为嵌套列表项设置序号
+                value: (child.start || 1) + index,
                 children: processListItemChildren(nestedItem),
               };
               if (
@@ -113,7 +117,7 @@ export function mdastToSlate(mdastTree: any): SlateNode[] {
           result.push({
             type: "list",
             ordered: !!child.ordered,
-            start: child.start || 1, // 为嵌套列表设置起始序号
+            start: child.start || 1,
             children: nestedListItems,
           });
         }
@@ -131,6 +135,7 @@ export function mdastToSlate(mdastTree: any): SlateNode[] {
     }
     try {
       switch (node.type) {
+        // ... 其他 case 保持不变 ...
         case "blockquote":
           slateNodes.push({
             type: "quote",
@@ -191,21 +196,19 @@ export function mdastToSlate(mdastTree: any): SlateNode[] {
             }),
           });
           break;
+
         case "table":
-          slateNodes.push({
-            type: "table",
-            children: (node.children || []).map(
-              (row: any, rowIndex: number) => ({
-                type: "table-row",
-                children: (row.children || []).map((cell: any) => ({
-                  type: "table-cell",
-                  ...(rowIndex === 0 ? { header: true } : {}),
-                  children: processInlineNodes(cell.children || []),
-                })),
-              })
-            ),
-          });
+          // (2) 调用新的表格处理函数
+          const tableNode = transformTable(node);
+
+          // (3) 检查返回值，确保只添加有效的节点
+          if (tableNode) {
+            slateNodes.push(tableNode);
+          }
+
+          // (4) 旧的、内联的表格处理逻辑已被移除
           break;
+
         case "thematicBreak":
           slateNodes.push({
             type: "thematic-break",

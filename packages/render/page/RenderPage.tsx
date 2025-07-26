@@ -6,7 +6,7 @@ import { useAppDispatch, useAppSelector } from "app/store";
 import toast from "react-hot-toast";
 
 import { EditorContent } from "create/editor/utils/slateUtils";
-import { markdownToSlate } from "create/editor/markdownToSlate";
+import { markdownToSlate } from "create/editor/transforms/markdownToSlate";
 import SaveStatusIndicator, { SaveStatus } from "./SaveStatusIndicator";
 import { selectTheme } from "app/settings/settingSlice";
 

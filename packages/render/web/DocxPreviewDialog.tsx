@@ -10,7 +10,7 @@ import {
   selectPageIsInitialized,
 } from "render/page/pageSlice";
 import { EditorContent } from "create/editor/utils/slateUtils";
-import { markdownToSlate } from "create/editor/markdownToSlate";
+import { markdownToSlate } from "create/editor/transforms/markdownToSlate";
 import { selectTheme } from "app/settings/settingSlice";
 import {
   slateToExcelData,

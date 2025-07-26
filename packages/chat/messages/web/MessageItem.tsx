@@ -4,7 +4,7 @@ import { selectUserId } from "auth/authSlice";
 import { selectShowThinking } from "app/settings/settingSlice";
 import { ChevronDownIcon, ChevronRightIcon } from "@primer/octicons-react";
 import Avatar from "render/web/ui/Avatar";
-import { markdownToSlate } from "create/editor/markdownToSlate";
+import { markdownToSlate } from "create/editor/transforms/markdownToSlate";
 import { useFetchData } from "app/hooks";
 import Editor from "create/editor/Editor";
 import DocxPreviewDialog from "render/web/DocxPreviewDialog";
