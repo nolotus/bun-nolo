@@ -1,4 +1,4 @@
-// render/layout/MainLayout.tsx (已移除所有光晕效果)
+// render/layout/MainLayout.tsx (已修复移动端视口高度问题)
 
 import { useAuth } from "auth/hooks/useAuth";
 import ChatSidebar from "chat/web/ChatSidebar";
@@ -168,11 +168,13 @@ const MainLayout: React.FC = () => {
       <style href="MainLayout-styles" precedence="default">{`
         .MainLayout {
           display: flex;
-          min-height: 100vh;
+          /* [修复] 使用 dvh 确保最小高度是动态的、正确的 */
+          min-height: 100dvh;
         }
 
         .MainLayout__sidebar {
-          height: 100vh;
+          /* [修复] 使用 dvh 确保侧边栏高度与可见视口一致 */
+          height: 100dvh;
           display: flex;
           flex-direction: column;
           flex-shrink: 0;
@@ -198,14 +200,15 @@ const MainLayout: React.FC = () => {
           flex: 1;
           display: flex;
           flex-direction: column;
-          height: 100vh;
+          /* [核心修复] 将 100vh 改为 100dvh，这是解决问题的关键 */
+          height: 100dvh;
           min-width: 0;
           overflow: hidden;
         }
         
         .MainLayout__pageContent {
           flex: 1;
-          overflow: auto;
+          overflow: auto; /* 这个是滚动的容器 */
           position: relative;
         }
 
