@@ -74,7 +74,7 @@ const ErrorDisplay = ({ error }: { error: any }) => {
 };
 
 const NotLoggedIn = () => {
-  const { t } = useTranslation("auth");
+  const { t } = useTranslation();
   return (
     <div
       style={{
