@@ -1,4 +1,4 @@
-// render/layout/MainLayout.tsx (已修复移动端视口高度问题)
+// render/layout/MainLayout.tsx (已实现极简化的错误边界)
 
 import { useAuth } from "auth/hooks/useAuth";
 import ChatSidebar from "chat/web/ChatSidebar";
@@ -8,6 +8,9 @@ import React, {
   useEffect,
   useRef,
   useState,
+  Component,
+  ErrorInfo,
+  ReactNode,
 } from "react";
 import { useDispatch } from "react-redux";
 import { useAppSelector } from "app/store";
@@ -18,6 +21,96 @@ import TopBar from "./TopBar";
 import { SidebarTop } from "./SidebarTop";
 import { Outlet, useLocation } from "react-router-dom";
 import LifeSidebarContent from "life/LifeSidebarContent";
+
+// --- [新增] 极简化的页面内容错误边界组件 ---
+interface ErrorBoundaryProps {
+  children: ReactNode;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+}
+
+class PageContentErrorBoundary extends Component<
+  ErrorBoundaryProps,
+  ErrorBoundaryState
+> {
+  // 使用类属性简化 state 初始化
+  state = { hasError: false };
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    // React 要求这个静态方法来触发 fallback UI
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    // 保留日志记录，这对于开发和维护至关重要
+    console.error("页面内容渲染出错:", error, errorInfo);
+  }
+
+  handleRefresh = () => {
+    // 提供一个简单的恢复机制
+    window.location.reload();
+  };
+
+  render() {
+    if (this.state.hasError) {
+      // 极简化的 Fallback UI
+      return (
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            height: "100%",
+            padding: "var(--space-8)",
+            textAlign: "center",
+          }}
+        >
+          <h2
+            style={{
+              fontSize: "1.25rem",
+              fontWeight: 500,
+              color: "var(--text)",
+              margin: "0 0 var(--space-2) 0",
+            }}
+          >
+            内容加载失败
+          </h2>
+          <p
+            style={{
+              color: "var(--textSecondary)",
+              maxWidth: "360px",
+              lineHeight: 1.6,
+              margin: "0 0 var(--space-6) 0",
+            }}
+          >
+            您可以尝试刷新页面来解决此问题。
+          </p>
+          <button
+            onClick={this.handleRefresh}
+            style={{
+              padding: "var(--space-2) var(--space-4)",
+              border: "1px solid var(--borderHover)",
+              background: "var(--background)",
+              color: "var(--text)",
+              borderRadius: "var(--space-2)",
+              cursor: "pointer",
+              fontSize: "0.875rem",
+            }}
+          >
+            刷新页面
+          </button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+// --- MainLayout 组件 (主体逻辑不变) ---
 
 const MainLayout: React.FC = () => {
   const location = useLocation();
@@ -158,22 +251,24 @@ const MainLayout: React.FC = () => {
         <main className={`MainLayout__main ${isResizing ? "is-resizing" : ""}`}>
           <TopBar toggleSidebar={hasSidebar ? toggleSidebar : undefined} />
           <div className="MainLayout__pageContent">
-            <Suspense fallback={<div>main Loading...</div>}>
-              <Outlet />
-            </Suspense>
+            {/* --- [核心改动] 使用极简化的错误边界包裹 Outlet --- */}
+            <PageContentErrorBoundary>
+              <Suspense fallback={<div>main Loading...</div>}>
+                <Outlet />
+              </Suspense>
+            </PageContentErrorBoundary>
           </div>
         </main>
       </div>
 
       <style href="MainLayout-styles" precedence="default">{`
+        /* ... 样式代码保持不变 ... */
         .MainLayout {
           display: flex;
-          /* [修复] 使用 dvh 确保最小高度是动态的、正确的 */
           min-height: 100dvh;
         }
 
         .MainLayout__sidebar {
-          /* [修复] 使用 dvh 确保侧边栏高度与可见视口一致 */
           height: 100dvh;
           display: flex;
           flex-direction: column;
@@ -200,7 +295,6 @@ const MainLayout: React.FC = () => {
           flex: 1;
           display: flex;
           flex-direction: column;
-          /* [核心修复] 将 100vh 改为 100dvh，这是解决问题的关键 */
           height: 100dvh;
           min-width: 0;
           overflow: hidden;
