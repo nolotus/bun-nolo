@@ -1,7 +1,6 @@
 // create/editor/ElementWrapper.tsx
 import React from "react";
 import { useSlateStatic } from "slate-react";
-import { useTheme } from "app/theme";
 
 import { CodeBlockType, CodeLineType } from "./types";
 
@@ -31,7 +30,6 @@ export const ElementWrapper: React.FC<any> = (props) => {
   const { attributes, children, element } = props;
   const editor = useSlateStatic();
   // 确保主题 CSS 变量已注入
-  useTheme();
 
   const getStyle = (additionalStyle: React.CSSProperties = {}) => ({
     ...(element.align ? { textAlign: element.align } : {}),

@@ -1,5 +1,3 @@
-// create/editor/Editor.tsx
-
 import React, { useMemo } from "react";
 import {
   Editor,
@@ -27,6 +25,7 @@ import { renderLeaf } from "./renderLeaf";
 import { ElementWrapper } from "./ElementWrapper";
 import { EditorToolbar } from "./EditorToolbar";
 import { HoveringToolbar } from "./HoveringToolbar";
+import { TableContextMenu } from "./TableContextMenu"; // <--- 1. 导入新组件
 
 // 定义自定义编辑器类型
 // 注意：此类型也在 syntaxHighlighting.tsx 中使用。
@@ -84,6 +83,7 @@ const NoloEditor: React.FC<NoloEditorProps> = ({
           <div className="toolbar-container">
             <EditorToolbar />
             <HoveringToolbar />
+            <TableContextMenu /> {/* <--- 2. 在这里添加新组件 */}
           </div>
         )}
         {/* "无头"组件，负责在后台计算语法高亮 */}
