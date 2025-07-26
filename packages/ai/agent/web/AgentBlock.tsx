@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
-import { useNavigate } from "react-router-dom";
+// 1. 从 react-router-dom 导入 Link
+import { useNavigate, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
 import { useAppDispatch } from "app/store";
@@ -69,6 +70,7 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
     }
   }, [item.id, agentKey, deleting, dispatch, reload, t]);
 
+  // handleViewDetails 仍然保留，用于整个卡片的点击跳转
   const handleViewDetails = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -97,12 +99,13 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
 
           <div className="agent__info">
             <div className="agent__title-row">
-              <div className="agent__title-container clickable">
+              {/* 2. 使用 Link 组件包裹标题和箭头 */}
+              <Link to={`/${agentKey}`} className="agent__title-link">
                 <h3 className="agent__title">{item.name || t("unnamed")}</h3>
-                <button onClick={handleViewDetails} className="agent__view-btn">
+                <span className="agent__title-arrow">
                   <LuArrowRight size={14} />
-                </button>
-              </div>
+                </span>
+              </Link>
             </div>
 
             {item.outputPrice && (
@@ -242,7 +245,19 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           align-items: flex-start;
         }
 
-        .agent__title-container {
+        .agent__title-link {
+          /* Reset Link/Button Styles */
+          background: none;
+          border: none;
+          padding: 0;
+          margin: 0;
+          font: inherit;
+          text-align: left;
+          color: inherit;
+          cursor: pointer;
+          text-decoration: none; /* 3. 确保移除a标签的下划线 */
+          
+          /* Layout */
           display: flex;
           align-items: center;
           gap: var(--space-2);
@@ -259,26 +274,29 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
+          transition: color 0.2s ease;
         }
 
-        .agent:hover .agent__title {
+        .agent:hover .agent__title,
+        .agent__title-link:hover .agent__title {
           color: var(--primary);
         }
 
-        .agent__view-btn {
+        .agent__title-arrow {
           background: none;
           border: none;
           color: var(--textTertiary);
           padding: var(--space-1);
           border-radius: var(--space-1);
-          cursor: pointer;
           transition: all 0.2s ease;
           opacity: 0;
           transform: translateX(-4px);
           flex-shrink: 0;
+          display: flex;
+          align-items: center;
         }
 
-        .agent:hover .agent__view-btn {
+        .agent:hover .agent__title-arrow {
           opacity: 1;
           transform: translateX(0);
           color: var(--primary);
@@ -383,12 +401,15 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
             padding: var(--space-4);
             gap: var(--space-3);
           }
-          .agent__view-btn {
+          .agent__title-arrow {
             opacity: 1;
             transform: none;
             position: absolute;
             top: var(--space-2);
             right: var(--space-2);
+          }
+           .agent__title-link {
+            position: static;
           }
         }
         
@@ -396,7 +417,7 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           .agent:hover {
             transform: none;
           }
-          .agent__view-btn {
+          .agent__title-arrow {
             opacity: 1;
             transform: none;
           }
@@ -408,7 +429,7 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
 
         @media (prefers-reduced-motion: reduce) {
           .agent,
-          .agent__view-btn,
+          .agent__title-arrow,
           .agent-exit {
             transition: none;
           }

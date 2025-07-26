@@ -234,7 +234,6 @@ const AgentPage = ({ agentKey }: AgentPageProps) => {
       <style href="agent-page" precedence="medium">{`
         .agent-page {
           padding: var(--space-6) var(--space-4);
-          background: var(--backgroundSecondary);
         }
         .agent-page__container {
           max-width: 768px;
