@@ -1,6 +1,4 @@
-// render/web/ui/Table.tsx
 import React from "react";
-import { useTheme } from "app/theme";
 
 interface TableBaseProps {
   attributes?: any;
@@ -13,25 +11,31 @@ export const Table: React.FC<TableBaseProps> = ({
   children,
   style,
 }) => {
-  const theme = useTheme();
-
   return (
     <>
-      <style href="table-container" precedence="medium">{`
+      {/* 
+        我们不再需要在容器上设置边框了，
+        所有的边框逻辑都交由 <table> 自身处理。
+      */}
+      <style href="table-container" precedence="high">{`
         .table-container {
           overflow-x: auto;
-          border-radius: ${theme.space[2]};
-          margin: ${theme.space[3]} 0;
+          margin: var(--space-4) 0;
           max-width: 100%;
         }
 
         .data-table {
           width: 100%;
-          border-collapse: collapse;
-          background: ${theme.background};
-          border-radius: ${theme.space[2]};
-          border: 1px solid ${theme.border};
-          overflow: hidden;
+          /* 关键改动 (1): 切换到 separate 模式以启用 border-radius */
+          border-collapse: separate;
+          /* 关键改动 (2): 移除单元格间距 */
+          border-spacing: 0;
+          /* 关键改动 (3): 表格自身拥有边框和圆角 */
+          border: 1px solid var(--border);
+          border-radius: var(--space-2);
+          overflow: hidden; /* 确保子元素被剪裁以适应圆角 */
+          
+          background: var(--background);
           font-size: 0.875rem;
           line-height: 1.65;
           font-family: system-ui, -apple-system, sans-serif;
@@ -51,20 +55,18 @@ export const TableRow: React.FC<TableBaseProps> = ({
   children,
   style,
 }) => {
-  const theme = useTheme();
-
   return (
     <>
-      <style href="table-row" precedence="medium">{`
+      <style href="table-row" precedence="high">{`
         .table-row {
-          border-bottom: 1px solid ${theme.border};
           transition: background-color 0.15s ease;
         }
-        .table-row:last-child {
+        /* 关键改动 (4): 移除最后一行的下边框，避免与 table 的外框重叠 */
+        .table-row:last-child .table-cell {
           border-bottom: none;
         }
         .table-row:hover {
-          background: ${theme.backgroundHover};
+          background: var(--backgroundHover);
         }
       `}</style>
       <tr className="table-row" style={style} {...attributes}>
@@ -86,48 +88,53 @@ export const TableCell: React.FC<TableCellProps> = ({
   element,
   style,
 }) => {
-  const theme = useTheme();
   const Component = element.header ? "th" : "td";
 
   return (
     <>
-      <style href="table-cell" precedence="medium">{`
+      <style href="table-cell" precedence="high">{`
         .table-cell {
-          padding: ${theme.space[3]} ${theme.space[4]};
+          padding: var(--space-3) var(--space-4);
           text-align: left;
-          color: ${theme.text};
+          color: var(--text);
           font-size: 0.875rem;
           line-height: 1.65;
           vertical-align: top;
           word-wrap: break-word;
           hyphens: auto;
+          
+          /* 关键改动 (5): 为每个单元格绘制下边框和右边框 */
+          border-bottom: 1px solid var(--border);
+          border-right: 1px solid var(--border);
+        }
+
+        /* 关键改动 (6): 移除最后一列的右边框，避免与 table 的外框重叠 */
+        .table-cell:last-child {
+          border-right: none;
         }
 
         .table-header {
-          background: ${theme.backgroundSecondary};
+          background: var(--backgroundSecondary);
           font-weight: 550;
-          color: ${theme.textSecondary};
+          color: var(--textSecondary);
           font-size: 0.8125rem;
-          padding: ${theme.space[2]} ${theme.space[4]};
-          border-bottom: 1px solid ${theme.border};
+          padding: var(--space-2) var(--space-4);
           position: sticky;
           top: 0;
           z-index: 1;
         }
 
-        /* 减少内部段落间距 */
         .table-cell p {
           margin: 0;
         }
         
         .table-cell p:not(:last-child) {
-          margin-bottom: ${theme.space[1]};
+          margin-bottom: var(--space-1);
         }
 
-        /* 代码在表格中的样式 */
         .table-cell code {
           font-size: 0.8125em;
-          padding: 1px ${theme.space[1]};
+          padding: 1px var(--space-1);
         }
       `}</style>
       <Component

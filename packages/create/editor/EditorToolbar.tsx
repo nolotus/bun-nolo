@@ -1,5 +1,3 @@
-// create/editor/EditorToolbar.tsx
-
 import React, { useState, useCallback } from "react";
 import { useSlate, ReactEditor } from "slate-react";
 import { Editor, Element as SlateElement, Transforms } from "slate";
@@ -26,10 +24,70 @@ import {
   LuAlignRight,
   LuAlignJustify,
   LuLink,
+  LuTable2, // --- (新增) 引入表格图标
 } from "react-icons/lu";
 
 const TEXT_ALIGN_TYPES = ["left", "center", "right", "justify"];
 const LIST_TYPE = "list";
+
+// --- (新增) 表格插入逻辑 ---
+const isTableActive = (editor: Editor) => {
+  const [table] = Editor.nodes(editor, {
+    match: (n) =>
+      !Editor.isEditor(n) && SlateElement.isElement(n) && n.type === "table",
+  });
+  return !!table;
+};
+
+const insertTable = (editor: Editor) => {
+  if (isTableActive(editor)) return;
+
+  // 创建一个包含空段落的单元格
+  const createTableCell = (): SlateElement => ({
+    type: "table-cell",
+    children: [{ type: "paragraph", children: [{ text: "" }] }],
+  });
+
+  // 根据指定的列数创建一行
+  const createTableRow = (cols: number): SlateElement => ({
+    type: "table-row",
+    children: Array.from({ length: cols }, createTableCell),
+  });
+
+  // 创建一个 2x2 的表格节点
+  const tableNode: SlateElement = {
+    type: "table",
+    children: [createTableRow(2), createTableRow(2)],
+  };
+
+  Transforms.insertNodes(editor, tableNode);
+  // 将光标移动到新创建的第一个单元格中
+  const [tableEntry] = Editor.nodes(editor, {
+    match: (n) => n.type === "table",
+  });
+  if (tableEntry) {
+    Transforms.select(editor, Editor.start(editor, tableEntry[1]));
+  }
+};
+
+// --- (新增) 表格按钮组件 ---
+const TableButton: React.FC = () => {
+  const editor = useSlate();
+  const isDisabled = isTableActive(editor);
+
+  return (
+    <Button
+      disabled={isDisabled}
+      onMouseDown={(e: React.MouseEvent) => {
+        e.preventDefault();
+        insertTable(editor);
+      }}
+    >
+      <LuTable2 size={18} />
+    </Button>
+  );
+};
+// --- 结束新增部分 ---
 
 // 工具栏容器
 export const Toolbar: React.FC<{
@@ -249,6 +307,11 @@ export const EditorToolbar: React.FC = () => {
       {/* 代码块组 */}
       <div style={groupStyle}>
         <CodeBlockButton />
+      </div>
+      {/* --- (新增) 表格功能组 --- */}
+      {divider}
+      <div style={groupStyle}>
+        <TableButton />
       </div>
     </Toolbar>
   );
