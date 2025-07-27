@@ -1,4 +1,4 @@
-// render/layout/MainLayout.tsx (已实现极简化的错误边界)
+// 文件路径: render/layout/MainLayout.tsx
 
 import { useAuth } from "auth/hooks/useAuth";
 import ChatSidebar from "chat/web/ChatSidebar";
@@ -12,17 +12,16 @@ import React, {
   ErrorInfo,
   ReactNode,
 } from "react";
+import { Outlet, useLocation } from "react-router-dom";
+
 import { useDispatch } from "react-redux";
 import { useAppSelector } from "app/store";
 import { zIndex } from "render/styles/zIndex";
 import { setSidebarWidth, selectSidebarWidth } from "app/settings/settingSlice";
-
 import TopBar from "./TopBar";
 import { SidebarTop } from "./SidebarTop";
-import { Outlet, useLocation } from "react-router-dom";
 import LifeSidebarContent from "life/LifeSidebarContent";
 
-// --- [新增] 极简化的页面内容错误边界组件 ---
 interface ErrorBoundaryProps {
   children: ReactNode;
 }
@@ -35,27 +34,22 @@ class PageContentErrorBoundary extends Component<
   ErrorBoundaryProps,
   ErrorBoundaryState
 > {
-  // 使用类属性简化 state 初始化
   state = { hasError: false };
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    // React 要求这个静态方法来触发 fallback UI
     return { hasError: true };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    // 保留日志记录，这对于开发和维护至关重要
     console.error("页面内容渲染出错:", error, errorInfo);
   }
 
   handleRefresh = () => {
-    // 提供一个简单的恢复机制
     window.location.reload();
   };
 
   render() {
     if (this.state.hasError) {
-      // 极简化的 Fallback UI
       return (
         <div
           style={{
@@ -110,8 +104,6 @@ class PageContentErrorBoundary extends Component<
   }
 }
 
-// --- MainLayout 组件 (主体逻辑不变) ---
-
 const MainLayout: React.FC = () => {
   const location = useLocation();
   const { isLoggedIn } = useAuth();
@@ -123,7 +115,6 @@ const MainLayout: React.FC = () => {
   const [isMobile, setIsMobile] = useState(false);
   const lastWidthRef = useRef(sidebarWidth);
   const isInitialMount = useRef(true);
-
   const resizeDebounceTimer = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -251,7 +242,6 @@ const MainLayout: React.FC = () => {
         <main className={`MainLayout__main ${isResizing ? "is-resizing" : ""}`}>
           <TopBar toggleSidebar={hasSidebar ? toggleSidebar : undefined} />
           <div className="MainLayout__pageContent">
-            {/* --- [核心改动] 使用极简化的错误边界包裹 Outlet --- */}
             <PageContentErrorBoundary>
               <Suspense fallback={<div>main Loading...</div>}>
                 <Outlet />
@@ -262,7 +252,6 @@ const MainLayout: React.FC = () => {
       </div>
 
       <style href="MainLayout-styles" precedence="default">{`
-        /* ... 样式代码保持不变 ... */
         .MainLayout {
           display: flex;
           min-height: 100dvh;
@@ -302,7 +291,7 @@ const MainLayout: React.FC = () => {
         
         .MainLayout__pageContent {
           flex: 1;
-          overflow: auto; /* 这个是滚动的容器 */
+          overflow: auto;
           position: relative;
         }
 

@@ -1,7 +1,7 @@
-// routes.jsx
+// 文件路径: app/web/routes.jsx
 import Home from "app/pages/Home";
 import Lab from "app/pages/Lab";
-import { Suspense, lazy } from "react"; // Suspense 和 lazy 已存在
+import { Suspense, lazy } from "react";
 import MainLayout from "render/layout/MainLayout";
 import { spaceRoutes } from "create/space/routes";
 
@@ -28,12 +28,11 @@ export const routes = (currentUser: any) => [
         path: "pricing",
         element: <PricePage />,
       },
-      // 添加 /recharge 路由
       {
-        path: "recharge", // 路由路径与 GuideSection 中的 link 保持一致
+        path: "recharge",
         element: (
           <Suspense>
-            <RechargePage /> {/* 渲染 RechargePage 组件 */}
+            <RechargePage />
           </Suspense>
         ),
       },
