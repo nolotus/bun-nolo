@@ -71,8 +71,18 @@ const CreateMenuButton: React.FC<{
 
   useClickOutside(menuRef, () => setIsMenuOpen(false));
 
-  const handleMouseEnter = () => setIsMenuOpen(true);
-  const handleMouseLeave = () => setIsMenuOpen(false);
+  const handleMouseEnter = () => {
+    // 仅在非触控设备上启用悬停
+    if (!("ontouchstart" in window)) {
+      setIsMenuOpen(true);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (!("ontouchstart" in window)) {
+      setIsMenuOpen(false);
+    }
+  };
 
   const handleCreateDialog = useCallback(() => {
     if (currentDialogConfig?.cybots) {
@@ -110,39 +120,47 @@ const CreateMenuButton: React.FC<{
         </Tooltip>
 
         {isMenuOpen && (
-          <div className="create-menu">
-            {currentDialogConfig && (
+          <>
+            {/* 移动端遮罩层 */}
+            <div
+              className="menu-overlay"
+              onClick={() => setIsMenuOpen(false)}
+            />
+
+            <div className="create-menu">
+              {currentDialogConfig && (
+                <button
+                  className="menu-item"
+                  onClick={handleCreateDialog}
+                  disabled={isCreatingDialog}
+                >
+                  {isCreatingDialog ? (
+                    <div className="spinner" />
+                  ) : (
+                    <LuMessageSquare size={18} />
+                  )}
+                  <span>{t("chat:newchat", "新建对话")}</span>
+                </button>
+              )}
               <button
                 className="menu-item"
-                onClick={handleCreateDialog}
-                disabled={isCreatingDialog}
+                onClick={handleCreatePage}
+                disabled={isCreatingPage}
               >
-                {isCreatingDialog ? (
+                {isCreatingPage ? (
                   <div className="spinner" />
                 ) : (
-                  <LuMessageSquare size={16} />
+                  <LuFileText size={18} />
                 )}
-                <span>{t("chat:newchat", "新建对话")}</span>
+                <span>{t("page:create_new_page", "新建页面")}</span>
               </button>
-            )}
-            <button
-              className="menu-item"
-              onClick={handleCreatePage}
-              disabled={isCreatingPage}
-            >
-              {isCreatingPage ? (
-                <div className="spinner" />
-              ) : (
-                <LuFileText size={16} />
-              )}
-              <span>{t("page:create_new_page", "新建页面")}</span>
-            </button>
 
-            <button className="menu-item" onClick={handleCreateSpace}>
-              <LuFolderPlus size={16} />
-              <span>{t("space:create_new_space", "新建空间")}</span>
-            </button>
-          </div>
+              <button className="menu-item" onClick={handleCreateSpace}>
+                <LuFolderPlus size={18} />
+                <span>{t("space:create_new_space", "新建空间")}</span>
+              </button>
+            </div>
+          </>
         )}
       </div>
 
@@ -152,21 +170,32 @@ const CreateMenuButton: React.FC<{
 
       <style href="create-menu-styles" precedence="high">{`
         @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes slideIn { 
+        @keyframes slideInDesktop { 
           from { opacity: 0; transform: translateY(-4px); }
           to { opacity: 1; transform: translateY(0); }
         }
+        @keyframes slideInMobile { 
+          from { opacity: 0; transform: translateY(8px) scale(0.95); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
+        }
 
-        .create-menu-container { position: relative; }
+        .create-menu-container { 
+          position: relative;
+        }
 
         .create-btn {
-          display: flex; align-items: center; justify-content: center;
-          width: var(--space-8); height: var(--space-8);
+          display: flex; 
+          align-items: center; 
+          justify-content: center;
+          width: var(--space-8); 
+          height: var(--space-8);
           background: var(--backgroundSecondary);
           border: 1px solid var(--border);
-          border-radius: 6px; cursor: pointer;
+          border-radius: 6px; 
+          cursor: pointer;
           color: var(--textSecondary);
           transition: all 0.2s ease;
+          -webkit-tap-highlight-color: transparent;
         }
 
         .create-btn:hover {
@@ -174,6 +203,10 @@ const CreateMenuButton: React.FC<{
           border-color: var(--borderHover);
           color: var(--primary);
           transform: translateY(-1px);
+        }
+
+        .create-btn:active {
+          transform: scale(0.95);
         }
 
         .create-btn.active {
@@ -190,34 +223,53 @@ const CreateMenuButton: React.FC<{
           transform: rotate(45deg);
         }
 
+        .menu-overlay {
+          display: none;
+        }
+
         .create-menu {
           position: absolute;
           top: calc(100% + var(--space-2));
-          right: 0; min-width: 200px;
+          right: 0; 
+          min-width: 200px;
           background: var(--background);
           border: 1px solid var(--border);
           border-radius: 8px;
           box-shadow: 0 4px 20px var(--shadowMedium);
           z-index: ${zIndex.dropdown};
           padding: var(--space-2);
-          animation: slideIn 0.15s ease;
+          animation: slideInDesktop 0.2s ease;
         }
 
         .menu-item {
-          display: flex; align-items: center; gap: var(--space-3);
-          width: 100%; padding: var(--space-2) var(--space-3);
-          background: transparent; border: none;
-          border-radius: 4px; cursor: pointer;
-          font-size: 14px; color: var(--text);
-          transition: background 0.15s ease;
+          display: flex; 
+          align-items: center; 
+          gap: var(--space-3);
+          width: 100%; 
+          padding: var(--space-2) var(--space-3);
+          background: transparent; 
+          border: none;
+          border-radius: 4px; 
+          cursor: pointer;
+          font-size: 14px; 
+          color: var(--text);
+          transition: all 0.15s ease;
+          -webkit-tap-highlight-color: transparent;
+          min-height: 36px;
         }
 
         .menu-item:hover:not(:disabled) {
           background: var(--backgroundHover);
         }
 
+        .menu-item:active:not(:disabled) {
+          background: var(--backgroundSelected);
+          transform: scale(0.98);
+        }
+
         .menu-item:disabled {
-          color: var(--textTertiary); cursor: not-allowed;
+          color: var(--textTertiary); 
+          cursor: not-allowed;
         }
 
         .menu-item + .menu-item {
@@ -225,17 +277,88 @@ const CreateMenuButton: React.FC<{
         }
 
         .spinner {
-          width: 16px; height: 16px;
+          width: 16px; 
+          height: 16px;
           border: 2px solid var(--borderLight);
           border-top-color: var(--primary);
           border-radius: 50%;
           animation: spin 0.8s linear infinite;
         }
 
-        @media (max-width: 600px) {
+        /* 移动端优化 */
+        @media (max-width: 768px) {
+          .create-btn {
+            width: 40px; 
+            height: 40px;
+            touch-action: manipulation;
+          }
+
+          .menu-overlay {
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(2px);
+            z-index: calc(${zIndex.dropdown} - 1);
+          }
+
           .create-menu {
-            left: var(--space-3); right: var(--space-3);
+            position: fixed;
+            top: auto;
+            bottom: var(--space-4);
+            left: var(--space-4);
+            right: var(--space-4);
             min-width: auto;
+            max-width: 320px;
+            margin: 0 auto;
+            border-radius: 12px;
+            padding: var(--space-3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+            animation: slideInMobile 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+          }
+
+          .menu-item {
+            padding: var(--space-4) var(--space-4);
+            font-size: 15px;
+            min-height: 48px;
+            border-radius: 8px;
+          }
+
+          .menu-item svg {
+            width: 20px;
+            height: 20px;
+          }
+
+          .menu-item + .menu-item {
+            margin-top: var(--space-2);
+          }
+
+          .spinner {
+            width: 18px;
+            height: 18px;
+          }
+        }
+
+        /* 小屏移动设备 */
+        @media (max-width: 480px) {
+          .create-menu {
+            bottom: var(--space-3);
+            left: var(--space-3);
+            right: var(--space-3);
+          }
+        }
+
+        /* 触控设备优化 */
+        @media (hover: none) and (pointer: coarse) {
+          .create-btn:hover {
+            transform: none;
+          }
+          
+          .menu-item:hover:not(:disabled) {
+            background: transparent;
           }
         }
       `}</style>
