@@ -1,3 +1,5 @@
+// MessageItem.tsx - 完整的桌面端+移动端优化版本
+
 import React, { useState, useMemo, useEffect, useCallback, memo } from "react";
 import { useAppSelector } from "app/store";
 import { selectUserId } from "auth/authSlice";
@@ -11,6 +13,11 @@ import DocxPreviewDialog from "render/web/DocxPreviewDialog";
 import { BaseModal } from "render/web/ui/BaseModal";
 import { MessageActions } from "./MessageActions";
 import { FileItem } from "./FileItem";
+
+// 检测设备类型
+const isTouchDevice = () => {
+  return "ontouchstart" in window || navigator.maxTouchPoints > 0;
+};
 
 // 流式指示器
 const StreamingIndicator = memo(() => (
@@ -123,7 +130,7 @@ const ImagePreview = memo(({ src, alt, onPreview }) => {
   );
 });
 
-// 消息内容组件（支持多图网格展示）
+// 消息内容组件
 const MessageContent = memo(({ content, thinkContent, role }) => {
   const showThinking = useAppSelector(selectShowThinking);
   const [filePreview, setFilePreview] = useState(null);
@@ -139,7 +146,7 @@ const MessageContent = memo(({ content, thinkContent, role }) => {
   const closeFile = useCallback(() => setFilePreview(null), []);
   const closeImg = useCallback(() => setImgPreview(null), []);
 
-  // 按段落分组：连续图片一组，其它为“normal”
+  // 按段落分组
   const segments = useMemo(() => {
     if (!Array.isArray(content)) return [];
     const segs = [];
@@ -253,6 +260,10 @@ export const MessageItem = memo(({ message }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [showActs, setShowActs] = useState(false);
 
+  // 长按检测 - 仅移动端
+  const [longPressTimer, setLongPressTimer] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
+
   const {
     content,
     thinkContent,
@@ -265,25 +276,145 @@ export const MessageItem = memo(({ message }) => {
   const isSelf = role === "user" && (currentUserId === userId || !cybotKey);
   const isRobot = role !== "user";
   const type = isSelf ? "self" : isRobot ? "robot" : "other";
+  const isTouch = isTouchDevice();
 
   const { data: robotData } =
     cybotKey && isRobot ? useFetchData(cybotKey) : { data: null };
 
   const toggleCollapse = useCallback(() => setCollapsed((v) => !v), []);
   const toggleActs = useCallback(() => setShowActs((v) => !v), []);
-  const onClick = useCallback(
+
+  // 清理长按定时器
+  const clearLongPressTimer = useCallback(() => {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      setLongPressTimer(null);
+    }
+  }, [longPressTimer]);
+
+  // 检查是否点击了交互元素
+  const isInteractiveElement = useCallback((target) => {
+    return (
+      target.closest(".actions") ||
+      target.closest("button") ||
+      target.closest(".thinking-toggle") ||
+      target.closest(".msg-image") ||
+      target.closest("a") ||
+      target.closest("input") ||
+      target.closest("textarea") ||
+      target.closest("[contenteditable]")
+    );
+  }, []);
+
+  // 桌面端点击处理
+  const handleClick = useCallback(
     (e) => {
-      if (e.target.closest(".actions") || e.target.closest("button")) return;
+      // 如果是触摸设备，不使用点击逻辑
+      if (isTouch) return;
+
+      if (isInteractiveElement(e.target)) return;
+
       toggleActs();
     },
-    [toggleActs]
+    [isTouch, toggleActs, isInteractiveElement]
   );
+
+  // 移动端长按开始
+  const handleTouchStart = useCallback(
+    (e) => {
+      if (!isTouch) return;
+
+      if (isInteractiveElement(e.target)) return;
+
+      setIsDragging(false);
+
+      const timer = setTimeout(() => {
+        if (!isDragging) {
+          setShowActs(true);
+          // 触觉反馈
+          if (navigator.vibrate) {
+            navigator.vibrate(50);
+          }
+        }
+      }, 500);
+
+      setLongPressTimer(timer);
+    },
+    [isTouch, isDragging, isInteractiveElement]
+  );
+
+  // 移动端触摸移动
+  const handleTouchMove = useCallback(() => {
+    if (!isTouch) return;
+    setIsDragging(true);
+    clearLongPressTimer();
+  }, [isTouch, clearLongPressTimer]);
+
+  // 移动端触摸结束
+  const handleTouchEnd = useCallback(() => {
+    if (!isTouch) return;
+    clearLongPressTimer();
+    setTimeout(() => setIsDragging(false), 100);
+  }, [isTouch, clearLongPressTimer]);
+
+  // 桌面端鼠标进入
+  const handleMouseEnter = useCallback(() => {
+    if (isTouch) return;
+    // 桌面端不自动显示，保持原有的hover CSS效果
+  }, [isTouch]);
+
+  // 桌面端鼠标离开
+  const handleMouseLeave = useCallback(() => {
+    if (isTouch) return;
+    // 桌面端不自动隐藏，保持原有逻辑
+  }, [isTouch]);
+
+  // 点击空白区域隐藏操作栏
+  useEffect(() => {
+    if (!showActs) return;
+
+    const handleOutsideClick = (e) => {
+      const msgElement = e.target.closest(".msg");
+      const currentMsg = e.target.closest(`[data-message-id="${message?.id}"]`);
+
+      // 如果点击的不是当前消息，隐藏操作栏
+      if (msgElement && !currentMsg) {
+        setShowActs(false);
+      }
+      // 如果点击的是空白区域，也隐藏操作栏
+      if (!msgElement) {
+        setShowActs(false);
+      }
+    };
+
+    const timer = setTimeout(() => {
+      document.addEventListener("click", handleOutsideClick, true);
+      document.addEventListener("touchend", handleOutsideClick, true);
+    }, 100);
+
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener("click", handleOutsideClick, true);
+      document.removeEventListener("touchend", handleOutsideClick, true);
+    };
+  }, [showActs, message?.id]);
+
+  // 清理定时器
+  useEffect(() => {
+    return () => clearLongPressTimer();
+  }, [clearLongPressTimer]);
 
   return (
     <>
       <div
-        className={`msg ${type} ${collapsed ? "collapsed" : ""}`}
-        onClick={onClick}
+        className={`msg ${type} ${collapsed ? "collapsed" : ""} ${showActs ? "actions-visible" : ""}`}
+        data-message-id={message?.id}
+        onClick={handleClick}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
       >
         <div className="msg-inner">
           <div className="avatar-area">
@@ -302,6 +433,7 @@ export const MessageItem = memo(({ message }) => {
               isCollapsed={collapsed}
               message={message}
               showActions={showActs}
+              isTouch={isTouch}
             />
           </div>
           <div className="content-area">
@@ -437,12 +569,40 @@ export const MessageItem = memo(({ message }) => {
   line-height: 1.6;
 }
 
-/* --- MessageItem & 普通渲染 --- */
+/* --- MessageItem 基础样式 --- */
 .msg {
   padding: 0 var(--space-4);
   margin-bottom: var(--space-4);
   cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-radius: var(--space-2);
 }
+
+/* 桌面端悬停效果 */
+@media (hover: hover) and (pointer: fine) {
+  .msg:hover {
+    background-color: var(--backgroundGhost);
+  }
+  
+  .msg:hover .actions {
+    opacity: 0.8;
+    visibility: visible;
+  }
+}
+
+/* 移动端长按激活状态 */
+@media (hover: none) and (pointer: coarse) {
+  .msg.actions-visible {
+    background-color: var(--primaryGhost);
+    transform: scale(0.995);
+    transition: all 0.2s ease;
+  }
+  
+  .msg.actions-visible .msg-body {
+    box-shadow: 0 2px 12px var(--shadowLight);
+  }
+}
+
 .msg-inner {
   max-width: 900px;
   margin: 0 auto;
@@ -470,15 +630,18 @@ export const MessageItem = memo(({ message }) => {
 }
 .avatar-wrapper { position: relative; }
 
-.msg:hover .actions,
-.msg .actions.show {
-  opacity: 0.8;
-  visibility: visible;
-}
+/* 操作按钮显示逻辑 */
 .actions {
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.2s ease, visibility 0.2s;
+}
+
+/* 显示操作栏的条件：桌面端悬停 OR 移动端激活 OR 强制显示 */
+.msg.actions-visible .actions,
+.msg .actions.show {
+  opacity: 1;
+  visibility: visible;
 }
 
 .content-area {
@@ -533,7 +696,7 @@ export const MessageItem = memo(({ message }) => {
   margin: 0;
 }
 
-/* --- 单图 --- */
+/* --- 图片相关 --- */
 .msg-image-wrap { display: inline-block; }
 .msg-image {
   border-radius: var(--space-2);
@@ -547,7 +710,6 @@ export const MessageItem = memo(({ message }) => {
 }
 .msg-image:hover { transform: translateY(-2px); }
 
-/* --- 多图网格 --- */
 .msg-images {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
@@ -558,7 +720,6 @@ export const MessageItem = memo(({ message }) => {
   max-height: 200px;
 }
 
-/* --- 弹窗图片 --- */
 .modal-image {
   max-width: 90vw;
   max-height: 85vh;
@@ -584,21 +745,24 @@ export const MessageItem = memo(({ message }) => {
   );
 }
 
-/* --- 响应式 --- */
+/* --- 移动端适配 --- */
 @media (max-width: 768px) {
-  .msg { padding: 0 var(--space-3); }
+  .msg { 
+    padding: var(--space-2) var(--space-3);
+    margin-bottom: var(--space-3);
+  }
   .msg.self .msg-inner,
   .msg.other .msg-inner {
     max-width: 95%;
   }
-  .msg:hover .actions {
-    opacity: 0;
-    visibility: hidden;
-  }
   .msg-image { max-height: 280px; }
 }
+
 @media (max-width: 480px) {
-  .msg { padding: 0 var(--space-2); }
+  .msg { 
+    padding: var(--space-2);
+    margin-bottom: var(--space-2);
+  }
   .msg-inner { gap: var(--space-2); }
   .avatar-area { position: static; }
 }

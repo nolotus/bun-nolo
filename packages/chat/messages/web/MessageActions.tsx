@@ -1,3 +1,5 @@
+// MessageActions.tsx - 设备感知版本
+
 import {
   CopyIcon,
   BookmarkIcon,
@@ -23,9 +25,8 @@ import { markdownToSlate } from "create/editor/transforms/markdownToSlate";
 import { useTranslation } from "react-i18next";
 import { Tooltip } from "render/web/ui/Tooltip";
 import toast from "react-hot-toast";
-import { selectTheme } from "app/settings/settingSlice";
 
-// 获取内容字符串，包含思考内容（如果需要显示）
+// 获取内容字符串
 const getContentString = (content, thinkContent = "", showThinking = false) => {
   let baseContent = "";
 
@@ -59,10 +60,10 @@ export const MessageActions = ({
   isCollapsed,
   handleToggleCollapse,
   showActions,
-  showThinking = false, // 添加默认参数
+  showThinking = false,
+  isTouch = false, // 新增 props
 }) => {
   const { user } = useAuth();
-  const theme = useAppSelector(selectTheme);
   const dispatch = useAppDispatch();
   const { t } = useTranslation("chat");
   const type = isSelf ? "self" : isRobot ? "robot" : "other";
@@ -132,7 +133,7 @@ export const MessageActions = ({
             <Link
               to={`/${saved.dbKey}`}
               target="_blank"
-              style={{ marginLeft: theme.space[2], color: theme.primary }}
+              style={{ marginLeft: "8px", color: "var(--primary)" }}
             >
               {t("clickHere")}
             </Link>
@@ -177,31 +178,57 @@ export const MessageActions = ({
     <>
       {actions.length > 0 && (
         <div className={`actions ${showActions ? "show" : ""}`}>
-          {actions.map(({ icon: Icon, handler, tooltip, danger }, i) => (
-            <Tooltip
-              key={i}
-              content={tooltip}
-              placement={isRobot ? "left" : "right"}
-            >
+          {actions.map(({ icon: Icon, handler, tooltip, danger }, i) => {
+            // 桌面端使用 Tooltip，移动端直接渲染按钮
+            if (!isTouch) {
+              return (
+                <Tooltip
+                  key={i}
+                  content={tooltip}
+                  placement={isRobot ? "left" : "right"}
+                >
+                  <button
+                    className={`action-btn ${danger ? "danger" : ""}`}
+                    onClick={handler}
+                    aria-label={tooltip}
+                  >
+                    <Icon size={16} />
+                  </button>
+                </Tooltip>
+              );
+            }
+
+            // 移动端直接渲染按钮，不使用 Tooltip
+            return (
               <button
+                key={i}
                 className={`action-btn ${danger ? "danger" : ""}`}
                 onClick={handler}
                 aria-label={tooltip}
               >
                 <Icon size={16} />
               </button>
-            </Tooltip>
-          ))}
+            );
+          })}
         </div>
       )}
       <style href="message-actions" precedence="high">{`
         .actions {
           display: flex;
           flex-direction: column;
+          gap: var(--space-1);
           opacity: 0;
-          transition: opacity 0.2s ease;
-          gap: 4px;
+          visibility: hidden;
+          transition: all 0.2s ease;
+          transform: translateY(4px);
         }
+
+        .actions.show {
+          opacity: 1;
+          visibility: visible;
+          transform: translateY(0);
+        }
+
         .action-btn {
           display: flex;
           align-items: center;
@@ -209,18 +236,59 @@ export const MessageActions = ({
           width: 28px;
           height: 28px;
           border: none;
-          border-radius: 4px;
-          background: transparent;
-          color: ${theme.textTertiary};
+          border-radius: var(--space-1);
+          background: var(--backgroundSecondary);
+          color: var(--textTertiary);
           cursor: pointer;
           transition: all 0.15s ease;
+          box-shadow: 0 1px 3px var(--shadowLight);
+          border: 1px solid var(--border);
         }
-        .action-btn:hover {
-          color: ${theme.primary};
-          background: ${theme.backgroundHover};
+
+        /* 桌面端悬停效果 */
+        @media (hover: hover) and (pointer: fine) {
+          .action-btn:hover {
+            color: var(--primary);
+            background: var(--primaryGhost);
+            border-color: var(--primaryLight);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px var(--shadowMedium);
+          }
+
+          .action-btn.danger:hover {
+            color: var(--error);
+            background: rgba(239, 68, 68, 0.06);
+            border-color: var(--error);
+          }
         }
-        .action-btn.danger:hover {
-          color: ${theme.error};
+
+        .action-btn:active {
+          transform: translateY(0);
+          box-shadow: 0 1px 2px var(--shadowLight);
+        }
+
+        /* 移动端优化 */
+        @media (hover: none) and (pointer: coarse) {
+          .actions {
+            gap: var(--space-2);
+          }
+          
+          .action-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--background);
+            box-shadow: 0 2px 8px var(--shadowMedium);
+          }
+
+          .action-btn:active {
+            transform: scale(0.95);
+            transition: transform 0.1s ease;
+          }
+
+          .action-btn.danger {
+            color: var(--error);
+          }
         }
       `}</style>
     </>
