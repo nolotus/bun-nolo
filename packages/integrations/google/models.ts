@@ -66,8 +66,8 @@ export const googleModels: Model[] = [
     contextWindow: 1048576,
     maxOutputTokens: 4096,
     price: {
-      input: 0.1 * 10, // $0.10 per 1M tokens, multiplied by 8
-      output: 0.4 * 10, // $0.40 per 1M tokens, multiplied by 8
+      input: 0.1 * 10, // $0.10 per 1M tokens,
+      output: 0.4 * 10, // $0.40 per 1M tokens,
       cachingWrite: 0.2 * 10,
       cachingRead: 0.2 * 10,
     },
