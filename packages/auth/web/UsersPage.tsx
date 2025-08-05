@@ -383,130 +383,130 @@ export default function UsersPage() {
         username={rechargeModal.username}
       />
 
-      <style href="users-page">{`
-        .users-page {
-          padding: 24px;
-          min-height: calc(100dvh - 60px);
-          display: flex;
-          flex-direction: column;
-          gap: 24px;
-        }
+      <style href="users-page" precedence="default">{`
+  .users-page {
+    padding: 24px;
+    min-height: calc(100dvh - 60px);
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
 
-        .page-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
 
-        .page-title {
-          font-size: 24px;
-          font-weight: 600;
-          color: ${theme.text};
-          margin: 0;
-        }
+  .page-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text); /* 替换 theme.text */
+    margin: 0;
+  }
 
-        .header-actions {
-          display: flex;
-          gap: 12px;
-        }
+  .header-actions {
+    display: flex;
+    gap: 12px;
+  }
 
-        .error-container {
-          padding: 12px 16px;
-          background: ${theme.backgroundSecondary};
-          border: 1px solid ${theme.error};
-          border-radius: 8px;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-        }
+  .error-container {
+    padding: 12px 16px;
+    background: var(--backgroundSecondary); /* 替换 theme.backgroundSecondary */
+    border: 1px solid var(--error); /* 替换 theme.error */
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
 
-        .error-message {
-          color: ${theme.error};
-        }
+  .error-message {
+    color: var(--error); /* 替换 theme.error */
+  }
 
-        .loading-container {
-          flex: 1;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          min-height: 200px;
-        }
+  .loading-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+  }
 
-        .table-container {
-          flex: 1;
-          overflow: auto;
-          border-radius: 8px;
-          background: ${theme.background};
-        }
+  .table-container {
+    flex: 1;
+    overflow: auto;
+    border-radius: 8px;
+    background: var(--background); /* 替换 theme.background */
+  }
 
-        .action-buttons {
-          display: flex;
-          gap: 8px;
-          justify-content: flex-end;
-        }
+  .action-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+  }
 
-        .page-footer {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 16px;
-          padding-top: 16px;
-        }
+  .page-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding-top: 16px;
+  }
 
-        .total-info {
-          font-size: 14px;
-          color: ${theme.textSecondary};
-        }
+  .total-info {
+    font-size: 14px;
+    color: var(--textSecondary); /* 替换 theme.textSecondary */
+  }
 
-        .empty-container {
-          flex: 1;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          min-height: 200px;
-          background: ${theme.backgroundSecondary};
-          border-radius: 8px;
-          border: 1px dashed ${theme.border};
-        }
+  .empty-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    background: var(--backgroundSecondary); /* 替换 theme.backgroundSecondary */
+    border-radius: 8px;
+    border: 1px dashed var(--border); /* 替换 theme.border */
+  }
 
-        .empty-content {
-          color: ${theme.textSecondary};
-          font-size: 14px;
-        }
+  .empty-content {
+    color: var(--textSecondary); /* 替换 theme.textSecondary */
+    font-size: 14px;
+  }
 
-        .no-server {
-          padding: 24px;
-          text-align: center;
-          color: ${theme.textSecondary};
-        }
+  .no-server {
+    padding: 24px;
+    text-align: center;
+    color: var(--textSecondary); /* 替换 theme.textSecondary */
+  }
 
-        @media (max-width: 768px) {
-          .users-page {
-            padding: 16px;
-            gap: 16px;
-          }
+  @media (max-width: 768px) {
+    .users-page {
+      padding: 16px;
+      gap: 16px;
+    }
 
-          .page-title {
-            font-size: 20px;
-          }
+    .page-title {
+      font-size: 20px;
+    }
 
-          .table-container {
-            margin: 0 -16px;
-            border-left: none;
-            border-right: none;
-            border-radius: 0;
-          }
+    .table-container {
+      margin: 0 -16px;
+      border-left: none;
+      border-right: none;
+      border-radius: 0;
+    }
 
-          .page-footer {
-            flex-direction: column-reverse;
-            align-items: stretch;
-          }
+    .page-footer {
+      flex-direction: column-reverse;
+      align-items: stretch;
+    }
 
-          .total-info {
-            text-align: center;
-          }
-        }
-      `}</style>
+    .total-info {
+      text-align: center;
+    }
+  }
+`}</style>
     </div>
   );
 }
