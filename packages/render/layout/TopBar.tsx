@@ -1,15 +1,10 @@
+// File: TopBar.jsx (Complete Code)
+
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import {
-  LuLogIn,
-  LuMenu,
-  LuHouse,
-  LuEllipsis,
-  LuTrash2,
-  LuPlus,
-} from "react-icons/lu";
+import { LuLogIn, LuMenu, LuHouse, LuTrash2 } from "react-icons/lu";
 import { useAppDispatch, useAppSelector } from "app/store";
 import { useAuth } from "auth/hooks/useAuth";
 import {
@@ -21,131 +16,78 @@ import {
   selectIsSaving,
   selectHasPendingChanges,
 } from "render/page/pageSlice";
-import {
-  selectCurrentDialogConfig,
-  deleteCurrentDialog,
-} from "chat/dialog/dialogSlice";
+import { selectCurrentDialogConfig } from "chat/dialog/dialogSlice";
 import {
   deleteContentFromSpace,
   selectCurrentSpaceId,
 } from "create/space/spaceSlice";
-import { useCreateDialog } from "chat/dialog/useCreateDialog";
 import { extractUserId } from "core/prefix";
 import { zIndex } from "render/styles/zIndex";
 import { RoutePaths } from "auth/web/routes";
 import NavListItem from "render/layout/blocks/NavListItem";
-import DialogInfoPanel from "chat/dialog/DialogInfoPanel";
 import LanguageSwitcher from "render/web/ui/LanguageSwitcher";
-import { Tooltip } from "render/web/ui/Tooltip";
 import { ConfirmModal } from "render/web/ui/ConfirmModal";
 import ModeToggle from "render/web/ui/ModeToggle";
 import Button from "render/web/ui/Button";
 
+// 从外部文件导入 DialogMenu
+import DialogMenu from "./DialogMenu";
+
 const CreateMenuButton = lazy(() => import("./CreateMenuButton"));
-const Spinner = () => <div className="topbar__spinner" />;
 
-// CHANGE: Renamed cfg to currentDialog for clarity
-const DeleteButton = ({
-  currentDialog,
-  mobile,
+// 页面菜单组件 (PageMenu) 仍然保留在这里
+const PageMenu = ({
+  readOnly,
+  saving,
+  pending,
+  deletingPg,
+  onToggleEdit,
+  onSave,
+  onDelete,
 }: {
-  currentDialog: any;
-  mobile?: boolean;
+  readOnly: boolean;
+  saving: boolean;
+  pending: boolean;
+  deletingPg: boolean;
+  onToggleEdit: () => void;
+  onSave: () => void;
+  onDelete: () => void;
 }) => {
-  const [open, setOpen] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const dispatch = useAppDispatch();
-  const nav = useNavigate();
   const { t } = useTranslation();
-
-  const doDelete = async () => {
-    if (!currentDialog.dbKey && !currentDialog.id) return;
-    setBusy(true);
-    try {
-      await dispatch(
-        deleteCurrentDialog(currentDialog.dbKey || currentDialog.id)
-      ).unwrap();
-      toast.success(t("deleteSuccess"));
-      nav("/");
-    } catch {
-      toast.error(t("deleteFailed"));
-    }
-    setBusy(false);
-    setOpen(false);
-  };
-
-  const btn = (
-    <button
-      className={`topbar__button ${mobile ? "topbar__button--mobile" : ""}`}
-      onClick={() => setOpen(true)}
-      disabled={busy}
-      aria-label={t("delete")}
-    >
-      <LuTrash2 size={16} />
-      {mobile && t("delete")}
-    </button>
-  );
-
   return (
     <>
-      {mobile ? btn : <Tooltip content={t("delete")}>{btn}</Tooltip>}
-      <ConfirmModal
-        isOpen={open}
-        onClose={() => setOpen(false)}
-        onConfirm={doDelete}
-        title={t("deleteDialogTitle", { title: currentDialog.title })}
-        message={t("deleteDialogConfirmation")}
-        confirmText={t("delete")}
-        cancelText={t("cancel")}
-        type="error"
-        loading={busy}
-      />
+      <div className="topbar__actions">
+        <ModeToggle isEdit={!readOnly} onChange={onToggleEdit} />
+        <button
+          className="topbar__button topbar__button--delete"
+          onClick={onDelete}
+          disabled={deletingPg}
+          title={t("delete")}
+        >
+          <LuTrash2 size={16} />
+        </button>
+        <Button
+          variant="primary"
+          onClick={onSave}
+          size="small"
+          disabled={readOnly || saving || !pending}
+          loading={saving}
+        >
+          {saving ? t("saving") : t("save")}
+        </Button>
+      </div>
+      <div className="topbar__mobile-menu">
+        <ModeToggle isEdit={!readOnly} onChange={onToggleEdit} />
+        <button
+          className="topbar__button topbar__button--delete"
+          onClick={onDelete}
+          disabled={deletingPg}
+          title={t("delete")}
+        >
+          <LuTrash2 size={16} />
+        </button>
+      </div>
     </>
-  );
-};
-
-// CHANGE: Renamed cfg to currentDialog
-const MobileMenu = ({ currentDialog }: { currentDialog: any }) => {
-  const [open, setOpen] = useState(false);
-  const { t } = useTranslation("chat");
-  const { isLoading, createNewDialog } = useCreateDialog();
-
-  const onCreate = () => {
-    createNewDialog({ agents: currentDialog.cybots });
-    setOpen(false);
-  };
-
-  return (
-    <div className="topbar__mobile-menu">
-      <button
-        className="topbar__button"
-        onClick={() => setOpen(!open)}
-        aria-label={t("moreOptions")}
-      >
-        <LuEllipsis size={16} />
-      </button>
-      {open && (
-        <>
-          <div className="topbar__backdrop" onClick={() => setOpen(false)} />
-          <div className="topbar__dropdown">
-            <div className="topbar__menu-section">
-              <DialogInfoPanel isMobile />
-            </div>
-            <div className="topbar__menu-section">
-              <button
-                className="topbar__button topbar__button--mobile"
-                onClick={onCreate}
-                disabled={isLoading}
-              >
-                {isLoading ? <Spinner /> : <LuPlus size={16} />}
-                <span>{t("newchat")}</span>
-              </button>
-              <DeleteButton currentDialog={currentDialog} mobile />
-            </div>
-          </div>
-        </>
-      )}
-    </div>
   );
 };
 
@@ -155,7 +97,7 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
   const nav = useNavigate();
   const { isLoggedIn, user } = useAuth();
   const { pageKey } = useParams();
-  // CHANGE: Renamed cfg to currentDialog
+
   const currentDialog = useAppSelector(selectCurrentDialogConfig);
   const page = useAppSelector(selectPageData);
   const readOnly = useAppSelector(selectIsReadOnly);
@@ -211,7 +153,6 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
     setDelPgOpen(false);
   };
 
-  // CHANGE: Restructured JSX for new Grid layout
   return (
     <>
       <div className={`topbar ${isScrolled ? "topbar--scrolled" : ""}`}>
@@ -236,53 +177,18 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
 
         <div className="topbar__center">
           {currentDialog && !showEdit ? (
-            <>
-              <h1 className="topbar__title" title={currentDialog.title}>
-                {currentDialog.title}
-              </h1>
-              <div className="topbar__actions">
-                <DialogInfoPanel />
-                <DeleteButton currentDialog={currentDialog} />
-              </div>
-              <MobileMenu currentDialog={currentDialog} />
-            </>
-          ) : (
-            showEdit && (
-              <>
-                <div className="topbar__actions">
-                  <ModeToggle isEdit={!readOnly} onChange={toggleEdit} />
-                  <button
-                    className="topbar__button topbar__button--delete"
-                    onClick={() => setDelPgOpen(true)}
-                    disabled={deletingPg}
-                    title={t("delete")}
-                  >
-                    <LuTrash2 size={16} />
-                  </button>
-                  <Button
-                    variant="primary"
-                    onClick={savePg}
-                    size="small"
-                    disabled={readOnly || saving || !pending}
-                    loading={saving}
-                  >
-                    {saving ? t("saving") : t("save")}
-                  </Button>
-                </div>
-                <div className="topbar__mobile-menu">
-                  <ModeToggle isEdit={!readOnly} onChange={toggleEdit} />
-                  <button
-                    className="topbar__button topbar__button--delete"
-                    onClick={() => setDelPgOpen(true)}
-                    disabled={deletingPg}
-                    title={t("delete")}
-                  >
-                    <LuTrash2 size={16} />
-                  </button>
-                </div>
-              </>
-            )
-          )}
+            <DialogMenu currentDialog={currentDialog} />
+          ) : showEdit ? (
+            <PageMenu
+              readOnly={readOnly}
+              saving={saving}
+              pending={pending}
+              deletingPg={deletingPg}
+              onToggleEdit={toggleEdit}
+              onSave={savePg}
+              onDelete={() => setDelPgOpen(true)}
+            />
+          ) : null}
         </div>
 
         <div className="topbar__section topbar__section--right">
@@ -321,7 +227,6 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
         />
       )}
 
-      {/* CHANGE: Updated CSS to use Grid for true centering */}
       <style href="topbar-styles" precedence="default">{`
         .topbar {
           display: grid;
@@ -455,19 +360,18 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
           padding: 0;
           border: none;
         }
-        /* CHANGE: Simplified media query for the new grid layout */
         @media (max-width: 768px) {
           .topbar {
-            grid-template-columns: auto 1fr auto; /* Allow center to take more space */
+            grid-template-columns: auto 1fr auto;
             padding: 0 var(--space-2);
             gap: var(--space-2);
           }
           .topbar__center {
-            justify-content: center; /* Center the content within the available space */
+            justify-content: center;
           }
           .topbar__title {
             font-size: 15px;
-            max-width: calc(100vw - 200px); /* Give it a max-width to prevent overlap */
+            max-width: calc(100vw - 200px);
           }
           .topbar__actions {
             display: none !important;
