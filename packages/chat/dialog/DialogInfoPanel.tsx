@@ -1,22 +1,17 @@
+// File: chat/dialog/DialogInfoPanel.jsx
+
 import { useTranslation } from "react-i18next";
 import { useState, useCallback, useEffect, useRef } from "react";
 import type React from "react";
 import { useAppDispatch, useAppSelector } from "app/store";
-import { selectTheme } from "app/settings/settingSlice";
 import {
   selectCurrentDialogConfig,
-  selectTotalDialogTokens,
   removeCybot,
   addCybot,
   selectIsUpdatingMode,
 } from "chat/dialog/dialogSlice";
 import { selectUserId } from "auth/authSlice";
-import {
-  PlusIcon,
-  ChevronDownIcon,
-  XIcon,
-  InfoIcon,
-} from "@primer/octicons-react";
+import { PlusIcon, ChevronDownIcon, InfoIcon } from "@primer/octicons-react";
 import BotNameChip from "ai/llm/web/BotNameChip";
 import { toast } from "react-hot-toast";
 import AddCybotDialog from "./AddCybotDialog";
@@ -26,35 +21,141 @@ interface DialogInfoPanelProps {
   isMobile?: boolean;
 }
 
+const LoadingSpinner = () => (
+  <div className="dialog-info__spinner">
+    <div className="spinner-ring" />
+  </div>
+);
+
+const CybotList = ({
+  cybots,
+  onRemove,
+  isUpdating,
+}: {
+  cybots: string[];
+  onRemove: (cybotId: string) => void;
+  isUpdating: boolean;
+}) => {
+  const { t } = useTranslation("chat");
+
+  if (cybots.length === 0) {
+    return (
+      <div className="dialog-info__empty-state">
+        <InfoIcon size={24} />
+        <p className="empty-text">{t("NoCybots")}</p>
+        <span className="empty-hint">{t("AddCybotToGetStarted")}</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="dialog-info__cybot-list" role="list">
+      {cybots.map((botKey) => (
+        <div key={botKey} className="cybot-list-item">
+          <BotNameChip
+            botKey={botKey}
+            onRemove={isUpdating ? undefined : onRemove}
+            className="dialog-info__bot-chip"
+          />
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const AddCybotButton = ({
+  onClick,
+  isUpdating,
+}: {
+  onClick: () => void;
+  isUpdating: boolean;
+}) => {
+  const { t } = useTranslation("chat");
+
+  return (
+    <button
+      className="dialog-info__add-button"
+      onClick={onClick}
+      disabled={isUpdating}
+      role="menuitem"
+      aria-label={t("AddCybot")}
+    >
+      {isUpdating ? <LoadingSpinner /> : <PlusIcon size={16} />}
+      <span className="button-text">{t("AddCybot")}</span>
+    </button>
+  );
+};
+
+const MobileCybotPreview = ({
+  cybots,
+  totalCount,
+}: {
+  cybots: string[];
+  totalCount: number;
+}) => {
+  const { t } = useTranslation("chat");
+  const previewLimit = 3;
+  const hasMore = totalCount > previewLimit;
+
+  if (totalCount === 0) {
+    return (
+      <div className="dialog-info__mobile-empty">
+        <span className="empty-text">{t("NoCybots")}</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="dialog-info__mobile-preview">
+      {cybots.slice(0, previewLimit).map((botKey) => (
+        <BotNameChip
+          key={botKey}
+          botKey={botKey}
+          compact={true}
+          className="mobile-chip"
+        />
+      ))}
+      {hasMore && (
+        <span className="more-indicator">+{totalCount - previewLimit}</span>
+      )}
+    </div>
+  );
+};
+
 const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
   limit = 20,
   isMobile = false,
 }) => {
   const { t } = useTranslation("chat");
-  const theme = useAppSelector(selectTheme);
   const dispatch = useAppDispatch();
   const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
-  const currentDialogTokens = useAppSelector(selectTotalDialogTokens);
   const isUpdatingMode = useAppSelector(selectIsUpdatingMode);
   const currentUserId = useAppSelector(selectUserId);
+
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [isAddCybotDialogOpen, setIsAddCybotDialogOpen] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+
   const panelRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
+  const cybots = currentDialogConfig?.cybots || [];
+  const participantCount = cybots.length;
+
+  // 移动端时防止页面滚动
   useEffect(() => {
     if (isPanelOpen && isMobile) {
+      const originalOverflow = document.body.style.overflow;
+      const originalTouchAction = document.body.style.touchAction;
+
       document.body.style.overflow = "hidden";
       document.body.style.touchAction = "none";
-    } else {
-      document.body.style.overflow = "";
-      document.body.style.touchAction = "";
-    }
 
-    return () => {
-      document.body.style.overflow = "";
-      document.body.style.touchAction = "";
-    };
+      return () => {
+        document.body.style.overflow = originalOverflow;
+        document.body.style.touchAction = originalTouchAction;
+      };
+    }
   }, [isPanelOpen, isMobile]);
 
   const togglePanel = useCallback(() => {
@@ -65,25 +166,20 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
     setIsPanelOpen(false);
   }, []);
 
+  // 点击外部关闭面板
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent | TouchEvent) => {
-      if (
-        isPanelOpen &&
-        panelRef.current &&
-        triggerRef.current &&
-        !panelRef.current.contains(event.target as Node) &&
-        !triggerRef.current.contains(event.target as Node)
-      ) {
-        const target = event.target as HTMLElement;
-        if (
-          target.closest(".modal-backdrop") ||
-          target.closest(".modal-content") ||
-          target.closest(".dialog-info-backdrop") ||
-          target.closest(".mobile-menu-backdrop") ||
-          target.closest(".mobile-menu-dropdown")
-        ) {
-          return;
-        }
+      if (!isPanelOpen) return;
+
+      const target = event.target as HTMLElement;
+      const isClickInsidePanel = panelRef.current?.contains(target);
+      const isClickInsideTrigger = triggerRef.current?.contains(target);
+      const isClickInsideModal =
+        target.closest(".modal-backdrop") ||
+        target.closest(".modal-content") ||
+        target.closest(".dialog-add-cybot-modal");
+
+      if (!isClickInsidePanel && !isClickInsideTrigger && !isClickInsideModal) {
         setIsPanelOpen(false);
       }
     };
@@ -102,6 +198,7 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
     };
   }, [isPanelOpen, isMobile]);
 
+  // ESC键关闭面板
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape" && isPanelOpen) {
@@ -109,46 +206,58 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
       }
     };
 
-    if (!isMobile) {
+    if (!isMobile && isPanelOpen) {
       document.addEventListener("keydown", handleKeyDown);
       return () => document.removeEventListener("keydown", handleKeyDown);
     }
   }, [isPanelOpen, isMobile]);
 
   const handleRemoveCybot = useCallback(
-    (cybotId: string) => {
-      dispatch(removeCybot(cybotId))
-        .unwrap()
-        .then(() => {
-          toast.success(t("CybotRemovedSuccess"));
-        })
-        .catch((error) => {
-          console.error("Failed to remove Cybot:", error);
-          toast.error(t("CybotRemoveFailed"));
-        });
+    async (cybotId: string) => {
+      if (isProcessing || isUpdatingMode) return;
+
+      setIsProcessing(true);
+      try {
+        await dispatch(removeCybot(cybotId)).unwrap();
+        toast.success(t("CybotRemovedSuccess"));
+      } catch (error) {
+        console.error("Failed to remove Cybot:", error);
+        toast.error(t("CybotRemoveFailed"));
+      } finally {
+        setIsProcessing(false);
+      }
     },
-    [dispatch, t]
+    [dispatch, t, isProcessing, isUpdatingMode]
   );
 
   const handleAddCybot = useCallback(
-    (cybotId: string | string[]) => {
-      const cybotIds = Array.isArray(cybotId) ? cybotId : [cybotId];
-      const addPromises = cybotIds.map((id) => dispatch(addCybot(id)).unwrap());
+    async (cybotId: string | string[]) => {
+      if (isProcessing) return;
 
-      Promise.all(addPromises)
-        .then(() => {
-          const message =
-            cybotIds.length > 1
-              ? `成功添加 ${cybotIds.length} 个 Cybot`
-              : t("CybotAddedSuccess");
-          toast.success(message);
-        })
-        .catch((error) => {
-          console.error("Failed to add Cybot:", error);
-          toast.error(t("CybotAddFailed"));
-        });
+      const cybotIds = Array.isArray(cybotId) ? cybotId : [cybotId];
+      setIsProcessing(true);
+
+      try {
+        const addPromises = cybotIds.map((id) =>
+          dispatch(addCybot(id)).unwrap()
+        );
+        await Promise.all(addPromises);
+
+        const message =
+          cybotIds.length > 1
+            ? t("MultipleCybotsAddedSuccess", { count: cybotIds.length })
+            : t("CybotAddedSuccess");
+
+        toast.success(message);
+        setIsAddCybotDialogOpen(false);
+      } catch (error) {
+        console.error("Failed to add Cybot:", error);
+        toast.error(t("CybotAddFailed"));
+      } finally {
+        setIsProcessing(false);
+      }
     },
-    [dispatch, t]
+    [dispatch, t, isProcessing]
   );
 
   const handleAddCybotClick = useCallback(() => {
@@ -159,59 +268,32 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
     setIsAddCybotDialogOpen(false);
   }, []);
 
-  const participantCount = currentDialogConfig?.cybots?.length ?? 0;
-
+  // 移动端渲染
   if (isMobile) {
     return (
       <>
-        <div className="dialog-info-mobile-content">
-          <div className="dialog-info-section">
-            <h4 className="dialog-info-section-header">
+        <div className="dialog-info__mobile-content">
+          <div className="dialog-info__mobile-section">
+            <div className="section-header">
               <InfoIcon size={14} />
-              {t("DialogConfiguration")}
-            </h4>
+              <h4 className="section-title">{t("Cybots")}</h4>
+              <span className="count-badge">({participantCount})</span>
+            </div>
 
-            <div className="dialog-info-summary">
+            <div className="section-summary">
               <div className="summary-item">
-                <span className="summary-label">{t("Cybots")}:</span>
+                <span className="summary-label">{t("Participants")}:</span>
                 <span className="summary-value">{participantCount}</span>
-              </div>
-              <div className="summary-item">
-                <span className="summary-label">{t("Tokens")}:</span>
-                <span className="summary-value">
-                  {currentDialogTokens?.toLocaleString() || "0"}
-                </span>
               </div>
             </div>
 
-            {participantCount > 0 && (
-              <div className="dialog-cybot-preview">
-                {currentDialogConfig?.cybots
-                  ?.slice(0, 3)
-                  .map((botKey) => (
-                    <BotNameChip
-                      key={botKey}
-                      botKey={botKey}
-                      onRemove={handleRemoveCybot}
-                      compact={true}
-                    />
-                  ))}
-                {participantCount > 3 && (
-                  <span className="more-indicator">
-                    +{participantCount - 3}
-                  </span>
-                )}
-              </div>
-            )}
+            <MobileCybotPreview cybots={cybots} totalCount={participantCount} />
 
             <div className="mobile-actions">
-              <button
-                className="mobile-action-button add-button"
+              <AddCybotButton
                 onClick={handleAddCybotClick}
-              >
-                <PlusIcon size={14} />
-                <span>{t("AddCybot")}</span>
-              </button>
+                isUpdating={isProcessing || isUpdatingMode}
+              />
             </div>
           </div>
         </div>
@@ -223,125 +305,27 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
           queryUserId={currentUserId}
           limit={limit}
         />
-
-        <style>{`
-          .dialog-info-mobile-content {
-            width: 100%;
-            padding: ${theme.space[3]} 0;
-          }
-
-          .dialog-info-summary {
-            display: flex;
-            gap: ${theme.space[4]};
-            margin-bottom: ${theme.space[3]};
-          }
-
-          .summary-item {
-            display: flex;
-            align-items: center;
-            gap: ${theme.space[1]};
-            font-size: 12px;
-          }
-
-          .summary-label {
-            color: ${theme.textTertiary};
-            font-weight: 500;
-          }
-
-          .summary-value {
-            color: ${theme.text};
-            font-weight: 600;
-            background: ${theme.backgroundTertiary};
-            padding: 2px ${theme.space[2]};
-            border-radius: 4px;
-            font-family: ui-monospace, 'SF Mono', 'Monaco', monospace;
-            font-size: 11px;
-          }
-
-          .dialog-cybot-preview {
-            display: flex;
-            flex-wrap: wrap;
-            gap: ${theme.space[1]};
-            margin-bottom: ${theme.space[3]};
-          }
-
-          .more-indicator {
-            background: ${theme.backgroundTertiary};
-            color: ${theme.textTertiary};
-            padding: ${theme.space[1]} ${theme.space[2]};
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-          }
-
-          .mobile-actions {
-            display: flex;
-            gap: ${theme.space[2]};
-          }
-
-          .mobile-action-button {
-            display: flex;
-            align-items: center;
-            gap: ${theme.space[2]};
-            background: ${theme.primaryGhost};
-            color: ${theme.primary};
-            border: none;
-            border-radius: 6px;
-            padding: ${theme.space[2]} ${theme.space[3]};
-            font-size: 12px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.15s ease;
-          }
-
-          .mobile-action-button:hover {
-            background: ${theme.primary};
-            color: ${theme.background};
-            transform: translateY(-1px);
-          }
-
-          .dialog-info-section {
-            display: flex;
-            flex-direction: column;
-            gap: ${theme.space[2]};
-          }
-
-          .dialog-info-section-header {
-            font-size: 11px;
-            font-weight: 600;
-            color: ${theme.textTertiary};
-            margin: 0;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            display: flex;
-            align-items: center;
-            gap: ${theme.space[2]};
-          }
-        `}</style>
       </>
     );
   }
 
+  // 桌面端渲染
   return (
     <>
-      <div className="dialog-info-panel-wrapper">
+      <div className="dialog-info__panel-wrapper">
         <button
           ref={triggerRef}
-          className="dialog-info-panel-trigger action-button"
+          className="dialog-info__panel-trigger"
           onClick={togglePanel}
           aria-expanded={isPanelOpen}
           aria-controls="dialog-info-panel-content"
           aria-label={t("ShowDialogConfigInfo")}
           aria-haspopup="true"
+          disabled={isUpdatingMode}
         >
           <ChevronDownIcon
             size={16}
-            style={{
-              transform: isPanelOpen ? "rotate(180deg)" : "rotate(0deg)",
-              transition: "transform 0.2s ease",
-            }}
+            className={`trigger-icon ${isPanelOpen ? "trigger-icon--open" : ""}`}
           />
         </button>
 
@@ -349,54 +333,26 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
           <div
             ref={panelRef}
             id="dialog-info-panel-content"
-            className="dialog-info-panel"
+            className="dialog-info__panel"
             role="menu"
           >
-            <div className="dialog-info-content">
-              <div className="dialog-info-section participants-section">
-                <h4 className="dialog-info-section-header">
-                  {t("Cybots")}{" "}
+            <div className="dialog-info__panel-content">
+              <div className="dialog-info__section">
+                <div className="section-header">
+                  <h4 className="section-title">{t("Cybots")}</h4>
                   <span className="count-badge">({participantCount})</span>
-                </h4>
-
-                <div className="dialog-cybot-list" role="list">
-                  {participantCount > 0 ? (
-                    currentDialogConfig?.cybots?.map((botKey) => (
-                      <BotNameChip
-                        key={botKey}
-                        botKey={botKey}
-                        onRemove={handleRemoveCybot}
-                        className="dialog-info-list-item"
-                      />
-                    ))
-                  ) : (
-                    <p className="dialog-no-participants-text">
-                      {t("NoCybots")}
-                    </p>
-                  )}
                 </div>
 
-                <button
-                  className="dialog-info-item dialog-add-participant-button"
+                <CybotList
+                  cybots={cybots}
+                  onRemove={handleRemoveCybot}
+                  isUpdating={isProcessing || isUpdatingMode}
+                />
+
+                <AddCybotButton
                   onClick={handleAddCybotClick}
-                  role="menuitem"
-                >
-                  <PlusIcon size={16} />
-                  <span>{t("AddCybot")}</span>
-                </button>
-              </div>
-
-              <div className="dialog-info-divider" role="separator"></div>
-
-              <div className="dialog-info-section token-section">
-                <h4 className="dialog-info-section-header">{t("Info")}</h4>
-
-                <div className="dialog-info-item dialog-token-info">
-                  <span>{t("Tokens")}:</span>
-                  <span className="token-count">
-                    {currentDialogTokens?.toLocaleString() || "0"}
-                  </span>
-                </div>
+                  isUpdating={isProcessing || isUpdatingMode}
+                />
               </div>
             </div>
           </div>
@@ -412,63 +368,73 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
       />
 
       <style>{`
-        .dialog-info-panel-trigger.action-button {
-          background: transparent;
-          border: none;
-          cursor: pointer;
-          color: ${theme.textSecondary};
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: ${theme.space[8]};
-          height: ${theme.space[8]};
-          border-radius: 6px;
-          transition: all 0.15s ease;
-          flex-shrink: 0;
-          -webkit-tap-highlight-color: transparent;
-          touch-action: manipulation;
-        }
-
-        .dialog-info-panel-trigger.action-button:hover,
-        .dialog-info-panel-trigger.action-button[aria-expanded="true"] {
-          background: ${theme.backgroundHover};
-          color: ${theme.text};
-        }
-
-        .dialog-info-panel-trigger.action-button:active {
-          transform: scale(0.95);
-        }
-
-        .dialog-info-panel-wrapper {
+        /* 基础容器样式 */
+        .dialog-info__panel-wrapper {
           position: relative;
           display: inline-flex;
         }
 
-        .dialog-info-panel {
-          position: absolute;
-          top: calc(100% + ${theme.space[2]});
-          left: 50%;
-          transform: translateX(-50%);
-          min-width: 420px;
-          max-width: 500px;
-          background: ${theme.background};
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
-          border: 1px solid ${theme.border};
-          border-radius: 12px;
-          box-shadow:
-            0 20px 40px -12px ${theme.shadowMedium},
-            0 8px 16px -8px ${theme.shadowMedium},
-            0 0 0 1px ${theme.border};
-          z-index: 1000;
-          animation: dialog-info-show 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-          max-height: calc(100vh - 120px);
-          overflow: hidden;
+        .dialog-info__panel-trigger {
           display: flex;
-          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          width: var(--space-8);
+          height: var(--space-8);
+          background: transparent;
+          border: none;
+          border-radius: 6px;
+          color: var(--textSecondary);
+          cursor: pointer;
+          transition: all 0.15s ease;
+          -webkit-tap-highlight-color: transparent;
         }
 
-        @keyframes dialog-info-show {
+        .dialog-info__panel-trigger:hover:not(:disabled),
+        .dialog-info__panel-trigger[aria-expanded="true"]:not(:disabled) {
+          background: var(--backgroundHover);
+          color: var(--text);
+        }
+
+        .dialog-info__panel-trigger:active:not(:disabled) {
+          transform: scale(0.95);
+        }
+
+        .dialog-info__panel-trigger:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        .trigger-icon {
+          transition: transform 0.2s ease;
+        }
+
+        .trigger-icon--open {
+          transform: rotate(180deg);
+        }
+
+        .dialog-info__panel {
+          position: absolute;
+          top: calc(100% + var(--space-2));
+          left: 50%;
+          transform: translateX(-50%);
+          min-width: 320px;
+          max-width: 420px;
+          background: var(--background);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1px solid var(--border);
+          border-radius: 12px;
+          box-shadow:
+            0 20px 40px -12px var(--shadowMedium),
+            0 8px 16px -8px var(--shadowLight),
+            0 0 0 1px var(--borderLight);
+          z-index: 1000;
+          animation: panelShow 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+          max-height: calc(100vh - 120px);
+          overflow: hidden;
+        }
+
+        @keyframes panelShow {
           from {
             opacity: 0;
             transform: translateX(-50%) translateY(-12px) scale(0.95);
@@ -479,193 +445,315 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
           }
         }
 
-        .dialog-info-content {
-          display: flex;
-          gap: ${theme.space[4]};
-          padding: ${theme.space[5]};
-          flex: 1;
+        .dialog-info__panel-content {
+          padding: var(--space-5);
+          max-height: 400px;
           overflow-y: auto;
           scrollbar-width: thin;
-          scrollbar-color: ${theme.border} transparent;
+          scrollbar-color: var(--border) transparent;
         }
 
-        .dialog-info-content::-webkit-scrollbar {
+        .dialog-info__panel-content::-webkit-scrollbar {
           width: 6px;
         }
-        .dialog-info-content::-webkit-scrollbar-track {
+
+        .dialog-info__panel-content::-webkit-scrollbar-track {
           background: transparent;
         }
-        .dialog-info-content::-webkit-scrollbar-thumb {
-          background: ${theme.border};
+
+        .dialog-info__panel-content::-webkit-scrollbar-thumb {
+          background: var(--border);
           border-radius: 3px;
         }
 
-        .dialog-info-section {
-          display: flex;
-          flex-direction: column;
-          gap: ${theme.space[3]};
+        .dialog-info__panel-content::-webkit-scrollbar-thumb:hover {
+          background: var(--borderHover);
         }
 
-        .dialog-info-section-header {
+        /* 区块样式 */
+        .dialog-info__section {
+          display: flex;
+          flex-direction: column;
+          gap: var(--space-3);
+        }
+
+        .section-header {
+          display: flex;
+          align-items: center;
+          gap: var(--space-2);
+          margin-bottom: var(--space-1);
+        }
+
+        .section-title {
           font-size: 11px;
           font-weight: 600;
-          color: ${theme.textTertiary};
+          color: var(--textTertiary);
           margin: 0;
           text-transform: uppercase;
           letter-spacing: 1px;
-          display: flex;
-          align-items: center;
-          gap: ${theme.space[1]};
         }
 
         .count-badge {
           font-size: 10px;
-          color: ${theme.textQuaternary};
+          color: var(--textQuaternary);
           font-weight: 500;
+          background: var(--backgroundTertiary);
+          padding: 2px var(--space-1);
+          border-radius: 4px;
+          font-family: ui-monospace, 'SF Mono', 'Monaco', monospace;
         }
 
-        .participants-section {
-          flex: 1;
-          min-width: 240px;
-        }
-
-        .token-section {
-          flex-shrink: 0;
-          min-width: 140px;
-        }
-
-        .dialog-cybot-list {
+        /* Cybot 列表样式 */
+        .dialog-info__cybot-list {
           display: flex;
           flex-direction: column;
-          gap: ${theme.space[2]};
-          max-height: 160px;
+          gap: var(--space-2);
+          max-height: 200px;
           overflow-y: auto;
-          padding-right: ${theme.space[1]};
           scrollbar-width: thin;
-          scrollbar-color: ${theme.border} transparent;
+          scrollbar-color: var(--border) transparent;
         }
 
-        .dialog-cybot-list::-webkit-scrollbar {
+        .dialog-info__cybot-list::-webkit-scrollbar {
           width: 4px;
         }
-        .dialog-cybot-list::-webkit-scrollbar-track {
+
+        .dialog-info__cybot-list::-webkit-scrollbar-track {
           background: transparent;
         }
-        .dialog-cybot-list::-webkit-scrollbar-thumb {
-          background: ${theme.border};
+
+        .dialog-info__cybot-list::-webkit-scrollbar-thumb {
+          background: var(--border);
           border-radius: 2px;
         }
-        .dialog-cybot-list::-webkit-scrollbar-thumb:hover {
-          background: ${theme.borderHover};
-        }
 
-        .dialog-no-participants-text {
-          font-style: italic;
-          color: ${theme.textQuaternary};
-          font-size: 13px;
-          text-align: center;
-          padding: ${theme.space[6]} 0;
-          margin: 0;
-          background: ${theme.backgroundGhost};
-          border-radius: ${theme.space[2]};
-        }
-
-        .dialog-info-list-item {
+        .cybot-list-item {
           transition: transform 0.15s ease;
         }
 
-        .dialog-info-list-item:hover {
+        .cybot-list-item:hover {
           transform: translateX(2px);
         }
 
-        .dialog-info-item {
+        .dialog-info__bot-chip {
+          width: 100%;
+        }
+
+        /* 空状态样式 */
+        .dialog-info__empty-state {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+          padding: var(--space-6) var(--space-4);
+          background: var(--backgroundGhost);
+          border-radius: var(--space-2);
+          border: 1px dashed var(--border);
+          color: var(--textTertiary);
+        }
+
+        .dialog-info__empty-state svg {
+          margin-bottom: var(--space-2);
+          opacity: 0.6;
+        }
+
+        .empty-text {
+          font-size: 13px;
+          font-weight: 500;
+          margin: 0 0 var(--space-1) 0;
+          color: var(--textSecondary);
+        }
+
+        .empty-hint {
+          font-size: 11px;
+          color: var(--textTertiary);
+        }
+
+        /* 添加按钮样式 */
+        .dialog-info__add-button {
           display: flex;
           align-items: center;
-          gap: ${theme.space[2]};
-          padding: ${theme.space[2]} 0;
-          white-space: nowrap;
-          text-align: left;
-          background: none;
-          border: none;
-          width: 100%;
-          color: inherit;
+          gap: var(--space-2);
+          padding: var(--space-2) var(--space-3);
+          background: transparent;
+          border: 1px solid var(--primary);
+          border-radius: var(--space-2);
+          color: var(--primary);
+          font-weight: 500;
           font-size: 13px;
-          cursor: default;
-          box-sizing: border-box;
+          cursor: pointer;
+          transition: all 0.15s ease;
+          width: 100%;
+          justify-content: center;
           -webkit-tap-highlight-color: transparent;
         }
 
-        .dialog-add-participant-button {
-          cursor: pointer;
-          color: ${theme.primary};
-          padding: ${theme.space[2]} ${theme.space[3]};
-          border-radius: ${theme.space[2]};
-          transition: all 0.15s ease;
+        .dialog-info__add-button:hover:not(:disabled) {
+          background: var(--primary);
+          color: var(--background);
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px -4px var(--primary);
+        }
+
+        .dialog-info__add-button:active:not(:disabled) {
+          transform: translateY(0) scale(0.98);
+        }
+
+        .dialog-info__add-button:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+          transform: none;
+        }
+
+        .button-text {
+          font-size: 13px;
           font-weight: 500;
-          justify-content: flex-start;
-          touch-action: manipulation;
         }
 
-        .dialog-add-participant-button:hover {
-          background: ${theme.primaryGhost};
-          color: ${theme.primary};
-          transform: translateX(2px);
+        /* 加载动画 */
+        .dialog-info__spinner {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 16px;
+          height: 16px;
         }
 
-        .dialog-add-participant-button:active {
-          transform: translateX(2px) scale(0.98);
+        .spinner-ring {
+          width: 12px;
+          height: 12px;
+          border: 2px solid var(--border);
+          border-top: 2px solid var(--primary);
+          border-radius: 50%;
+          animation: spin 0.8s linear infinite;
         }
 
-        .dialog-token-info {
-          justify-content: space-between;
-          color: ${theme.textSecondary};
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
         }
 
-        .token-count {
-          font-weight: 600;
-          color: ${theme.text};
-          background: ${theme.backgroundTertiary};
-          padding: 2px ${theme.space[2]};
-          border-radius: 8px;
+        /* 移动端样式 */
+        .dialog-info__mobile-content {
+          width: 100%;
+          padding: var(--space-3) 0;
+        }
+
+        .dialog-info__mobile-section {
+          display: flex;
+          flex-direction: column;
+          gap: var(--space-3);
+        }
+
+        .section-summary {
+          display: flex;
+          gap: var(--space-4);
+        }
+
+        .summary-item {
+          display: flex;
+          align-items: center;
+          gap: var(--space-1);
           font-size: 12px;
+        }
+
+        .summary-label {
+          color: var(--textTertiary);
+          font-weight: 500;
+        }
+
+        .summary-value {
+          color: var(--text);
+          font-weight: 600;
+          background: var(--backgroundTertiary);
+          padding: 2px var(--space-2);
+          border-radius: 4px;
           font-family: ui-monospace, 'SF Mono', 'Monaco', monospace;
-          letter-spacing: 0.5px;
+          font-size: 11px;
         }
 
-        .dialog-info-divider {
-          width: 1px;
-          background: linear-gradient(
-            to bottom,
-            transparent,
-            ${theme.border} 20%,
-            ${theme.border} 80%,
-            transparent
-          );
-          align-self: stretch;
-          margin: ${theme.space[2]} 0;
+        .dialog-info__mobile-preview {
+          display: flex;
+          flex-wrap: wrap;
+          gap: var(--space-1);
         }
 
+        .mobile-chip {
+          flex-shrink: 0;
+        }
+
+        .more-indicator {
+          display: flex;
+          align-items: center;
+          background: var(--backgroundTertiary);
+          color: var(--textTertiary);
+          padding: var(--space-1) var(--space-2);
+          border-radius: 12px;
+          font-size: 11px;
+          font-weight: 500;
+          border: 1px solid var(--borderLight);
+        }
+
+        .dialog-info__mobile-empty {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: var(--space-4);
+          background: var(--backgroundGhost);
+          border-radius: var(--space-2);
+          border: 1px dashed var(--border);
+        }
+
+        .dialog-info__mobile-empty .empty-text {
+          font-size: 12px;
+          color: var(--textTertiary);
+          font-style: italic;
+        }
+
+        .mobile-actions {
+          display: flex;
+          gap: var(--space-2);
+        }
+
+        /* 响应式和无障碍 */
         @media (prefers-reduced-motion: reduce) {
-          .dialog-info-panel {
+          .dialog-info__panel,
+          .trigger-icon,
+          .cybot-list-item,
+          .dialog-info__add-button,
+          .spinner-ring {
             animation: none;
-          }
-
-          .dialog-info-panel-trigger.action-button svg,
-          .dialog-info-list-item,
-          .dialog-add-participant-button {
             transition: none;
           }
 
-          .dialog-info-list-item:hover,
-          .dialog-add-participant-button:hover {
+          .cybot-list-item:hover,
+          .dialog-info__add-button:hover:not(:disabled) {
             transform: none;
           }
         }
 
         @media (prefers-contrast: high) {
-          .dialog-info-panel {
-            border: 2px solid ${theme.text};
-            box-shadow: none;
+          .dialog-info__panel {
+            border: 2px solid var(--text);
+          }
+
+          .dialog-info__add-button {
+            border: 2px solid var(--primary);
+          }
+
+          .dialog-info__empty-state {
+            border: 2px dashed var(--border);
+          }
+        }
+
+        @media (max-width: 480px) {
+          .dialog-info__panel {
+            min-width: 280px;
+            max-width: calc(100vw - var(--space-4));
+          }
+
+          .dialog-info__mobile-preview {
+            gap: var(--space-1);
           }
         }
       `}</style>
