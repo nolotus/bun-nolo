@@ -40,7 +40,6 @@ import { Tooltip } from "render/web/ui/Tooltip";
 import { ConfirmModal } from "render/web/ui/ConfirmModal";
 import ModeToggle from "render/web/ui/ModeToggle";
 import Button from "render/web/ui/Button";
-import { LoggedInMenu } from "auth/web/IsLoggedInMenu";
 
 const CreateMenuButton = lazy(() => import("./CreateMenuButton"));
 const Spinner = () => <div className="topbar__spinner" />;
@@ -292,7 +291,6 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
               <Suspense fallback={<div style={{ width: 24 }} />}>
                 <CreateMenuButton currentDialogConfig={currentDialog} />
               </Suspense>
-              <LoggedInMenu />
             </>
           ) : (
             <>

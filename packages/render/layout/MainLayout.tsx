@@ -10,7 +10,6 @@ import React, {
   useState,
 } from "react";
 import { Outlet, useLocation } from "react-router-dom";
-
 import { useDispatch } from "react-redux";
 import { useAppSelector } from "app/store";
 import { zIndex } from "render/styles/zIndex";
@@ -18,7 +17,8 @@ import { setSidebarWidth, selectSidebarWidth } from "app/settings/settingSlice";
 import TopBar from "./TopBar";
 import { SidebarTop } from "./SidebarTop";
 import LifeSidebarContent from "life/LifeSidebarContent";
-import PageContentErrorBoundary from "./PageContentErrorBoundary"; // <--- 导入新组件
+import PageContentErrorBoundary from "./PageContentErrorBoundary";
+import SidebarBottom from "./SidebarBottom"; // <-- 导入新的 SidebarBottom 组件
 
 const MainLayout: React.FC = () => {
   const location = useLocation();
@@ -142,6 +142,7 @@ const MainLayout: React.FC = () => {
           >
             {isLoggedIn && <SidebarTop />}
             <div className="MainLayout__sidebarContent">{sidebarContent}</div>
+            {isLoggedIn && <SidebarBottom />}
             {!isMobile && (
               <div
                 className="MainLayout__resizeHandle"

@@ -1,9 +1,7 @@
 import React from "react";
 import { useAuth } from "auth/hooks/useAuth";
 import { NavLink } from "react-router-dom";
-
 import { useTranslation } from "react-i18next";
-import { LoggedInMenu } from "auth/web/IsLoggedInMenu";
 import NavListItem from "render/layout/blocks/NavListItem";
 import { SignInIcon } from "@primer/octicons-react";
 import { RoutePaths } from "auth/web/routes";
@@ -40,20 +38,22 @@ const styles = {
     textDecorationStyle: "wavy",
     textDecorationThickness: "2px",
   },
+  userName: {
+    fontSize: "16px",
+    color: "#127436", // 森林绿
+    marginRight: "20px",
+  },
 };
 
 const NavbarComponent = () => {
   const { t } = useTranslation();
-
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, user } = useAuth();
 
   return (
     <div style={styles.container}>
       <div style={{ display: "flex", gap: "12px" }}>
         {isLoggedIn ? (
-          <div>
-            <LoggedInMenu />
-          </div>
+          <div style={styles.userName}>{user?.username}</div>
         ) : (
           <NavListItem
             label={t("login")}
