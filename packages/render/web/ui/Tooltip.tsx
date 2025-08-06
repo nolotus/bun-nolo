@@ -1,8 +1,5 @@
-//render/web/ui/Tooltip
 import React, { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { useAppSelector } from "app/store";
-import { selectTheme } from "app/settings/settingSlice";
 
 interface TooltipProps {
   content: React.ReactNode;
@@ -21,7 +18,6 @@ export const Tooltip = ({
   placement = "top",
   portalContainer = document.body,
 }: TooltipProps) => {
-  const theme = useAppSelector(selectTheme);
   const [isVisible, setIsVisible] = useState(false);
   const hideTimerRef = useRef<NodeJS.Timeout | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -123,6 +119,7 @@ export const Tooltip = ({
                 : "translateX(-50%) translateY(-100%)",
         zIndex: 9999,
         display: "block",
+        ["--tooltip-delay" as string]: `${delay}ms`,
       }}
     >
       <div className="tooltip-content">{content}</div>
@@ -136,7 +133,6 @@ export const Tooltip = ({
       className="tooltip-wrapper"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      style={{ "--tooltip-delay": `${delay}ms` } as React.CSSProperties}
     >
       {children}
       {tooltipContent && createPortal(tooltipContent, portalContainer)}
@@ -145,79 +141,122 @@ export const Tooltip = ({
           position: relative;
           display: inline-block;
         }
+
         .tooltip-tip {
-          background: ${theme.backgroundSecondary};
-          color: ${theme.text};
+          background: var(--backgroundSecondary);
+          color: var(--text);
           font-size: 0.8125rem;
           font-weight: 500;
-          line-height: 1.3;
+          line-height: 1.4;
           box-shadow:
-            0 4px 12px rgba(0, 0, 0, 0.08),
-            0 1px 3px rgba(0, 0, 0, 0.06);
-          border: 1px solid ${theme.border};
-          border-radius: 6px;
+            var(--shadowMedium),
+            0 0 0 1px var(--borderLight);
+          border-radius: 8px;
           opacity: 0;
           visibility: hidden;
-          transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1)
-            var(--tooltip-delay);
-          backdrop-filter: blur(8px);
+          transition:
+            opacity 0.16s cubic-bezier(0.16, 1, 0.3, 1) var(--tooltip-delay),
+            visibility 0.16s cubic-bezier(0.16, 1, 0.3, 1) var(--tooltip-delay),
+            transform 0.16s cubic-bezier(0.16, 1, 0.3, 1) var(--tooltip-delay);
+          backdrop-filter: blur(12px) saturate(150%);
+          border: 1px solid var(--border);
+          transform-origin: center bottom;
+          will-change: opacity, visibility, transform;
         }
+
         .tooltip-tip[style*="display: block"] {
           opacity: 1;
           visibility: visible;
         }
+
         .tooltip-content {
-          padding: ${theme.space[2]} ${theme.space[3]};
+          padding: var(--space-2) var(--space-3);
           white-space: nowrap;
-          max-width: 240px;
+          max-width: 280px;
           word-break: break-word;
-        }
-        .tooltip-arrow {
-          position: absolute;
-          width: 7px;
-          height: 7px;
-          background: ${theme.backgroundSecondary};
-          border: 1px solid ${theme.border};
+          position: relative;
+          z-index: 1;
         }
 
+        .tooltip-arrow {
+          position: absolute;
+          width: 6px;
+          height: 6px;
+          background: var(--backgroundSecondary);
+          border: 1px solid var(--border);
+          z-index: 0;
+        }
+
+        /* Top placement arrows */
         .tooltip-top .tooltip-arrow,
         .tooltip-top-left .tooltip-arrow {
-          bottom: -4px;
+          bottom: -3.5px;
           transform: rotate(45deg);
           border-top: none;
           border-left: none;
         }
+
         .tooltip-top .tooltip-arrow {
           left: 50%;
           transform: translateX(-50%) rotate(45deg);
         }
+
         .tooltip-top-left .tooltip-arrow {
           right: 50%;
           transform: translateX(50%) rotate(45deg);
         }
 
+        /* Bottom placement arrow */
         .tooltip-bottom .tooltip-arrow {
-          top: -4px;
+          top: -3.5px;
           left: 50%;
           transform: translateX(-50%) rotate(45deg);
           border-bottom: none;
           border-right: none;
         }
 
+        /* Left placement arrow */
         .tooltip-left .tooltip-arrow {
-          right: -4px;
+          right: -3.5px;
           top: 50%;
           transform: translateY(-50%) rotate(45deg);
           border-left: none;
           border-bottom: none;
         }
 
+        /* Right placement arrow */
         .tooltip-right .tooltip-arrow {
-          left: -4px;
+          left: -3.5px;
           top: 50%;
           transform: translateY(-50%) rotate(45deg);
           border-right: none;
           border-top: none;
+        }
+
+        /* Hover state enhancement */
+        .tooltip-tip:hover {
+          background: var(--backgroundTertiary);
+        }
+
+        /* Animation states for different placements */
+        .tooltip-top {
+          transform-origin: center bottom;
+        }
+
+        .tooltip-top-left {
+          transform-origin: right bottom;
+        }
+
+        .tooltip-bottom {
+          transform-origin: center top;
+        }
+
+        .tooltip-left {
+          transform-origin: right center;
+        }
+
+        .tooltip-right {
+          transform-origin: left center;
         }
       `}</style>
     </div>

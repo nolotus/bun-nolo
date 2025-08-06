@@ -18,7 +18,10 @@ import TopBar from "./TopBar";
 import { SidebarTop } from "./SidebarTop";
 import LifeSidebarContent from "life/LifeSidebarContent";
 import PageContentErrorBoundary from "./PageContentErrorBoundary";
-import SidebarBottom from "./SidebarBottom"; // <-- 导入新的 SidebarBottom 组件
+import SidebarBottom from "./SidebarBottom";
+
+const MIN_WIDTH = 200;
+const MAX_WIDTH = 600;
 
 const MainLayout: React.FC = () => {
   const location = useLocation();
@@ -29,6 +32,8 @@ const MainLayout: React.FC = () => {
 
   const [isResizing, setIsResizing] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+
+  const sidebarRef = useRef<HTMLElement>(null);
   const lastWidthRef = useRef(sidebarWidth);
   const isInitialMount = useRef(true);
   const resizeDebounceTimer = useRef<NodeJS.Timeout | null>(null);
@@ -47,7 +52,6 @@ const MainLayout: React.FC = () => {
   } else {
     sidebarContent = null;
   }
-
   const hasSidebar = sidebarContent !== null;
 
   const toggleSidebar = useCallback(() => {
@@ -61,18 +65,41 @@ const MainLayout: React.FC = () => {
     setIsResizing(true);
   }, []);
 
-  const resize = useCallback(
-    (e: MouseEvent) => {
-      if (!isResizing) return;
-      requestAnimationFrame(() => {
-        const newWidth = e.clientX;
-        if (newWidth >= 200 && newWidth <= 600) {
-          dispatch(setSidebarWidth(newWidth));
+  const resize = useCallback((e: MouseEvent) => {
+    requestAnimationFrame(() => {
+      const newWidth = e.clientX;
+      if (newWidth >= MIN_WIDTH && newWidth <= MAX_WIDTH) {
+        if (sidebarRef.current) {
+          sidebarRef.current.style.width = `${newWidth}px`;
         }
-      });
-    },
-    [isResizing, dispatch]
-  );
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!isResizing) return;
+
+    const stopResizing = () => {
+      if (sidebarRef.current) {
+        const finalWidth = parseInt(sidebarRef.current.style.width, 10);
+        sidebarRef.current.style.width = "";
+        if (!isNaN(finalWidth)) {
+          dispatch(setSidebarWidth(finalWidth));
+        }
+      }
+      setIsResizing(false);
+    };
+
+    window.addEventListener("mousemove", resize);
+    window.addEventListener("mouseup", stopResizing);
+    window.addEventListener("mouseleave", stopResizing);
+
+    return () => {
+      window.removeEventListener("mousemove", resize);
+      window.removeEventListener("mouseup", stopResizing);
+      window.removeEventListener("mouseleave", stopResizing);
+    };
+  }, [isResizing, dispatch, resize]);
 
   useEffect(() => {
     const debouncedHandleResize = () => {
@@ -105,17 +132,6 @@ const MainLayout: React.FC = () => {
   }, [toggleSidebar, hasSidebar]);
 
   useEffect(() => {
-    if (!isResizing) return;
-    const stopResizing = () => setIsResizing(false);
-    window.addEventListener("mousemove", resize);
-    window.addEventListener("mouseup", stopResizing);
-    return () => {
-      window.removeEventListener("mousemove", resize);
-      window.removeEventListener("mouseup", stopResizing);
-    };
-  }, [resize, isResizing]);
-
-  useEffect(() => {
     if (isInitialMount.current) {
       if (isMobile && isOpen) {
         dispatch(setSidebarWidth(0));
@@ -134,10 +150,11 @@ const MainLayout: React.FC = () => {
 
   return (
     <>
-      <div className="MainLayout">
+      <div className={`MainLayout ${isResizing ? "is-resizing" : ""}`}>
         {hasSidebar && (
           <aside
-            className={`MainLayout__sidebar ${isOpen ? "is-open" : "is-closed"} ${isResizing ? "is-resizing" : ""}`}
+            ref={sidebarRef}
+            className={`MainLayout__sidebar ${isOpen ? "is-open" : "is-closed"}`}
             style={{ width: isMobile ? "85%" : sidebarWidth }}
           >
             {isLoggedIn && <SidebarTop />}
@@ -156,11 +173,11 @@ const MainLayout: React.FC = () => {
           <div className="MainLayout__backdrop" onClick={toggleSidebar} />
         )}
 
-        <main className={`MainLayout__main ${isResizing ? "is-resizing" : ""}`}>
+        <main className="MainLayout__main">
           <TopBar toggleSidebar={hasSidebar ? toggleSidebar : undefined} />
           <div className="MainLayout__pageContent">
             <PageContentErrorBoundary>
-              <Suspense fallback={<div>main Loading...</div>}>
+              <Suspense fallback={<div>Loading...</div>}>
                 <Outlet />
               </Suspense>
             </PageContentErrorBoundary>
@@ -172,6 +189,17 @@ const MainLayout: React.FC = () => {
         .MainLayout {
           display: flex;
           min-height: 100dvh;
+          background: var(--background);
+        }
+
+        .MainLayout.is-resizing {
+          cursor: col-resize;
+          user-select: none;
+        }
+
+        .MainLayout.is-resizing .MainLayout__sidebar,
+        .MainLayout.is-resizing .MainLayout__main {
+          transition: none !important;
         }
 
         .MainLayout__sidebar {
@@ -182,19 +210,31 @@ const MainLayout: React.FC = () => {
           position: relative;
           z-index: ${zIndex.sidebar};
           overflow: hidden;
-          transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .MainLayout__sidebar.is-resizing,
-        .MainLayout__main.is-resizing {
-          transition: none !important;
+          transition: width 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+          background: var(--background);
+          border-right: 1px solid var(--border);
         }
 
         .MainLayout__sidebarContent {
           flex: 1;
-          min-width: 200px;
+          min-width: ${MIN_WIDTH}px;
           overflow-y: auto;
           overflow-x: hidden;
+          scrollbar-width: thin;
+          scrollbar-color: var(--textQuaternary) transparent;
+        }
+
+        .MainLayout__sidebarContent::-webkit-scrollbar {
+          width: 6px;
+        }
+
+        .MainLayout__sidebarContent::-webkit-scrollbar-track {
+          background: transparent;
+        }
+
+        .MainLayout__sidebarContent::-webkit-scrollbar-thumb {
+          background: var(--textQuaternary);
+          border-radius: 3px;
         }
 
         .MainLayout__main {
@@ -204,31 +244,54 @@ const MainLayout: React.FC = () => {
           height: 100dvh;
           min-width: 0;
           overflow: hidden;
+          background: var(--backgroundSecondary);
         }
         
         .MainLayout__pageContent {
           flex: 1;
           overflow: auto;
-          position: relative;
         }
 
         .MainLayout__resizeHandle {
           position: absolute;
           top: 0;
-          right: -2px;
-          width: 4px;
+          right: -3px;
+          width: 6px;
           height: 100%;
           cursor: col-resize;
           z-index: ${zIndex.sidebarResizeHandle};
+          display: flex;
+          justify-content: center;
+        }
+
+        .MainLayout__resizeHandle::after {
+          content: '';
+          width: 1px;
+          height: 100%;
+          background: transparent;
+          transition: background-color 0.2s ease;
+        }
+
+        .MainLayout__resizeHandle:hover::after {
+          background: var(--primary);
+        }
+        
+        .MainLayout.is-resizing .MainLayout__resizeHandle::after {
+          background: var(--primary);
         }
         
         .MainLayout__backdrop {
           position: fixed;
           inset: 0;
-          background: rgba(0,0,0,0.4);
-          backdrop-filter: blur(2px);
+          background: rgba(0, 0, 0, 0.4);
+          backdrop-filter: blur(4px);
           z-index: ${zIndex.sidebarBackdrop};
-          animation: fadeIn 0.3s ease;
+          animation: fadeIn 0.24s ease;
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
 
         @media (max-width: 768px) {
@@ -239,7 +302,7 @@ const MainLayout: React.FC = () => {
             box-shadow: var(--shadowHeavy);
             transform: translateX(-100%);
             border-right: none;
-            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
           }
           
           .MainLayout__sidebar.is-open {
@@ -249,11 +312,6 @@ const MainLayout: React.FC = () => {
           .MainLayout__resizeHandle {
             display: none;
           }
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
         }
       `}</style>
     </>
