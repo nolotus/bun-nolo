@@ -9,7 +9,7 @@ export const openAIModels: Model[] = [
     contextWindow: 400_000,
     maxOutputTokens: 128_000,
     supportsReasoningEffort: true,
-    price: { input: 1.25, output: 10, inputCacheHit: 0.125 },
+    price: { input: 12.5, output: 100, inputCacheHit: 1.25 },
   },
   {
     name: "gpt-5-mini",
@@ -18,7 +18,7 @@ export const openAIModels: Model[] = [
     contextWindow: 400_000,
     maxOutputTokens: 128_000,
     supportsReasoningEffort: true,
-    price: { input: 0.25, output: 2, inputCacheHit: 0.025 },
+    price: { input: 2.5, output: 20, inputCacheHit: 0.25 },
   },
   {
     name: "gpt-5-nano",
@@ -27,7 +27,7 @@ export const openAIModels: Model[] = [
     contextWindow: 400_000,
     maxOutputTokens: 128_000,
     supportsReasoningEffort: true,
-    price: { input: 0.05, output: 0.4, inputCacheHit: 0.005 },
+    price: { input: 0.5, output: 4, inputCacheHit: 0.05 },
   },
   {
     name: "gpt-4.1",
