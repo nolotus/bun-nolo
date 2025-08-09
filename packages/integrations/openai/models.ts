@@ -3,6 +3,33 @@ import type { Model } from "ai/llm/types";
 
 export const openAIModels: Model[] = [
   {
+    name: "gpt-5",
+    displayName: "GPT-5",
+    hasVision: true,
+    contextWindow: 400_000,
+    maxOutputTokens: 128_000,
+    supportsReasoningEffort: true,
+    price: { input: 1.25, output: 10, inputCacheHit: 0.125 },
+  },
+  {
+    name: "gpt-5-mini",
+    displayName: "GPT-5 mini",
+    hasVision: true,
+    contextWindow: 400_000,
+    maxOutputTokens: 128_000,
+    supportsReasoningEffort: true,
+    price: { input: 0.25, output: 2, inputCacheHit: 0.025 },
+  },
+  {
+    name: "gpt-5-nano",
+    displayName: "GPT-5 nano",
+    hasVision: true,
+    contextWindow: 400_000,
+    maxOutputTokens: 128_000,
+    supportsReasoningEffort: true,
+    price: { input: 0.05, output: 0.4, inputCacheHit: 0.005 },
+  },
+  {
     name: "gpt-4.1",
     displayName: "GPT-4.1",
     hasVision: true,
