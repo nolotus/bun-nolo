@@ -1,25 +1,5 @@
 export const openrouterModels = [
   {
-    name: "nvidia/llama-3.1-nemotron-ultra-253b-v1:free",
-    displayName: "Llama 3.1 Nemotron Ultra 253b V1",
-    hasVision: false,
-    price: { input: 1, output: 1 },
-    maxOutputTokens: 131000,
-    contextWindow: 131000,
-    supportsTool: true,
-    speed: 25,
-  },
-  {
-    name: "deepseek/deepseek-chat-v3-0324:free",
-    displayName: "DeepSeek Chat V3 0324",
-    hasVision: false,
-    price: { input: 1, output: 1 },
-    maxOutputTokens: 128000,
-    contextWindow: 128000,
-    supportsTool: true,
-    speed: 60,
-  },
-  {
     name: "meta-llama/llama-4-maverick:free",
     displayName: "Meta Llama 4 Maverick",
     hasVision: false,
@@ -79,15 +59,6 @@ export const openrouterModels = [
     contextWindow: 200000,
     supportsTool: true,
     pricePerImage: 4.8 * 8,
-  },
-  {
-    name: "deepseek/deepseek-r1-0528:free",
-    displayName: "DeepSeek: R1 0528 (free)",
-    hasVision: false,
-    price: { input: 1, output: 1 },
-    maxOutputTokens: 163840,
-    contextWindow: 163840,
-    supportsTool: true,
   },
   {
     name: "anthropic/claude-3.7-sonnet:thinking",
