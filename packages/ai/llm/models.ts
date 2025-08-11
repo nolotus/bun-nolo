@@ -5,7 +5,6 @@ import type { Model } from "./types";
 // 导入所有提供商的模型数据
 import { deepinfraModels } from "integrations/deepinfra/models";
 import { deepSeekModels } from "integrations/deepseek/models";
-import { fireworksmodels } from "integrations/fireworks/models";
 import { googleModels } from "integrations/google/models";
 import { mistralModels } from "integrations/mistral/models";
 import { openAIModels } from "integrations/openai/models";
@@ -33,7 +32,6 @@ export const ALL_MODELS: ModelWithProvider[] = [
   ...openrouterModels.map((m) => ({ ...m, provider: "openrouter" })),
   ...xaiModels.map((m) => ({ ...m, provider: "xai" })),
   ...deepSeekModels.map((m) => ({ ...m, provider: "deepseek" })),
-  ...fireworksmodels.map((m) => ({ ...m, provider: "fireworks" })),
   ...deepinfraModels.map((m) => ({ ...m, provider: "deepinfra" })),
   ...sambanovaModels.map((m) => ({ ...m, provider: "sambanova" })),
 ];

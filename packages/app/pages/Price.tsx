@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Table, TableRow, TableCell } from "render/web/ui/Table";
-import { fireworksmodels } from "integrations/fireworks/models";
 import { deepinfraModels } from "integrations/deepinfra/models";
 import { openAIModels } from "integrations/openai/models";
 import { mistralModels } from "integrations/mistral/models";
@@ -74,7 +73,7 @@ const ModelComparison: React.FC = () => {
     [openAIModels, "OpenAI"],
     [googleModels, "Google"],
     [deepSeekModels, "Deepseek"],
-    [fireworksmodels, "Fireworks"],
+
     [openrouterModels, "OpenRouter"],
     [xaiModels, "XAI"],
   ] as const;

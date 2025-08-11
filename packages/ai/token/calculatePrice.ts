@@ -212,7 +212,6 @@ const calculateBasicCost = (
     case "anthropic":
       return calculateAnthropicCost(model, usage, externalPrice);
     case "deepinfra":
-    case "fireworks":
     case "mistral":
     case "google":
     case "xai":

@@ -1,3 +1,5 @@
+// File: CreateMenuButton.jsx (Complete Code)
+
 import React, { useState, useCallback, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -6,7 +8,6 @@ import { useAppDispatch } from "app/store";
 import { createPage } from "render/page/pageSlice";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
 import { zIndex } from "render/styles/zIndex";
-
 import {
   LuPlus,
   LuFileText,
@@ -18,6 +19,7 @@ import { Dialog } from "render/web/ui/Dialog";
 import { Tooltip } from "render/web/ui/Tooltip";
 import { CreateSpaceForm } from "create/space/CreateSpaceForm";
 
+// Hook to detect clicks outside a component
 const useClickOutside = (
   ref: React.RefObject<HTMLElement>,
   handler: (event: MouseEvent | TouchEvent) => void
@@ -36,6 +38,7 @@ const useClickOutside = (
   }, [ref, handler]);
 };
 
+// Hook to handle page creation logic
 const useCreatePage = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -62,76 +65,80 @@ const CreateMenuButton: React.FC<{
   currentDialogConfig?: { cybots: string[] };
 }> = ({ currentDialogConfig }) => {
   const { t } = useTranslation(["common", "space", "chat"]);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  // State for click-to-pin and hover-to-show
+  const [isPinnedOpen, setPinnedOpen] = useState(false);
+  const [isHovering, setHovering] = useState(false);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const { isLoading: isCreatingDialog, createNewDialog } = useCreateDialog();
   const { isCreatingPage, createNewPage } = useCreatePage();
 
-  useClickOutside(menuRef, () => setIsMenuOpen(false));
+  const isMenuVisible = isPinnedOpen || isHovering;
 
-  const handleMouseEnter = () => {
-    // 仅在非触控设备上启用悬停
-    if (!("ontouchstart" in window)) {
-      setIsMenuOpen(true);
-    }
-  };
-
-  const handleMouseLeave = () => {
-    if (!("ontouchstart" in window)) {
-      setIsMenuOpen(false);
-    }
-  };
-
-  const handleCreateDialog = useCallback(() => {
-    if (currentDialogConfig?.cybots) {
-      createNewDialog({ agents: currentDialogConfig.cybots });
-    }
-    setIsMenuOpen(false);
-  }, [createNewDialog, currentDialogConfig]);
-
-  const handleCreateSpace = useCallback(() => {
-    setIsModalOpen(true);
-    setIsMenuOpen(false);
+  // Closes the menu completely, regardless of state
+  const closeMenu = useCallback(() => {
+    setPinnedOpen(false);
+    setHovering(false);
   }, []);
 
-  const handleCreatePage = useCallback(async () => {
+  useClickOutside(menuRef, closeMenu);
+
+  // Handlers for hover interaction on desktop
+  const handleMouseEnter = () => setHovering(true);
+  const handleMouseLeave = () => setHovering(false);
+
+  // Handler for click interaction on both desktop and mobile
+  const handleTogglePin = () => {
+    setPinnedOpen((prev) => !prev);
+    setHovering(false); // A click should always take precedence over hover
+  };
+
+  const createAndClose = (action: () => void) => () => {
+    action();
+    closeMenu();
+  };
+
+  const handleCreatePageAndClose = useCallback(async () => {
     await createNewPage();
-    setIsMenuOpen(false);
-  }, [createNewPage]);
+    closeMenu();
+  }, [createNewPage, closeMenu]);
 
   return (
     <>
       <div
-        className="create-menu-container"
+        className="create-menu"
         ref={menuRef}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
         <Tooltip content={t("common:create")} placement="bottom">
           <button
-            className={`create-btn ${isMenuOpen ? "active" : ""}`}
-            onClick={() => setIsMenuOpen((v) => !v)}
+            className={`create-menu__button ${isMenuVisible ? "is-active" : ""}`}
+            onClick={handleTogglePin}
             aria-label={t("common:create")}
           >
-            <LuPlus size={16} className={isMenuOpen ? "rotated" : ""} />
+            <LuPlus
+              size={16}
+              className={`create-menu__icon ${isMenuVisible ? "is-rotated" : ""}`}
+            />
           </button>
         </Tooltip>
 
-        {isMenuOpen && (
+        {isMenuVisible && (
           <>
-            {/* 移动端遮罩层 */}
-            <div
-              className="menu-overlay"
-              onClick={() => setIsMenuOpen(false)}
-            />
-
-            <div className="create-menu">
+            <div className="create-menu__overlay" onClick={closeMenu} />
+            <div className="create-menu__dropdown">
               {currentDialogConfig && (
                 <button
-                  className="menu-item"
-                  onClick={handleCreateDialog}
+                  className="create-menu__item"
+                  onClick={createAndClose(() => {
+                    if (currentDialogConfig.cybots) {
+                      createNewDialog({ agents: currentDialogConfig.cybots });
+                    }
+                  })}
                   disabled={isCreatingDialog}
                 >
                   {isCreatingDialog ? (
@@ -143,8 +150,8 @@ const CreateMenuButton: React.FC<{
                 </button>
               )}
               <button
-                className="menu-item"
-                onClick={handleCreatePage}
+                className="create-menu__item"
+                onClick={handleCreatePageAndClose}
                 disabled={isCreatingPage}
               >
                 {isCreatingPage ? (
@@ -154,8 +161,10 @@ const CreateMenuButton: React.FC<{
                 )}
                 <span>{t("page:create_new_page", "新建页面")}</span>
               </button>
-
-              <button className="menu-item" onClick={handleCreateSpace}>
+              <button
+                className="create-menu__item"
+                onClick={createAndClose(() => setIsModalOpen(true))}
+              >
                 <LuFolderPlus size={18} />
                 <span>{t("space:create_new_space", "新建空间")}</span>
               </button>
@@ -179,18 +188,18 @@ const CreateMenuButton: React.FC<{
           to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
-        .create-menu-container { 
+        .create-menu { 
           position: relative;
         }
 
-        .create-btn {
+        .create-menu__button {
           display: flex; 
           align-items: center; 
           justify-content: center;
           width: var(--space-8); 
           height: var(--space-8);
-          background: var(--backgroundSecondary);
-          border: 1px solid var(--border);
+          background: transparent;
+          border: none;
           border-radius: 6px; 
           cursor: pointer;
           color: var(--textSecondary);
@@ -198,36 +207,29 @@ const CreateMenuButton: React.FC<{
           -webkit-tap-highlight-color: transparent;
         }
 
-        .create-btn:hover {
+        .create-menu__button:hover,
+        .create-menu__button.is-active {
           background: var(--backgroundHover);
-          border-color: var(--borderHover);
-          color: var(--primary);
-          transform: translateY(-1px);
+          color: var(--text);
         }
 
-        .create-btn:active {
+        .create-menu__button:active {
           transform: scale(0.95);
         }
 
-        .create-btn.active {
-          background: var(--primaryBg);
-          border-color: var(--primary);
-          color: var(--primary);
-        }
-
-        .create-btn svg {
+        .create-menu__icon {
           transition: transform 0.2s ease;
         }
 
-        .create-btn svg.rotated {
+        .create-menu__icon.is-rotated {
           transform: rotate(45deg);
         }
 
-        .menu-overlay {
+        .create-menu__overlay {
           display: none;
         }
 
-        .create-menu {
+        .create-menu__dropdown {
           position: absolute;
           top: calc(100% + var(--space-2));
           right: 0; 
@@ -235,13 +237,13 @@ const CreateMenuButton: React.FC<{
           background: var(--background);
           border: 1px solid var(--border);
           border-radius: 8px;
-          box-shadow: 0 4px 20px var(--shadowMedium);
+          box-shadow: var(--shadowHeavy);
           z-index: ${zIndex.dropdown};
           padding: var(--space-2);
           animation: slideInDesktop 0.2s ease;
         }
 
-        .menu-item {
+        .create-menu__item {
           display: flex; 
           align-items: center; 
           gap: var(--space-3);
@@ -258,24 +260,20 @@ const CreateMenuButton: React.FC<{
           min-height: 36px;
         }
 
-        .menu-item:hover:not(:disabled) {
+        .create-menu__item:hover:not(:disabled) {
           background: var(--backgroundHover);
         }
 
-        .menu-item:active:not(:disabled) {
+        .create-menu__item:active:not(:disabled) {
           background: var(--backgroundSelected);
           transform: scale(0.98);
         }
 
-        .menu-item:disabled {
+        .create-menu__item:disabled {
           color: var(--textTertiary); 
           cursor: not-allowed;
         }
-
-        .menu-item + .menu-item {
-          margin-top: var(--space-1);
-        }
-
+        
         .spinner {
           width: 16px; 
           height: 16px;
@@ -283,17 +281,18 @@ const CreateMenuButton: React.FC<{
           border-top-color: var(--primary);
           border-radius: 50%;
           animation: spin 0.8s linear infinite;
+          margin-left: 2px;
+          margin-right: 2px;
         }
 
-        /* 移动端优化 */
         @media (max-width: 768px) {
-          .create-btn {
+          .create-menu__button {
             width: 40px; 
             height: 40px;
             touch-action: manipulation;
           }
 
-          .menu-overlay {
+          .create-menu__overlay {
             display: block;
             position: fixed;
             top: 0;
@@ -305,7 +304,7 @@ const CreateMenuButton: React.FC<{
             z-index: calc(${zIndex.dropdown} - 1);
           }
 
-          .create-menu {
+          .create-menu__dropdown {
             position: fixed;
             top: auto;
             bottom: var(--space-4);
@@ -320,44 +319,24 @@ const CreateMenuButton: React.FC<{
             animation: slideInMobile 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
           }
 
-          .menu-item {
-            padding: var(--space-4) var(--space-4);
+          .create-menu__item {
+            padding: var(--space-4);
             font-size: 15px;
             min-height: 48px;
             border-radius: 8px;
           }
 
-          .menu-item svg {
+          .create-menu__item svg {
             width: 20px;
             height: 20px;
           }
-
-          .menu-item + .menu-item {
-            margin-top: var(--space-2);
-          }
-
-          .spinner {
-            width: 18px;
-            height: 18px;
-          }
         }
-
-        /* 小屏移动设备 */
-        @media (max-width: 480px) {
-          .create-menu {
-            bottom: var(--space-3);
-            left: var(--space-3);
-            right: var(--space-3);
-          }
-        }
-
-        /* 触控设备优化 */
+        
         @media (hover: none) and (pointer: coarse) {
-          .create-btn:hover {
-            transform: none;
+          .create-menu__button:hover {
+            background: transparent;
           }
-          
-          .menu-item:hover:not(:disabled) {
+          .create-menu__item:hover:not(:disabled) {
             background: transparent;
           }
         }

@@ -36,14 +36,9 @@ const buildRequestBody = (options: BuildRequestBodyOptions): any => {
   const bodyData: any = { model, messages, stream: true };
 
   if (
-    [
-      "google",
-      "openrouter",
-      "xai",
-      "openai",
-      "deepinfra",
-      "fireworks",
-    ].includes(providerName)
+    ["google", "openrouter", "xai", "openai", "deepinfra"].includes(
+      providerName
+    )
   ) {
     bodyData.stream_options = { include_usage: true };
   }

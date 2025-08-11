@@ -2,114 +2,37 @@
 
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import { useTranslation } from "react-i18next";
-import { useParams, useNavigate } from "react-router-dom";
-import toast from "react-hot-toast";
-import { LuLogIn, LuMenu, LuHouse, LuTrash2 } from "react-icons/lu";
-import { useAppDispatch, useAppSelector } from "app/store";
+import { useParams } from "react-router-dom";
+import { LuLogIn, LuMenu, LuHouse } from "react-icons/lu";
+import { useAppSelector } from "app/store";
 import { useAuth } from "auth/hooks/useAuth";
-import {
-  selectPageData,
-  selectIsReadOnly,
-  selectPageDbSpaceId,
-  toggleReadOnly,
-  savePage,
-  selectIsSaving,
-  selectHasPendingChanges,
-} from "render/page/pageSlice";
+import { selectPageData } from "render/page/pageSlice";
 import { selectCurrentDialogConfig } from "chat/dialog/dialogSlice";
-import {
-  deleteContentFromSpace,
-  selectCurrentSpaceId,
-} from "create/space/spaceSlice";
 import { extractUserId } from "core/prefix";
 import { zIndex } from "render/styles/zIndex";
 import { RoutePaths } from "auth/web/routes";
 import NavListItem from "render/layout/blocks/NavListItem";
 import LanguageSwitcher from "render/web/ui/LanguageSwitcher";
-import { ConfirmModal } from "render/web/ui/ConfirmModal";
-import ModeToggle from "render/web/ui/ModeToggle";
-import Button from "render/web/ui/Button";
+import { Tooltip } from "render/web/ui/Tooltip";
 
-// 从外部文件导入 DialogMenu
+// 懒加载组件
 import DialogMenu from "./DialogMenu";
-
+import PageMenu from "./PageMenu";
 const CreateMenuButton = lazy(() => import("./CreateMenuButton"));
-
-// 页面菜单组件 (PageMenu) 仍然保留在这里
-const PageMenu = ({
-  readOnly,
-  saving,
-  pending,
-  deletingPg,
-  onToggleEdit,
-  onSave,
-  onDelete,
-}: {
-  readOnly: boolean;
-  saving: boolean;
-  pending: boolean;
-  deletingPg: boolean;
-  onToggleEdit: () => void;
-  onSave: () => void;
-  onDelete: () => void;
-}) => {
-  const { t } = useTranslation();
-  return (
-    <>
-      <div className="topbar__actions">
-        <ModeToggle isEdit={!readOnly} onChange={onToggleEdit} />
-        <button
-          className="topbar__button topbar__button--delete"
-          onClick={onDelete}
-          disabled={deletingPg}
-          title={t("delete")}
-        >
-          <LuTrash2 size={16} />
-        </button>
-        <Button
-          variant="primary"
-          onClick={onSave}
-          size="small"
-          disabled={readOnly || saving || !pending}
-          loading={saving}
-        >
-          {saving ? t("saving") : t("save")}
-        </Button>
-      </div>
-      <div className="topbar__mobile-menu">
-        <ModeToggle isEdit={!readOnly} onChange={onToggleEdit} />
-        <button
-          className="topbar__button topbar__button--delete"
-          onClick={onDelete}
-          disabled={deletingPg}
-          title={t("delete")}
-        >
-          <LuTrash2 size={16} />
-        </button>
-      </div>
-    </>
-  );
-};
 
 const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
   const { t } = useTranslation();
-  const dispatch = useAppDispatch();
-  const nav = useNavigate();
   const { isLoggedIn, user } = useAuth();
   const { pageKey } = useParams();
 
+  // Redux 选择器
   const currentDialog = useAppSelector(selectCurrentDialogConfig);
   const page = useAppSelector(selectPageData);
-  const readOnly = useAppSelector(selectIsReadOnly);
-  const dbSpace = useAppSelector(selectPageDbSpaceId);
-  const saving = useAppSelector(selectIsSaving);
-  const pending = useAppSelector(selectHasPendingChanges);
-  const curSpace = useAppSelector(selectCurrentSpaceId);
 
-  const [delPgOpen, setDelPgOpen] = useState(false);
-  const [deletingPg, setDeletingPg] = useState(false);
+  // 本地状态
   const [isScrolled, setIsScrolled] = useState(false);
 
+  // 检测页面滚动
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 0);
@@ -119,39 +42,42 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // 判断当前用户是否可以编辑页面
   const creator = pageKey ? extractUserId(pageKey) : null;
   const isCreator = creator === user?.userId;
   const canEdit = isCreator || !page.creator;
   const showEdit = pageKey?.startsWith("page") && canEdit && page.isInitialized;
 
-  const toggleEdit = () => dispatch(toggleReadOnly());
-  const savePg = async () => {
-    try {
-      await dispatch(savePage()).unwrap();
-      toast.success(t("saveSuccess"));
-    } catch (e: any) {
-      if (e.message !== "Aborted") toast.error(t("saveFailed"));
-    }
-  };
-  const delPg = async () => {
-    const spaceId = dbSpace || curSpace;
-    if (!pageKey || !spaceId) {
-      toast.error(t("deleteFailedInfoMissing"));
-      return;
-    }
-    setDeletingPg(true);
-    try {
-      await dispatch(
-        deleteContentFromSpace({ contentKey: pageKey, spaceId })
-      ).unwrap();
-      toast.success(t("deleteSuccess"));
-      nav(-1, { replace: true });
-    } catch {
-      toast.error(t("deleteFailed"));
-    }
-    setDeletingPg(false);
-    setDelPgOpen(false);
-  };
+  // 动态生成 Tooltip 内容，适配不同操作系统
+  const isMac =
+    typeof window !== "undefined" &&
+    /Mac|iPod|iPhone|iPad/.test(window.navigator.platform);
+
+  const sidebarToggleTooltipContent = (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "var(--space-2)",
+      }}
+    >
+      <span>{t("toggleSidebar")}</span>
+      <kbd
+        style={{
+          background: "var(--background)",
+          border: "1px solid var(--border)",
+          padding: "2px 6px",
+          borderRadius: "4px",
+          fontSize: "11px",
+          color: "var(--textTertiary)",
+          fontFamily: "sans-serif",
+          lineHeight: "1",
+        }}
+      >
+        {isMac ? "⌘" : "Ctrl"} + B
+      </kbd>
+    </div>
+  );
 
   return (
     <>
@@ -165,13 +91,15 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
             />
           )}
           {toggleSidebar && (
-            <button
-              className="topbar__button"
-              onClick={toggleSidebar}
-              aria-label={t("toggleSidebar")}
-            >
-              <LuMenu size={16} />
-            </button>
+            <Tooltip content={sidebarToggleTooltipContent} placement="bottom">
+              <button
+                className="topbar__button"
+                onClick={toggleSidebar}
+                aria-label={t("toggleSidebar")}
+              >
+                <LuMenu size={16} />
+              </button>
+            </Tooltip>
           )}
         </div>
 
@@ -179,15 +107,7 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
           {currentDialog && !showEdit ? (
             <DialogMenu currentDialog={currentDialog} />
           ) : showEdit ? (
-            <PageMenu
-              readOnly={readOnly}
-              saving={saving}
-              pending={pending}
-              deletingPg={deletingPg}
-              onToggleEdit={toggleEdit}
-              onSave={savePg}
-              onDelete={() => setDelPgOpen(true)}
-            />
+            <PageMenu />
           ) : null}
         </div>
 
@@ -210,22 +130,6 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
           )}
         </div>
       </div>
-
-      {showEdit && (
-        <ConfirmModal
-          isOpen={delPgOpen}
-          onClose={() => setDelPgOpen(false)}
-          onConfirm={delPg}
-          title={t("deleteDialogTitle", {
-            title: page.title || pageKey,
-          })}
-          message={t("deleteDialogConfirmation")}
-          confirmText={t("delete")}
-          cancelText={t("cancel")}
-          type="error"
-          loading={deletingPg}
-        />
-      )}
 
       <style href="topbar-styles" precedence="default">{`
         .topbar {
