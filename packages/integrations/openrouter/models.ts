@@ -1,15 +1,5 @@
 export const openrouterModels = [
   {
-    name: "meta-llama/llama-4-maverick:free",
-    displayName: "Meta Llama 4 Maverick",
-    hasVision: false,
-    price: { input: 1, output: 1 },
-    maxOutputTokens: 256000,
-    contextWindow: 256000,
-    supportsTool: true,
-    speed: 80,
-  },
-  {
     name: "openai/o4-mini-high",
     displayName: "OpenAI: o4 Mini High",
     hasVision: false,
@@ -77,15 +67,6 @@ export const openrouterModels = [
     price: { input: 0.3 * 10, output: 1.65 * 10 },
     maxOutputTokens: 1000000,
     contextWindow: 1000000,
-    supportsTool: true,
-  },
-  {
-    name: "moonshotai/kimi-k2",
-    displayName: "MoonshotAI: Kimi K2",
-    hasVision: false,
-    price: { input: 0.57 * 10, output: 2.3 * 10 },
-    maxOutputTokens: 131072,
-    contextWindow: 131072,
     supportsTool: true,
   },
 ];

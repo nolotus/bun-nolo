@@ -10,8 +10,6 @@ export const getNoloKey = (
       return process.env.ANTHROPIC_API_KEY;
     case "google":
       return process.env.GOOGLE_API_KEY;
-    case "fireworks":
-      return process.env.FIREWORKS_API_KEY;
     case "deepinfra":
       return process.env.DEEPINFRA_API_KEY;
     case "deepseek":

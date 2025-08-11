@@ -2,7 +2,6 @@
 import { anthropicModels } from "integrations/anthropic/anthropicModels";
 import { deepinfraModels } from "integrations/deepinfra/models";
 import { deepSeekModels } from "integrations/deepseek/models";
-import { fireworksmodels } from "integrations/fireworks/models";
 import { googleModels } from "integrations/google/models";
 import { mistralModels } from "integrations/mistral/models";
 import { openAIModels } from "integrations/openai/models";
@@ -21,7 +20,6 @@ const allModels: Model[] = [
   ...anthropicModels,
   ...deepinfraModels,
   ...deepSeekModels,
-  ...fireworksmodels,
   ...googleModels,
   ...mistralModels,
   ...openAIModels,
@@ -41,7 +39,6 @@ export const supportedReasoningModels = allModels
 const MODEL_MAP = {
   anthropic: anthropicModels,
   ollama: ollamaModels,
-  fireworks: fireworksmodels,
   deepinfra: deepinfraModels,
   deepseek: deepSeekModels,
   mistral: mistralModels,
@@ -72,9 +69,7 @@ const API_ENDPOINTS: Record<string, ProviderEndpointMap> = {
   deepinfra: {
     default: "https://api.deepinfra.com/v1/openai/chat/completions",
   },
-  fireworks: {
-    default: "https://api.fireworks.ai/inference/v1/chat/completions",
-  },
+
   xai: {
     default: "https://api.x.ai/v1/chat/completions",
   },
