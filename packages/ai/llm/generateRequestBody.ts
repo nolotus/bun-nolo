@@ -1,9 +1,10 @@
 // /ai/llm/generateRequestBody.ts
 import { Agent, Message } from "app/types";
-import { Contexts } from "../types";
 import { generateOpenAIRequestBody } from "integrations/openai/generateOpenAIRequestBody";
 import { generateResponseRequestBody } from "integrations/openai/generateResponseRequestBody";
+
 import { isResponseAPIModel } from "./isResponseAPIModel";
+import { Contexts } from "../types";
 
 export interface GenerateRequestBodyArgs {
   agentConfig: Agent;

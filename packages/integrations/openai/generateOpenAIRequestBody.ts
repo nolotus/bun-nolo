@@ -1,9 +1,32 @@
 // /integrations/openai/generateOpenAIRequestBody.ts
+import { Agent, Message } from "app/types";
 
 import { supportedReasoningModels } from "ai/llm/providers";
-import { Agent, Message } from "app/types";
 import { Contexts } from "ai/types";
-import { prependPromptMessage } from "ai/agent/prependPromptMessage";
+import { generatePrompt } from "ai/agent/generatePrompt";
+
+const prependPromptMessage = (
+  messages: Message[],
+  agentConfig: Agent,
+  language: string,
+  contexts?: Contexts
+): Message[] => {
+  // 只有存在上下文或 agentConfig.prompt 时才生成
+  if (!contexts && !agentConfig.prompt) {
+    return messages;
+  }
+
+  const promptContent = generatePrompt({ agentConfig, language, contexts });
+
+  if (promptContent.trim()) {
+    const systemMessage: Message = { role: "system", content: promptContent };
+    // 过滤掉已有的 system 消息，避免重复
+    const userMessages = messages.filter((m) => m.role !== "system");
+    return [systemMessage, ...userMessages];
+  }
+  return messages;
+};
+
 interface BuildRequestBodyOptions {
   model: string;
   messages: Message[];
