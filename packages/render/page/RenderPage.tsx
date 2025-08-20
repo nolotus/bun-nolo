@@ -1,4 +1,4 @@
-// components/page/RenderPage.tsx (最终正确版)
+// components/page/RenderPage.tsx (最终正确且无背景漏出问题版)
 
 import React, { useEffect, useMemo, useCallback, Suspense, lazy } from "react";
 import { useSearchParams } from "react-router-dom";
@@ -30,7 +30,7 @@ import {
 
 const STATUS_RESET_DELAY_MS = 2000;
 
-// --- Helper Hooks (保持不变) ---
+// --- Helper Hooks ---
 function useKeyboardSave(onSave: () => void, isReadOnly: boolean) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -108,7 +108,7 @@ function useInitialValue(page: any, isInitialized: boolean): EditorContent {
   }, [page, isInitialized]);
 }
 
-// --- Helper Components (保持不变) ---
+// --- Helper Components ---
 function PageSaveStatus() {
   const dispatch = useAppDispatch();
   const isSaving = useAppSelector(selectIsSaving);
@@ -156,7 +156,6 @@ const Loader = () => {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        // 让加载指示器撑满父容器(MainLayout__pageContent)的可见高度
         height: "calc(100dvh - var(--headerHeight))",
         color: theme.textSecondary,
         fontSize: 14,
@@ -234,22 +233,21 @@ const RenderPage = ({ pageKey }: { pageKey: string }) => {
 
       <style href="RenderPage-styles" precedence="low">{`
         .RenderPage-container {
-          /* [核心修复]
-           * 移除所有 height, min-height, 和 overflow 属性。
-           * 这个组件不再关心自己的高度或滚动，它只是一个内容容器。
-           * 它的高度将由其内部的 .RenderPage-editor-wrapper 的内容自然撑开。
-           * 所有的滚动都由父级 MainLayout__pageContent 处理。
+          /*
+           * ✅ 新增关键行: 占满父级的高度容器 (MainLayout__pageContent)
+           * 保证在内容较少时编辑区仍铺满屏幕背景
            */
+          min-height: 100%;
+          
           width: 100%;
           background: var(--background);
           color: var(--text);
         }
 
         .RenderPage-editor-wrapper {
-          /* 这个 wrapper 的唯一职责就是限制内容宽度、居中并提供边距。 */
           max-width: 800px;
           margin: 0 auto;
-          padding: var(--space-5) var(--space-4); /* 20px 16px */
+          padding: var(--space-5) var(--space-4);
         }
         
         [contenteditable="true"] {
@@ -263,11 +261,10 @@ const RenderPage = ({ pageKey }: { pageKey: string }) => {
         
         @media (max-width: 768px) {
           .RenderPage-editor-wrapper { 
-            padding: var(--space-4) var(--space-3); /* 16px 12px */
+            padding: var(--space-4) var(--space-3);
           }
         }
         
-        /* 打印时，移除最大宽度限制，让内容填满纸张 */
         @media print {
           .RenderPage-editor-wrapper { 
             max-width: 100%; 
