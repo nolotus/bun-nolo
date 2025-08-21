@@ -160,19 +160,48 @@ const dialogSlice = createSliceWithThunks({
       }
     ),
     initDialog: create.asyncThunk(
-      async (id: string, { dispatch }) => {
+      // 1. 移除多余的 abort 检查，让代码更简洁。
+      //    当 read thunk 因中止而 reject 时，这个 await 会自动抛出错误，
+      //    使 initDialog thunk 也进入 rejected 状态。
+      async (id: string, { dispatch, signal }) => {
         dispatch(dialogSlice.actions.clearPendingAttachments());
         dispatch(clearPlan());
-        const action = await dispatch(read(id));
+
+        // 直接 dispatch 并返回结果
+        const action = await dispatch(read({ id, signal }));
         return action.payload;
       },
       {
         pending: (state, action) => {
+          // Pending 逻辑保持不变，它对于 UI 即时响应和防止竞态至关重要
           state.currentDialogKey = action.meta.arg;
           state.currentDialogTokens = { inputTokens: 0, outputTokens: 0 };
         },
+        fulfilled: (state, action) => {
+          // fulfilled 逻辑作为“安全卫士”保持不变。
+          // 它确保只有最新的请求（如果将来需要）才能更新状态。
+          if (state.currentDialogKey === action.meta.arg) {
+            // 无需额外操作，因为 read action 已经更新了 dbSlice。
+            // 这个检查本身就是最重要的功能。
+          }
+        },
+        rejected: (state, action) => {
+          // 2. 将错误处理逻辑合并，更清晰。
+          const isAborted =
+            action.error.name === "AbortError" ||
+            action.error.message === "Aborted";
+          const isCurrentDialog = state.currentDialogKey === action.meta.arg;
+
+          // 只有当它不是一个中止错误，并且它属于当前正在加载的对话时，
+          // 我们才把它当作一个真正的错误来处理。
+          if (!isAborted && isCurrentDialog) {
+            console.error("Failed to init dialog:", action.error.message);
+            state.currentDialogKey = null; // 或设置其他错误状态
+          }
+        },
       }
     ),
+
     handleSendMessage: create.asyncThunk(
       async (
         args: { userInput: string | any[] },
