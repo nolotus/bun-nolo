@@ -35,7 +35,6 @@ const MessageInput: React.FC = () => {
   const { t } = useTranslation("chat");
   const theme = useTheme();
 
-  // [新代码] 为根容器创建 ref
   const containerRef = useRef<HTMLDivElement>(null);
 
   const [textContent, setTextContent] = useState("");
@@ -55,15 +54,12 @@ const MessageInput: React.FC = () => {
   const [fileErrors, setFileErrors] = useState<Map<string, string>>(new Map());
   const [isMobile, setIsMobile] = useState(false);
 
-  // [新代码] 监听容器高度并设置为 CSS 变量
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    // 使用 ResizeObserver 实时监听高度变化
     const resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
-        // 使用 contentRect.height 获取精确高度（不包含 padding）
         const height = entry.target.offsetHeight;
         document.documentElement.style.setProperty(
           "--message-input-height",
@@ -74,7 +70,6 @@ const MessageInput: React.FC = () => {
 
     resizeObserver.observe(container);
 
-    // 组件卸载时清理，避免内存泄漏和全局污染
     return () => {
       resizeObserver.disconnect();
       document.documentElement.style.removeProperty("--message-input-height");
@@ -263,7 +258,13 @@ const MessageInput: React.FC = () => {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+    // [修改] 增加 !isMobile 判断，使得在移动端按下回车键为换行
+    if (
+      !isMobile &&
+      e.key === "Enter" &&
+      !e.shiftKey &&
+      !e.nativeEvent.isComposing
+    ) {
       e.preventDefault();
       sendMessage();
     }
@@ -379,7 +380,6 @@ const MessageInput: React.FC = () => {
       </style>
 
       <div
-        // [新代码] 附加 ref 到根元素
         ref={containerRef}
         className={`message-input-container ${isDisabled ? "processing" : ""}`}
         onDragOver={(e) => {
