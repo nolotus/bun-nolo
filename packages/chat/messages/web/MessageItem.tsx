@@ -1,6 +1,6 @@
-// MessageItem.tsx - 完整的桌面端+移动端优化版本
+// MessageItem.tsx - 精简版本
 
-import React, { useState, useMemo, useEffect, useCallback, memo } from "react";
+import React, { useState, useMemo, useCallback, memo } from "react";
 import { useAppSelector } from "app/store";
 import { selectUserId } from "auth/authSlice";
 import { selectShowThinking } from "app/settings/settingSlice";
@@ -13,11 +13,8 @@ import DocxPreviewDialog from "render/web/DocxPreviewDialog";
 import { BaseModal } from "render/web/ui/BaseModal";
 import { MessageActions } from "./MessageActions";
 import { FileItem } from "./FileItem";
-
-// 检测设备类型
-const isTouchDevice = () => {
-  return "ontouchstart" in window || navigator.maxTouchPoints > 0;
-};
+import { useMessageInteraction } from "../../hooks/useMessageInteraction";
+import { useThinkingVisibility } from "../../hooks/useThinkingVisibility";
 
 // 流式指示器
 const StreamingIndicator = memo(() => (
@@ -27,27 +24,6 @@ const StreamingIndicator = memo(() => (
     <span className="dot" />
   </div>
 ));
-
-// 思考可见性 Hook
-const useThinkingVisibility = (showThinking, content, thinkContent) => {
-  const init = showThinking && !!thinkContent && !content;
-  const [isExpanded, setIsExpanded] = useState(init);
-  const [manual, setManual] = useState(false);
-
-  const toggle = useCallback(() => {
-    setManual(true);
-    setIsExpanded((v) => !v);
-  }, []);
-
-  useEffect(() => {
-    if (content && isExpanded && !manual) {
-      const t = setTimeout(() => setIsExpanded(false), 300);
-      return () => clearTimeout(t);
-    }
-  }, [content, isExpanded, manual]);
-
-  return [isExpanded, toggle];
-};
 
 // 思考过程组件
 const ThinkingContent = memo(({ thinkContent, isExpanded, onToggle }) => {
@@ -258,11 +234,6 @@ const MessageContent = memo(({ content, thinkContent, role }) => {
 export const MessageItem = memo(({ message }) => {
   const currentUserId = useAppSelector(selectUserId);
   const [collapsed, setCollapsed] = useState(false);
-  const [showActs, setShowActs] = useState(false);
-
-  // 长按检测 - 仅移动端
-  const [longPressTimer, setLongPressTimer] = useState(null);
-  const [isDragging, setIsDragging] = useState(false);
 
   const {
     content,
@@ -276,182 +247,117 @@ export const MessageItem = memo(({ message }) => {
   const isSelf = role === "user" && (currentUserId === userId || !cybotKey);
   const isRobot = role !== "user";
   const type = isSelf ? "self" : isRobot ? "robot" : "other";
-  const isTouch = isTouchDevice();
 
   const { data: robotData } =
     cybotKey && isRobot ? useFetchData(cybotKey) : { data: null };
 
   const toggleCollapse = useCallback(() => setCollapsed((v) => !v), []);
-  const toggleActs = useCallback(() => setShowActs((v) => !v), []);
 
-  // 清理长按定时器
-  const clearLongPressTimer = useCallback(() => {
-    if (longPressTimer) {
-      clearTimeout(longPressTimer);
-      setLongPressTimer(null);
-    }
-  }, [longPressTimer]);
-
-  // 检查是否点击了交互元素
-  const isInteractiveElement = useCallback((target) => {
-    return (
-      target.closest(".actions") ||
-      target.closest("button") ||
-      target.closest(".thinking-toggle") ||
-      target.closest(".msg-image") ||
-      target.closest("a") ||
-      target.closest("input") ||
-      target.closest("textarea") ||
-      target.closest("[contenteditable]")
-    );
-  }, []);
-
-  // 桌面端点击处理
-  const handleClick = useCallback(
-    (e) => {
-      // 如果是触摸设备，不使用点击逻辑
-      if (isTouch) return;
-
-      if (isInteractiveElement(e.target)) return;
-
-      toggleActs();
-    },
-    [isTouch, toggleActs, isInteractiveElement]
-  );
-
-  // 移动端长按开始
-  const handleTouchStart = useCallback(
-    (e) => {
-      if (!isTouch) return;
-
-      if (isInteractiveElement(e.target)) return;
-
-      setIsDragging(false);
-
-      const timer = setTimeout(() => {
-        if (!isDragging) {
-          setShowActs(true);
-          // 触觉反馈
-          if (navigator.vibrate) {
-            navigator.vibrate(50);
-          }
-        }
-      }, 500);
-
-      setLongPressTimer(timer);
-    },
-    [isTouch, isDragging, isInteractiveElement]
-  );
-
-  // 移动端触摸移动
-  const handleTouchMove = useCallback(() => {
-    if (!isTouch) return;
-    setIsDragging(true);
-    clearLongPressTimer();
-  }, [isTouch, clearLongPressTimer]);
-
-  // 移动端触摸结束
-  const handleTouchEnd = useCallback(() => {
-    if (!isTouch) return;
-    clearLongPressTimer();
-    setTimeout(() => setIsDragging(false), 100);
-  }, [isTouch, clearLongPressTimer]);
-
-  // 桌面端鼠标进入
-  const handleMouseEnter = useCallback(() => {
-    if (isTouch) return;
-    // 桌面端不自动显示，保持原有的hover CSS效果
-  }, [isTouch]);
-
-  // 桌面端鼠标离开
-  const handleMouseLeave = useCallback(() => {
-    if (isTouch) return;
-    // 桌面端不自动隐藏，保持原有逻辑
-  }, [isTouch]);
-
-  // 点击空白区域隐藏操作栏
-  useEffect(() => {
-    if (!showActs) return;
-
-    const handleOutsideClick = (e) => {
-      const msgElement = e.target.closest(".msg");
-      const currentMsg = e.target.closest(`[data-message-id="${message?.id}"]`);
-
-      // 如果点击的不是当前消息，隐藏操作栏
-      if (msgElement && !currentMsg) {
-        setShowActs(false);
-      }
-      // 如果点击的是空白区域，也隐藏操作栏
-      if (!msgElement) {
-        setShowActs(false);
-      }
-    };
-
-    const timer = setTimeout(() => {
-      document.addEventListener("click", handleOutsideClick, true);
-      document.addEventListener("touchend", handleOutsideClick, true);
-    }, 100);
-
-    return () => {
-      clearTimeout(timer);
-      document.removeEventListener("click", handleOutsideClick, true);
-      document.removeEventListener("touchend", handleOutsideClick, true);
-    };
-  }, [showActs, message?.id]);
-
-  // 清理定时器
-  useEffect(() => {
-    return () => clearLongPressTimer();
-  }, [clearLongPressTimer]);
+  const {
+    isTouch,
+    showActions,
+    setShowActions,
+    handleClick,
+    handleTouchStart,
+    handleTouchMove,
+    handleTouchEnd,
+  } = useMessageInteraction({
+    messageId: message?.id,
+    onToggleActions: () => setShowActions((v) => !v),
+  });
 
   return (
     <>
       <div
-        className={`msg ${type} ${collapsed ? "collapsed" : ""} ${showActs ? "actions-visible" : ""}`}
+        className={`msg ${type} ${collapsed ? "collapsed" : ""} ${showActions ? "actions-visible" : ""}`}
         data-message-id={message?.id}
         onClick={handleClick}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
       >
-        <div className="msg-inner">
-          <div className="avatar-area">
-            <div className="avatar-wrapper">
-              <Avatar
-                name={isRobot ? robotData?.name || "Robot" : "User"}
-                type={isRobot ? "robot" : "user"}
-                size="medium"
-              />
-              {isRobot && isStreaming && <StreamingIndicator />}
-            </div>
-            <MessageActions
-              isRobot={isRobot}
-              isSelf={isSelf}
-              handleToggleCollapse={toggleCollapse}
-              isCollapsed={collapsed}
-              message={message}
-              showActions={showActs}
-              isTouch={isTouch}
-            />
-          </div>
-          <div className="content-area">
-            {isRobot && robotData?.name && (
-              <div className="robot-name">{robotData.name}</div>
-            )}
-            <div className={`msg-body ${type}`}>
-              <MessageContent
-                content={content || ""}
-                thinkContent={thinkContent || ""}
-                role={isSelf ? "self" : "other"}
+        {/* 桌面端布局 */}
+        {!isTouch && (
+          <div className="msg-inner desktop">
+            <div className="avatar-area">
+              <div className="avatar-wrapper">
+                <Avatar
+                  name={isRobot ? robotData?.name || "Robot" : "User"}
+                  type={isRobot ? "robot" : "user"}
+                  size="medium"
+                />
+                {isRobot && isStreaming && <StreamingIndicator />}
+              </div>
+              <MessageActions
+                isRobot={isRobot}
+                isSelf={isSelf}
+                handleToggleCollapse={toggleCollapse}
+                isCollapsed={collapsed}
+                message={message}
+                showActions={showActions}
+                isTouch={isTouch}
               />
             </div>
+            <div className="content-area">
+              {isRobot && robotData?.name && (
+                <div className="robot-name">{robotData.name}</div>
+              )}
+              <div className={`msg-body ${type}`}>
+                <MessageContent
+                  content={content || ""}
+                  thinkContent={thinkContent || ""}
+                  role={isSelf ? "self" : "other"}
+                />
+              </div>
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* 移动端布局 */}
+        {isTouch && (
+          <div className="msg-inner mobile">
+            <div className="msg-header">
+              <div className="avatar-wrapper">
+                <Avatar
+                  name={isRobot ? robotData?.name || "Robot" : "User"}
+                  type={isRobot ? "robot" : "user"}
+                  size="small"
+                />
+                {isRobot && isStreaming && <StreamingIndicator />}
+              </div>
+              {isRobot && robotData?.name && (
+                <div className="robot-name mobile">{robotData.name}</div>
+              )}
+            </div>
+
+            <div className="content-area mobile">
+              <div className={`msg-body ${type} mobile`}>
+                <MessageContent
+                  content={content || ""}
+                  thinkContent={thinkContent || ""}
+                  role={isSelf ? "self" : "other"}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 移动端覆盖式操作面板 */}
+        {isTouch && (
+          <MessageActions
+            isRobot={isRobot}
+            isSelf={isSelf}
+            handleToggleCollapse={toggleCollapse}
+            isCollapsed={collapsed}
+            message={message}
+            showActions={showActions}
+            isTouch={isTouch}
+          />
+        )}
       </div>
 
       <style href="message-item" precedence="high">{`
+/* [保持所有原有样式不变] */
 /* --- StreamingIndicator --- */
 .streaming-indicator {
   position: absolute;
@@ -576,6 +482,57 @@ export const MessageItem = memo(({ message }) => {
   cursor: pointer;
   transition: background-color 0.2s ease;
   border-radius: var(--space-2);
+  position: relative;
+  z-index: 1;
+}
+
+.msg.actions-visible {
+  z-index: 50;
+}
+
+/* --- 桌面端布局 --- */
+.msg-inner.desktop {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+}
+
+.msg.self .msg-inner.desktop {
+  flex-direction: row-reverse;
+  max-width: 75%;
+  margin-left: auto;
+  margin-right: 0;
+}
+
+.msg.other .msg-inner.desktop { max-width: 75%; }
+.msg.robot .msg-inner.desktop { max-width: 95%; }
+
+.avatar-area {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  position: sticky;
+  top: var(--space-4);
+}
+
+.avatar-wrapper { position: relative; }
+
+.content-area {
+  flex: 1;
+  min-width: 0;
+}
+
+.robot-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--textSecondary);
+  text-transform: uppercase;
+  margin-bottom: var(--space-2);
+  letter-spacing: 0.5px;
 }
 
 /* 桌面端悬停效果 */
@@ -590,90 +547,120 @@ export const MessageItem = memo(({ message }) => {
   }
 }
 
-/* 移动端长按激活状态 */
+/* --- 移动端全新布局 --- */
 @media (hover: none) and (pointer: coarse) {
+  .msg {
+    padding: var(--space-3) var(--space-2);
+    margin-bottom: var(--space-2);
+    overflow: visible;
+  }
+  
   .msg.actions-visible {
     background-color: var(--primaryGhost);
     transform: scale(0.995);
     transition: all 0.2s ease;
   }
   
-  .msg.actions-visible .msg-body {
-    box-shadow: 0 2px 12px var(--shadowLight);
+  .msg-inner.mobile {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: var(--space-2);
+  }
+  
+  .msg-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-1);
+  }
+  
+  .msg.self .msg-header {
+    flex-direction: row-reverse;
+    justify-content: flex-start;
+  }
+  
+  .msg-header .avatar-wrapper {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+  }
+  
+  .robot-name.mobile {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--textSecondary);
+    margin: 0;
+    flex-shrink: 0;
+  }
+  
+  .content-area.mobile {
+    width: 100%;
+    flex: none;
+  }
+  
+  .msg-body.mobile {
+    width: 100%;
+    margin: 0;
+  }
+  
+  .msg-body.self.mobile {
+    background: var(--primaryBg);
+    border-radius: 16px 16px 4px 16px;
+    padding: var(--space-3);
+    border: 1px solid var(--primaryHover);
+    margin-left: auto;
+    max-width: 85%;
+  }
+  
+  .msg-body.other.mobile {
+    background: var(--backgroundSecondary);
+    border-radius: 16px 16px 16px 4px;
+    padding: var(--space-3);
+    border: 1px solid var(--border);
+    max-width: 85%;
+  }
+  
+  .msg-body.robot.mobile {
+    background: transparent;
+    padding: 0;
+    width: 100%;
+    max-width: none;
+  }
+  
+  .msg-header .streaming-indicator {
+    bottom: 0;
+    right: -6px;
+    padding: 2px 4px;
+  }
+  
+  .msg-header .streaming-indicator .dot {
+    width: 3px;
+    height: 3px;
   }
 }
 
-.msg-inner {
-  max-width: 900px;
-  margin: 0 auto;
-  display: flex;
-  gap: var(--space-3);
-  align-items: flex-start;
-}
-.msg.self .msg-inner {
-  flex-direction: row-reverse;
-  max-width: 75%;
-  margin-left: auto;
-  margin-right: 0;
-}
-.msg.other .msg-inner { max-width: 75%; }
-.msg.robot .msg-inner { max-width: 95%; }
-
-.avatar-area {
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-2);
-  position: sticky;
-  top: var(--space-4);
-}
-.avatar-wrapper { position: relative; }
-
-/* 操作按钮显示逻辑 */
-.actions {
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.2s ease, visibility 0.2s;
-}
-
-/* 显示操作栏的条件：桌面端悬停 OR 移动端激活 OR 强制显示 */
-.msg.actions-visible .actions,
-.msg .actions.show {
-  opacity: 1;
-  visibility: visible;
-}
-
-.content-area {
-  flex: 1;
-  min-width: 0;
-}
-.robot-name {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--textSecondary);
-  text-transform: uppercase;
-  margin-bottom: var(--space-2);
-  letter-spacing: 0.5px;
-}
-
+/* --- 通用消息体样式 --- */
 .msg-body {
   color: var(--text);
   line-height: 1.6;
   word-wrap: break-word;
 }
+
 .msg-body.self {
   background: var(--primaryBg);
   border-radius: 16px 16px 4px 16px;
   padding: var(--space-4);
   border: 1px solid var(--primaryHover);
 }
+
 .msg-body.other {
   background: var(--backgroundSecondary);
   border-radius: 16px 16px 16px 4px;
   padding: var(--space-4);
   border: 1px solid var(--border);
 }
+
 .msg-body.robot {
   background: transparent;
   padding: var(--space-2) 0;
@@ -684,13 +671,16 @@ export const MessageItem = memo(({ message }) => {
   flex-direction: column;
   gap: var(--space-3);
 }
+
 .empty-content {
   color: var(--textTertiary);
   font-style: italic;
 }
+
 .message-text {
   line-height: 1.65;
 }
+
 .simple-text {
   white-space: pre-wrap;
   margin: 0;
@@ -745,26 +735,32 @@ export const MessageItem = memo(({ message }) => {
   );
 }
 
-/* --- 移动端适配 --- */
-@media (max-width: 768px) {
-  .msg { 
-    padding: var(--space-2) var(--space-3);
-    margin-bottom: var(--space-3);
-  }
-  .msg.self .msg-inner,
-  .msg.other .msg-inner {
-    max-width: 95%;
-  }
-  .msg-image { max-height: 280px; }
-}
-
+/* --- 极小屏幕优化 --- */
 @media (max-width: 480px) {
   .msg { 
-    padding: var(--space-2);
+    padding: var(--space-2) var(--space-1);
     margin-bottom: var(--space-2);
   }
-  .msg-inner { gap: var(--space-2); }
-  .avatar-area { position: static; }
+  
+  .msg-header .avatar-wrapper {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .robot-name.mobile {
+    font-size: 11px;
+  }
+  
+  .msg-body.self.mobile,
+  .msg-body.other.mobile {
+    padding: var(--space-2);
+    font-size: 14px;
+    max-width: 90%;
+  }
+  
+  .msg-image { 
+    max-height: 250px; 
+  }
 }
       `}</style>
     </>

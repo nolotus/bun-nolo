@@ -1,4 +1,4 @@
-// MessageActions.tsx - 设备感知版本
+// MessageActions.tsx - 覆盖显示版本
 
 import {
   CopyIcon,
@@ -61,7 +61,7 @@ export const MessageActions = ({
   handleToggleCollapse,
   showActions,
   showThinking = false,
-  isTouch = false, // 新增 props
+  isTouch = false,
 }) => {
   const { user } = useAuth();
   const dispatch = useAppDispatch();
@@ -155,99 +155,90 @@ export const MessageActions = ({
   };
 
   const actions = [
-    { icon: CopyIcon, handler: handleCopy, tooltip: t("copyContent") },
+    {
+      icon: CopyIcon,
+      handler: handleCopy,
+      tooltip: t("copyContent"),
+      label: "复制",
+    },
     !isSelf && {
       icon: BookmarkIcon,
       handler: handleSave,
       tooltip: t("saveContent"),
+      label: "保存",
     },
     type !== "other" && {
       icon: TrashIcon,
       handler: handleDelete,
       tooltip: t("deleteMessage"),
       danger: true,
+      label: "删除",
     },
     {
       icon: isCollapsed ? ChevronRightIcon : ChevronDownIcon,
       handler: handleToggleCollapse,
       tooltip: isCollapsed ? t("expandMessage") : t("collapseMessage"),
+      label: isCollapsed ? "展开" : "收起",
     },
   ].filter(Boolean);
 
-  return (
-    <>
-      {actions.length > 0 && (
-        <div className={`actions ${showActions ? "show" : ""}`}>
-          {actions.map(({ icon: Icon, handler, tooltip, danger }, i) => {
-            // 桌面端使用 Tooltip，移动端直接渲染按钮
-            if (!isTouch) {
-              return (
-                <Tooltip
-                  key={i}
-                  content={tooltip}
-                  placement={isRobot ? "left" : "right"}
-                >
-                  <button
-                    className={`action-btn ${danger ? "danger" : ""}`}
-                    onClick={handler}
-                    aria-label={tooltip}
-                  >
-                    <Icon size={16} />
-                  </button>
-                </Tooltip>
-              );
-            }
-
-            // 移动端直接渲染按钮，不使用 Tooltip
-            return (
-              <button
+  // 桌面端：侧边栏式操作按钮
+  if (!isTouch) {
+    return (
+      <>
+        {actions.length > 0 && (
+          <div className={`actions desktop ${showActions ? "show" : ""}`}>
+            {actions.map(({ icon: Icon, handler, tooltip, danger }, i) => (
+              <Tooltip
                 key={i}
-                className={`action-btn ${danger ? "danger" : ""}`}
-                onClick={handler}
-                aria-label={tooltip}
+                content={tooltip}
+                placement={isRobot ? "left" : "right"}
               >
-                <Icon size={16} />
-              </button>
-            );
-          })}
-        </div>
-      )}
-      <style href="message-actions" precedence="high">{`
-        .actions {
-          display: flex;
-          flex-direction: column;
-          gap: var(--space-1);
-          opacity: 0;
-          visibility: hidden;
-          transition: all 0.2s ease;
-          transform: translateY(4px);
-        }
+                <button
+                  className={`action-btn ${danger ? "danger" : ""}`}
+                  onClick={handler}
+                  aria-label={tooltip}
+                >
+                  <Icon size={16} />
+                </button>
+              </Tooltip>
+            ))}
+          </div>
+        )}
+        <style href="message-actions-desktop" precedence="high">{`
+          .actions.desktop {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-1);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+            transform: translateY(4px);
+          }
 
-        .actions.show {
-          opacity: 1;
-          visibility: visible;
-          transform: translateY(0);
-        }
+          .actions.desktop.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+          }
 
-        .action-btn {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 28px;
-          height: 28px;
-          border: none;
-          border-radius: var(--space-1);
-          background: var(--backgroundSecondary);
-          color: var(--textTertiary);
-          cursor: pointer;
-          transition: all 0.15s ease;
-          box-shadow: 0 1px 3px var(--shadowLight);
-          border: 1px solid var(--border);
-        }
+          .actions.desktop .action-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border: none;
+            border-radius: var(--space-1);
+            background: var(--backgroundSecondary);
+            color: var(--textTertiary);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            box-shadow: 0 1px 3px var(--shadowLight);
+            border: 1px solid var(--border);
+          }
 
-        /* 桌面端悬停效果 */
-        @media (hover: hover) and (pointer: fine) {
-          .action-btn:hover {
+          .actions.desktop .action-btn:hover {
             color: var(--primary);
             background: var(--primaryGhost);
             border-color: var(--primaryLight);
@@ -255,39 +246,188 @@ export const MessageActions = ({
             box-shadow: 0 2px 6px var(--shadowMedium);
           }
 
-          .action-btn.danger:hover {
+          .actions.desktop .action-btn.danger:hover {
             color: var(--error);
             background: rgba(239, 68, 68, 0.06);
             border-color: var(--error);
           }
+
+          .actions.desktop .action-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 1px 2px var(--shadowLight);
+          }
+        `}</style>
+      </>
+    );
+  }
+
+  // 移动端：覆盖式操作面板
+  return (
+    <>
+      {showActions && (
+        <div className="actions-overlay mobile">
+          <div className="overlay-backdrop" />
+          <div className="actions-panel">
+            <div className="panel-header">
+              <div className="panel-indicator" />
+            </div>
+            <div className="actions-grid">
+              {actions.map(({ icon: Icon, handler, label, danger }, i) => (
+                <button
+                  key={i}
+                  className={`action-item ${danger ? "danger" : ""}`}
+                  onClick={handler}
+                >
+                  <div className="action-icon">
+                    <Icon size={20} />
+                  </div>
+                  <span className="action-label">{label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+      <style href="message-actions-mobile" precedence="high">{`
+        /* 移动端覆盖式操作面板 */
+        .actions-overlay.mobile {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          z-index: 50;
+          display: flex;
+          align-items: flex-end;
+          animation: overlayFadeIn 0.25s ease-out;
         }
 
-        .action-btn:active {
-          transform: translateY(0);
-          box-shadow: 0 1px 2px var(--shadowLight);
+        .overlay-backdrop {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.3);
+          backdrop-filter: blur(2px);
         }
 
-        /* 移动端优化 */
+        .actions-panel {
+          position: relative;
+          width: 100%;
+          background: var(--background);
+          border-radius: var(--space-4) var(--space-4) 0 0;
+          box-shadow: 0 -8px 32px var(--shadowHeavy);
+          border: 1px solid var(--border);
+          border-bottom: none;
+          animation: panelSlideUp 0.25s ease-out;
+        }
+
+        .panel-header {
+          display: flex;
+          justify-content: center;
+          padding: var(--space-3) 0 var(--space-2) 0;
+        }
+
+        .panel-indicator {
+          width: 36px;
+          height: 4px;
+          background: var(--borderAccent);
+          border-radius: 2px;
+        }
+
+        .actions-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+          gap: var(--space-2);
+          padding: 0 var(--space-4) var(--space-5) var(--space-4);
+        }
+
+        .action-item {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: var(--space-2);
+          padding: var(--space-4) var(--space-2);
+          background: transparent;
+          border: none;
+          border-radius: var(--space-3);
+          cursor: pointer;
+          transition: all 0.2s ease;
+          color: var(--text);
+        }
+
+        .action-item:active {
+          transform: scale(0.95);
+          background: var(--backgroundHover);
+        }
+
+        .action-item.danger {
+          color: var(--error);
+        }
+
+        .action-icon {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 48px;
+          height: 48px;
+          background: var(--backgroundSecondary);
+          border-radius: 50%;
+          border: 1px solid var(--border);
+          transition: all 0.2s ease;
+        }
+
+        .action-item:active .action-icon {
+          background: var(--primaryGhost);
+          border-color: var(--primary);
+        }
+
+        .action-item.danger:active .action-icon {
+          background: rgba(239, 68, 68, 0.06);
+          border-color: var(--error);
+        }
+
+        .action-label {
+          font-size: 12px;
+          font-weight: 500;
+          text-align: center;
+          line-height: 1.2;
+        }
+
+        /* 动画 */
+        @keyframes overlayFadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+
+        @keyframes panelSlideUp {
+          from {
+            transform: translateY(100%);
+          }
+          to {
+            transform: translateY(0);
+          }
+        }
+
+        /* 确保移动端消息不被操作按钮占用空间 */
         @media (hover: none) and (pointer: coarse) {
-          .actions {
+          .avatar-area {
+            width: auto;
+            min-width: auto;
+          }
+          
+          .msg-inner {
             gap: var(--space-2);
           }
           
-          .action-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: var(--background);
-            box-shadow: 0 2px 8px var(--shadowMedium);
-          }
-
-          .action-btn:active {
-            transform: scale(0.95);
-            transition: transform 0.1s ease;
-          }
-
-          .action-btn.danger {
-            color: var(--error);
+          .content-area {
+            flex: 1;
+            width: 100%;
           }
         }
       `}</style>
