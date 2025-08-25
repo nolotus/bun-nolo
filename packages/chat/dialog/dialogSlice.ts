@@ -50,6 +50,7 @@ export interface PendingFile {
   name: string;
   pageKey: string;
   type: "excel" | "docx" | "pdf" | "page" | "txt";
+  groupId?: string; // <--- 改动 1: 增加可选的 groupId
 }
 
 export interface CreatePagePayload {
@@ -57,6 +58,9 @@ export interface CreatePagePayload {
   jsonData?: Record<string, any>[];
   title: string;
   type: "excel" | "docx" | "pdf" | "txt";
+  fileId: string; // 从 fileProcessor 传入，用于保持 ID 一致性
+  size: number; // 从 fileProcessor 传入
+  groupId?: string; // <--- 改动 2: 允许 payload 携带 groupId
 }
 
 export interface PendingRawData {
@@ -73,12 +77,6 @@ interface DialogState {
   isUpdatingMode: boolean;
   pendingFiles: PendingFile[];
   activeControllers: Record<string, AbortController>;
-  /**
-   * 用于暂存已解析的文件原始数据 (如 JSON)，
-   * 以便像 importDataTool 这样的工具可以直接从内存中消费，
-   * 而无需再次读取和解析文件。
-   * Key 是 pageKey。
-   */
   pendingRawData: Record<string, PendingRawData>;
 }
 
@@ -105,7 +103,8 @@ const dialogSlice = createSliceWithThunks({
     // --- Thunks ---
     createPageAndAddReference: create.asyncThunk(
       async (payload: CreatePagePayload, { dispatch, rejectWithValue }) => {
-        const { slateData, jsonData, title, type } = payload;
+        // <--- 改动 3: 从 payload 中解构出 fileId 和 groupId
+        const { slateData, jsonData, title, type, fileId, groupId } = payload;
         try {
           // 持久化部分只关心富文本内容和标题
           const pageKey = await dispatch(
@@ -113,10 +112,11 @@ const dialogSlice = createSliceWithThunks({
           ).unwrap();
 
           const newReference: PendingFile = {
-            id: nanoid(),
+            id: fileId, // 使用从 fileProcessor 传来的 fileId
             name: title,
             pageKey,
             type,
+            groupId, // <--- 改动 4: 将 groupId 存入 newReference 对象
           };
           const newRawData = jsonData ? { pageKey, jsonData } : null;
 
@@ -160,43 +160,31 @@ const dialogSlice = createSliceWithThunks({
       }
     ),
     initDialog: create.asyncThunk(
-      // 1. 移除多余的 abort 检查，让代码更简洁。
-      //    当 read thunk 因中止而 reject 时，这个 await 会自动抛出错误，
-      //    使 initDialog thunk 也进入 rejected 状态。
       async (id: string, { dispatch, signal }) => {
         dispatch(dialogSlice.actions.clearPendingAttachments());
         dispatch(clearPlan());
-
-        // 直接 dispatch 并返回结果
         const action = await dispatch(read({ id, signal }));
         return action.payload;
       },
       {
         pending: (state, action) => {
-          // Pending 逻辑保持不变，它对于 UI 即时响应和防止竞态至关重要
           state.currentDialogKey = action.meta.arg;
           state.currentDialogTokens = { inputTokens: 0, outputTokens: 0 };
         },
         fulfilled: (state, action) => {
-          // fulfilled 逻辑作为“安全卫士”保持不变。
-          // 它确保只有最新的请求（如果将来需要）才能更新状态。
           if (state.currentDialogKey === action.meta.arg) {
-            // 无需额外操作，因为 read action 已经更新了 dbSlice。
-            // 这个检查本身就是最重要的功能。
+            // No-op
           }
         },
         rejected: (state, action) => {
-          // 2. 将错误处理逻辑合并，更清晰。
           const isAborted =
             action.error.name === "AbortError" ||
             action.error.message === "Aborted";
           const isCurrentDialog = state.currentDialogKey === action.meta.arg;
 
-          // 只有当它不是一个中止错误，并且它属于当前正在加载的对话时，
-          // 我们才把它当作一个真正的错误来处理。
           if (!isAborted && isCurrentDialog) {
             console.error("Failed to init dialog:", action.error.message);
-            state.currentDialogKey = null; // 或设置其他错误状态
+            state.currentDialogKey = null;
           }
         },
       }
@@ -269,7 +257,6 @@ const dialogSlice = createSliceWithThunks({
     ),
     removePendingFile: create.reducer(
       (state, action: PayloadAction<string>) => {
-        // payload is id
         const fileToRemove = state.pendingFiles.find(
           (f) => f.id === action.payload
         );
@@ -283,7 +270,6 @@ const dialogSlice = createSliceWithThunks({
     ),
     clearPendingAttachments: create.reducer((state) => {
       state.pendingFiles = [];
-      // state.pendingRawData = {};
     }),
     clearDialogState: create.reducer((state) => {
       state.currentDialogKey = null;
@@ -327,7 +313,6 @@ const dialogSlice = createSliceWithThunks({
       state.currentDialogTokens.inputTokens +
       state.currentDialogTokens.outputTokens,
 
-    // Selector that takes an argument
     selectPendingRawDataByPageKey: (
       state,
       pageKey: string
@@ -371,14 +356,9 @@ export const {
   selectPendingRawDataByPageKey,
 } = dialogSlice.selectors;
 
-/**
- * Composite selector that depends on another slice (`dbSlice`).
- * It's defined outside the slice but uses a selector from this slice.
- * This is a standard pattern for cross-slice state selection.
- */
 export const selectCurrentDialogConfig = createSelector(
-  (state: RootState) => state, // Pass through the whole state
-  selectCurrentDialogKey, // Use the simple selector from our slice
+  (state: RootState) => state,
+  selectCurrentDialogKey,
   (state, currentDialogKey) =>
     currentDialogKey
       ? (selectById(state, currentDialogKey) as DialogConfig | null)

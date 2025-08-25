@@ -7,20 +7,14 @@ import { zIndex } from "render/styles/zIndex";
 import { useAppDispatch, useAppSelector } from "app/store";
 import { compressImage } from "utils/imageUtils";
 import { nanoid } from "nanoid";
-import { Descendant } from "slate";
 
 import {
   handleSendMessage,
   clearPendingAttachments,
   selectPendingFiles,
-  createPageAndAddReference,
   type PendingFile,
 } from "../dialog/dialogSlice";
-import * as XLSX from "xlsx";
-import { convertExcelToSlate } from "utils/excelToSlate";
-import { convertDocxToSlate } from "./docxToSlate";
-import { convertPdfToSlate } from "create/editor/utils/pdfToSlate";
-import { convertTxtToSlate } from "create/editor/utils/txtToSlate";
+import { processDocumentFile } from "./fileProcessor"; // <-- 引入新的处理函数
 
 // web
 import DocxPreviewDialog from "render/web/DocxPreviewDialog";
@@ -57,7 +51,6 @@ const MessageInput: React.FC = () => {
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
-
     const resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
         const height = entry.target.offsetHeight;
@@ -67,9 +60,7 @@ const MessageInput: React.FC = () => {
         );
       }
     });
-
     resizeObserver.observe(container);
-
     return () => {
       resizeObserver.disconnect();
       document.documentElement.style.removeProperty("--message-input-height");
@@ -88,10 +79,11 @@ const MessageInput: React.FC = () => {
   const processFiles = useCallback(
     async (files: FileList | null) => {
       if (!files) return;
-      for (const file of Array.from(files)) {
-        const fileId = nanoid();
 
+      for (const file of Array.from(files)) {
+        // 1. 本地处理图片预览
         if (file.type.startsWith("image/")) {
+          const fileId = nanoid();
           const reader = new FileReader();
           reader.onloadend = () => {
             if (reader.result) {
@@ -102,9 +94,11 @@ const MessageInput: React.FC = () => {
             }
           };
           reader.readAsDataURL(file);
-          continue;
+          continue; // 处理下一张图片
         }
 
+        // 2. 使用外部函数处理文档文件
+        const fileId = nanoid(); // 为整个文件操作生成一个跟踪 ID
         setProcessingFiles((prev) => new Set(prev).add(fileId));
         setFileErrors((prev) => {
           const m = new Map(prev);
@@ -112,69 +106,13 @@ const MessageInput: React.FC = () => {
           return m;
         });
 
-        let slateData: Descendant[];
-        let jsonData: Record<string, any>[] | undefined;
-        let fileType: "excel" | "docx" | "pdf" | "txt" | null = null;
-        const toastId = toast.loading(
-          t("processingFile", "正在处理 {{fileName}}...", {
-            fileName: file.name,
-          })
-        );
-
         try {
-          const name = file.name.toLowerCase();
-          const sheetExts = [".xlsx", ".xls", ".csv", ".ods", ".xlsm", ".xlsb"];
-          if (sheetExts.some((ext) => name.endsWith(ext))) {
-            fileType = "excel";
-            const buf = await file.arrayBuffer();
-            const wb = XLSX.read(buf, { type: "array" });
-            const ws = wb.Sheets[wb.SheetNames[0]];
-            jsonData = XLSX.utils.sheet_to_json(ws);
-            slateData = convertExcelToSlate(jsonData, file.name);
-          } else if (name.endsWith(".docx")) {
-            fileType = "docx";
-            slateData = await convertDocxToSlate(file);
-          } else if (name.endsWith(".pdf")) {
-            fileType = "pdf";
-            slateData = await convertPdfToSlate(file);
-          } else if (name.endsWith(".txt") || file.type === "text/plain") {
-            fileType = "txt";
-            slateData = await convertTxtToSlate(await file.text());
-          } else {
-            throw new Error("不支持的文件类型");
-          }
-
-          const result = await dispatch(
-            createPageAndAddReference({
-              slateData,
-              jsonData,
-              title: file.name,
-              type: fileType,
-              fileId,
-              size: file.size,
-            })
-          );
-
-          if (createPageAndAddReference.fulfilled.match(result)) {
-            toast.success(
-              t("fileProcessedSuccess", "{{fileName}} 处理成功!", {
-                fileName: file.name,
-              }),
-              { id: toastId }
-            );
-          } else {
-            throw new Error((result.payload as string) || "创建页面引用失败");
-          }
+          await processDocumentFile({ file, fileId, dispatch, t, toast });
         } catch (err) {
           const msg = err instanceof Error ? err.message : "处理文件时出错";
+          // 注意：toast 错误提示已在 processDocumentFile 中处理
+          // 这里我们只更新组件内部的错误状态，用于UI显示
           setFileErrors((prev) => new Map(prev).set(fileId, msg));
-          toast.error(
-            t("fileProcessedError", "处理 {{fileName}} 时出错: {{error}}", {
-              fileName: file.name,
-              error: msg,
-            }),
-            { id: toastId }
-          );
         } finally {
           setProcessingFiles((prev) => {
             const s = new Set(prev);
@@ -258,7 +196,6 @@ const MessageInput: React.FC = () => {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    // [修改] 增加 !isMobile 判断，使得在移动端按下回车键为换行
     if (
       !isMobile &&
       e.key === "Enter" &&
@@ -280,8 +217,12 @@ const MessageInput: React.FC = () => {
     processFiles(e.dataTransfer.files);
   };
 
+  // 注意：由于 attachments preview 依赖于 redux state，多 sheet 的 excel 会自动正确显示
+  // fileErrors 的逻辑可能需要调整，因为它现在是基于整个文件，而不是单个 sheet
   const enhancedPendingFiles = pendingFiles.map((f) => ({
     ...f,
+    // 这个 error 逻辑现在不太准确，因为一个文件可能生成多个 attachment
+    // 但作为整体文件的失败指示器仍然有效
     error: fileErrors.get(f.id),
   }));
 

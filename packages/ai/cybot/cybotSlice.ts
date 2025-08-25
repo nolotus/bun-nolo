@@ -5,7 +5,12 @@ import { RootState } from "app/store";
 import { read } from "database/dbSlice";
 import { generateRequestBody } from "ai/llm/generateRequestBody";
 import { fetchReferenceContents } from "ai/context/buildReferenceContext";
-import { selectCurrentDialogConfig } from "chat/dialog/dialogSlice";
+// <--- 改动 1: 导入 PendingFile 类型和 selectPendingFiles 选择器
+import {
+  selectCurrentDialogConfig,
+  selectPendingFiles,
+  PendingFile,
+} from "chat/dialog/dialogSlice";
 import { selectAllMsgs } from "chat/messages/messageSlice";
 import { filterAndCleanMessages } from "integrations/openai/filterAndCleanMessages";
 import {
@@ -118,11 +123,11 @@ export const cybotSlice = createSliceWithThunks({
           const finalKeys = deduplicateContextKeys(keySets);
 
           const [
-            botInstructionsContext,
-            currentUserContext,
-            smartReadContext,
-            historyContext,
-            botKnowledgeContext,
+            botInstructionsMap,
+            currentUserMap,
+            smartReadMap,
+            historyMap,
+            botKnowledgeMap,
           ] = await Promise.all([
             fetchReferenceContents(finalKeys.botInstructionsContext, dispatch),
             fetchReferenceContents(finalKeys.currentUserContext, dispatch),
@@ -131,6 +136,72 @@ export const cybotSlice = createSliceWithThunks({
             fetchReferenceContents(finalKeys.botKnowledgeContext, dispatch),
           ]);
 
+          // <--- 核心改动开始 ---
+
+          // 1. 获取当前待处理的文件附件
+          const pendingFiles = selectPendingFiles(state);
+          let formattedCurrentUserContext = "";
+
+          // 2. 仅当存在待处理文件且内容已获取时，才进行分组处理
+          if (pendingFiles.length > 0 && currentUserMap.size > 0) {
+            const filesByGroup = new Map<string, PendingFile[]>();
+
+            // 筛选出那些内容确实被加载了的 pendingFiles
+            const relevantPendingFiles = pendingFiles.filter((file) =>
+              currentUserMap.has(file.pageKey)
+            );
+
+            relevantPendingFiles.forEach((file) => {
+              const key = file.groupId || file.id;
+              if (!filesByGroup.has(key)) {
+                filesByGroup.set(key, []);
+              }
+              filesByGroup.get(key)!.push(file);
+            });
+
+            let sourceCounter = 1;
+            filesByGroup.forEach((filesInGroup) => {
+              const isGroup = filesInGroup.length > 1;
+              const sourceName = isGroup
+                ? filesInGroup[0].name.split(" (")[0]
+                : filesInGroup[0].name;
+
+              formattedCurrentUserContext += `--- Source ${sourceCounter}: "${sourceName}" ---\n`;
+
+              filesInGroup.forEach((file) => {
+                const content = currentUserMap.get(file.pageKey);
+                if (content) {
+                  // 如果是分组的，添加 Document 标题，否则直接附加内容
+                  if (isGroup) {
+                    formattedCurrentUserContext += `### Document: "${file.name}"\n${content}\n`;
+                  } else {
+                    formattedCurrentUserContext += `${content}\n`;
+                  }
+                }
+              });
+
+              formattedCurrentUserContext += `--- End of Source ${sourceCounter} ---\n\n`;
+              sourceCounter++;
+            });
+          } else {
+            // 如果没有待处理文件，则维持原有行为，简单拼接所有内容
+            formattedCurrentUserContext = Array.from(
+              currentUserMap.values()
+            ).join("");
+          }
+
+          // 3. 将其他上下文的 Map 转换回字符串以保持对下游的兼容性
+          const botInstructionsContext = Array.from(
+            botInstructionsMap.values()
+          ).join("");
+          const smartReadContext = Array.from(smartReadMap.values()).join("");
+          const historyContext = Array.from(historyMap.values()).join("");
+          const botKnowledgeContext = Array.from(botKnowledgeMap.values()).join(
+            ""
+          );
+
+          // <--- 核心改动结束 ---
+
           const messages = filterAndCleanMessages(selectAllMsgs(state));
           const bodyData = generateRequestBody({
             agentConfig,
@@ -138,7 +209,7 @@ export const cybotSlice = createSliceWithThunks({
             userInput,
             contexts: {
               botInstructionsContext,
-              currentUserContext,
+              currentUserContext: formattedCurrentUserContext.trim() || null, // 使用新变量, 并确保空字符串转为null
               smartReadContext,
               historyContext,
               botKnowledgeContext,
