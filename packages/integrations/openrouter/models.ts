@@ -19,6 +19,20 @@ export const openrouterModels = [
     pricePerImage: 24 * 8,
   },
   {
+    name: "anthropic/claude-opus-4.1",
+    displayName: "Anthropic: Claude Opus 4.1",
+    hasVision: true,
+    price: { input: 15 * 10, output: 75 * 10 },
+    maxOutputTokens: 32000,
+    contextWindow: 200000,
+    supportsTool: true,
+    pricePerImage: 24 * 8,
+    cache: {
+      read: 1.5 * 10,
+      write: 18.75 * 10,
+    },
+  },
+  {
     name: "anthropic/claude-sonnet-4",
     displayName: "Anthropic: Claude Sonnet 4",
     hasVision: true,
