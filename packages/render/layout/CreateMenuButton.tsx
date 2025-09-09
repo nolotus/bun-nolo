@@ -16,7 +16,6 @@ import {
 } from "react-icons/lu";
 
 import { Dialog } from "render/web/ui/Dialog";
-import { Tooltip } from "render/web/ui/Tooltip";
 import { CreateSpaceForm } from "create/space/CreateSpaceForm";
 
 // Hook to detect clicks outside a component
@@ -72,28 +71,49 @@ const CreateMenuButton: React.FC<{
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { isLoading: isCreatingDialog, createNewDialog } = useCreateDialog();
   const { isCreatingPage, createNewPage } = useCreatePage();
 
   const isMenuVisible = isPinnedOpen || isHovering;
 
+  // Clear any pending hover timeout
+  const clearHoverTimeout = useCallback(() => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+  }, []);
+
   // Closes the menu completely, regardless of state
   const closeMenu = useCallback(() => {
     setPinnedOpen(false);
     setHovering(false);
-  }, []);
+    clearHoverTimeout();
+  }, [clearHoverTimeout]);
 
   useClickOutside(menuRef, closeMenu);
 
-  // Handlers for hover interaction on desktop
-  const handleMouseEnter = () => setHovering(true);
-  const handleMouseLeave = () => setHovering(false);
+  // Enhanced handlers for hover interaction
+  const handleMouseEnter = useCallback(() => {
+    clearHoverTimeout();
+    setHovering(true);
+  }, [clearHoverTimeout]);
+
+  const handleMouseLeave = useCallback(() => {
+    clearHoverTimeout();
+    // Add a small delay before hiding to allow smooth transition to dropdown
+    hoverTimeoutRef.current = setTimeout(() => {
+      setHovering(false);
+    }, 100);
+  }, [clearHoverTimeout]);
 
   // Handler for click interaction on both desktop and mobile
   const handleTogglePin = () => {
     setPinnedOpen((prev) => !prev);
     setHovering(false); // A click should always take precedence over hover
+    clearHoverTimeout();
   };
 
   const createAndClose = (action: () => void) => () => {
@@ -106,6 +126,13 @@ const CreateMenuButton: React.FC<{
     closeMenu();
   }, [createNewPage, closeMenu]);
 
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      clearHoverTimeout();
+    };
+  }, [clearHoverTimeout]);
+
   return (
     <>
       <div
@@ -114,18 +141,16 @@ const CreateMenuButton: React.FC<{
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
-        <Tooltip content={t("common:create")} placement="bottom">
-          <button
-            className={`create-menu__button ${isMenuVisible ? "is-active" : ""}`}
-            onClick={handleTogglePin}
-            aria-label={t("common:create")}
-          >
-            <LuPlus
-              size={16}
-              className={`create-menu__icon ${isMenuVisible ? "is-rotated" : ""}`}
-            />
-          </button>
-        </Tooltip>
+        <button
+          className={`create-menu__button ${isMenuVisible ? "is-active" : ""}`}
+          onClick={handleTogglePin}
+          aria-label={t("common:create")}
+        >
+          <LuPlus
+            size={16}
+            className={`create-menu__icon ${isMenuVisible ? "is-rotated" : ""}`}
+          />
+        </button>
 
         {isMenuVisible && (
           <>
@@ -144,7 +169,7 @@ const CreateMenuButton: React.FC<{
                   {isCreatingDialog ? (
                     <div className="spinner" />
                   ) : (
-                    <LuMessageSquare size={18} />
+                    <LuMessageSquare size={16} />
                   )}
                   <span>{t("chat:newchat", "新建对话")}</span>
                 </button>
@@ -157,7 +182,7 @@ const CreateMenuButton: React.FC<{
                 {isCreatingPage ? (
                   <div className="spinner" />
                 ) : (
-                  <LuFileText size={18} />
+                  <LuFileText size={16} />
                 )}
                 <span>{t("page:create_new_page", "新建页面")}</span>
               </button>
@@ -165,7 +190,7 @@ const CreateMenuButton: React.FC<{
                 className="create-menu__item"
                 onClick={createAndClose(() => setIsModalOpen(true))}
               >
-                <LuFolderPlus size={18} />
+                <LuFolderPlus size={16} />
                 <span>{t("space:create_new_space", "新建空间")}</span>
               </button>
             </div>
@@ -178,14 +203,30 @@ const CreateMenuButton: React.FC<{
       </Dialog>
 
       <style href="create-menu-styles" precedence="high">{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes slideInDesktop { 
-          from { opacity: 0; transform: translateY(-4px); }
-          to { opacity: 1; transform: translateY(0); }
+        @keyframes spin { 
+          to { transform: rotate(360deg); } 
         }
+        
+        @keyframes slideInDesktop { 
+          from { 
+            opacity: 0; 
+            transform: translateY(-6px) scale(0.98); 
+          }
+          to { 
+            opacity: 1; 
+            transform: translateY(0) scale(1); 
+          }
+        }
+        
         @keyframes slideInMobile { 
-          from { opacity: 0; transform: translateY(8px) scale(0.95); }
-          to { opacity: 1; transform: translateY(0) scale(1); }
+          from { 
+            opacity: 0; 
+            transform: translateY(12px) scale(0.96); 
+          }
+          to { 
+            opacity: 1; 
+            transform: translateY(0) scale(1); 
+          }
         }
 
         .create-menu { 
@@ -200,25 +241,45 @@ const CreateMenuButton: React.FC<{
           height: var(--space-8);
           background: transparent;
           border: none;
-          border-radius: 6px; 
+          border-radius: var(--space-2); 
           cursor: pointer;
-          color: var(--textSecondary);
-          transition: all 0.2s ease;
+          color: var(--textTertiary);
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
           -webkit-tap-highlight-color: transparent;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .create-menu__button::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          border-radius: inherit;
+          background: var(--backgroundHover);
+          opacity: 0;
+          transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .create-menu__button:hover::before,
+        .create-menu__button.is-active::before {
+          opacity: 1;
         }
 
         .create-menu__button:hover,
         .create-menu__button.is-active {
-          background: var(--backgroundHover);
           color: var(--text);
+          transform: translateY(-0.5px);
         }
 
         .create-menu__button:active {
-          transform: scale(0.95);
+          transform: translateY(0) scale(0.96);
         }
 
         .create-menu__icon {
-          transition: transform 0.2s ease;
+          position: relative;
+          z-index: 1;
+          transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+          stroke-width: 1.5;
         }
 
         .create-menu__icon.is-rotated {
@@ -231,16 +292,19 @@ const CreateMenuButton: React.FC<{
 
         .create-menu__dropdown {
           position: absolute;
-          top: calc(100% + var(--space-2));
+          top: calc(100% + var(--space-1));
           right: 0; 
-          min-width: 200px;
+          min-width: 180px;
           background: var(--background);
           border: 1px solid var(--border);
-          border-radius: 8px;
-          box-shadow: var(--shadowHeavy);
+          border-radius: var(--space-3);
+          box-shadow: 
+            0 4px 6px -1px rgba(0, 0, 0, 0.08),
+            0 2px 4px -1px rgba(0, 0, 0, 0.04);
           z-index: ${zIndex.dropdown};
-          padding: var(--space-2);
-          animation: slideInDesktop 0.2s ease;
+          padding: var(--space-1);
+          animation: slideInDesktop 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+          backdrop-filter: blur(8px);
         }
 
         .create-menu__item {
@@ -251,38 +315,70 @@ const CreateMenuButton: React.FC<{
           padding: var(--space-2) var(--space-3);
           background: transparent; 
           border: none;
-          border-radius: 4px; 
+          border-radius: var(--space-1); 
           cursor: pointer;
-          font-size: 14px; 
+          font-size: 13px; 
+          font-weight: 500;
           color: var(--text);
-          transition: all 0.15s ease;
+          transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
           -webkit-tap-highlight-color: transparent;
-          min-height: 36px;
+          min-height: 32px;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .create-menu__item::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          border-radius: inherit;
+          background: var(--backgroundHover);
+          opacity: 0;
+          transition: opacity 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .create-menu__item:hover:not(:disabled)::before {
+          opacity: 1;
         }
 
         .create-menu__item:hover:not(:disabled) {
-          background: var(--backgroundHover);
+          transform: translateY(-0.5px);
         }
 
         .create-menu__item:active:not(:disabled) {
+          transform: translateY(0) scale(0.98);
+        }
+
+        .create-menu__item:active:not(:disabled)::before {
           background: var(--backgroundSelected);
-          transform: scale(0.98);
+          opacity: 1;
         }
 
         .create-menu__item:disabled {
-          color: var(--textTertiary); 
+          color: var(--textQuaternary); 
           cursor: not-allowed;
+        }
+
+        .create-menu__item span {
+          position: relative;
+          z-index: 1;
+        }
+
+        .create-menu__item svg {
+          position: relative;
+          z-index: 1;
+          stroke-width: 1.5;
         }
         
         .spinner {
+          position: relative;
+          z-index: 1;
           width: 16px; 
           height: 16px;
-          border: 2px solid var(--borderLight);
+          border: 1.5px solid var(--borderLight);
           border-top-color: var(--primary);
           border-radius: 50%;
           animation: spin 0.8s linear infinite;
-          margin-left: 2px;
-          margin-right: 2px;
         }
 
         @media (max-width: 768px) {
@@ -299,45 +395,56 @@ const CreateMenuButton: React.FC<{
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(2px);
+            background: rgba(0, 0, 0, 0.08);
+            backdrop-filter: blur(4px);
             z-index: calc(${zIndex.dropdown} - 1);
           }
 
           .create-menu__dropdown {
             position: fixed;
             top: auto;
-            bottom: var(--space-4);
+            bottom: var(--space-5);
             left: var(--space-4);
             right: var(--space-4);
             min-width: auto;
-            max-width: 320px;
+            max-width: 300px;
             margin: 0 auto;
-            border-radius: 12px;
-            padding: var(--space-3);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+            border-radius: var(--space-4);
+            padding: var(--space-2);
+            box-shadow: 
+              0 20px 25px -5px rgba(0, 0, 0, 0.12),
+              0 10px 10px -5px rgba(0, 0, 0, 0.08);
             animation: slideInMobile 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
           }
 
           .create-menu__item {
-            padding: var(--space-4);
-            font-size: 15px;
-            min-height: 48px;
-            border-radius: 8px;
+            padding: var(--space-3) var(--space-4);
+            font-size: 14px;
+            min-height: 44px;
+            border-radius: var(--space-2);
           }
 
           .create-menu__item svg {
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
           }
         }
         
         @media (hover: none) and (pointer: coarse) {
-          .create-menu__button:hover {
-            background: transparent;
+          .create-menu__button:hover::before {
+            opacity: 0;
           }
+          
+          .create-menu__button:hover {
+            transform: none;
+          }
+          
+          .create-menu__item:hover:not(:disabled)::before {
+            opacity: 0;
+          }
+          
           .create-menu__item:hover:not(:disabled) {
-            background: transparent;
+            transform: none;
           }
         }
       `}</style>

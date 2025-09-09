@@ -1,9 +1,10 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react"; // <--- 1. 导入 useState
 import {
   Editor,
   Element as SlateElement,
   createEditor,
   Descendant,
+  Node, // <--- 2. 导入 Node
 } from "slate";
 import { withHistory, History } from "slate-history";
 import { Editable, Slate, withReact, ReactEditor } from "slate-react";
@@ -25,12 +26,10 @@ import { renderLeaf } from "./renderLeaf";
 import { ElementWrapper } from "./ElementWrapper";
 import { EditorToolbar } from "./EditorToolbar";
 import { HoveringToolbar } from "./HoveringToolbar";
-import { TableContextMenu } from "./TableContextMenu"; // <--- 1. 导入新组件
+import { TableContextMenu } from "./TableContextMenu";
 import { withTables } from "./withTables";
 
 // 定义自定义编辑器类型
-// 注意：此类型也在 syntaxHighlighting.tsx 中使用。
-// 最佳实践是将其移动到共享的 types.ts 文件中。
 type CustomEditor = ReactEditor &
   History & {
     nodeToDecorations?: Map<SlateElement, Range[]>;
@@ -42,12 +41,25 @@ interface NoloEditorProps {
   onChange?: (value: Descendant[]) => void;
 }
 
+// --- 3. 新增：字数统计函数 ---
+// --- 修正后的字数统计函数 ---
+// --- 这已经是正确的、经过优化的版本 ---
+const countWords = (nodes: Descendant[]): number => {
+  const text = nodes.map((node) => Node.string(node)).join("\n");
+
+  // 该正则表达式的逻辑：
+  // 匹配所有连续的英文/数字块，或者单个的中文字符。
+  // 任何不符合这两个规则的字符（如空格、标点符号）都会被作为分隔符忽略。
+  const matches = text.match(/[a-zA-Z0-9]+|[\u4e00-\u9fa5]/g);
+
+  return matches ? matches.length : 0;
+};
+
 const NoloEditor: React.FC<NoloEditorProps> = ({
   initialValue,
   readOnly = false,
   onChange,
 }) => {
-  // 使用 useMemo 创建 editor 实例，确保在组件重渲染时保持稳定
   const editor = useMemo(() => {
     const baseEditor = withTables(
       withShortcuts(
@@ -56,14 +68,16 @@ const NoloEditor: React.FC<NoloEditorProps> = ({
         )
       )
     );
-    // 保留 inline-code 的内联特性，其他遵循 Slate 默认行为
     const { isInline } = baseEditor;
     baseEditor.isInline = (el) =>
       el.type === "inline-code" ? true : isInline(el);
     return baseEditor as CustomEditor;
   }, []);
 
-  // 从新文件中导入 decorate 函数
+  // --- 4. 新增：为字数统计创建 state ---
+  // 使用函数作为 useState 的初始值，确保这个计算只在首次渲染时执行
+  const [wordCount, setWordCount] = useState(() => countWords(initialValue));
+
   const decorate = useDecorate(editor);
   const onKeyDown = useOnKeyDown(editor);
 
@@ -73,12 +87,18 @@ const NoloEditor: React.FC<NoloEditorProps> = ({
         editor={editor}
         initialValue={initialValue}
         onChange={(value) => {
-          // 仅在 AST (文档结构) 变化时触发 onChange，忽略纯粹的光标移动
+          // 仅在 AST (文档结构) 变化时触发
           const isAstChange = editor.operations.some(
             (op) => op.type !== "set_selection"
           );
-          if (isAstChange && onChange) {
-            onChange(value);
+          if (isAstChange) {
+            // --- 5. 修改：在内容变化时更新字数统计 ---
+            setWordCount(countWords(value));
+
+            // 调用外部传入的 onChange
+            if (onChange) {
+              onChange(value);
+            }
           }
         }}
       >
@@ -89,7 +109,6 @@ const NoloEditor: React.FC<NoloEditorProps> = ({
             <TableContextMenu />
           </div>
         )}
-        {/* "无头"组件，负责在后台计算语法高亮 */}
         <SetNodeToDecorations />
         <Editable
           renderPlaceholder={({ attributes }) => (
@@ -103,7 +122,6 @@ const NoloEditor: React.FC<NoloEditorProps> = ({
           renderLeaf={renderLeaf}
           onKeyDown={onKeyDown}
           onDOMBeforeInput={(event: InputEvent) => {
-            // 阻止浏览器默认的富文本行为，改用 Slate 命令
             switch (event.inputType) {
               case "formatBold":
                 event.preventDefault();
@@ -123,6 +141,9 @@ const NoloEditor: React.FC<NoloEditorProps> = ({
         <style>{prismThemeCss}</style>
       </Slate>
 
+      {/* --- 6. 新增：渲染字数统计的 UI 元素 --- */}
+      {!readOnly && <div className="word-count-display">字数: {wordCount}</div>}
+
       {/* 编辑器容器和核心元素的样式 */}
       <style>{`
         .nolo-editor-container {
@@ -134,7 +155,7 @@ const NoloEditor: React.FC<NoloEditorProps> = ({
           top: 0;
           margin-bottom: var(--space-2);
           padding: var(--space-1);
-          z-index: 10; /* 确保工具栏在编辑区域之上，解决点击穿透问题 */
+          z-index: 10;
         }
         .nolo-editor-container [data-slate-editor] {
           font-size: 14px;
@@ -157,6 +178,17 @@ const NoloEditor: React.FC<NoloEditorProps> = ({
           border-radius: 3px;
           font-size: 0.85em;
         }
+
+        /* --- 7. 新增：字数统计的样式 --- */
+        .word-count-display {
+          text-align: right;
+          font-size: 12px;
+          color: var(--textSecondary, #888); /* 适配主题，提供一个默认颜色 */
+          margin-top: var(--space-2);
+          padding-right: var(--space-1);
+          user-select: none; /* 防止用户意外选中 */
+        }
+        
         @media (max-width: 768px) {
           .nolo-editor-container {
             padding: var(--space-1);
@@ -172,6 +204,9 @@ const NoloEditor: React.FC<NoloEditorProps> = ({
           .inline-code {
             padding: 0.12em 0.35em;
             font-size: 0.9em;
+          }
+          .word-count-display {
+             margin-top: var(--space-1);
           }
         }
       `}</style>
