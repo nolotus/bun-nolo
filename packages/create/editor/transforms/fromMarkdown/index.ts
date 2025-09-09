@@ -1,7 +1,12 @@
+// ========================================================================
+// START: 最终修复版的 mdastToSlate.ts
+// ========================================================================
+
 import { visit } from "unist-util-visit";
 import { processInlineNodes } from "./inline";
-import { transformTable } from "./table"; // (1) 导入新的、独立的表格转换器
+import { transformTable } from "./table";
 
+// ... SlateNode 接口和 ensureValidNode 函数保持不变 ...
 interface SlateNode {
   type: string;
   children: Array<any>;
@@ -18,7 +23,7 @@ interface SlateNode {
   html?: string;
   start?: number;
   value?: number;
-  columns?: any[]; // 为表格节点添加 columns 属性
+  columns?: any[];
 }
 
 function ensureValidNode(node: any): boolean {
@@ -41,7 +46,6 @@ export function mdastToSlate(mdastTree: any): SlateNode[] {
   const slateNodes: SlateNode[] = [];
   const processedNodes = new Set();
 
-  // processBlockChildren 和 processNode 函数保持不变
   function processBlockChildren(children: any[]): any[] {
     if (!Array.isArray(children)) return [{ text: "" }];
     return children.map((child) => {
@@ -71,62 +75,72 @@ export function mdastToSlate(mdastTree: any): SlateNode[] {
     }
     if (node.type === "blockquote") {
       processedNodes.add(node);
-      return {
-        type: "quote",
-        children: processBlockChildren(node.children),
-      };
+      return { type: "quote", children: processBlockChildren(node.children) };
     }
     return null;
   }
 
-  // processListItemChildren 函数保持不变
   function processListItemChildren(item: any): any[] {
-    if (!ensureValidNode(item)) {
-      return [{ text: "" }];
+    if (!ensureValidNode(item) || !Array.isArray(item.children)) {
+      return [{ type: "paragraph", children: [{ text: "" }] }];
     }
-    if (item.children.length > 1) {
-      const result = [];
-      if (item.children[0]?.type === "paragraph") {
-        result.push(...processInlineNodes(item.children[0].children));
+    const result: SlateNode[] = [];
+    item.children.forEach((child: any) => {
+      if (!ensureValidNode(child)) {
+        return;
       }
-      for (let i = 1; i < item.children.length; i++) {
-        const child = item.children[i];
-        if (child?.type === "list") {
-          const nestedListItems = child.children.map(
-            (nestedItem: any, index: number) => {
-              if (!ensureValidNode(nestedItem)) {
-                return {
-                  type: "list-item",
-                  children: [{ text: "" }],
-                };
-              }
-              const nestedItemNode: SlateNode = {
-                type: "list-item",
-                value: (child.start || 1) + index,
-                children: processListItemChildren(nestedItem),
-              };
-              if (
-                nestedItem.checked !== null &&
-                nestedItem.checked !== undefined
-              ) {
-                nestedItemNode.checked = nestedItem.checked;
-              }
-              return nestedItemNode;
-            }
-          );
+      switch (child.type) {
+        case "paragraph":
+          result.push({
+            type: "paragraph",
+            children: processInlineNodes(child.children),
+          });
+          break;
+        case "code":
+          result.push({
+            type: "code-block",
+            language: child.lang || "text",
+            children: (child.value || "")
+              .split("\n")
+              .map((line: string) => ({
+                type: "code-line",
+                children: [{ text: line }],
+              })),
+          });
+          processedNodes.add(child);
+          break;
+        case "list":
           result.push({
             type: "list",
             ordered: !!child.ordered,
             start: child.start || 1,
-            children: nestedListItems,
+            children: (child.children || []).map(
+              (nestedItem: any, index: number) => {
+                processedNodes.add(nestedItem);
+                const listItemNode: SlateNode = {
+                  type: "list-item",
+                  value: (child.start || 1) + index,
+                  children: processListItemChildren(nestedItem),
+                };
+                if (
+                  nestedItem.checked !== null &&
+                  nestedItem.checked !== undefined
+                ) {
+                  listItemNode.checked = nestedItem.checked;
+                }
+                return listItemNode;
+              }
+            ),
           });
-        }
+          processedNodes.add(child);
+          break;
+        default:
+          break;
       }
-      return result.length ? result : [{ text: "" }];
-    }
-    return item.children[0]?.type === "paragraph"
-      ? processInlineNodes(item.children[0].children)
-      : [{ text: "" }];
+    });
+    return result.length > 0
+      ? result
+      : [{ type: "paragraph", children: [{ text: "" }] }];
   }
 
   visit(mdastTree, (node, index, parent) => {
@@ -135,24 +149,48 @@ export function mdastToSlate(mdastTree: any): SlateNode[] {
     }
     try {
       switch (node.type) {
-        // ... 其他 case 保持不变 ...
+        // =================================================================
+        // 这是被最终修复的地方
+        // =================================================================
+        case "code":
+          // 移除了错误的 IF 判断，现在它可以正确处理所有未被处理过的代码块
+          slateNodes.push({
+            type: "code-block",
+            language: node.lang || "text",
+            children: node.value.split("\n").map((line) => ({
+              type: "code-line",
+              children: [{ text: line }],
+            })),
+          });
+          break;
+        // =================================================================
+
+        case "list":
+          slateNodes.push({
+            type: "list",
+            ordered: !!node.ordered,
+            start: node.start || 1,
+            children: (node.children || []).map((item: any, index: number) => {
+              processedNodes.add(item);
+              const listItemNode: SlateNode = {
+                type: "list-item",
+                value: (node.start || 1) + index,
+                children: processListItemChildren(item),
+              };
+              if (item.checked !== null && item.checked !== undefined) {
+                listItemNode.checked = item.checked;
+              }
+              return listItemNode;
+            }),
+          });
+          break;
+
+        // ... 其他所有 case 保持不变 ...
         case "blockquote":
           slateNodes.push({
             type: "quote",
             children: processBlockChildren(node.children),
           });
-          break;
-        case "code":
-          if (!parent || parent.type !== "code") {
-            slateNodes.push({
-              type: "code-block",
-              language: node.lang || "text",
-              children: node.value.split("\n").map((line) => ({
-                type: "code-line",
-                children: [{ text: line }],
-              })),
-            });
-          }
           break;
         case "heading":
           function getHeadingText(depth: number): string {
@@ -174,46 +212,14 @@ export function mdastToSlate(mdastTree: any): SlateNode[] {
             });
           }
           break;
-        case "list":
-          slateNodes.push({
-            type: "list",
-            ordered: !!node.ordered,
-            start: node.start || 1,
-            children: (node.children || []).map((item: any, index: number) => {
-              processedNodes.add(item);
-              (item.children || []).forEach((child: any) =>
-                processedNodes.add(child)
-              );
-              const listItemNode: SlateNode = {
-                type: "list-item",
-                value: (node.start || 1) + index,
-                children: processListItemChildren(item),
-              };
-              if (item.checked !== null && item.checked !== undefined) {
-                listItemNode.checked = item.checked;
-              }
-              return listItemNode;
-            }),
-          });
-          break;
-
         case "table":
-          // (2) 调用新的表格处理函数
           const tableNode = transformTable(node);
-
-          // (3) 检查返回值，确保只添加有效的节点
           if (tableNode) {
             slateNodes.push(tableNode);
           }
-
-          // (4) 旧的、内联的表格处理逻辑已被移除
           break;
-
         case "thematicBreak":
-          slateNodes.push({
-            type: "thematic-break",
-            children: [{ text: "" }],
-          });
+          slateNodes.push({ type: "thematic-break", children: [{ text: "" }] });
           break;
         case "html":
           if (node.position?.start.column === 1) {
@@ -235,3 +241,7 @@ export function mdastToSlate(mdastTree: any): SlateNode[] {
     ? slateNodes
     : [{ type: "paragraph", children: [{ text: "" }] }];
 }
+
+// ========================================================================
+// END: 最终修复版的 mdastToSlate.ts
+// ========================================================================
