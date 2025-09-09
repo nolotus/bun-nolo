@@ -1,10 +1,9 @@
-// chat/web/AttachmentsPreview.tsx
+// AttachmentsPreview.tsx - 修复版本
 import React, { useState, useCallback, memo } from "react";
 import { XIcon, TrashIcon } from "@primer/octicons-react";
 import { useAppDispatch } from "app/store";
-import { useTheme } from "app/theme";
 import ImagePreviewModal from "./ImagePreviewModal";
-import { FileItem } from "chat/messages/web/FileItem"; // 使用共用组件
+import { FileItem } from "chat/messages/web/FileItem";
 import type { PendingFile } from "../dialog/dialogSlice";
 import { removePendingFile } from "../dialog/dialogSlice";
 
@@ -22,7 +21,6 @@ interface AttachmentsPreviewProps {
   isMobile?: boolean;
 }
 
-// 图片预览项组件
 const ImageItem = memo(({ image, index, isMobile, onPreview, onRemove }) => {
   const handlePreview = useCallback(
     () => onPreview(image.url),
@@ -75,7 +73,6 @@ const AttachmentsPreview: React.FC<AttachmentsPreviewProps> = ({
   isMobile = false,
 }) => {
   const dispatch = useAppDispatch();
-  const theme = useTheme();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const handleRemoveFile = useCallback(
@@ -98,18 +95,22 @@ const AttachmentsPreview: React.FC<AttachmentsPreviewProps> = ({
 
   return (
     <>
-      <style href="attachments-preview" precedence="medium">{`
+      <style href="attachments-preview-fixed" precedence="high">{`
         .attachments-preview {
+          /* 核心布局修复 */
           display: flex;
           flex-wrap: wrap;
-          gap: ${theme.space[2]};
-          margin-bottom: ${theme.space[3]};
+          gap: var(--space-2);
+          margin-bottom: var(--space-3);
           align-items: flex-start;
+          width: 100%;
+          box-sizing: border-box;
         }
 
         .attachment-item {
           position: relative;
-          transition: transform 0.2s ease;
+          transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+          flex-shrink: 0; /* 防止被压缩 */
           max-width: 120px;
         }
 
@@ -121,42 +122,44 @@ const AttachmentsPreview: React.FC<AttachmentsPreviewProps> = ({
           max-width: 110px;
         }
 
-        /* 图片样式 */
+        /* 图片样式优化 */
         .image-content {
           width: 44px;
           height: 44px;
           object-fit: cover;
-          border-radius: ${theme.space[2]};
-          border: 1px solid ${theme.border};
+          border-radius: var(--space-2);
+          border: 1px solid var(--border);
           cursor: pointer;
-          transition: all 0.2s ease;
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
           display: block;
         }
 
         .image-content:hover {
-          border-color: ${theme.primary};
+          border-color: var(--primary);
           transform: scale(1.05);
+          box-shadow: 0 4px 12px var(--shadowMedium);
         }
 
         .image-content:focus-visible {
-          outline: 2px solid ${theme.primary};
+          outline: 2px solid var(--primary);
           outline-offset: 2px;
+          border-color: var(--primary);
         }
 
-        /* 删除按钮样式 */
+        /* 删除按钮优化 */
         .remove-button {
           position: absolute;
           border-radius: 50%;
-          background: ${theme.error};
+          background: var(--error);
           color: white;
-          border: 1px solid ${theme.background};
+          border: 1px solid var(--background);
           cursor: pointer;
           display: flex;
           align-items: center;
           justify-content: center;
-          transition: all 0.15s ease;
+          transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
           z-index: 2;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+          box-shadow: 0 2px 4px var(--shadowMedium);
         }
 
         .remove-button:not(.mobile) {
@@ -170,10 +173,10 @@ const AttachmentsPreview: React.FC<AttachmentsPreviewProps> = ({
         .remove-button.mobile {
           top: -6px;
           right: -6px;
-          width: 22px;
-          height: 22px;
+          width: 26px; /* 增大触摸区域 */
+          height: 26px;
           opacity: 1;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+          box-shadow: 0 2px 8px var(--shadowHeavy);
           border-width: 1.5px;
         }
 
@@ -190,16 +193,43 @@ const AttachmentsPreview: React.FC<AttachmentsPreviewProps> = ({
         .remove-button:hover:not(:disabled) {
           transform: scale(1.1);
           background: #dc2626;
+          box-shadow: 0 4px 12px var(--shadowHeavy);
         }
 
         .remove-button:focus-visible {
           opacity: 1;
-          outline: 2px solid ${theme.primary};
+          outline: 2px solid var(--primary);
           outline-offset: 2px;
         }
 
         .remove-button:active:not(:disabled) {
           transform: scale(0.95);
+        }
+
+        /* 移动端专门优化 */
+        @media (max-width: 768px) {
+          .attachments-preview {
+            gap: var(--space-1);
+            justify-content: flex-start;
+            align-items: flex-start;
+            /* 确保不会换行到意外位置 */
+            overflow-x: visible;
+          }
+          
+          .attachment-item {
+            /* 确保移动端布局稳定 */
+            min-width: 44px;
+          }
+          
+          .attachment-item.mobile {
+            max-width: 100px;
+          }
+          
+          /* 移动端删除按钮更大 */
+          .remove-button.mobile {
+            width: 28px;
+            height: 28px;
+          }
         }
 
         /* 触摸设备优化 */
@@ -208,19 +238,24 @@ const AttachmentsPreview: React.FC<AttachmentsPreviewProps> = ({
             opacity: 1;
             top: -6px;
             right: -6px;
-            width: 20px;
-            height: 20px;
+            width: 22px;
+            height: 22px;
           }
+          
           .attachment-item:hover,
           .image-content:hover {
             transform: none;
           }
         }
 
-        /* 响应式调整 */
-        @media (max-width: 768px) {
-          .attachments-preview {
-            gap: ${theme.space[1]};
+        /* 高对比度模式 */
+        @media (prefers-contrast: high) {
+          .image-content {
+            border-width: 2px;
+          }
+          
+          .remove-button {
+            border-width: 2px;
           }
         }
 
@@ -231,15 +266,31 @@ const AttachmentsPreview: React.FC<AttachmentsPreviewProps> = ({
           .remove-button {
             transition: none;
           }
+          
           .attachment-item:hover,
           .image-content:hover,
           .remove-button:hover {
             transform: none;
           }
         }
+
+        /* 错误状态样式 */
+        .attachment-item.error {
+          opacity: 0.7;
+        }
+        
+        .attachment-item.error .image-content {
+          border-color: var(--error);
+        }
+        
+        /* 处理中状态 */
+        .attachment-item.processing {
+          opacity: 0.6;
+          pointer-events: none;
+        }
       `}</style>
 
-      <div className="attachments-preview">
+      <div className="attachments-preview" role="group" aria-label="附件预览">
         {/* 图片预览 */}
         {imagePreviews.map((image, index) => (
           <ImageItem
@@ -252,7 +303,7 @@ const AttachmentsPreview: React.FC<AttachmentsPreviewProps> = ({
           />
         ))}
 
-        {/* 文件预览 - 使用共用 FileItem 组件 */}
+        {/* 文件预览 */}
         {pendingFiles.map((file) => {
           const isProcessing = processingFiles.has(file.id);
 
@@ -260,6 +311,8 @@ const AttachmentsPreview: React.FC<AttachmentsPreviewProps> = ({
             <div
               key={file.id}
               className={`attachment-item file-item ${isMobile ? "mobile" : ""} ${isProcessing ? "processing" : ""} ${file.error ? "error" : ""}`}
+              role="group"
+              aria-label={`文件附件 ${file.name}`}
             >
               <FileItem
                 file={file}

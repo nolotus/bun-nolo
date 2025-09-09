@@ -2,7 +2,6 @@
 
 import React, { useCallback, useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { useTheme } from "app/theme";
 import { zIndex } from "render/styles/zIndex";
 import { useAppDispatch, useAppSelector } from "app/store";
 import { compressImage } from "utils/imageUtils";
@@ -27,7 +26,6 @@ import toast from "react-hot-toast";
 const MessageInput: React.FC = () => {
   const dispatch = useAppDispatch();
   const { t } = useTranslation("chat");
-  const theme = useTheme();
 
   const containerRef = useRef<HTMLDivElement>(null);
 
