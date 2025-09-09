@@ -31,7 +31,10 @@ const MainLayout: React.FC = () => {
   const isOpen = sidebarWidth > 0;
 
   const [isResizing, setIsResizing] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  // [!code focus:3]
+  // --- 修改点 ---
+  // 直接在初始化时判断是否为移动端，避免首次渲染时状态不正确
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
 
   const sidebarRef = useRef<HTMLElement>(null);
   const lastWidthRef = useRef(sidebarWidth);
@@ -118,7 +121,8 @@ const MainLayout: React.FC = () => {
       }
     };
 
-    setIsMobile(window.innerWidth < 768);
+    // [!code focus]
+    // 删除了这里的 setIsMobile(window.innerWidth < 768)，因为状态已经在 useState 中正确初始化了
     window.addEventListener("resize", debouncedHandleResize);
     document.addEventListener("keydown", handleKeyDown);
 
@@ -132,6 +136,7 @@ const MainLayout: React.FC = () => {
   }, [toggleSidebar, hasSidebar]);
 
   useEffect(() => {
+    // 这个 Effect 现在可以在首次渲染后立即正确运行
     if (isInitialMount.current) {
       if (isMobile && isOpen) {
         dispatch(setSidebarWidth(0));
@@ -186,6 +191,7 @@ const MainLayout: React.FC = () => {
       </div>
 
       <style href="MainLayout-styles" precedence="default">{`
+        /* CSS样式部分保持不变 */
         .MainLayout {
           display: flex;
           min-height: 100dvh;
