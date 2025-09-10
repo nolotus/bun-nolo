@@ -31,6 +31,28 @@ interface SettingState {
   sidebarWidth: number;
   headerHeight: number;
   themeFollowsSystem: boolean;
+
+  // 编辑器配置
+  editorDefaultMode: "markdown" | "block";
+  editorCodeTheme: string;
+  editorWordCountEnabled: boolean;
+  editorShortcuts: {
+    heading: boolean;
+    ulist: boolean;
+    olist: boolean;
+    quote: boolean;
+    code: boolean;
+    tasklist: boolean;
+  };
+  editorFontSize: number;
+  editorAutoSave: boolean;
+  editorAutoSaveInterval: number;
+  editorLineNumbers: boolean;
+  editorWordWrap: boolean;
+  editorSpellCheck: boolean;
+  editorTabSize: number;
+  editorFontFamily: string;
+
   [key: string]: any;
 }
 
@@ -48,6 +70,27 @@ const initialState: SettingState = {
   sidebarWidth: 260,
   headerHeight: 48,
   themeFollowsSystem: false,
+
+  // 编辑器默认配置
+  editorDefaultMode: "markdown",
+  editorCodeTheme: "github-dark",
+  editorWordCountEnabled: true,
+  editorShortcuts: {
+    heading: true,
+    ulist: true,
+    olist: true,
+    quote: true,
+    code: true,
+    tasklist: true,
+  },
+  editorFontSize: 14,
+  editorAutoSave: true,
+  editorAutoSaveInterval: 30,
+  editorLineNumbers: false,
+  editorWordWrap: true,
+  editorSpellCheck: true,
+  editorTabSize: 2,
+  editorFontFamily: "SF Mono, Monaco, Cascadia Code, Roboto Mono, monospace",
 };
 
 // --- Slice 创建 ---
@@ -59,7 +102,7 @@ const settingSlice = createSliceWithThunks({
   name: "settings",
   initialState,
   reducers: (create) => ({
-    // ... 其他 reducers 和 thunks 保持不变 ...
+    // ... 其他 reducers 保持不变 ...
     _updateSettingsState: (
       state,
       action: PayloadAction<Partial<SettingState>>
@@ -84,9 +127,7 @@ const settingSlice = createSliceWithThunks({
       {
         fulfilled: (state, action) => {
           if (action.payload) {
-            // 使用 rambda 的 omit 函数创建一个不含 'currentServer' 的新对象
             const settingsToApply = omit(["currentServer"], action.payload);
-            // 将处理过的设置合并到状态中
             Object.assign(state, settingsToApply);
           }
         },
@@ -103,6 +144,8 @@ const settingSlice = createSliceWithThunks({
         return changes;
       }
     ),
+
+    // ... 主题相关的 actions 保持不变 ...
     changeTheme: create.asyncThunk(
       async (themeName: keyof typeof THEME_COLORS, { dispatch }) =>
         dispatch(setSettings({ themeName })).unwrap()
@@ -125,6 +168,51 @@ const settingSlice = createSliceWithThunks({
       async (sidebarWidth: number, { dispatch }) =>
         dispatch(setSettings({ sidebarWidth })).unwrap()
     ),
+
+    // 编辑器配置相关的 actions
+    setEditorDefaultMode: create.asyncThunk(
+      async (mode: "markdown" | "block", { dispatch }) =>
+        dispatch(setSettings({ editorDefaultMode: mode })).unwrap()
+    ),
+    setEditorCodeTheme: create.asyncThunk(async (theme: string, { dispatch }) =>
+      dispatch(setSettings({ editorCodeTheme: theme })).unwrap()
+    ),
+    toggleEditorWordCount: create.asyncThunk(
+      async (_, { dispatch, getState }) => {
+        const current = (getState() as RootState).settings
+          .editorWordCountEnabled;
+        return dispatch(
+          setSettings({ editorWordCountEnabled: !current })
+        ).unwrap();
+      }
+    ),
+    toggleEditorShortcut: create.asyncThunk(
+      async (key: string, { dispatch, getState }) => {
+        const currentShortcuts = (getState() as RootState).settings
+          .editorShortcuts;
+        const newShortcuts = {
+          ...currentShortcuts,
+          [key]: !currentShortcuts[key],
+        };
+        return dispatch(
+          setSettings({ editorShortcuts: newShortcuts })
+        ).unwrap();
+      }
+    ),
+    setEditorFontSize: create.asyncThunk(
+      async (fontSize: number, { dispatch }) =>
+        dispatch(setSettings({ editorFontSize: fontSize })).unwrap()
+    ),
+    toggleEditorAutoSave: create.asyncThunk(
+      async (_, { dispatch, getState }) => {
+        const current = (getState() as RootState).settings.editorAutoSave;
+        return dispatch(setSettings({ editorAutoSave: !current })).unwrap();
+      }
+    ),
+    setEditorAutoSaveInterval: create.asyncThunk(
+      async (interval: number, { dispatch }) =>
+        dispatch(setSettings({ editorAutoSaveInterval: interval })).unwrap()
+    ),
   }),
 });
 
@@ -138,6 +226,14 @@ export const {
   toggleShowThinking,
   setThemeFollowsSystem,
   setSidebarWidth,
+  // 编辑器 actions
+  setEditorDefaultMode,
+  setEditorCodeTheme,
+  toggleEditorWordCount,
+  toggleEditorShortcut,
+  setEditorFontSize,
+  toggleEditorAutoSave,
+  setEditorAutoSaveInterval,
 } = settingSlice.actions;
 
 // --- 导出 Selectors ---
@@ -166,6 +262,23 @@ export const selectThemeFollowsSystem = (state: RootState): boolean =>
 export const selectSidebarWidth = (state: RootState): number =>
   state.settings.sidebarWidth;
 
+// 编辑器相关 selectors
+export const selectEditorDefaultMode = (
+  state: RootState
+): "markdown" | "block" => state.settings.editorDefaultMode;
+export const selectEditorCodeTheme = (state: RootState): string =>
+  state.settings.editorCodeTheme;
+export const selectEditorWordCountEnabled = (state: RootState): boolean =>
+  state.settings.editorWordCountEnabled;
+export const selectEditorShortcuts = (state: RootState) =>
+  state.settings.editorShortcuts;
+export const selectEditorFontSize = (state: RootState): number =>
+  state.settings.editorFontSize;
+export const selectEditorAutoSave = (state: RootState): boolean =>
+  state.settings.editorAutoSave;
+export const selectEditorAutoSaveInterval = (state: RootState): number =>
+  state.settings.editorAutoSaveInterval;
+
 // --- 高性能的记忆化 Selector ---
 export const selectTheme = createSelector(
   [selectThemeName, selectIsDark, selectSidebarWidth, selectHeaderHeight],
@@ -173,15 +286,43 @@ export const selectTheme = createSelector(
     const mode = isDark ? "dark" : "light";
     const validThemeName = THEME_COLORS[themeName] ? themeName : "blue";
     return {
-      // 【优化】为动态尺寸添加 'px' 单位，确保 CSS 变量的有效性
       sidebarWidth: `${sidebarWidth}px`,
       headerHeight: `${headerHeight}px`,
-      // 【关键】将 space 对象直接注入，新的 Controller 会处理它
       space: SPACE,
       ...MODE_COLORS[mode],
       ...THEME_COLORS[validThemeName][mode],
     };
   }
+);
+
+// 编辑器配置选择器
+export const selectEditorConfig = createSelector(
+  [
+    selectEditorDefaultMode,
+    selectEditorCodeTheme,
+    selectEditorWordCountEnabled,
+    selectEditorShortcuts,
+    selectEditorFontSize,
+    selectEditorAutoSave,
+    selectEditorAutoSaveInterval,
+  ],
+  (
+    defaultMode,
+    codeTheme,
+    wordCountEnabled,
+    shortcuts,
+    fontSize,
+    autoSave,
+    autoSaveInterval
+  ) => ({
+    defaultMode,
+    codeTheme,
+    wordCountEnabled,
+    shortcuts,
+    fontSize,
+    autoSave,
+    autoSaveInterval,
+  })
 );
 
 // --- 导出 Reducer ---
