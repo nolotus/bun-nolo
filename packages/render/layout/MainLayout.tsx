@@ -31,10 +31,9 @@ const MainLayout: React.FC = () => {
   const isOpen = sidebarWidth > 0;
 
   const [isResizing, setIsResizing] = useState(false);
-  // [!code focus:3]
-  // --- 修改点 ---
-  // 直接在初始化时判断是否为移动端，避免首次渲染时状态不正确
-  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
+  // 初始化为 false，以确保在服务端渲染时安全。
+  // 真实状态将在客户端的 useEffect 中设置。
+  const [isMobile, setIsMobile] = useState(false);
 
   const sidebarRef = useRef<HTMLElement>(null);
   const lastWidthRef = useRef(sidebarWidth);
@@ -104,16 +103,27 @@ const MainLayout: React.FC = () => {
     };
   }, [isResizing, dispatch, resize]);
 
+  // 此 useEffect 仅在客户端运行，用于处理所有与 window/document 相关的交互
   useEffect(() => {
+    // 定义一个更新移动端状态的函数
+    const updateMobileState = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    // 在组件挂载到客户端后，立即调用一次以设置正确的初始状态
+    updateMobileState();
+
+    // 设置防抖的 resize 处理器
     const debouncedHandleResize = () => {
       if (resizeDebounceTimer.current) {
         clearTimeout(resizeDebounceTimer.current);
       }
       resizeDebounceTimer.current = setTimeout(() => {
-        setIsMobile(window.innerWidth < 768);
+        updateMobileState(); // 当窗口大小改变时，调用更新函数
       }, 150);
     };
 
+    // 设置键盘快捷键处理器
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "b" && hasSidebar) {
         e.preventDefault();
@@ -121,11 +131,11 @@ const MainLayout: React.FC = () => {
       }
     };
 
-    // [!code focus]
-    // 删除了这里的 setIsMobile(window.innerWidth < 768)，因为状态已经在 useState 中正确初始化了
+    // 绑定事件监听器
     window.addEventListener("resize", debouncedHandleResize);
     document.addEventListener("keydown", handleKeyDown);
 
+    // 在组件卸载时清理所有监听器和计时器
     return () => {
       window.removeEventListener("resize", debouncedHandleResize);
       document.removeEventListener("keydown", handleKeyDown);
@@ -191,7 +201,6 @@ const MainLayout: React.FC = () => {
       </div>
 
       <style href="MainLayout-styles" precedence="default">{`
-        /* CSS样式部分保持不变 */
         .MainLayout {
           display: flex;
           min-height: 100dvh;
