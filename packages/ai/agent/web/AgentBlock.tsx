@@ -1,5 +1,4 @@
 import { useCallback, useState } from "react";
-// 1. 从 react-router-dom 导入 Link
 import { useNavigate, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
@@ -22,9 +21,11 @@ import {
   LuCoins,
   LuEye,
   LuMessageSquare,
+  LuEllipsis,
   LuPencil,
   LuPlus,
   LuRefreshCw,
+  LuStar,
   LuTrash2,
 } from "react-icons/lu";
 
@@ -41,7 +42,9 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
   const agentKey = item.dbKey || item.id;
   const { isLoading, createNewDialog } = useCreateDialog();
   const { visible: editVisible, open: openEdit, close: closeEdit } = useModal();
+  const { visible: moreVisible, open: openMore, close: closeMore } = useModal();
   const [deleting, setDeleting] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
   const allowEdit = useCouldEdit(agentKey);
 
   const startDialog = async () => {
@@ -56,6 +59,7 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
   const handleDelete = useCallback(async () => {
     if (deleting) return;
     setDeleting(true);
+    closeMore();
 
     try {
       const element = document.getElementById(`agent-${item.id}`);
@@ -68,9 +72,34 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
       setDeleting(false);
       toast.error(t("deleteError"));
     }
-  }, [item.id, agentKey, deleting, dispatch, reload, t]);
+  }, [item.id, agentKey, deleting, dispatch, reload, t, closeMore]);
 
-  // handleViewDetails 仍然保留，用于整个卡片的点击跳转
+  const handleEdit = useCallback(() => {
+    closeMore();
+    openEdit();
+  }, [closeMore, openEdit]);
+
+  const handleToggleFavorite = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsFavorite(!isFavorite);
+      toast.success(
+        isFavorite ? t("removedFromFavorites") : t("addedToFavorites")
+      );
+    },
+    [isFavorite, t]
+  );
+
+  const handleMoreClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      openMore();
+    },
+    [openMore]
+  );
+
   const handleViewDetails = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -91,6 +120,27 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           }
         }}
       >
+        {/* 右上角操作按钮 */}
+        <div className="agent__top-actions">
+          <button
+            className={`agent__favorite ${isFavorite ? "agent__favorite--active" : ""}`}
+            onClick={handleToggleFavorite}
+            title={isFavorite ? t("removeFromFavorites") : t("addToFavorites")}
+          >
+            <LuStar size={18} />
+          </button>
+
+          {allowEdit && (
+            <button
+              className="agent__more"
+              onClick={handleMoreClick}
+              title={t("moreActions")}
+            >
+              <LuEllipsis size={18} />
+            </button>
+          )}
+        </div>
+
         {/* Header */}
         <div className="agent__header">
           <div className="agent__avatar">
@@ -99,7 +149,6 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
 
           <div className="agent__info">
             <div className="agent__title-row">
-              {/* 2. 使用 Link 组件包裹标题和箭头 */}
               <Link to={`/${agentKey}`} className="agent__title-link">
                 <h3 className="agent__title">{item.name || t("unnamed")}</h3>
                 <span className="agent__title-arrow">
@@ -131,7 +180,7 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
                 </span>
               ))}
               {item.tags && item.tags.length > 3 && (
-                <span className="agent__tag agent__more">
+                <span className="agent__tag agent__tag--more">
                   +{item.tags.length - 3}
                 </span>
               )}
@@ -156,28 +205,10 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           >
             {isLoading ? t("starting") : t("startChat")}
           </Button>
-
-          {allowEdit && (
-            <div className="agent__secondary">
-              <Button
-                icon={<LuPencil size={14} />}
-                onClick={openEdit}
-                variant="secondary"
-                size="medium"
-              />
-              <Button
-                icon={<LuTrash2 size={14} />}
-                onClick={handleDelete}
-                disabled={deleting}
-                loading={deleting}
-                variant="danger"
-                size="medium"
-              />
-            </div>
-          )}
         </div>
       </div>
 
+      {/* 编辑对话框 */}
       {editVisible && (
         <Dialog
           isOpen={editVisible}
@@ -195,13 +226,46 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
         </Dialog>
       )}
 
+      {/* 更多操作对话框 */}
+      {moreVisible && allowEdit && (
+        <Dialog
+          isOpen={moreVisible}
+          onClose={closeMore}
+          title={t("moreActions")}
+          size="small"
+        >
+          <div className="agent__more-menu">
+            <Button
+              icon={<LuPencil size={16} />}
+              onClick={handleEdit}
+              variant="secondary"
+              size="medium"
+              className="agent__more-item"
+            >
+              {t("edit")}
+            </Button>
+            <Button
+              icon={<LuTrash2 size={16} />}
+              onClick={handleDelete}
+              disabled={deleting}
+              loading={deleting}
+              variant="danger"
+              size="medium"
+              className="agent__more-item"
+            >
+              {deleting ? t("deleting") : t("delete")}
+            </Button>
+          </div>
+        </Dialog>
+      )}
+
       <style href="agent-block" precedence="medium">{`
         .agent {
           background: var(--background);
-          border-radius: var(--space-4);
+          border-radius: var(--space-3);
           padding: var(--space-5);
           border: 1px solid var(--border);
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          transition: all 0.2s ease;
           cursor: pointer;
           position: relative;
           display: flex;
@@ -211,25 +275,67 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
         }
 
         .agent:hover {
-          transform: translateY(-2px);
-          border-color: var(--borderAccent, var(--primary));
-          box-shadow: 
-            0 4px 12px var(--shadowLight),
-            0 2px 4px var(--shadowMedium);
+          transform: translateY(-1px);
+          border-color: var(--primary);
+          box-shadow: 0 4px 12px var(--shadowLight);
         }
 
-        .agent:active {
-          transform: translateY(0);
+        /* 右上角操作按钮 - 去掉边框，增大尺寸 */
+        .agent__top-actions {
+          position: absolute;
+          top: var(--space-4);
+          right: var(--space-4);
+          display: flex;
+          gap: var(--space-1);
+          z-index: 10;
+        }
+
+        .agent__favorite,
+        .agent__more {
+          background: none;
+          border: none;
+          color: var(--textTertiary);
+          padding: var(--space-2);
+          border-radius: var(--space-2);
+          transition: all 0.2s ease;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 36px;
+          height: 36px;
+          opacity: 0.6;
+        }
+
+        .agent__favorite:hover {
+          color: var(--warning);
+          background: var(--backgroundHover);
+          opacity: 1;
+          transform: scale(1.1);
+        }
+
+        .agent__more:hover {
+          color: var(--textSecondary);
+          background: var(--backgroundHover);
+          opacity: 1;
+          transform: scale(1.1);
+        }
+
+        .agent__favorite--active {
+          color: var(--warning);
+          background: var(--backgroundHover);
+          opacity: 1;
+        }
+
+        .agent__favorite--active svg {
+          fill: currentColor;
         }
 
         .agent__header {
           display: flex;
           gap: var(--space-3);
           align-items: flex-start;
-        }
-
-        .agent__avatar {
-          flex-shrink: 0;
+          padding-right: var(--space-12); /* 减少右侧留白 */
         }
 
         .agent__info {
@@ -240,29 +346,12 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           gap: var(--space-2);
         }
 
-        .agent__title-row {
-          display: flex;
-          align-items: flex-start;
-        }
-
         .agent__title-link {
-          /* Reset Link/Button Styles */
-          background: none;
-          border: none;
-          padding: 0;
-          margin: 0;
-          font: inherit;
-          text-align: left;
-          color: inherit;
-          cursor: pointer;
-          text-decoration: none; /* 3. 确保移除a标签的下划线 */
-          
-          /* Layout */
           display: flex;
           align-items: center;
           gap: var(--space-2);
-          flex: 1;
-          min-width: 0;
+          text-decoration: none;
+          color: inherit;
         }
 
         .agent__title {
@@ -277,23 +366,15 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           transition: color 0.2s ease;
         }
 
-        .agent:hover .agent__title,
-        .agent__title-link:hover .agent__title {
+        .agent:hover .agent__title {
           color: var(--primary);
         }
 
         .agent__title-arrow {
-          background: none;
-          border: none;
           color: var(--textTertiary);
-          padding: var(--space-1);
-          border-radius: var(--space-1);
-          transition: all 0.2s ease;
           opacity: 0;
           transform: translateX(-4px);
-          flex-shrink: 0;
-          display: flex;
-          align-items: center;
+          transition: all 0.2s ease;
         }
 
         .agent:hover .agent__title-arrow {
@@ -308,8 +389,6 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           display: flex;
           align-items: center;
           gap: var(--space-1);
-          font-weight: 400;
-          align-self: flex-start;
         }
         
         .agent__price-unit {
@@ -338,12 +417,12 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           align-items: center;
           gap: 4px;
           color: var(--primary);
-          background: var(--primaryGhost, var(--focus));
+          background: var(--primaryGhost);
         }
 
-        .agent__more {
+        .agent__tag--more {
           color: var(--primary);
-          background: var(--primaryGhost, var(--focus));
+          background: var(--primaryGhost);
         }
 
         .agent__desc {
@@ -353,22 +432,16 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           color: var(--textSecondary);
           white-space: pre-wrap;
           overflow-y: auto;
-          max-height: 90px; /* Limit height (approx 4 lines) */
+          max-height: 90px;
           padding: var(--space-2) var(--space-3);
           background: var(--backgroundSecondary);
           border-radius: var(--space-2);
-          scrollbar-width: thin;
-          scrollbar-color: var(--border) transparent;
         }
         
         .agent__desc::-webkit-scrollbar {
           width: 4px;
         }
         
-        .agent__desc::-webkit-scrollbar-track {
-          background: transparent;
-        }
-
         .agent__desc::-webkit-scrollbar-thumb {
           background-color: var(--border);
           border-radius: 4px;
@@ -376,7 +449,6 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
 
         .agent__actions {
           display: flex;
-          gap: var(--space-2);
           margin-top: auto;
         }
 
@@ -384,9 +456,15 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           flex: 1;
         }
 
-        .agent__secondary {
+        .agent__more-menu {
           display: flex;
-          gap: var(--space-1);
+          flex-direction: column;
+          gap: var(--space-2);
+          padding: var(--space-4);
+        }
+
+        .agent__more-item {
+          justify-content: flex-start;
         }
 
         .agent-exit {
@@ -395,44 +473,46 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           transition: all 0.25s ease;
         }
 
-        /* Responsive Design */
+        /* 移动端 */
         @media (max-width: 768px) {
           .agent {
             padding: var(--space-4);
-            gap: var(--space-3);
           }
+          
+          .agent__top-actions {
+            top: var(--space-3);
+            right: var(--space-3);
+          }
+          
+          .agent__header {
+            padding-right: var(--space-10);
+          }
+          
+          .agent__favorite,
+          .agent__more {
+            width: 32px;
+            height: 32px;
+          }
+          
           .agent__title-arrow {
             opacity: 1;
             transform: none;
-            position: absolute;
-            top: var(--space-2);
-            right: var(--space-2);
           }
-           .agent__title-link {
-            position: static;
-          }
-        }
-        
-        @media (hover: none) and (pointer: coarse) {
-          .agent:hover {
-            transform: none;
-          }
-          .agent__title-arrow {
+          
+          .agent__favorite,
+          .agent__more {
             opacity: 1;
-            transform: none;
-          }
-          .agent:active {
-            transform: scale(0.98);
-            background: var(--backgroundHover);
           }
         }
 
         @media (prefers-reduced-motion: reduce) {
           .agent,
           .agent__title-arrow,
-          .agent-exit {
+          .agent__favorite,
+          .agent__more {
             transition: none;
           }
+          
           .agent:hover {
             transform: none;
           }

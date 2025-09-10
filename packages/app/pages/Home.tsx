@@ -80,7 +80,7 @@ const EmptyPlaceholder = ({ message }: { message: string }) => (
 
 const CybotList = ({
   queryUserId,
-  limit = 6,
+  limit = 9,
 }: {
   queryUserId: string | null;
   limit?: number;
@@ -224,7 +224,7 @@ const Home = () => {
       id: "communityAI",
       label: "AI 广场",
       icon: <LuGlobe size={20} />,
-      component: <PubCybots limit={6} />,
+      component: <PubCybots limit={9} />,
     },
   ];
 
