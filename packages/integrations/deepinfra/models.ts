@@ -88,4 +88,15 @@ export const deepinfraModels: Model[] = [
     maxOutputTokens: 8192, // 若官方给出更大上限，可自行替换
     contextWindow: 1_000_000, // 1 M 上下文窗口
   },
+
+  {
+    // Qwen – Qwen3-Next-80B-A3B-Instruct（价格已乘以 10）
+    name: "Qwen/Qwen3-Next-80B-A3B-Instruct",
+    displayName: "Qwen3-Next-80B-A3B-Instruct",
+    hasVision: false,
+    // 原价 $0.14 / $1.40 per M token，乘以 10 后 → $1.40 / $14.00 per M token
+    price: { input: 0.14 * 10, output: 1.4 * 10 }, // $1.40 / $14.00 per M token
+    maxOutputTokens: 8192,
+    contextWindow: 131072, // 假设与多数 Qwen3 模型一致，如无官方数据可调整
+  },
 ];
