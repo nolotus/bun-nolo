@@ -1,7 +1,3 @@
-// hooks/useMessageInteraction.ts
-
-import { useState, useCallback, useEffect } from "react";
-
 // utils/deviceUtils.ts
 
 /**
@@ -23,8 +19,11 @@ export const triggerHapticFeedback = (duration = 50) => {
 /**
  * 检查是否点击了交互元素
  */
-export const isInteractiveElement = (target: Element) => {
-  return (
+export const isInteractiveElement = (
+  target: Element
+): boolean | "text-content" => {
+  // 原有交互元素检测
+  const isOriginalInteractive =
     target.closest(".actions") ||
     target.closest(".actions-overlay") ||
     target.closest("button") ||
@@ -33,9 +32,35 @@ export const isInteractiveElement = (target: Element) => {
     target.closest("a") ||
     target.closest("input") ||
     target.closest("textarea") ||
-    target.closest("[contenteditable]")
-  );
+    target.closest("[contenteditable]");
+
+  if (isOriginalInteractive) return true;
+
+  // 新增：检测文本内容区域（需要特殊处理的文本）
+  const isTextContent =
+    target.closest(".message-text") ||
+    target.closest(".simple-text") ||
+    target.closest(".thinking-editor") ||
+    target.matches(".message-text") ||
+    target.matches(".simple-text") ||
+    target.matches(".thinking-editor");
+
+  // 如果是文本区域，返回特殊标识 - 让hook知道需要特殊处理
+  if (isTextContent) {
+    return "text-content"; // 特殊返回值，而不是true/false
+  }
+
+  return false;
 };
+// hooks/useMessageInteraction.ts
+
+import { useState, useCallback, useEffect } from "react";
+import {
+  isTouchDevice,
+  triggerHapticFeedback,
+  isInteractiveElement,
+} from "utils/deviceUtils";
+
 interface UseMessageInteractionProps {
   messageId?: string;
   onToggleActions: () => void;
@@ -69,11 +94,30 @@ export const useMessageInteraction = ({
     [isTouch, onToggleActions]
   );
 
-  // 移动端长按开始
+  // 移动端长按开始（修改：支持文本区域长按）
   const handleTouchStart = useCallback(
     (e: React.TouchEvent) => {
       if (!isTouch) return;
-      if (isInteractiveElement(e.target as Element)) return;
+
+      const interactiveCheck = isInteractiveElement(e.target as Element);
+
+      // 如果是普通交互元素，跳过
+      if (interactiveCheck === true) return;
+
+      // 如果是文本内容，需要特殊处理
+      if (interactiveCheck === "text-content") {
+        // 阻止文本选择的默认行为，但允许我们的长按逻辑
+        e.preventDefault();
+
+        // 临时禁用文本选择（在长按期间）
+        const textElement = (e.target as Element).closest(
+          ".message-text, .simple-text, .thinking-editor"
+        );
+        if (textElement) {
+          (textElement as HTMLElement).style.userSelect = "none";
+          (textElement as HTMLElement).style.webkitUserSelect = "none";
+        }
+      }
 
       setIsDragging(false);
 
@@ -96,9 +140,19 @@ export const useMessageInteraction = ({
     clearLongPressTimer();
   }, [isTouch, clearLongPressTimer]);
 
-  // 移动端触摸结束
+  // 移动端触摸结束（修改：恢复文本选择）
   const handleTouchEnd = useCallback(() => {
     if (!isTouch) return;
+
+    // 恢复文本选择（清理所有可能被禁用的文本元素）
+    const textElements = document.querySelectorAll(
+      ".message-text, .simple-text, .thinking-editor"
+    );
+    textElements.forEach((el) => {
+      (el as HTMLElement).style.userSelect = "";
+      (el as HTMLElement).style.webkitUserSelect = "";
+    });
+
     clearLongPressTimer();
     setTimeout(() => setIsDragging(false), 100);
   }, [isTouch, clearLongPressTimer]);
