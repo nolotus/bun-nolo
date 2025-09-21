@@ -1,4 +1,6 @@
-// utils/deviceUtils.ts
+// hooks/useMessageInteraction.ts
+
+import { useState, useCallback, useEffect } from "react";
 
 /**
  * 检测设备类型工具
@@ -52,14 +54,6 @@ export const isInteractiveElement = (
 
   return false;
 };
-// hooks/useMessageInteraction.ts
-
-import { useState, useCallback, useEffect } from "react";
-import {
-  isTouchDevice,
-  triggerHapticFeedback,
-  isInteractiveElement,
-} from "utils/deviceUtils";
 
 interface UseMessageInteractionProps {
   messageId?: string;
