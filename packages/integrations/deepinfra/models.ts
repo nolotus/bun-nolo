@@ -3,28 +3,6 @@ import { Model } from "ai/llm/types";
 
 export const deepinfraModels: Model[] = [
   {
-    // DeepSeek R1 – 价格已乘以 10（每 M token）
-    name: "deepseek-ai/DeepSeek-R1-0528",
-    displayName: "DeepSeek R1 0528",
-    hasVision: false,
-    // 输入 $0.5 / M token，输出 $2.18 * 10 / M token
-    price: { input: 0.5, output: 2.18 * 10 },
-    maxOutputTokens: 163840,
-    contextWindow: 131072,
-    supportsReasoningEffort: true,
-  },
-  {
-    // DeepSeek V3 – 价格同样乘以 10（每 M token）
-    name: "deepseek-ai/DeepSeek-V3-0324",
-    displayName: "DeepSeek V3 0324",
-    hasVision: false,
-    // 输入 $0.3 * 10 / M token，输出 $0.88 * 10 / M token
-    price: { input: 0.3 * 10, output: 0.88 * 10 },
-    maxOutputTokens: 163880,
-    contextWindow: 131072,
-  },
-
-  {
     // OpenAI GPT‑OSS 120B – 原价 $0.09 / $0.45 per M token，已统一乘以 10
     name: "openai/gpt-oss-120b",
     displayName: "OpenAI GPT‑OSS 120B",
@@ -98,5 +76,16 @@ export const deepinfraModels: Model[] = [
     price: { input: 0.14 * 10, output: 1.4 * 10 }, // $1.40 / $14.00 per M token
     maxOutputTokens: 8192,
     contextWindow: 131072, // 假设与多数 Qwen3 模型一致，如无官方数据可调整
+  },
+
+  {
+    // DeepSeek V3.1 Terminus – 价格已乘以 10（每 M token）
+    name: "deepseek-ai/DeepSeek-V3.1-Terminus",
+    displayName: "DeepSeek V3.1 Terminus",
+    hasVision: false,
+    // 原价 $0.216 (cached input) / $0.27 (input) / $1.00 (output) per M token，乘以 10 后（使用 normal input）
+    price: { input: 0.27 * 10, output: 1.0 * 10 }, // $2.70 / $10.00 per M token
+    maxOutputTokens: 163840,
+    contextWindow: 163840,
   },
 ];
