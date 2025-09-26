@@ -1,48 +1,45 @@
-// ai/cybot/web/PubCybots.tsx
+// ai/cybot/web/PubCybots.tsx - 针对 MainLayout 优化
 
 import { memo } from "react";
 import { SyncIcon } from "@primer/octicons-react";
-import { useAppSelector } from "app/store";
-import { selectTheme } from "app/settings/settingSlice";
 import { usePubCybots } from "ai/llm/hooks/usePubCybots";
 import AgentBlock from "ai/agent/web/AgentBlock";
 import toast from "react-hot-toast";
 
 interface PubCybotsProps {
   limit?: number;
-  showEmpty?: boolean; // 是否显示空状态
+  showEmpty?: boolean;
 }
 
 const LoadingState = memo(() => {
-  const theme = useAppSelector(selectTheme);
-
   return (
     <div className="loading-container">
-      <SyncIcon className="icon-spin" size={16} />
-      <span>加载AI列表中...</span>
-      <style jsx>{`
+      <SyncIcon className="loading-icon" size={24} />
+      <span className="loading-text">发现更多AI助手中...</span>
+      <style href="pub-cybots-loading" precedence="default">{`
         .loading-container {
-          text-align: center;
-          padding: 1.5rem;
-          color: ${theme.textSecondary};
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 0.5rem;
-          font-size: 0.9rem;
+          gap: var(--space-4);
+          padding: var(--space-20) var(--space-6);
+          color: var(--textSecondary);
+          font-size: 1rem;
+          font-weight: 400;
         }
 
-        :global(.icon-spin) {
-          animation: spin 1s linear infinite;
+        :global(.loading-icon) {
+          color: var(--primary);
+          animation: spin 1.2s linear infinite;
+        }
+
+        .loading-text {
+          letter-spacing: 0.01em;
         }
 
         @keyframes spin {
-          from {
-            transform: rotate(0deg);
-          }
-          to {
-            transform: rotate(360deg);
-          }
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
         }
       `}</style>
     </div>
@@ -52,17 +49,48 @@ const LoadingState = memo(() => {
 LoadingState.displayName = "LoadingState";
 
 const EmptyState = memo(() => {
-  const theme = useAppSelector(selectTheme);
-
   return (
     <div className="empty-state">
-      暂无公开的AI助手
-      <style jsx>{`
+      <div className="empty-content">
+        <div className="empty-icon">🤖</div>
+        <div className="empty-title">暂无公开的AI助手</div>
+        <div className="empty-description">
+          稍后再来看看，或许会有新的AI助手加入
+        </div>
+      </div>
+      <style href="pub-cybots-empty" precedence="default">{`
         .empty-state {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: var(--space-24) var(--space-6);
+          min-height: 300px;
+        }
+
+        .empty-content {
           text-align: center;
-          padding: 1.5rem;
-          color: ${theme.textSecondary};
+          max-width: 320px;
+        }
+
+        .empty-icon {
+          font-size: 4rem;
+          margin-bottom: var(--space-5);
+          opacity: 0.6;
+        }
+
+        .empty-title {
+          color: var(--textSecondary);
+          font-size: 1.125rem;
+          font-weight: 500;
+          margin-bottom: var(--space-3);
+          letter-spacing: -0.01em;
+        }
+
+        .empty-description {
+          color: var(--textTertiary);
           font-size: 0.9rem;
+          line-height: 1.6;
+          font-weight: 400;
         }
       `}</style>
     </div>
@@ -78,11 +106,10 @@ const PubCybots = memo(({ limit = 20, showEmpty = true }: PubCybotsProps) => {
   });
 
   if (error) {
-    toast.error("加载AI列表失败");
+    toast.error("加载AI列表失败，请稍后重试");
     return null;
   }
 
-  // 只在完全没有数据时显示加载状态
   if (loading && !data.length) {
     return <LoadingState />;
   }
@@ -92,33 +119,92 @@ const PubCybots = memo(({ limit = 20, showEmpty = true }: PubCybotsProps) => {
   }
 
   return (
-    <>
-      <div className={`cybots-grid `}>
+    <div className="cybots-container">
+      <div className="cybots-grid">
         {data.map((item) => (
           <AgentBlock key={item.id} item={item} />
         ))}
       </div>
-      <style>{`
+      {loading && data.length > 0 && (
+        <div className="loading-more">
+          <SyncIcon className="loading-more-icon" size={16} />
+          <span>加载更多中...</span>
+        </div>
+      )}
+      <style href="pub-cybots-grid" precedence="default">{`
+        .cybots-container {
+          width: 100%;
+        }
+
         .cybots-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-          gap: 1.5rem;
-          padding: 0.5rem;
+          grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+          gap: var(--space-6);
+          padding: var(--space-2);
+        }
+
+        .loading-more {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: var(--space-3);
+          padding: var(--space-8);
+          color: var(--textTertiary);
+          font-size: 0.9rem;
+          margin-top: var(--space-6);
+          border-top: 1px solid var(--borderLight);
+        }
+
+        :global(.loading-more-icon) {
+          animation: spin 1s linear infinite;
+          color: var(--primary);
+        }
+
+        /* 针对 MainLayout 的响应式优化 */
+        @media (max-width: 1400px) {
+          .cybots-grid {
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+          }
+        }
+
+        @media (max-width: 1200px) {
+          .cybots-grid {
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: var(--space-5);
+          }
         }
 
         @media (max-width: 768px) {
+          .cybots-grid {
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: var(--space-4);
+            padding: 0;
+          }
+          
+          .loading-more {
+            padding: var(--space-6);
+          }
+        }
+
+        @media (max-width: 600px) {
           .cybots-grid {
             grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
           }
         }
 
-        @media (max-width: 480px) {
+        @media (max-width: 520px) {
           .cybots-grid {
             grid-template-columns: 1fr;
+            gap: var(--space-4);
           }
         }
+
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
       `}</style>
-    </>
+    </div>
   );
 });
 
