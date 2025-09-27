@@ -4,7 +4,7 @@ import React, { useState, useCallback, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { useAppDispatch } from "app/store";
+import { useAppDispatch, useAppSelector } from "app/store";
 import { createPage } from "render/page/pageSlice";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
 import { zIndex } from "render/styles/zIndex";
@@ -17,6 +17,8 @@ import {
 
 import { Dialog } from "render/web/ui/Dialog";
 import { CreateSpaceForm } from "create/space/CreateSpaceForm";
+import { selectCurrentDialogConfig } from "chat/dialog/dialogSlice";
+import { noloAgentId } from "core/init";
 
 // Hook to detect clicks outside a component
 const useClickOutside = (
@@ -60,9 +62,8 @@ const useCreatePage = () => {
   return { isCreatingPage: isCreating, createNewPage };
 };
 
-const CreateMenuButton: React.FC<{
-  currentDialogConfig?: { cybots: string[] };
-}> = ({ currentDialogConfig }) => {
+const CreateMenuButton: React.FC = () => {
+  const currentDialog = useAppSelector(selectCurrentDialogConfig);
   const { t } = useTranslation(["common", "space", "chat"]);
 
   // State for click-to-pin and hover-to-show
@@ -156,24 +157,24 @@ const CreateMenuButton: React.FC<{
           <>
             <div className="create-menu__overlay" onClick={closeMenu} />
             <div className="create-menu__dropdown">
-              {currentDialogConfig && (
-                <button
-                  className="create-menu__item"
-                  onClick={createAndClose(() => {
-                    if (currentDialogConfig.cybots) {
-                      createNewDialog({ agents: currentDialogConfig.cybots });
-                    }
-                  })}
-                  disabled={isCreatingDialog}
-                >
-                  {isCreatingDialog ? (
-                    <div className="spinner" />
-                  ) : (
-                    <LuMessageSquare size={16} />
-                  )}
-                  <span>{t("chat:newchat", "新建对话")}</span>
-                </button>
-              )}
+              <button
+                className="create-menu__item"
+                onClick={createAndClose(() => {
+                  if (currentDialog?.cybots) {
+                    createNewDialog({ agents: currentDialog.cybots });
+                  } else {
+                    createNewDialog({ agents: [noloAgentId] });
+                  }
+                })}
+                disabled={isCreatingDialog}
+              >
+                {isCreatingDialog ? (
+                  <div className="spinner" />
+                ) : (
+                  <LuMessageSquare size={16} />
+                )}
+                <span>{t("chat:newchat", "新建对话")}</span>
+              </button>
               <button
                 className="create-menu__item"
                 onClick={handleCreatePageAndClose}
