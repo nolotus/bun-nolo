@@ -8,7 +8,6 @@ interface TooltipProps {
   delay?: number;
   hideDelay?: number;
   placement?: "top" | "bottom" | "left" | "right" | "top-left";
-  portalContainer?: HTMLElement;
 }
 
 export const Tooltip = ({
@@ -17,12 +16,20 @@ export const Tooltip = ({
   delay = 100,
   hideDelay = 100,
   placement = "top",
-  portalContainer = document.body,
 }: TooltipProps) => {
   const [isVisible, setIsVisible] = useState(false);
+  const [position, setPosition] = useState({ top: 0, left: 0 });
+
+  // 新增状态：确保只在客户端环境下才访问 document.body
+  const [isMounted, setIsMounted] = useState(false);
+
   const hideTimerRef = useRef<NodeJS.Timeout | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const [position, setPosition] = useState({ top: 0, left: 0 });
+
+  // 此 Effect 在组件挂载到客户端后运行一次
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const updatePosition = () => {
     if (wrapperRef.current) {
@@ -30,23 +37,28 @@ export const Tooltip = ({
       let top = 0;
       let left = 0;
 
-      if (placement === "top") {
-        top = rect.top + window.scrollY - 8;
-        left = rect.left + window.scrollX + rect.width / 2;
-      } else if (placement === "top-left") {
-        top = rect.top + window.scrollY - 8;
-        left = rect.right + window.scrollX - rect.width / 2;
-      } else if (placement === "bottom") {
-        top = rect.bottom + window.scrollY + 8;
-        left = rect.left + window.scrollX + rect.width / 2;
-      } else if (placement === "left") {
-        top = rect.top + window.scrollY + rect.height / 2;
-        left = rect.left + window.scrollX - 8;
-      } else if (placement === "right") {
-        top = rect.top + window.scrollY + rect.height / 2;
-        left = rect.right + window.scrollX + 8;
+      switch (placement) {
+        case "top":
+          top = rect.top + window.scrollY - 8;
+          left = rect.left + window.scrollX + rect.width / 2;
+          break;
+        case "top-left":
+          top = rect.top + window.scrollY - 8;
+          left = rect.right + window.scrollX - rect.width / 2;
+          break;
+        case "bottom":
+          top = rect.bottom + window.scrollY + 8;
+          left = rect.left + window.scrollX + rect.width / 2;
+          break;
+        case "left":
+          top = rect.top + window.scrollY + rect.height / 2;
+          left = rect.left + window.scrollX - 8;
+          break;
+        case "right":
+          top = rect.top + window.scrollY + rect.height / 2;
+          left = rect.right + window.scrollX + 8;
+          break;
       }
-
       setPosition({ top, left });
     }
   };
@@ -71,7 +83,6 @@ export const Tooltip = ({
       clearTimeout(hideTimerRef.current);
       hideTimerRef.current = null;
     }
-    setIsVisible(true);
   };
 
   const handleTooltipMouseLeave = () => {
@@ -90,15 +101,16 @@ export const Tooltip = ({
 
   useEffect(() => {
     if (isVisible) {
-      const handleUpdatePosition = () => updatePosition();
+      const handleUpdatePosition = () => requestAnimationFrame(updatePosition);
       window.addEventListener("resize", handleUpdatePosition);
-      window.addEventListener("scroll", handleUpdatePosition);
+      window.addEventListener("scroll", handleUpdatePosition, true);
       return () => {
         window.removeEventListener("resize", handleUpdatePosition);
-        window.removeEventListener("scroll", handleUpdatePosition);
+        window.removeEventListener("scroll", handleUpdatePosition, true);
       };
     }
-  }, [isVisible]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isVisible, placement]);
 
   const tooltipContent = isVisible ? (
     <div
@@ -119,7 +131,6 @@ export const Tooltip = ({
                 ? "translateY(-50%)"
                 : "translateX(-50%) translateY(-100%)",
         zIndex: 9999,
-        display: "block",
         ["--tooltip-delay" as string]: `${delay}ms`,
       }}
     >
@@ -136,7 +147,10 @@ export const Tooltip = ({
       onMouseLeave={handleMouseLeave}
     >
       {children}
-      {tooltipContent && createPortal(tooltipContent, portalContainer)}
+      {/* 仅在客户端挂载后才将 Tooltip 渲染到 document.body */}
+      {isMounted && tooltipContent
+        ? createPortal(tooltipContent, document.body)
+        : null}
       <style jsx>{`
         .tooltip-wrapper {
           position: relative;
@@ -161,13 +175,28 @@ export const Tooltip = ({
             transform 0.16s cubic-bezier(0.16, 1, 0.3, 1) var(--tooltip-delay);
           backdrop-filter: blur(12px) saturate(150%);
           border: 1px solid var(--border);
-          transform-origin: center bottom;
           will-change: opacity, visibility, transform;
         }
 
-        .tooltip-tip[style*="display: block"] {
+        .tooltip-tip[style*="top"] {
           opacity: 1;
           visibility: visible;
+        }
+
+        .tooltip-top {
+          transform-origin: center bottom;
+        }
+        .tooltip-top-left {
+          transform-origin: right bottom;
+        }
+        .tooltip-bottom {
+          transform-origin: center top;
+        }
+        .tooltip-left {
+          transform-origin: right center;
+        }
+        .tooltip-right {
+          transform-origin: left center;
         }
 
         .tooltip-content {
@@ -188,7 +217,6 @@ export const Tooltip = ({
           z-index: 0;
         }
 
-        /* Top placement arrows */
         .tooltip-top .tooltip-arrow,
         .tooltip-top-left .tooltip-arrow {
           bottom: -3.5px;
@@ -196,18 +224,14 @@ export const Tooltip = ({
           border-top: none;
           border-left: none;
         }
-
         .tooltip-top .tooltip-arrow {
           left: 50%;
           transform: translateX(-50%) rotate(45deg);
         }
-
         .tooltip-top-left .tooltip-arrow {
           right: 50%;
           transform: translateX(50%) rotate(45deg);
         }
-
-        /* Bottom placement arrow */
         .tooltip-bottom .tooltip-arrow {
           top: -3.5px;
           left: 50%;
@@ -215,8 +239,6 @@ export const Tooltip = ({
           border-bottom: none;
           border-right: none;
         }
-
-        /* Left placement arrow */
         .tooltip-left .tooltip-arrow {
           right: -3.5px;
           top: 50%;
@@ -224,8 +246,6 @@ export const Tooltip = ({
           border-left: none;
           border-bottom: none;
         }
-
-        /* Right placement arrow */
         .tooltip-right .tooltip-arrow {
           left: -3.5px;
           top: 50%;
@@ -234,30 +254,8 @@ export const Tooltip = ({
           border-top: none;
         }
 
-        /* Hover state enhancement */
         .tooltip-tip:hover {
           background: var(--backgroundTertiary);
-        }
-
-        /* Animation states for different placements */
-        .tooltip-top {
-          transform-origin: center bottom;
-        }
-
-        .tooltip-top-left {
-          transform-origin: right bottom;
-        }
-
-        .tooltip-bottom {
-          transform-origin: center top;
-        }
-
-        .tooltip-left {
-          transform-origin: right center;
-        }
-
-        .tooltip-right {
-          transform-origin: left center;
         }
       `}</style>
     </div>
