@@ -1,14 +1,5 @@
 export const openrouterModels = [
   {
-    name: "openai/o4-mini-high",
-    displayName: "OpenAI: o4 Mini High",
-    hasVision: false,
-    price: { input: 1.1 * 10, output: 4.4 * 10 },
-    maxOutputTokens: 128000,
-    contextWindow: 200000,
-    supportsTool: true,
-  },
-  {
     name: "anthropic/claude-opus-4",
     displayName: "Anthropic: Claude Opus 4",
     hasVision: true,
@@ -35,38 +26,6 @@ export const openrouterModels = [
   {
     name: "anthropic/claude-sonnet-4",
     displayName: "Anthropic: Claude Sonnet 4",
-    hasVision: true,
-    price: { input: 3 * 10, output: 15 * 10 },
-    maxOutputTokens: 200000,
-    contextWindow: 200000,
-    supportsTool: true,
-    pricePerImage: 4.8 * 8,
-  },
-  {
-    // 不要删除 - 客户特殊需要
-    name: "anthropic/claude-3.5-sonnet",
-    displayName: "Anthropic: Claude 3.5 Sonnet",
-    hasVision: true,
-    price: { input: 3 * 10, output: 15 * 10 },
-    maxOutputTokens: 200000,
-    contextWindow: 200000,
-    supportsTool: true,
-    pricePerImage: 4.8 * 8,
-  },
-  {
-    // 不要删除 - 客户特殊需要
-    name: "anthropic/claude-3.5-sonnet-20240620",
-    displayName: "Anthropic: Claude 3.5 Sonnet (2024-06-20)",
-    hasVision: true,
-    price: { input: 3 * 10, output: 15 * 10 },
-    maxOutputTokens: 200000,
-    contextWindow: 200000,
-    supportsTool: true,
-    pricePerImage: 4.8 * 8,
-  },
-  {
-    name: "anthropic/claude-3.7-sonnet:thinking",
-    displayName: "Anthropic: Claude 3.7 Sonnet",
     hasVision: true,
     price: { input: 3 * 10, output: 15 * 10 },
     maxOutputTokens: 200000,
