@@ -50,7 +50,7 @@ const fetchWithServerProxy = async ({
   signal,
 }: FetchParams): Promise<Response> => {
   try {
-    return await fetch(`${currentServer}${API_ENDPOINTS.CHAT}`, {
+    let response = await fetch(`${currentServer}${API_ENDPOINTS.CHAT}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -64,12 +64,32 @@ const fetchWithServerProxy = async ({
       }),
       signal, // 可选参数，直接传递
     });
+
+    // 如果状态码是503，重试一次
+    if (response.status === 503) {
+      console.warn("[fetchWithServerProxy] 检测到503状态，重试一次...");
+      response = await fetch(`${currentServer}${API_ENDPOINTS.CHAT}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          ...bodyData,
+          url: api,
+          provider: cybotConfig.provider,
+          KEY: cybotConfig.apiKey,
+        }),
+        signal,
+      });
+    }
+
+    return response;
   } catch (error: any) {
     console.error("[fetchWithServerProxy] 网络请求失败:", error);
     throw error; // 抛出错误，交给上层处理
   }
 };
-
 export const performFetchRequest = async (
   params: FetchParams
 ): Promise<Response> => {
