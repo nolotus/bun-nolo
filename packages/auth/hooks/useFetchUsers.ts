@@ -3,10 +3,8 @@ import { useCallback } from "react";
 import { useAppSelector } from "app/store";
 import { selectCurrentServer } from "app/settings/settingSlice";
 import { selectCurrentToken } from "auth/authSlice";
-import pino from "pino";
 import { authRoutes } from "auth/routes";
 
-const logger = pino({ name: "useFetchUsers" });
 const PAGE_SIZE = 10;
 
 interface User {
@@ -29,9 +27,8 @@ export function useFetchUsers() {
   const token = useAppSelector(selectCurrentToken);
 
   return useCallback(
-    async (page: number): Promise<FetchUsersResult | null> => {
+    async (page: number, search?: string): Promise<FetchUsersResult | null> => {
       if (!serverUrl || !token) {
-        logger.error("No server URL or token available");
         return null;
       }
 
@@ -39,15 +36,10 @@ export function useFetchUsers() {
       const url = new URL(`${serverUrl}${path}`);
       url.searchParams.append("page", page.toString());
       url.searchParams.append("pageSize", PAGE_SIZE.toString());
-
-      logger.debug(
-        {
-          requestUrl: url.toString(),
-          page,
-          pageSize: PAGE_SIZE,
-        },
-        "Fetching users"
-      );
+      if (search) {
+        // 新增：如果有搜索关键字，添加到 URL 参数
+        url.searchParams.append("search", search);
+      }
 
       try {
         const response = await fetch(url.toString(), {
@@ -59,36 +51,13 @@ export function useFetchUsers() {
 
         if (!response.ok) {
           const errorMessage = `HTTP error! status: ${response.status}`;
-          logger.error(
-            {
-              status: response.status,
-              error: errorMessage,
-            },
-            "Failed to fetch users"
-          );
           throw new Error(errorMessage);
         }
 
         const data = await response.json();
-        logger.info(
-          {
-            recordsReceived: data.list.length,
-            total: data.total,
-            page: data.currentPage,
-            totalPages: data.totalPages,
-          },
-          "Users fetched successfully"
-        );
 
         return data;
       } catch (err) {
-        logger.error(
-          {
-            error: err instanceof Error ? err.message : String(err),
-            page,
-          },
-          "Failed to fetch users"
-        );
         throw err;
       }
     },

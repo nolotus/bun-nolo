@@ -36,8 +36,13 @@ type ActionType = "delete" | "disable" | "enable";
 export default function UsersPage() {
   const navigate = useNavigate();
   const theme = useTheme();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams(); // 修改：支持 setSearchParams
   const currentServer = useAppSelector(selectCurrentServer);
+
+  // 搜索状态：本地输入值（用于输入框），从 URL 同步
+  const [searchInput, setSearchInput] = useState(
+    searchParams.get("search") || ""
+  );
 
   // 列表状态
   const [state, setState] = useState({
@@ -50,18 +55,21 @@ export default function UsersPage() {
   });
   const { users, loading, error, currentPage, total } = state;
 
-  // 获取用户列表
+  // 获取用户列表（修改：支持 search 参数）
   const fetchUsers = useFetchUsers();
   const handleFetch = useCallback(
-    async (page: number) => {
+    async (page: number, search?: string) => {
+      // 修改：添加 search 参数
       if (!currentServer) {
         logger.debug("No server selected, skipping fetch");
         return;
       }
-      logger.debug({ page }, "Fetching users");
+      logger.debug({ page, search }, "Fetching users");
       setState((prev) => ({ ...prev, loading: true, error: null }));
       try {
-        const data = await fetchUsers(page);
+        // 注意：这里假设 useFetchUsers 已修改支持 search 参数（如 url.searchParams.append("search", search || "")）
+        // 如果 hook 未更新，你需要在 hook 中添加 search 支持（见文末说明）
+        const data = await fetchUsers(page, search); // 修改：传递 search
         if (!data?.list) {
           logger.warn("No data returned from fetchUsers");
           setState((prev) => ({
@@ -100,9 +108,48 @@ export default function UsersPage() {
   useEffect(() => {
     if (currentServer) {
       const page = parseInt(searchParams.get("page") || "1", 10);
-      handleFetch(page);
+      const search = searchParams.get("search") || undefined;
+      handleFetch(page, search); // 修改：传递 search
     }
-  }, [currentServer, handleFetch, searchParams]);
+  }, [currentServer, handleFetch, searchParams]); // searchParams 变化会触发
+
+  // 搜索提交：更新 URL，重置到第1页
+  const handleSearchSubmit = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      const trimmedSearch = searchInput.trim();
+      setSearchParams(
+        (prev) => {
+          const newParams = new URLSearchParams(prev);
+          if (trimmedSearch) {
+            newParams.set("search", trimmedSearch);
+          } else {
+            newParams.delete("search");
+          }
+          newParams.set("page", "1"); // 重置到第1页
+          return newParams;
+        },
+        { replace: true } // 不添加历史记录
+      );
+      setSearchInput(trimmedSearch); // 更新本地输入
+      logger.debug({ search: trimmedSearch }, "Search submitted");
+    },
+    [searchInput, setSearchParams]
+  );
+
+  // 清空搜索
+  const handleClearSearch = useCallback(() => {
+    setSearchInput("");
+    setSearchParams(
+      (prev) => {
+        const newParams = new URLSearchParams(prev);
+        newParams.delete("search");
+        newParams.set("page", "1");
+        return newParams;
+      },
+      { replace: true }
+    );
+  }, [setSearchParams]);
 
   // 统一确认模态框状态
   const [confirmModal, setConfirmModal] = useState<{
@@ -113,8 +160,9 @@ export default function UsersPage() {
 
   // 操作成功后刷新
   const handleActionSuccess = useCallback(() => {
-    handleFetch(currentPage);
-  }, [currentPage, handleFetch]);
+    const search = searchParams.get("search") || undefined;
+    handleFetch(currentPage, search); // 修改：保持搜索条件
+  }, [currentPage, handleFetch, searchParams]);
 
   // 钩子：删除/停用/启用
   const deleteUser = useDeleteUser(handleActionSuccess);
@@ -154,7 +202,10 @@ export default function UsersPage() {
     userId: "",
     username: "",
   });
-  const rechargeUser = useRechargeUser(() => handleFetch(currentPage));
+  const rechargeUser = useRechargeUser(() => {
+    const search = searchParams.get("search") || undefined; // 修改：保持搜索
+    handleFetch(currentPage, search);
+  });
   const handleRechargeClick = useCallback((user: User) => {
     setRechargeModal({
       isOpen: true,
@@ -182,9 +233,16 @@ export default function UsersPage() {
   const handlePageChange = useCallback(
     (newPage: number) => {
       logger.debug({ from: currentPage, to: newPage }, "Page change requested");
-      navigate(`?page=${newPage}`);
+      setSearchParams(
+        (prev) => {
+          const newParams = new URLSearchParams(prev);
+          newParams.set("page", newPage.toString());
+          return newParams;
+        },
+        { replace: true }
+      );
     },
-    [navigate, currentPage]
+    [setSearchParams, currentPage]
   );
 
   // 时间格式化
@@ -213,6 +271,37 @@ export default function UsersPage() {
     <div className="users-page">
       <header className="page-header">
         <h1 className="page-title">用户列表</h1>
+        {/* 新增：搜索框区域 */}
+        <form onSubmit={handleSearchSubmit} className="search-form">
+          <div className="search-input-wrapper">
+            <input
+              type="text"
+              placeholder="搜索用户名、ID 或邮箱..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="search-input"
+            />
+            <Button
+              type="submit"
+              variant="primary"
+              size="small"
+              className="search-button"
+            >
+              搜索
+            </Button>
+            {searchInput && (
+              <Button
+                type="button"
+                onClick={handleClearSearch}
+                variant="secondary"
+                size="small"
+                className="clear-button"
+              >
+                清空
+              </Button>
+            )}
+          </div>
+        </form>
         <div className="header-actions">{/* 预留后续可能的功能按钮 */}</div>
       </header>
 
@@ -220,7 +309,10 @@ export default function UsersPage() {
         <div className="error-container">
           <span className="error-message">{error}</span>
           <Button
-            onClick={() => handleFetch(currentPage)}
+            onClick={() => {
+              const search = searchParams.get("search") || undefined;
+              handleFetch(currentPage, search);
+            }}
             variant="secondary"
             size="small"
           >
@@ -344,7 +436,11 @@ export default function UsersPage() {
         </>
       ) : (
         <div className="empty-container">
-          <div className="empty-content">暂无用户数据</div>
+          <div className="empty-content">
+            {searchInput
+              ? `未找到与「${searchInput}」匹配的用户`
+              : "暂无用户数据"}
+          </div>
         </div>
       )}
 
@@ -396,6 +492,8 @@ export default function UsersPage() {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
   }
 
   .page-title {
@@ -403,6 +501,43 @@ export default function UsersPage() {
     font-weight: 600;
     color: var(--text); /* 替换 theme.text */
     margin: 0;
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .search-form {
+    display: flex;
+    flex: 1;
+    max-width: 400px;
+    min-width: 200px;
+  }
+
+  .search-input-wrapper {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+    align-items: center;
+  }
+
+  .search-input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid var(--border); /* 替换 theme.border */
+    border-radius: 6px;
+    background: var(--background); /* 替换 theme.background */
+    color: var(--text); /* 替换 theme.text */
+    font-size: 14px;
+    outline: none;
+  }
+
+  .search-input:focus {
+    border-color: var(--primary); /* 替换 theme.primary */
+    box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.1); /* 假设有 primary-rgb */
+  }
+
+  .search-button, .clear-button {
+    white-space: nowrap;
+    min-width: 60px;
   }
 
   .header-actions {
@@ -490,6 +625,21 @@ export default function UsersPage() {
       font-size: 20px;
     }
 
+    .page-header {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .search-form {
+      max-width: none;
+      order: 3;
+    }
+
+    .header-actions {
+      order: 2;
+      justify-content: center;
+    }
+
     .table-container {
       margin: 0 -16px;
       border-left: none;
@@ -504,6 +654,15 @@ export default function UsersPage() {
 
     .total-info {
       text-align: center;
+    }
+
+    .search-input-wrapper {
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .search-input {
+      width: 100%;
     }
   }
 `}</style>
