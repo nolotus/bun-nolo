@@ -41,7 +41,6 @@ const ToggleSwitch = forwardRef<HTMLInputElement, ToggleSwitchProps>(
     },
     ref
   ) => {
-    const theme = useTheme();
     const [isChecked, setIsChecked] = useState<boolean>(
       value ?? defaultChecked
     );
@@ -150,22 +149,20 @@ const LoadingSpinner = () => (
 );
 
 const ToggleSwitchStyles = () => {
-  const theme = useTheme();
-
   return (
     <style href="toggle-switch" precedence="medium">{`
       .toggle-container {
         display: flex;
         flex-direction: column;
-        gap: ${theme.space[1]};
+        gap: var(--space-1);
         width: fit-content;
       }
 
       .toggle-label {
         font-size: 0.875rem;
         font-weight: 550;
-        color: ${theme.text};
-        margin-bottom: ${theme.space[1]};
+        color: var(--text);
+        margin-bottom: var(--space-1);
         letter-spacing: -0.01em;
         line-height: 1.4;
         cursor: pointer;
@@ -173,7 +170,7 @@ const ToggleSwitchStyles = () => {
       }
 
       .toggle-label.error {
-        color: ${theme.error};
+        color: var(--error);
       }
 
       .toggle-wrapper {
@@ -197,10 +194,10 @@ const ToggleSwitchStyles = () => {
         display: inline-block;
         position: relative;
         border-radius: 100px;
-        border: 1px solid ${theme.border};
-        background: ${theme.backgroundSecondary};
+        border: 1px solid var(--border);
+        background: var(--backgroundSecondary);
         box-shadow: 
-          0 1px 3px ${theme.shadow1},
+          0 1px 3px var(--shadowLight),
           inset 0 1px 0 rgba(255, 255, 255, 0.1);
       }
 
@@ -222,37 +219,37 @@ const ToggleSwitchStyles = () => {
 
       /* 激活状态 */
       .toggle-switch.checked {
-        background: ${theme.primary};
-        border-color: ${theme.primary};
+        background: var(--primary);
+        border-color: var(--primary);
         box-shadow: 
-          0 2px 8px ${theme.primary}30,
-          0 1px 3px ${theme.shadow1},
+          0 2px 8px rgba(22, 119, 255, 0.3),
+          0 1px 3px var(--shadowLight),
           inset 0 1px 0 rgba(255, 255, 255, 0.2);
       }
 
       /* 错误状态 */
       .toggle-switch.error {
-        border-color: ${theme.error};
-        background: ${theme.error}10;
+        border-color: var(--error);
+        background: rgba(239, 68, 68, 0.1);
       }
 
       .toggle-switch.error.checked {
-        background: ${theme.error};
-        border-color: ${theme.error};
+        background: var(--error);
+        border-color: var(--error);
       }
 
       /* 悬浮效果 */
       .toggle-wrapper:hover:not(.disabled):not(.loading) .toggle-switch {
-        border-color: ${theme.primary}40;
+        border-color: rgba(22, 119, 255, 0.4);
         box-shadow: 
-          0 2px 6px ${theme.shadow1},
+          0 2px 6px var(--shadowLight),
           inset 0 1px 0 rgba(255, 255, 255, 0.15);
       }
 
       .toggle-wrapper:hover:not(.disabled):not(.loading) .toggle-switch.checked {
         box-shadow: 
-          0 4px 12px ${theme.primary}40,
-          0 2px 6px ${theme.shadow2},
+          0 4px 12px rgba(22, 119, 255, 0.4),
+          0 2px 6px var(--shadowMedium),
           inset 0 1px 0 rgba(255, 255, 255, 0.25);
       }
 
@@ -266,7 +263,7 @@ const ToggleSwitchStyles = () => {
         top: 0;
         left: 0;
         border-radius: inherit;
-        background: linear-gradient(135deg, ${theme.primary}08 0%, transparent 50%);
+        background: linear-gradient(135deg, rgba(22, 119, 255, 0.08) 0%, transparent 50%);
         opacity: 0;
         transition: opacity 0.3s ease;
       }
@@ -282,7 +279,7 @@ const ToggleSwitchStyles = () => {
         top: 50%;
         transform: translateY(-50%);
         border-radius: 50%;
-        background: ${theme.background};
+        background: var(--background);
         transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         box-shadow: 
           0 1px 3px rgba(0, 0, 0, 0.15),
@@ -341,7 +338,7 @@ const ToggleSwitchStyles = () => {
         display: flex;
         align-items: center;
         justify-content: center;
-        color: ${theme.textSecondary};
+        color: var(--textSecondary);
       }
 
       .toggle-switch.checked .toggle-loading {
@@ -373,25 +370,25 @@ const ToggleSwitchStyles = () => {
       /* 焦点状态 */
       .toggle-input:focus-visible + .toggle-switch {
         box-shadow: 
-          0 0 0 2px ${theme.background},
-          0 0 0 4px ${theme.primary},
-          0 1px 3px ${theme.shadow1};
+          0 0 0 2px var(--background),
+          0 0 0 4px var(--primary),
+          0 1px 3px var(--shadowLight);
       }
 
       /* 帮助文本 */
       .toggle-helper {
         font-size: 0.8125rem;
         line-height: 1.4;
-        margin-top: ${theme.space[1]};
+        margin-top: var(--space-1);
         letter-spacing: -0.01em;
       }
 
       .toggle-helper.error {
-        color: ${theme.error};
+        color: var(--error);
       }
 
       .toggle-helper.normal {
-        color: ${theme.textTertiary};
+        color: var(--textTertiary);
       }
 
       /* 响应式设计 */
@@ -418,7 +415,7 @@ const ToggleSwitchStyles = () => {
         }
         
         .toggle-handle {
-          border: 1px solid ${theme.border};
+          border: 1px solid var(--border);
         }
       }
 
@@ -443,15 +440,15 @@ const ToggleSwitchStyles = () => {
       @media (hover: none) and (pointer: coarse) {
         .toggle-wrapper {
           /* 增大触摸区域 */
-          padding: ${theme.space[1]};
-          margin: -${theme.space[1]};
+          padding: var(--space-1);
+          margin: calc(-1 * var(--space-1));
         }
         
         .toggle-wrapper:hover:not(.disabled):not(.loading) .toggle-switch {
           /* 移除悬浮效果 */
-          border-color: ${theme.border};
+          border-color: var(--border);
           box-shadow: 
-            0 1px 3px ${theme.shadow1},
+            0 1px 3px var(--shadowLight),
             inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
       }

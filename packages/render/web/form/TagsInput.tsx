@@ -1,13 +1,11 @@
-// features/web/form/TagsInput.tsx (或您的实际路径)
+// features/web/form/TagsInput.tsx
 
 import React, { useState, forwardRef } from "react";
 import { useTranslation } from "react-i18next";
 import { XIcon } from "@primer/octicons-react";
-import { useTheme } from "app/theme";
 
-// 1. [重构] 简化 Props 接口，使其成为标准受控组件
 interface TagsInputProps {
-  value?: string; // 值现在是可选的字符串
+  value?: string;
   onChange: (newValue: string) => void;
   error?: { message?: string };
   placeholder?: string;
@@ -27,7 +25,7 @@ interface TagsInputProps {
 export const TagsInput = forwardRef<HTMLInputElement, TagsInputProps>(
   (
     {
-      value = "", // 提供默认空字符串，避免 undefined
+      value = "",
       onChange,
       error,
       placeholder,
@@ -46,15 +44,10 @@ export const TagsInput = forwardRef<HTMLInputElement, TagsInputProps>(
     ref
   ) => {
     const { t } = useTranslation("ai");
-    const theme = useTheme();
 
-    // 2. [移除] useController 已被移除
-
-    // 内部状态保持不变
     const [inputValue, setInputValue] = useState("");
     const [isFocused, setIsFocused] = useState(false);
 
-    // 逻辑保持不变，现在使用 props 传入的 value
     const tagsArray = String(value)
       .split(",")
       .map((tag) => tag.trim())
@@ -64,7 +57,6 @@ export const TagsInput = forwardRef<HTMLInputElement, TagsInputProps>(
       id || `tags-input-${Math.random().toString(36).substr(2, 9)}`;
     const helperTextId = helperText || error ? `${inputId}-helper` : undefined;
 
-    // 内部函数逻辑（addTag, removeTag等）保持不变，因为它们已正确调用 onChange
     const addTag = (tagToAdd: string) => {
       const trimmedTag = tagToAdd.trim();
       if (
@@ -114,169 +106,7 @@ export const TagsInput = forwardRef<HTMLInputElement, TagsInputProps>(
 
     return (
       <>
-        <style href="tags-input" precedence="medium">{`
-          /* 样式保持不变，这里省略以保持简洁 */
-  .ti-container {
-          display: flex;
-          flex-direction: column;
-          gap: ${theme.space[1]};
-          width: 100%;
-        }
-
-        .ti-label {
-          font-size: 0.875rem;
-          font-weight: 550;
-          color: ${theme.text};
-          letter-spacing: -0.01em;
-          line-height: 1.4;
-        }
-        .ti-label.error { color: ${theme.error}; }
-
-        .ti-wrapper {
-          display: flex;
-          flex-wrap: wrap;
-          align-items: center;
-          gap: ${theme.space[1]};
-          border: 1px solid ${theme.border};
-          border-radius: ${theme.space[3]};
-          background: ${theme.background};
-          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-          position: relative;
-          box-shadow: 0 1px 3px ${theme.shadow1};
-        }
-
-        /* 尺寸变体 */
-        .ti-wrapper.small { min-height: 36px; padding: ${theme.space[1]} ${theme.space[3]}; border-radius: ${theme.space[2]}; }
-        .ti-wrapper.medium { min-height: 42px; padding: ${theme.space[2]} ${theme.space[4]}; }
-        .ti-wrapper.large { min-height: 48px; padding: ${theme.space[2]} ${theme.space[5]}; border-radius: ${theme.space[4]}; }
-
-        /* 样式变体 */
-        .ti-wrapper.filled { background: ${theme.backgroundSecondary}; border-color: ${theme.borderLight}; }
-        .ti-wrapper.ghost { background: transparent; border-color: ${theme.borderLight}; box-shadow: none; }
-
-        /* 状态 */
-        .ti-wrapper.focused {
-          border-color: ${theme.primary};
-          box-shadow: 0 0 0 3px ${theme.primary}20, 0 2px 8px ${theme.shadow2};
-          transform: translateY(-1px);
-        }
-        .ti-wrapper.error { border-color: ${theme.error}; box-shadow: 0 1px 3px ${theme.error}20; }
-        .ti-wrapper.error.focused { box-shadow: 0 0 0 3px ${theme.error}20, 0 2px 8px ${theme.error}15; }
-        .ti-wrapper.disabled { background: ${theme.backgroundTertiary}; opacity: 0.6; cursor: not-allowed; box-shadow: none; }
-        .ti-wrapper:hover:not(.disabled):not(.focused) { border-color: ${theme.primary}40; box-shadow: 0 2px 6px ${theme.shadow1}; }
-
-        /* 标签 */
-        .ti-tag {
-          display: flex;
-          align-items: center;
-          background: linear-gradient(135deg, ${theme.primary}12 0%, ${theme.primary}08 100%);
-          color: ${theme.primary};
-          border: 1px solid ${theme.primary}20;
-          border-radius: ${theme.space[2]};
-          font-weight: 520;
-          line-height: 1.4;
-          max-width: 200px;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .ti-tag.small { padding: 3px ${theme.space[2]}; font-size: 0.75rem; border-radius: ${theme.space[1]}; }
-        .ti-tag.medium { padding: 4px ${theme.space[2]}; font-size: 0.8125rem; }
-        .ti-tag.large { padding: ${theme.space[1]} ${theme.space[3]}; font-size: 0.875rem; }
-
-        .ti-tag:hover {
-          background: linear-gradient(135deg, ${theme.primary}18 0%, ${theme.primary}12 100%);
-          border-color: ${theme.primary}30;
-          transform: scale(1.02);
-        }
-
-        .ti-remove {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          margin-left: ${theme.space[1]};
-          background: none;
-          border: none;
-          cursor: pointer;
-          color: ${theme.primary};
-          opacity: 0.7;
-          border-radius: 50%;
-          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-          flex-shrink: 0;
-        }
-
-        .ti-remove.small { width: 16px; height: 16px; padding: 2px; }
-        .ti-remove.medium { width: 18px; height: 18px; padding: 2px; }
-        .ti-remove.large { width: 20px; height: 20px; padding: 3px; }
-
-        .ti-remove:hover { opacity: 1; background: ${theme.primary}15; transform: scale(1.1); }
-
-        /* 输入框 */
-        .ti-input {
-          border: none;
-          outline: none;
-          flex-grow: 1;
-          background: transparent;
-          color: ${theme.text};
-          min-width: 120px;
-          font-family: inherit;
-          letter-spacing: -0.01em;
-        }
-
-        .ti-input.small { font-size: 0.875rem; padding: 3px 0; }
-        .ti-input.medium { font-size: 0.925rem; padding: 4px 0; }
-        .ti-input.large { font-size: 1rem; padding: ${theme.space[1]} 0; }
-
-        .ti-input::placeholder { color: ${theme.placeholder || theme.textQuaternary}; }
-        .ti-input:disabled { cursor: not-allowed; color: ${theme.textQuaternary}; }
-
-        /* 计数器 */
-        .ti-counter {
-          position: absolute;
-          top: -${theme.space[1]};
-          right: ${theme.space[2]};
-          font-size: 0.75rem;
-          color: ${theme.textTertiary};
-          background: ${theme.background};
-          padding: 0 ${theme.space[1]};
-          font-weight: 500;
-        }
-        .ti-counter.warning { color: ${theme.error}; }
-
-        /* 帮助文本 */
-        .ti-helper {
-          font-size: 0.8125rem;
-          line-height: 1.4;
-          margin-top: ${theme.space[1]};
-          letter-spacing: -0.01em;
-          color: ${theme.textTertiary};
-        }
-        .ti-helper.error { color: ${theme.error}; }
-
-        /* 响应式 */
-        @media (max-width: 768px) {
-          .ti-input.medium { font-size: 1rem; }
-          .ti-tag { max-width: 150px; }
-        }
-
-        @media (max-width: 480px) {
-          .ti-wrapper { border-radius: ${theme.space[2]}; }
-          .ti-wrapper.large { border-radius: ${theme.space[3]}; }
-          .ti-tag { max-width: 120px; }
-          .ti-input { min-width: 80px; }
-        }
-
-        @media (prefers-contrast: high) {
-          .ti-wrapper, .ti-tag { border-width: 2px; }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .ti-wrapper, .ti-tag, .ti-remove { transition: border-color 0.1s ease, box-shadow 0.1s ease; }
-          .ti-wrapper.focused, .ti-tag:hover, .ti-remove:hover { transform: none; }
-        }
- `}</style>
+        <TagsInputStyles />
         <div className={`ti-container ${className}`} style={style}>
           {label && (
             <label
@@ -297,7 +127,6 @@ export const TagsInput = forwardRef<HTMLInputElement, TagsInputProps>(
                     type="button"
                     className={`ti-remove ${size}`}
                     onClick={() => removeTag(index)}
-                    // 3. [国际化] 使用 t 函数进行翻译
                     aria-label={t("form.removeTag", { tag })}
                     tabIndex={-1}
                   >
@@ -347,5 +176,294 @@ export const TagsInput = forwardRef<HTMLInputElement, TagsInputProps>(
     );
   }
 );
+
+const TagsInputStyles = () => {
+  return (
+    <style href="tags-input" precedence="medium">{`
+      .ti-container {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-1);
+        width: 100%;
+      }
+
+      .ti-label {
+        font-size: 0.875rem;
+        font-weight: 550;
+        color: var(--text);
+        letter-spacing: -0.01em;
+        line-height: 1.4;
+      }
+
+      .ti-label.error {
+        color: var(--error);
+      }
+
+      .ti-wrapper {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-1);
+        border: 1px solid var(--border);
+        border-radius: var(--space-3);
+        background: var(--background);
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
+        box-shadow: 0 1px 3px var(--shadowLight);
+      }
+
+      /* 尺寸变体 */
+      .ti-wrapper.small {
+        min-height: 36px;
+        padding: var(--space-1) var(--space-3);
+        border-radius: var(--space-2);
+      }
+
+      .ti-wrapper.medium {
+        min-height: 42px;
+        padding: var(--space-2) var(--space-4);
+      }
+
+      .ti-wrapper.large {
+        min-height: 48px;
+        padding: var(--space-2) var(--space-5);
+        border-radius: var(--space-4);
+      }
+
+      /* 样式变体 */
+      .ti-wrapper.filled {
+        background: var(--backgroundSecondary);
+        border-color: var(--borderLight);
+      }
+
+      .ti-wrapper.ghost {
+        background: transparent;
+        border-color: var(--borderLight);
+        box-shadow: none;
+      }
+
+      /* 状态 */
+      .ti-wrapper.focused {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px var(--focus), 0 2px 8px var(--shadowMedium);
+        transform: translateY(-1px);
+      }
+
+      .ti-wrapper.error {
+        border-color: var(--error);
+        box-shadow: 0 1px 3px rgba(239, 68, 68, 0.2);
+      }
+
+      .ti-wrapper.error.focused {
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2), 0 2px 8px rgba(239, 68, 68, 0.15);
+      }
+
+      .ti-wrapper.disabled {
+        background: var(--backgroundTertiary);
+        opacity: 0.6;
+        cursor: not-allowed;
+        box-shadow: none;
+      }
+
+      .ti-wrapper:hover:not(.disabled):not(.focused) {
+        border-color: var(--hover);
+        box-shadow: 0 2px 6px var(--shadowLight);
+      }
+
+      /* 标签 */
+      .ti-tag {
+        display: flex;
+        align-items: center;
+        background: var(--primaryGhost);
+        color: var(--primary);
+        border: 1px solid var(--borderAccent);
+        border-radius: var(--space-2);
+        font-weight: 520;
+        line-height: 1.4;
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      .ti-tag.small {
+        padding: 3px var(--space-2);
+        font-size: 0.75rem;
+        border-radius: var(--space-1);
+      }
+
+      .ti-tag.medium {
+        padding: 4px var(--space-2);
+        font-size: 0.8125rem;
+      }
+
+      .ti-tag.large {
+        padding: var(--space-1) var(--space-3);
+        font-size: 0.875rem;
+      }
+
+      .ti-tag:hover {
+        background: var(--primaryHover);
+        border-color: var(--borderAccent);
+        transform: scale(1.02);
+      }
+
+      .ti-remove {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: var(--space-1);
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--primary);
+        opacity: 0.7;
+        border-radius: 50%;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        flex-shrink: 0;
+      }
+
+      .ti-remove.small {
+        width: 16px;
+        height: 16px;
+        padding: 2px;
+      }
+
+      .ti-remove.medium {
+        width: 18px;
+        height: 18px;
+        padding: 2px;
+      }
+
+      .ti-remove.large {
+        width: 20px;
+        height: 20px;
+        padding: 3px;
+      }
+
+      .ti-remove:hover {
+        opacity: 1;
+        background: var(--primaryHover);
+        transform: scale(1.1);
+      }
+
+      /* 输入框 */
+      .ti-input {
+        border: none;
+        outline: none;
+        flex-grow: 1;
+        background: transparent;
+        color: var(--text);
+        min-width: 120px;
+        font-family: inherit;
+        letter-spacing: -0.01em;
+      }
+
+      .ti-input.small {
+        font-size: 0.875rem;
+        padding: 3px 0;
+      }
+
+      .ti-input.medium {
+        font-size: 0.925rem;
+        padding: 4px 0;
+      }
+
+      .ti-input.large {
+        font-size: 1rem;
+        padding: var(--space-1) 0;
+      }
+
+      .ti-input::placeholder {
+        color: var(--placeholder);
+      }
+
+      .ti-input:disabled {
+        cursor: not-allowed;
+        color: var(--textQuaternary);
+      }
+
+      /* 计数器 */
+      .ti-counter {
+        position: absolute;
+        top: calc(-1 * var(--space-1));
+        right: var(--space-2);
+        font-size: 0.75rem;
+        color: var(--textTertiary);
+        background: var(--background);
+        padding: 0 var(--space-1);
+        font-weight: 500;
+      }
+
+      .ti-counter.warning {
+        color: var(--error);
+      }
+
+      /* 帮助文本 */
+      .ti-helper {
+        font-size: 0.8125rem;
+        line-height: 1.4;
+        margin-top: var(--space-1);
+        letter-spacing: -0.01em;
+        color: var(--textTertiary);
+      }
+
+      .ti-helper.error {
+        color: var(--error);
+      }
+
+      /* 响应式 */
+      @media (max-width: 768px) {
+        .ti-input.medium {
+          font-size: 1rem;
+        }
+        
+        .ti-tag {
+          max-width: 150px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .ti-wrapper {
+          border-radius: var(--space-2);
+        }
+        
+        .ti-wrapper.large {
+          border-radius: var(--space-3);
+        }
+        
+        .ti-tag {
+          max-width: 120px;
+        }
+        
+        .ti-input {
+          min-width: 80px;
+        }
+      }
+
+      @media (prefers-contrast: high) {
+        .ti-wrapper,
+        .ti-tag {
+          border-width: 2px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .ti-wrapper,
+        .ti-tag,
+        .ti-remove {
+          transition: border-color 0.1s ease, box-shadow 0.1s ease;
+        }
+        
+        .ti-wrapper.focused,
+        .ti-tag:hover,
+        .ti-remove:hover {
+          transform: none;
+        }
+      }
+    `}</style>
+  );
+};
 
 TagsInput.displayName = "TagsInput";

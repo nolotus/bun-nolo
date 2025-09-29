@@ -1,7 +1,6 @@
 // web/form/FormField.tsx
 import type React from "react";
 import type { ReactNode, LabelHTMLAttributes } from "react";
-import { useTheme } from "app/theme";
 
 interface FormFieldProps {
   children: ReactNode;
@@ -9,9 +8,9 @@ interface FormFieldProps {
   label?: string;
   required?: boolean;
   error?: string;
-  helperText?: string;
+  helperText?: string; // 改回 helperText
   horizontal?: boolean;
-  labelWidth?: number | string;
+  labelWidth?: string;
   disabled?: boolean;
   hideLabel?: boolean;
   style?: React.CSSProperties;
@@ -23,24 +22,22 @@ interface LabelProps extends LabelHTMLAttributes<HTMLLabelElement> {
   error?: boolean;
 }
 
-// 内部 Label 组件
+// 内部 Label 组件 - 简化实现
 const Label: React.FC<LabelProps> = ({
   children,
   required,
   error,
   className = "",
   ...props
-}) => {
-  return (
-    <label
-      className={`form-label ${error ? "error" : ""} ${className}`}
-      {...props}
-    >
-      {children}
-      {required && <span className="required-indicator">*</span>}
-    </label>
-  );
-};
+}) => (
+  <label
+    className={`form-label ${error ? "has-error" : ""} ${className}`}
+    {...props}
+  >
+    {children}
+    {required && <span className="required">*</span>}
+  </label>
+);
 
 export const FormField: React.FC<FormFieldProps> = ({
   children,
@@ -48,7 +45,7 @@ export const FormField: React.FC<FormFieldProps> = ({
   label,
   required = false,
   error,
-  helperText,
+  helperText, // 改回 helperText
   horizontal = false,
   labelWidth = "140px",
   disabled = false,
@@ -56,228 +53,236 @@ export const FormField: React.FC<FormFieldProps> = ({
   style,
   htmlFor,
 }) => {
-  const theme = useTheme();
   const hasError = Boolean(error);
 
+  // 构建CSS类名
+  const fieldClasses = [
+    "form-field",
+    horizontal && "horizontal",
+    disabled && "disabled",
+    hasError && "error",
+    className,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
-    <>
+    <div className={fieldClasses} style={style}>
+      {!hideLabel && label && (
+        <Label
+          required={required}
+          error={hasError}
+          htmlFor={htmlFor}
+          style={horizontal ? { flexBasis: labelWidth } : undefined}
+        >
+          {label}
+        </Label>
+      )}
+
+      <div className="form-content">
+        {children}
+        {helperText && !hasError && (
+          <div className="form-help">{helperText}</div>
+        )}
+        {hasError && error && (
+          <div className="form-error" role="alert">
+            {error}
+          </div>
+        )}
+      </div>
+
       <style href="form-field" precedence="medium">{`
         .form-field {
           display: flex;
           flex-direction: column;
-          gap: ${theme.space[2]};
-          margin-bottom: ${theme.space[4]};
+          gap: var(--space-2);
+          margin-bottom: var(--space-5);
           min-width: 0;
-          position: relative;
         }
 
         .form-field.horizontal {
           flex-direction: row;
           align-items: flex-start;
-          gap: ${theme.space[4]};
+          gap: var(--space-4);
         }
 
         .form-field.disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
+          opacity: 0.65;
           pointer-events: none;
         }
 
-        .form-field.error {
-          --field-border-color: ${theme.error};
-          --field-focus-color: ${theme.error};
-        }
-
+        /* 标签样式 */
         .form-label {
-          display: inline-block;
-          font-size: 0.875rem;
-          font-weight: 550;
+          display: block;
+          font-size: 14px;
+          font-weight: 500;
           line-height: 1.4;
-          color: ${theme.text};
-          letter-spacing: -0.01em;
-          transition: color 0.3s ease;
-          cursor: default;
+          color: var(--text);
           margin: 0;
-        }
-
-        .form-label.error {
-          color: ${theme.error};
+          transition: color 0.2s ease;
         }
 
         .form-field.horizontal .form-label {
-          flex: 0 0 ${typeof labelWidth === "number" ? `${labelWidth}px` : labelWidth};
           flex-shrink: 0;
+          padding-top: calc(var(--space-2) + 1px); /* 与输入框视觉对齐 */
           white-space: nowrap;
-          text-align: left;
-          padding-top: ${theme.space[1]};
-          line-height: 1.5;
         }
 
-        .required-indicator {
-          color: ${theme.error};
-          margin-left: ${theme.space[1]};
+        .form-label.has-error {
+          color: var(--error);
+        }
+
+        .required {
+          color: var(--error);
+          margin-left: var(--space-1);
           font-weight: 600;
+          font-size: 0.9em;
         }
 
-        .form-control {
+        /* 内容区域 */
+        .form-content {
           flex: 1;
           min-width: 0;
           display: flex;
           flex-direction: column;
-          gap: ${theme.space[1]};
+          gap: var(--space-2);
         }
 
-        .form-helper {
-          font-size: 0.8125rem;
+        /* 帮助文本和错误信息 */
+        .form-help,
+        .form-error {
+          font-size: 13px;
           line-height: 1.4;
-          color: ${theme.textTertiary};
           margin: 0;
-          letter-spacing: -0.01em;
+          padding-left: var(--space-1);
+        }
+
+        .form-help {
+          color: var(--textTertiary);
         }
 
         .form-error {
-          font-size: 0.8125rem;
-          line-height: 1.4;
-          color: ${theme.error};
-          margin: 0;
-          letter-spacing: -0.01em;
+          color: var(--error);
           font-weight: 500;
         }
 
-        /* 输入框样式继承 */
+        /* 错误状态的字段样式继承 */
+        .form-field.error {
+          --field-border: var(--error);
+          --field-focus: var(--error);
+        }
+
         .form-field .input-field,
-        .form-field .textarea-field {
-          border-color: var(--field-border-color, ${theme.border});
+        .form-field .textarea-field,
+        .form-field .select-field {
+          border-color: var(--field-border, var(--border));
         }
 
         .form-field .input-field:focus,
-        .form-field .textarea-field:focus {
-          border-color: var(--field-focus-color, ${theme.primary});
-          box-shadow: 0 0 0 3px var(--field-focus-color, ${theme.primary})20;
+        .form-field .textarea-field:focus,
+        .form-field .select-field:focus {
+          border-color: var(--field-focus, var(--primary));
+          box-shadow: 0 0 0 3px var(--focus);
         }
 
         .form-field.error .input-field:focus,
-        .form-field.error .textarea-field:focus {
-          box-shadow: 0 0 0 3px ${theme.error}20;
+        .form-field.error .textarea-field:focus,
+        .form-field.error .select-field:focus {
+          box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+        }
+
+        /* 交互状态 */
+        .form-field:focus-within .form-label:not(.has-error) {
+          color: var(--primary);
+        }
+
+        .form-field:hover:not(.disabled) .form-label:not(.has-error) {
+          color: var(--textSecondary);
+        }
+
+        .form-field.disabled .form-label,
+        .form-field.disabled .required {
+          color: var(--textQuaternary);
         }
 
         /* 响应式设计 */
         @media (max-width: 768px) {
           .form-field {
-            gap: ${theme.space[1]};
-            margin-bottom: ${theme.space[3]};
+            gap: var(--space-1);
+            margin-bottom: var(--space-4);
           }
 
           .form-field.horizontal {
             flex-direction: column;
-            align-items: stretch;
-            gap: ${theme.space[2]};
+            gap: var(--space-2);
           }
 
           .form-field.horizontal .form-label {
-            flex: none;
-            text-align: left;
-            width: 100%;
             padding-top: 0;
           }
 
           .form-label {
-            font-size: 0.8125rem;
+            font-size: 13px;
           }
 
-          .form-helper,
+          .form-help,
           .form-error {
-            font-size: 0.75rem;
+            font-size: 12px;
+            padding-left: 0;
           }
         }
 
         @media (max-width: 480px) {
           .form-field {
-            margin-bottom: ${theme.space[2]};
-          }
-          
-          .form-field.horizontal {
-            gap: ${theme.space[1]};
+            margin-bottom: var(--space-3);
           }
         }
 
-        /* 高对比度支持 */
+        /* 可访问性增强 */
         @media (prefers-contrast: high) {
           .form-label {
             font-weight: 600;
           }
           
-          .required-indicator {
-            font-weight: 700;
-          }
-          
+          .required,
           .form-error {
-            font-weight: 600;
+            font-weight: 700;
           }
         }
 
-        /* 减少动画偏好 */
         @media (prefers-reduced-motion: reduce) {
-          .form-label,
-          .form-field .input-field,
-          .form-field .textarea-field {
+          .form-label {
             transition: none;
           }
         }
 
-        /* 聚焦时突出标签 */
-        .form-field:focus-within .form-label:not(.error) {
-          color: ${theme.primary};
+        /* 细节优化 */
+        .form-field + .form-field {
+          margin-top: calc(var(--space-1) * -1); /* 减少相邻字段间距 */
         }
 
-        .form-field.error:focus-within .form-label {
-          color: ${theme.error};
+        /* 当字段获得焦点时，微妙的整体提升 */
+        .form-field:focus-within {
+          position: relative;
+          z-index: 1;
         }
 
-        /* 悬浮效果 */
-        .form-field:hover:not(.disabled) .form-label:not(.error) {
-          color: ${theme.textSecondary};
+        /* 帮助文本的微妙动画 */
+        .form-help,
+        .form-error {
+          opacity: 0.9;
+          transition: opacity 0.2s ease;
         }
 
-        /* 禁用状态下的标签 */
-        .form-field.disabled .form-label {
-          color: ${theme.textQuaternary};
-        }
-
-        .form-field.disabled .required-indicator {
-          color: ${theme.textQuaternary};
+        .form-field:focus-within .form-help,
+        .form-field:focus-within .form-error {
+          opacity: 1;
         }
       `}</style>
-
-      <div
-        className={`form-field ${horizontal ? "horizontal" : ""} ${
-          disabled ? "disabled" : ""
-        } ${hasError ? "error" : ""} ${className}`}
-        style={style}
-      >
-        {!hideLabel && label && (
-          <Label required={required} error={hasError} htmlFor={htmlFor}>
-            {label}
-          </Label>
-        )}
-
-        <div className="form-control">
-          {children}
-          {helperText && !hasError && (
-            <p className="form-helper">{helperText}</p>
-          )}
-          {hasError && error && (
-            <p className="form-error" role="alert">
-              {error}
-            </p>
-          )}
-        </div>
-      </div>
-    </>
+    </div>
   );
 };
 
-// 导出 Label 组件以便独立使用
 export { Label };
 
 FormField.displayName = "FormField";
