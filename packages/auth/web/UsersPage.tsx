@@ -1,24 +1,23 @@
 // pages/UsersPage.tsx
 import { useCallback, useEffect, useState, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { formatDistanceToNow } from "date-fns";
+import { zhCN } from "date-fns/locale";
 import { useTheme } from "app/theme";
 import { useAppSelector } from "app/store";
 import { selectCurrentServer } from "app/settings/settingSlice";
-import Button from "render/web/ui/Button";
-import Pagination from "render/web/ui/Pagination";
+import { useFetchUsers } from "auth/hooks/useFetchUsers";
 import { useDeleteUser } from "auth/hooks/useDeleteUser";
 import { useRechargeUser } from "auth/hooks/useRechargeUser";
+import { useDisableUser } from "auth/hooks/useDisableUser";
+import { useEnableUser } from "auth/hooks/useEnableUser";
+import Button from "render/web/ui/Button";
+import Pagination from "render/web/ui/Pagination";
 import { Table, TableRow, TableCell } from "render/web/ui/Table";
 import { ConfirmModal } from "render/web/ui/ConfirmModal";
 import { RechargeModal } from "life/web/RechargeModal";
-import { formatDistanceToNow } from "date-fns";
-import { zhCN } from "date-fns/locale";
-import pino from "pino";
-import { useFetchUsers } from "auth/hooks/useFetchUsers";
-import { useDisableUser } from "auth/hooks/useDisableUser";
-import { useEnableUser } from "auth/hooks/useEnableUser";
+import SearchInput from "render/web/ui/SearchInput";
 
-const logger = pino({ name: "UsersPage" });
 const PAGE_SIZE = 10;
 
 interface User {
@@ -36,7 +35,7 @@ type ActionType = "delete" | "disable" | "enable";
 export default function UsersPage() {
   const navigate = useNavigate();
   const theme = useTheme();
-  const [searchParams, setSearchParams] = useSearchParams(); // 修改：支持 setSearchParams
+  const [searchParams, setSearchParams] = useSearchParams();
   const currentServer = useAppSelector(selectCurrentServer);
 
   // 搜索状态：本地输入值（用于输入框），从 URL 同步
@@ -55,23 +54,17 @@ export default function UsersPage() {
   });
   const { users, loading, error, currentPage, total } = state;
 
-  // 获取用户列表（修改：支持 search 参数）
+  // 获取用户列表
   const fetchUsers = useFetchUsers();
   const handleFetch = useCallback(
     async (page: number, search?: string) => {
-      // 修改：添加 search 参数
       if (!currentServer) {
-        logger.debug("No server selected, skipping fetch");
         return;
       }
-      logger.debug({ page, search }, "Fetching users");
       setState((prev) => ({ ...prev, loading: true, error: null }));
       try {
-        // 注意：这里假设 useFetchUsers 已修改支持 search 参数（如 url.searchParams.append("search", search || "")）
-        // 如果 hook 未更新，你需要在 hook 中添加 search 支持（见文末说明）
-        const data = await fetchUsers(page, search); // 修改：传递 search
+        const data = await fetchUsers(page, search);
         if (!data?.list) {
-          logger.warn("No data returned from fetchUsers");
           setState((prev) => ({
             ...prev,
             loading: false,
@@ -80,10 +73,6 @@ export default function UsersPage() {
           }));
           return;
         }
-        logger.debug(
-          { userCount: data.list.length, total: data.total },
-          "Users fetched successfully"
-        );
         setState((prev) => ({
           ...prev,
           users: data.list,
@@ -93,7 +82,6 @@ export default function UsersPage() {
           loading: false,
         }));
       } catch (err) {
-        logger.error({ err }, "Failed to fetch users");
         setState((prev) => ({
           ...prev,
           error: "加载用户失败，请重试",
@@ -109,33 +97,28 @@ export default function UsersPage() {
     if (currentServer) {
       const page = parseInt(searchParams.get("page") || "1", 10);
       const search = searchParams.get("search") || undefined;
-      handleFetch(page, search); // 修改：传递 search
+      handleFetch(page, search);
     }
-  }, [currentServer, handleFetch, searchParams]); // searchParams 变化会触发
+  }, [currentServer, handleFetch, searchParams]);
 
-  // 搜索提交：更新 URL，重置到第1页
-  const handleSearchSubmit = useCallback(
-    (e: React.FormEvent) => {
-      e.preventDefault();
-      const trimmedSearch = searchInput.trim();
-      setSearchParams(
-        (prev) => {
-          const newParams = new URLSearchParams(prev);
-          if (trimmedSearch) {
-            newParams.set("search", trimmedSearch);
-          } else {
-            newParams.delete("search");
-          }
-          newParams.set("page", "1"); // 重置到第1页
-          return newParams;
-        },
-        { replace: true } // 不添加历史记录
-      );
-      setSearchInput(trimmedSearch); // 更新本地输入
-      logger.debug({ search: trimmedSearch }, "Search submitted");
-    },
-    [searchInput, setSearchParams]
-  );
+  // 搜索处理
+  const handleSearch = useCallback(() => {
+    const trimmedSearch = searchInput.trim();
+    setSearchParams(
+      (prev) => {
+        const newParams = new URLSearchParams(prev);
+        if (trimmedSearch) {
+          newParams.set("search", trimmedSearch);
+        } else {
+          newParams.delete("search");
+        }
+        newParams.set("page", "1");
+        return newParams;
+      },
+      { replace: true }
+    );
+    setSearchInput(trimmedSearch);
+  }, [searchInput, setSearchParams]);
 
   // 清空搜索
   const handleClearSearch = useCallback(() => {
@@ -161,7 +144,7 @@ export default function UsersPage() {
   // 操作成功后刷新
   const handleActionSuccess = useCallback(() => {
     const search = searchParams.get("search") || undefined;
-    handleFetch(currentPage, search); // 修改：保持搜索条件
+    handleFetch(currentPage, search);
   }, [currentPage, handleFetch, searchParams]);
 
   // 钩子：删除/停用/启用
@@ -203,7 +186,7 @@ export default function UsersPage() {
     username: "",
   });
   const rechargeUser = useRechargeUser(() => {
-    const search = searchParams.get("search") || undefined; // 修改：保持搜索
+    const search = searchParams.get("search") || undefined;
     handleFetch(currentPage, search);
   });
   const handleRechargeClick = useCallback((user: User) => {
@@ -217,12 +200,7 @@ export default function UsersPage() {
     async (amount: number) => {
       try {
         await rechargeUser(rechargeModal.userId, amount);
-        logger.debug(
-          { userId: rechargeModal.userId, amount },
-          "Recharge success"
-        );
       } catch (err) {
-        logger.error({ err }, "Recharge failed");
         throw err;
       }
     },
@@ -232,7 +210,6 @@ export default function UsersPage() {
   // 分页
   const handlePageChange = useCallback(
     (newPage: number) => {
-      logger.debug({ from: currentPage, to: newPage }, "Page change requested");
       setSearchParams(
         (prev) => {
           const newParams = new URLSearchParams(prev);
@@ -242,7 +219,7 @@ export default function UsersPage() {
         { replace: true }
       );
     },
-    [setSearchParams, currentPage]
+    [setSearchParams]
   );
 
   // 时间格式化
@@ -254,7 +231,7 @@ export default function UsersPage() {
     });
   };
 
-  // 新增：发送邮件
+  // 发送邮件
   const handleSendEmail = useCallback((email: string) => {
     if (!email) {
       alert("邮箱地址不存在");
@@ -264,182 +241,194 @@ export default function UsersPage() {
   }, []);
 
   if (!currentServer) {
-    return <div className="no-server">请先选择服务器以查看用户列表</div>;
+    return (
+      <div className="no-server-container">
+        <div className="no-server-content">
+          <h2>未选择服务器</h2>
+          <p>请先选择服务器以查看用户列表</p>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="users-page">
       <header className="page-header">
-        <h1 className="page-title">用户列表</h1>
-        {/* 新增：搜索框区域 */}
-        <form onSubmit={handleSearchSubmit} className="search-form">
-          <div className="search-input-wrapper">
-            <input
-              type="text"
-              placeholder="搜索用户名、ID 或邮箱..."
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              className="search-input"
-            />
-            <Button
-              type="submit"
-              variant="primary"
-              size="small"
-              className="search-button"
-            >
-              搜索
-            </Button>
-            {searchInput && (
-              <Button
-                type="button"
-                onClick={handleClearSearch}
-                variant="secondary"
-                size="small"
-                className="clear-button"
-              >
-                清空
-              </Button>
-            )}
-          </div>
-        </form>
-        <div className="header-actions">{/* 预留后续可能的功能按钮 */}</div>
+        <div className="header-left">
+          <h1 className="page-title">用户列表</h1>
+          <div className="title-decoration"></div>
+        </div>
+
+        <SearchInput
+          value={searchInput}
+          onChange={setSearchInput}
+          onSearch={handleSearch}
+          onClear={handleClearSearch}
+          placeholder="搜索用户名、ID 或邮箱..."
+        />
+
+        <div className="header-actions">{/* 预留未来功能按钮 */}</div>
       </header>
 
       {error && (
         <div className="error-container">
-          <span className="error-message">{error}</span>
-          <Button
-            onClick={() => {
-              const search = searchParams.get("search") || undefined;
-              handleFetch(currentPage, search);
-            }}
-            variant="secondary"
-            size="small"
-          >
-            重试
-          </Button>
+          <div className="error-content">
+            <span className="error-message">{error}</span>
+            <Button
+              onClick={() => {
+                const search = searchParams.get("search") || undefined;
+                handleFetch(currentPage, search);
+              }}
+              variant="secondary"
+              size="small"
+            >
+              重试
+            </Button>
+          </div>
         </div>
       )}
 
       {loading ? (
         <div className="loading-container">
-          <Button loading variant="primary">
-            加载中
-          </Button>
+          <div className="loading-content">
+            <Button loading variant="primary">
+              加载中...
+            </Button>
+          </div>
         </div>
       ) : users.length > 0 ? (
         <>
-          <div className="table-container">
-            <Table>
-              <thead>
-                <TableRow>
-                  <TableCell element={{ header: true }}>用户名</TableCell>
-                  <TableCell element={{ header: true }}>邮箱</TableCell>
-                  <TableCell element={{ header: true }}>余额</TableCell>
-                  <TableCell element={{ header: true }}>注册时间</TableCell>
-                  <TableCell element={{ header: true }}>最近登录</TableCell>
-                  <TableCell element={{ header: true }} align="right">
-                    操作
-                  </TableCell>
-                </TableRow>
-              </thead>
-              <tbody>
-                {users.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell element={{}}>
-                      {user.username}
-                      {user.isDisabled && (
-                        <span style={{ color: theme.error, marginLeft: "8px" }}>
-                          (已停用)
-                        </span>
-                      )}
-                    </TableCell>
-                    <TableCell element={{}}>{user.email || "-"}</TableCell>
-                    <TableCell element={{}}>
-                      ¥ {user.balance.toFixed(2)}
-                    </TableCell>
-                    <TableCell element={{}}>
-                      {formatTime(user.createdAt)}
-                    </TableCell>
-                    <TableCell element={{}}>
-                      {formatTime(user.lastLoginAt)}
-                    </TableCell>
-                    <TableCell element={{}} align="right">
-                      <div className="action-buttons">
-                        <Button
-                          onClick={() => handleRechargeClick(user)}
-                          variant="primary"
-                          size="small"
-                        >
-                          充值
-                        </Button>
-
-                        {user.isDisabled ? (
-                          <Button
-                            onClick={() =>
-                              setConfirmModal({ type: "enable", user })
-                            }
-                            variant="secondary"
-                            status="success"
-                            size="small"
-                          >
-                            启用
-                          </Button>
-                        ) : (
-                          <>
-                            <Button
-                              onClick={() =>
-                                setConfirmModal({ type: "disable", user })
-                              }
-                              variant="secondary"
-                              status="warning"
-                              size="small"
-                            >
-                              停用
-                            </Button>
-                            <Button
-                              onClick={() => handleSendEmail(user.email)}
-                              variant="secondary"
-                              size="small"
-                            >
-                              发送邮件
-                            </Button>
-                          </>
-                        )}
-
-                        <Button
-                          onClick={() =>
-                            setConfirmModal({ type: "delete", user })
-                          }
-                          status="error"
-                          size="small"
-                        >
-                          删除
-                        </Button>
-                      </div>
+          <div className="table-section">
+            <div className="table-wrapper">
+              <Table>
+                <thead>
+                  <TableRow>
+                    <TableCell element={{ header: true }}>用户名</TableCell>
+                    <TableCell element={{ header: true }}>邮箱</TableCell>
+                    <TableCell element={{ header: true }}>余额</TableCell>
+                    <TableCell element={{ header: true }}>注册时间</TableCell>
+                    <TableCell element={{ header: true }}>最近登录</TableCell>
+                    <TableCell element={{ header: true }} align="right">
+                      操作
                     </TableCell>
                   </TableRow>
-                ))}
-              </tbody>
-            </Table>
+                </thead>
+                <tbody>
+                  {users.map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell element={{}}>
+                        <div className="user-name-cell">
+                          <span className="username">{user.username}</span>
+                          {user.isDisabled && (
+                            <span className="disabled-badge">已停用</span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell element={{}}>
+                        <span className="email-text">{user.email || "-"}</span>
+                      </TableCell>
+                      <TableCell element={{}}>
+                        <span className="balance-amount">
+                          ¥ {user.balance.toFixed(2)}
+                        </span>
+                      </TableCell>
+                      <TableCell element={{}}>
+                        <span className="time-text">
+                          {formatTime(user.createdAt)}
+                        </span>
+                      </TableCell>
+                      <TableCell element={{}}>
+                        <span className="time-text">
+                          {formatTime(user.lastLoginAt)}
+                        </span>
+                      </TableCell>
+                      <TableCell element={{}} align="right">
+                        <div className="action-buttons">
+                          <Button
+                            onClick={() => handleRechargeClick(user)}
+                            variant="primary"
+                            size="small"
+                          >
+                            充值
+                          </Button>
+
+                          {user.isDisabled ? (
+                            <Button
+                              onClick={() =>
+                                setConfirmModal({ type: "enable", user })
+                              }
+                              variant="secondary"
+                              status="success"
+                              size="small"
+                            >
+                              启用
+                            </Button>
+                          ) : (
+                            <>
+                              <Button
+                                onClick={() =>
+                                  setConfirmModal({ type: "disable", user })
+                                }
+                                variant="secondary"
+                                status="warning"
+                                size="small"
+                              >
+                                停用
+                              </Button>
+                              <Button
+                                onClick={() => handleSendEmail(user.email)}
+                                variant="secondary"
+                                size="small"
+                              >
+                                发邮件
+                              </Button>
+                            </>
+                          )}
+
+                          <Button
+                            onClick={() =>
+                              setConfirmModal({ type: "delete", user })
+                            }
+                            status="error"
+                            size="small"
+                          >
+                            删除
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </tbody>
+              </Table>
+            </div>
           </div>
 
           <footer className="page-footer">
-            <Pagination
-              currentPage={currentPage}
-              totalItems={total}
-              pageSize={PAGE_SIZE}
-              onPageChange={handlePageChange}
-            />
-            <div className="total-info">共 {total} 个用户</div>
+            <div className="pagination-wrapper">
+              <Pagination
+                currentPage={currentPage}
+                totalItems={total}
+                pageSize={PAGE_SIZE}
+                onPageChange={handlePageChange}
+              />
+            </div>
+            <div className="total-info">
+              共 <span className="total-count">{total}</span> 个用户
+            </div>
           </footer>
         </>
       ) : (
         <div className="empty-container">
           <div className="empty-content">
-            {searchInput
-              ? `未找到与「${searchInput}」匹配的用户`
-              : "暂无用户数据"}
+            <div className="empty-icon">📋</div>
+            <div className="empty-title">
+              {searchInput ? "未找到匹配用户" : "暂无用户数据"}
+            </div>
+            <div className="empty-description">
+              {searchInput
+                ? `没有找到与「${searchInput}」匹配的用户`
+                : "当前服务器还没有用户注册"}
+            </div>
           </div>
         </div>
       )}
@@ -480,192 +469,440 @@ export default function UsersPage() {
       />
 
       <style href="users-page" precedence="default">{`
-  .users-page {
-    padding: 24px;
-    min-height: calc(100dvh - 60px);
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-  }
+        .users-page {
+          padding: var(--space-6);
+          min-height: calc(100dvh - 60px);
+          display: flex;
+          flex-direction: column;
+          gap: var(--space-6);
+          background: var(--backgroundSecondary);
+        }
 
-  .page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 16px;
-  }
+        /* 页头优化 */
+        .page-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: var(--space-4);
+          padding: var(--space-4) var(--space-6);
+          background: var(--background);
+          border-radius: 12px;
+          border: 1px solid var(--borderLight);
+          box-shadow: var(--shadowLight);
+        }
 
-  .page-title {
-    font-size: 24px;
-    font-weight: 600;
-    color: var(--text); /* 替换 theme.text */
-    margin: 0;
-    flex: 1;
-    min-width: 200px;
-  }
+        .header-left {
+          display: flex;
+          flex-direction: column;
+          gap: var(--space-1);
+        }
 
-  .search-form {
-    display: flex;
-    flex: 1;
-    max-width: 400px;
-    min-width: 200px;
-  }
+        .page-title {
+          font-size: 24px;
+          font-weight: 600;
+          color: var(--text);
+          margin: 0;
+          line-height: 1.2;
+        }
 
-  .search-input-wrapper {
-    display: flex;
-    gap: 8px;
-    width: 100%;
-    align-items: center;
-  }
+        .title-decoration {
+          width: 32px;
+          height: 3px;
+          background: linear-gradient(90deg, var(--primary), var(--primaryLight));
+          border-radius: 2px;
+        }
 
-  .search-input {
-    flex: 1;
-    padding: 8px 12px;
-    border: 1px solid var(--border); /* 替换 theme.border */
-    border-radius: 6px;
-    background: var(--background); /* 替换 theme.background */
-    color: var(--text); /* 替换 theme.text */
-    font-size: 14px;
-    outline: none;
-  }
+        .header-actions {
+          display: flex;
+          gap: var(--space-3);
+          min-width: 100px;
+        }
 
-  .search-input:focus {
-    border-color: var(--primary); /* 替换 theme.primary */
-    box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.1); /* 假设有 primary-rgb */
-  }
+        /* 无服务器状态优化 */
+        .no-server-container {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 400px;
+        }
 
-  .search-button, .clear-button {
-    white-space: nowrap;
-    min-width: 60px;
-  }
+        .no-server-content {
+          text-align: center;
+          padding: var(--space-8);
+          background: var(--background);
+          border-radius: 12px;
+          border: 1px solid var(--borderLight);
+          box-shadow: var(--shadowLight);
+        }
 
-  .header-actions {
-    display: flex;
-    gap: 12px;
-  }
+        .no-server-content h2 {
+          color: var(--text);
+          margin: 0 0 var(--space-2);
+          font-size: 20px;
+          font-weight: 600;
+        }
 
-  .error-container {
-    padding: 12px 16px;
-    background: var(--backgroundSecondary); /* 替换 theme.backgroundSecondary */
-    border: 1px solid var(--error); /* 替换 theme.error */
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
+        .no-server-content p {
+          color: var(--textSecondary);
+          margin: 0;
+          font-size: 14px;
+        }
 
-  .error-message {
-    color: var(--error); /* 替换 theme.error */
-  }
+        /* 错误容器优化 */
+        .error-container {
+          background: var(--background);
+          border: 1px solid var(--error);
+          border-radius: 8px;
+          overflow: hidden;
+        }
 
-  .loading-container {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 200px;
-  }
+        .error-content {
+          padding: var(--space-4);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: var(--space-4);
+          background: linear-gradient(90deg, 
+            rgba(239, 68, 68, 0.02), 
+            rgba(239, 68, 68, 0.01)
+          );
+        }
 
-  .table-container {
-    flex: 1;
-    overflow: auto;
-    border-radius: 8px;
-    background: var(--background); /* 替换 theme.background */
-  }
+        .error-message {
+          color: var(--error);
+          font-weight: 500;
+        }
 
-  .action-buttons {
-    display: flex;
-    gap: 8px;
-    justify-content: flex-end;
-  }
+        /* 加载状态优化 */
+        .loading-container {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 300px;
+        }
 
-  .page-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    padding-top: 16px;
-  }
+        .loading-content {
+          text-align: center;
+        }
 
-  .total-info {
-    font-size: 14px;
-    color: var(--textSecondary); /* 替换 theme.textSecondary */
-  }
+        /* 表格区域优化 */
+        .table-section {
+          background: var(--background);
+          border-radius: 12px;
+          border: 1px solid var(--borderLight);
+          box-shadow: var(--shadowLight);
+          overflow: hidden;
+          flex: 1;
+        }
 
-  .empty-container {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 200px;
-    background: var(--backgroundSecondary); /* 替换 theme.backgroundSecondary */
-    border-radius: 8px;
-    border: 1px dashed var(--border); /* 替换 theme.border */
-  }
+        .table-wrapper {
+          overflow-x: auto;
+        }
 
-  .empty-content {
-    color: var(--textSecondary); /* 替换 theme.textSecondary */
-    font-size: 14px;
-  }
+        .table-wrapper table {
+          table-layout: fixed;
+          width: 100%;
+          min-width: 800px;
+          border-collapse: separate;
+          border-spacing: 0;
+        }
 
-  .no-server {
-    padding: 24px;
-    text-align: center;
-    color: var(--textSecondary); /* 替换 theme.textSecondary */
-  }
+        .table-wrapper th,
+        .table-wrapper td {
+          padding: var(--space-4);
+          border-bottom: 1px solid var(--borderLight);
+          border-right: 1px solid var(--borderLight);
+          vertical-align: middle;
+        }
 
-  @media (max-width: 768px) {
-    .users-page {
-      padding: 16px;
-      gap: 16px;
-    }
+        .table-wrapper th:last-child,
+        .table-wrapper td:last-child {
+          border-right: none;
+        }
 
-    .page-title {
-      font-size: 20px;
-    }
+        .table-wrapper tbody tr:last-child td {
+          border-bottom: none;
+        }
 
-    .page-header {
-      flex-direction: column;
-      align-items: stretch;
-    }
+        /* 表头样式 */
+        .table-wrapper thead th {
+          background: var(--backgroundTertiary);
+          font-weight: 600;
+          color: var(--textSecondary);
+          font-size: 13px;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          position: sticky;
+          top: 0;
+          z-index: 1;
+        }
 
-    .search-form {
-      max-width: none;
-      order: 3;
-    }
+        /* 表格行悬停效果 */
+        .table-wrapper tbody tr {
+          transition: background-color 0.15s ease;
+        }
 
-    .header-actions {
-      order: 2;
-      justify-content: center;
-    }
+        .table-wrapper tbody tr:hover {
+          background: var(--backgroundHover);
+        }
 
-    .table-container {
-      margin: 0 -16px;
-      border-left: none;
-      border-right: none;
-      border-radius: 0;
-    }
+        /* 精确控制每列宽度 */
+        .table-wrapper th:nth-child(1),
+        .table-wrapper td:nth-child(1) {
+          width: 15%;
+          min-width: 120px;
+        }
 
-    .page-footer {
-      flex-direction: column-reverse;
-      align-items: stretch;
-    }
+        .table-wrapper th:nth-child(2),
+        .table-wrapper td:nth-child(2) {
+          width: 20%;
+          min-width: 150px;
+        }
 
-    .total-info {
-      text-align: center;
-    }
+        .table-wrapper th:nth-child(3),
+        .table-wrapper td:nth-child(3) {
+          width: 12%;
+          min-width: 90px;
+        }
 
-    .search-input-wrapper {
-      flex-direction: column;
-      gap: 12px;
-    }
+        .table-wrapper th:nth-child(4),
+        .table-wrapper td:nth-child(4) {
+          width: 13%;
+          min-width: 100px;
+        }
 
-    .search-input {
-      width: 100%;
-    }
-  }
-`}</style>
+        .table-wrapper th:nth-child(5),
+        .table-wrapper td:nth-child(5) {
+          width: 13%;
+          min-width: 100px;
+        }
+
+        .table-wrapper th:nth-child(6),
+        .table-wrapper td:nth-child(6) {
+          width: 27%;
+          min-width: 240px;
+        }
+
+        /* 用户名列样式优化 */
+        .user-name-cell {
+          display: flex;
+          align-items: center;
+          gap: var(--space-2);
+          overflow: hidden;
+        }
+
+        .username {
+          font-weight: 500;
+          color: var(--text);
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .disabled-badge {
+          background: var(--error);
+          color: white;
+          font-size: 10px;
+          font-weight: 600;
+          padding: 2px var(--space-1);
+          border-radius: 4px;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          white-space: nowrap;
+          flex-shrink: 0;
+        }
+
+        /* 邮箱列样式 */
+        .email-text {
+          color: var(--textSecondary);
+          font-size: 13px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          display: block;
+        }
+
+        /* 余额列样式优化 */
+        .balance-amount {
+          font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Consolas', monospace;
+          font-variant-numeric: tabular-nums;
+          font-weight: 600;
+          color: var(--primary);
+          display: block;
+          text-align: right;
+          font-size: 14px;
+        }
+
+        /* 时间列样式优化 */
+        .time-text {
+          font-size: 12px;
+          color: var(--textTertiary);
+          display: block;
+          font-weight: 400;
+        }
+
+        /* 操作按钮组优化 */
+        .action-buttons {
+          display: flex;
+          flex-wrap: wrap;
+          gap: var(--space-1);
+          justify-content: flex-end;
+          align-items: center;
+          min-height: 32px;
+        }
+
+        .action-buttons > * {
+          flex-shrink: 0;
+          min-width: 48px;
+          font-size: 11px;
+          padding: var(--space-1) var(--space-2);
+          height: 28px;
+          line-height: 1;
+          font-weight: 500;
+        }
+
+        /* 页脚优化 */
+        .page-footer {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: var(--space-4);
+          padding: var(--space-4) var(--space-6);
+          background: var(--background);
+          border-radius: 12px;
+          border: 1px solid var(--borderLight);
+          box-shadow: var(--shadowLight);
+        }
+
+        .pagination-wrapper {
+          flex: 1;
+        }
+
+        .total-info {
+          font-size: 14px;
+          color: var(--textSecondary);
+          font-weight: 500;
+        }
+
+        .total-count {
+          color: var(--primary);
+          font-weight: 600;
+        }
+
+        /* 空状态优化 */
+        .empty-container {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 400px;
+        }
+
+        .empty-content {
+          text-align: center;
+          padding: var(--space-8);
+          background: var(--background);
+          border-radius: 12px;
+          border: 1px dashed var(--border);
+          max-width: 400px;
+        }
+
+        .empty-icon {
+          font-size: 48px;
+          margin-bottom: var(--space-4);
+          opacity: 0.3;
+        }
+
+        .empty-title {
+          font-size: 18px;
+          font-weight: 600;
+          color: var(--text);
+          margin-bottom: var(--space-2);
+        }
+
+        .empty-description {
+          font-size: 14px;
+          color: var(--textSecondary);
+          line-height: 1.5;
+        }
+
+        @media (max-width: 1200px) {
+          .table-wrapper th:nth-child(6),
+          .table-wrapper td:nth-child(6) {
+            min-width: 200px;
+          }
+          
+          .action-buttons > * {
+            min-width: 40px;
+            font-size: 10px;
+            padding: var(--space-1);
+          }
+        }
+
+        @media (max-width: 768px) {
+          .users-page {
+            padding: var(--space-4);
+            gap: var(--space-4);
+          }
+
+          .page-header {
+            flex-direction: column;
+            align-items: stretch;
+            padding: var(--space-4);
+          }
+
+          .header-left {
+            order: 1;
+          }
+
+          .header-actions {
+            order: 2;
+            justify-content: center;
+          }
+
+          .page-title {
+            font-size: 20px;
+          }
+
+          .table-section {
+            margin: 0 calc(-1 * var(--space-4));
+            border-radius: 0;
+            border-left: none;
+            border-right: none;
+          }
+
+          .table-wrapper table {
+            min-width: 600px;
+          }
+
+          .action-buttons {
+            flex-direction: column;
+            gap: 2px;
+            align-items: stretch;
+          }
+
+          .action-buttons > * {
+            min-width: unset;
+            width: 100%;
+            font-size: 11px;
+            height: 24px;
+          }
+
+          .page-footer {
+            flex-direction: column-reverse;
+            align-items: stretch;
+            gap: var(--space-3);
+            padding: var(--space-4);
+          }
+
+          .total-info {
+            text-align: center;
+          }
+        }
+      `}</style>
     </div>
   );
 }
