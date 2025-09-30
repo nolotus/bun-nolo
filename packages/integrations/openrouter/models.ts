@@ -34,6 +34,20 @@ export const openrouterModels = [
     pricePerImage: 4.8 * 11, // 调整为 *11：52.8（原为 4.8 * 8，现在统一 *11）
   },
   {
+    name: "anthropic/claude-sonnet-4.5",
+    displayName: "Anthropic: Claude Sonnet 4.5",
+    hasVision: true,
+    price: { input: 3 * 11, output: 15 * 11 }, // 基于规格 ≤200K：input $3 *11=33, output $15 *11=165 (>200K 时可扩展为 $6/$22.50 *11=66/247.5)
+    maxOutputTokens: 64000, // 更新为 64K
+    contextWindow: 1000000, // 1M context
+    supportsTool: true,
+    pricePerImage: 4.8 * 11, // 保持与 sonnet-4 一致：52.8
+    cache: {
+      read: 0.3 * 11, // 基于规格 ≤200K：$0.30 *11=3.3 (>200K 时 $0.60 *11=6.6)
+      write: 3.75 * 11, // 基于规格 ≤200K：$3.75 *11=41.25 (>200K 时 $7.50 *11=82.5)
+    },
+  },
+  {
     name: "minimax/minimax-m1",
     displayName: "MiniMax: MiniMax M1",
     hasVision: false,
