@@ -49,64 +49,85 @@ const SendButton: React.FC<SendButtonProps> = ({ onClick, disabled }) => {
           align-items: center;
           justify-content: center;
           border: none;
-          font-weight: 600;
+          font-weight: 500;
           outline: none;
           overflow: hidden;
           padding: 0;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
-          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-          box-shadow: 0 2px 8px ${theme.shadow1}, inset 0 1px 0 rgba(255, 255, 255, 0.2);
+          font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
+          cursor: pointer;
+          transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
         }
 
-        /* 发送模式样式 */
+        /* 发送模式样式 - macOS 风格 */
         .send-button.send-mode {
-          width: 110px;
-          height: 40px;
-          border-radius: ${theme.space[3]};
-          background: linear-gradient(135deg, ${theme.primary} 0%, ${theme.primary}90 100%);
+          width: 100px;
+          height: 36px;
+          border-radius: 8px;
+          background: var(--primary);
           color: white;
+          box-shadow: 
+            0 1px 2px color-mix(in srgb, var(--primary) 25%, black),
+            0 0 0 0.5px color-mix(in srgb, var(--primary) 20%, black),
+            inset 0 0.5px 0 rgba(255, 255, 255, 0.25);
         }
 
         .send-button.send-mode:hover:not(:disabled) {
-          background: linear-gradient(135deg, ${theme.primary}e6 0%, ${theme.primary}d6 100%);
-          transform: translateY(-1px);
-          box-shadow: 0 4px 12px ${theme.primary}30, 0 2px 6px ${theme.shadow1}, inset 0 1px 0 rgba(255, 255, 255, 0.25);
+          background: color-mix(in srgb, var(--primary) 92%, white);
+          transform: translateY(-0.5px);
+          box-shadow: 
+            0 2px 4px color-mix(in srgb, var(--primary) 20%, black),
+            0 0 0 0.5px color-mix(in srgb, var(--primary) 20%, black),
+            inset 0 0.5px 0 rgba(255, 255, 255, 0.3);
         }
 
         .send-button.send-mode:active:not(:disabled) {
           transform: translateY(0);
-          box-shadow: 0 1px 4px ${theme.primary}40, inset 0 2px 4px rgba(0, 0, 0, 0.1);
-          transition-duration: 0.1s;
+          background: color-mix(in srgb, var(--primary) 88%, black);
+          box-shadow: 
+            0 1px 1px color-mix(in srgb, var(--primary) 30%, black),
+            0 0 0 0.5px color-mix(in srgb, var(--primary) 25%, black),
+            inset 0 1px 2px rgba(0, 0, 0, 0.15);
+          transition-duration: 0.05s;
         }
 
-        /* 停止模式样式 */
+        /* 停止模式样式 - 更简洁的圆形 */
         .send-button.stop-mode {
-          width: 40px;
-          height: 40px;
+          width: 36px;
+          height: 36px;
           border-radius: 50%;
-          background: ${theme.backgroundSecondary};
-          border: 1px solid ${theme.border};
-          color: ${theme.textSecondary};
+          background: var(--backgroundSecondary);
+          border: 0.5px solid var(--border);
+          color: var(--textSecondary);
+          box-shadow: 
+            0 1px 2px var(--shadowLight),
+            inset 0 0.5px 0 rgba(255, 255, 255, 0.1);
         }
 
         .send-button.stop-mode:hover:not(:disabled) {
-          background: ${theme.error}15;
-          border-color: ${theme.error}30;
-          color: ${theme.error};
-          transform: scale(1.05);
-          box-shadow: 0 4px 12px ${theme.error}20, 0 2px 6px ${theme.shadow1};
+          background: color-mix(in srgb, var(--error) 6%, var(--backgroundSecondary));
+          border-color: color-mix(in srgb, var(--error) 25%, var(--border));
+          color: var(--error);
+          transform: scale(1.03);
+          box-shadow: 
+            0 2px 4px color-mix(in srgb, var(--error) 10%, var(--shadowLight)),
+            0 0 0 0.5px color-mix(in srgb, var(--error) 15%, transparent),
+            inset 0 0.5px 0 rgba(255, 255, 255, 0.15);
         }
 
         .send-button.stop-mode:active:not(:disabled) {
-          transform: scale(0.95);
-          background: ${theme.error}25;
-          transition-duration: 0.1s;
+          transform: scale(0.97);
+          background: color-mix(in srgb, var(--error) 10%, var(--backgroundSecondary));
+          transition-duration: 0.05s;
         }
 
-        /* 焦点样式 */
+        /* 焦点样式 - macOS 蓝色光晕 */
         .send-button:focus-visible {
           outline: none;
-          box-shadow: 0 0 0 2px ${theme.background}, 0 0 0 4px ${theme.primary};
+          box-shadow: 
+            0 0 0 3px var(--background), 
+            0 0 0 5px color-mix(in srgb, var(--primary) 40%, transparent);
         }
 
         /* 内容容器 */
@@ -114,7 +135,7 @@ const SendButton: React.FC<SendButtonProps> = ({ onClick, disabled }) => {
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: ${theme.space[2]};
+          gap: var(--space-2);
           width: 100%;
           height: 100%;
           position: relative;
@@ -122,96 +143,96 @@ const SendButton: React.FC<SendButtonProps> = ({ onClick, disabled }) => {
         }
 
         .send-text {
-          font-size: 0.875rem;
-          font-weight: 550;
-          letter-spacing: -0.01em;
-          transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+          font-size: 13px;
+          font-weight: 500;
+          letter-spacing: -0.015em;
+          transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .send-button.send-mode:hover .send-text {
-          transform: translateX(-2px);
+          transform: translateX(-1px);
         }
 
         .send-icon-container {
           position: relative;
-          width: 18px;
-          height: 18px;
+          width: 16px;
+          height: 16px;
           display: flex;
           align-items: center;
           justify-content: center;
         }
 
         .send-icon {
-          transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+          transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .send-button.send-mode:hover .send-icon {
-          transform: translateX(3px) scale(1.1);
+          transform: translateX(2px) scale(1.08);
         }
 
-        /* 停止指示器 */
+        /* 停止指示器 - 更精致的方形 */
         .stop-indicator {
-          width: 14px;
-          height: 14px;
+          width: 12px;
+          height: 12px;
           background: currentColor;
-          border-radius: ${theme.space[1]};
-          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+          border-radius: 2px;
+          transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .send-button.stop-mode:hover .stop-indicator {
-          transform: scale(1.1);
-          border-radius: 4px;
+          transform: scale(1.08);
+          border-radius: 2.5px;
         }
 
         /* 禁用状态 */
         .send-button:disabled {
-          opacity: 0.5;
+          opacity: 0.4;
           cursor: not-allowed;
           transform: none !important;
-          filter: grayscale(0.3);
           pointer-events: none;
         }
 
-        /* 发射动画 */
+        /* 发射动画 - 更流畅 */
         @keyframes takeOff {
           0% { 
             transform: translateX(0) scale(1) rotate(0deg); 
             opacity: 1; 
           }
-          50% { 
-            transform: translateX(12px) scale(1.15) rotate(15deg); 
-            opacity: 0.8; 
+          40% { 
+            transform: translateX(8px) scale(1.1) rotate(12deg); 
+            opacity: 0.9; 
           }
           100% { 
-            transform: translateX(30px) scale(0.6) rotate(45deg); 
+            transform: translateX(24px) scale(0.7) rotate(35deg); 
             opacity: 0; 
           }
         }
 
         .send-icon.animating {
-          animation: takeOff 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          animation: takeOff 0.45s cubic-bezier(0.4, 0, 0.2, 1) forwards;
         }
 
-        /* 脉冲动画用于停止按钮 */
+        /* 脉冲动画 - 更微妙 */
         @keyframes pulse {
           0%, 100% { 
             transform: scale(1); 
+            opacity: 1;
           }
           50% { 
-            transform: scale(1.05); 
+            transform: scale(1.04); 
+            opacity: 0.9;
           }
         }
 
         .send-button.stop-mode .stop-indicator {
-          animation: pulse 2s ease-in-out infinite;
+          animation: pulse 2.4s ease-in-out infinite;
         }
 
         /* 响应式设计 */
         @media (max-width: 768px) {
           .send-button.send-mode {
-            width: 40px !important;
+            width: 36px !important;
             border-radius: 50% !important;
-            padding: 0 !important;
           }
           
           .send-text {
@@ -230,8 +251,8 @@ const SendButton: React.FC<SendButtonProps> = ({ onClick, disabled }) => {
           }
           
           .send-button:active:not(:disabled) {
-            transform: scale(0.95);
-            transition-duration: 0.1s;
+            transform: scale(0.96);
+            transition-duration: 0.05s;
           }
         }
 
@@ -250,7 +271,7 @@ const SendButton: React.FC<SendButtonProps> = ({ onClick, disabled }) => {
           
           .send-icon.animating {
             animation: none !important;
-            opacity: 0.5;
+            opacity: 0.4;
           }
           
           .send-button.stop-mode .stop-indicator {
@@ -260,33 +281,56 @@ const SendButton: React.FC<SendButtonProps> = ({ onClick, disabled }) => {
 
         /* 高对比度支持 */
         @media (prefers-contrast: high) {
-          .send-button {
-            border-width: 2px;
+          .send-button.send-mode {
+            border: 1.5px solid rgba(0, 0, 0, 0.3);
           }
           
           .send-button.stop-mode {
-            border-width: 2px;
+            border-width: 1.5px;
           }
         }
 
-        /* 背景光效果 */
-        .send-button::before {
+        /* 微妙的背景光效 - 更克制 */
+        .send-button.send-mode::before {
           content: '';
           position: absolute;
           inset: 0;
-          background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 50%);
+          background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, transparent 60%);
           border-radius: inherit;
           opacity: 0;
-          transition: opacity 0.3s ease;
+          transition: opacity 0.22s ease;
           pointer-events: none;
         }
 
-        .send-button:hover::before {
+        .send-button.send-mode:hover::before {
           opacity: 1;
         }
 
         .send-button:disabled::before {
           display: none;
+        }
+
+        /* 暗色模式优化 */
+        @media (prefers-color-scheme: dark) {
+          .send-button.send-mode {
+            box-shadow: 
+              0 1px 3px rgba(0, 0, 0, 0.4),
+              0 0 0 0.5px color-mix(in srgb, var(--primary) 30%, black),
+              inset 0 0.5px 0 rgba(255, 255, 255, 0.15);
+          }
+
+          .send-button.send-mode:hover:not(:disabled) {
+            box-shadow: 
+              0 2px 6px rgba(0, 0, 0, 0.35),
+              0 0 0 0.5px color-mix(in srgb, var(--primary) 30%, black),
+              inset 0 0.5px 0 rgba(255, 255, 255, 0.2);
+          }
+
+          .send-button.stop-mode {
+            box-shadow: 
+              0 1px 2px rgba(0, 0, 0, 0.3),
+              inset 0 0.5px 0 rgba(255, 255, 255, 0.05);
+          }
         }
       `}</style>
 
@@ -307,7 +351,7 @@ const SendButton: React.FC<SendButtonProps> = ({ onClick, disabled }) => {
               <span className="send-text">{t("send")}</span>
               <div className="send-icon-container">
                 <PaperAirplaneIcon
-                  size={16}
+                  size={14}
                   className={`send-icon ${isAnimating ? "animating" : ""}`}
                 />
               </div>

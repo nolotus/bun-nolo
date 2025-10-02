@@ -71,27 +71,6 @@ const RechargePage = () => {
           letter-spacing: -0.02em;
         }
 
-        .notice {
-          background: var(--backgroundSecondary);
-          backdrop-filter: blur(20px);
-          border: 1px solid var(--border);
-          border-radius: ${isMobile ? "10px" : "12px"};
-          padding: var(--space-4);
-          margin-bottom: var(--space-8);
-          font-size: 0.9rem;
-          color: var(--textSecondary);
-          line-height: 1.6;
-        }
-
-        .notice-highlight {
-          color: var(--primary);
-          font-weight: 600;
-          font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
-          padding: 0 var(--space-1);
-          background: var(--primaryBg);
-          border-radius: 4px;
-        }
-
         .content-grid {
           display: grid;
           grid-template-columns: ${isMobile ? "1fr" : "1.2fr 1fr"};
@@ -111,7 +90,7 @@ const RechargePage = () => {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
           gap: var(--space-2);
-          margin-bottom: var(--space-8);
+          margin-bottom: var(--space-4);
           background: var(--backgroundTertiary);
           border-radius: 10px;
           padding: var(--space-1);
@@ -185,6 +164,35 @@ const RechargePage = () => {
           font-weight: 600;
           letter-spacing: 0.02em;
           box-shadow: 0 2px 4px rgba(255, 107, 107, 0.3);
+        }
+
+        .notice {
+          background: var(--primaryBg);
+          backdrop-filter: blur(20px);
+          border: 1px solid var(--borderAccent);
+          border-radius: 8px;
+          padding: var(--space-3);
+          margin-bottom: var(--space-6);
+          font-size: 0.8rem;
+          color: var(--textSecondary);
+          line-height: 1.5;
+          display: flex;
+          align-items: center;
+          gap: var(--space-2);
+        }
+
+        .notice-icon {
+          color: var(--primary);
+          flex-shrink: 0;
+        }
+
+        .notice-highlight {
+          color: var(--primary);
+          font-weight: 600;
+          font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+          padding: 0 var(--space-1);
+          background: var(--backgroundAccent);
+          border-radius: 4px;
         }
 
         .qr-wrapper {
@@ -290,14 +298,6 @@ const RechargePage = () => {
           账户充值
         </h1>
 
-        <div className="notice">
-          转账时请务必填写备注
-          <span className="notice-highlight">
-            {auth.user?.username || "username"}
-          </span>
-          否则无法到账
-        </div>
-
         <div className="content-grid">
           <div className="card">
             <div className="payment-tabs">
@@ -329,6 +329,17 @@ const RechargePage = () => {
                   </button>
                 );
               })}
+            </div>
+
+            <div className="notice">
+              <RiUserLine size={16} className="notice-icon" />
+              <span>
+                转账备注请填写
+                <span className="notice-highlight">
+                  {auth.user?.username || "username"}
+                </span>
+                否则无法到账
+              </span>
             </div>
 
             <div className="qr-wrapper">
