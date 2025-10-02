@@ -1,242 +1,229 @@
 // app/pages/Recharge.jsx
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
-  PersonIcon,
-  CreditCardIcon,
-  InfoIcon,
-  DeviceMobileIcon,
-  AlertIcon,
-} from "@primer/octicons-react";
-import { useAppSelector } from "app/store";
-import { selectTheme } from "app/settings/settingSlice";
-
+  RiUserLine,
+  RiSecurePaymentLine,
+  RiInformationLine,
+  RiSmartphoneLine,
+  RiWechatPayLine,
+  RiAlipayLine,
+  RiCheckLine,
+} from "react-icons/ri";
 import { useAuth } from "auth/hooks/useAuth";
-import image from "app/images/image.png";
+import wechat from "app/images/wechat.png";
+import alipay from "app/images/alipay.jpg";
+
 const EMAIL = "s@nolotus.com";
 
 const RechargePage = () => {
-  const theme = useAppSelector(selectTheme);
   const auth = useAuth();
-  const [isMobile, setIsMobile] = React.useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState("wechat");
+  const [imageLoaded, setImageLoaded] = useState(false);
 
-  React.useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 768);
-    };
-
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // 二维码显示组件
-  const QrCodeDisplay = () => (
-    <div className="qr-code-container">
-      <img src={image} alt="充值二维码" className="qr-code-image" />
-      <div className="qr-code-badge">
-        <CreditCardIcon size={16} color="var(--primary)" />
-      </div>
-    </div>
-  );
+  useEffect(() => setImageLoaded(false), [paymentMethod]);
 
-  // 精简的重要提醒组件
-  const ImportantNotice = () => (
-    <div className="important-notice">
-      <div className="notice-content">
-        <div className="notice-icon">
-          <AlertIcon size={12} color="var(--primary)" />
-        </div>
-        <div className="notice-text">
-          <span className="notice-label">转账备注必填：</span>
-          <div className="username-badge">
-            <PersonIcon size={12} color="var(--primary)" />
-            <span className="username-text">
-              {auth.user?.username || "username"}
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  const paymentMethods = [
+    { id: "wechat", name: "微信", icon: RiWechatPayLine, color: "#07C160" },
+    { id: "alipay", name: "支付宝", icon: RiAlipayLine, color: "#1677FF" },
+    { id: "usdt", name: "USDT", icon: RiSecurePaymentLine, disabled: true },
+  ];
 
-  // 充值须知组件
-  const RechargeInstructions = () => (
-    <div className="instructions-container">
-      <h3 className="instructions-title">
-        <InfoIcon size={18} color="var(--primary)" />
-        充值须知
-      </h3>
+  const instructions = [
+    { label: "充值金额", content: "任意金额" },
+    {
+      label: "到账时间",
+      content: "1-10 分钟",
+      note: "人工充值，部分情况会延迟",
+    },
+    { label: "问题咨询", content: EMAIL },
+  ];
 
-      <div className="instructions-list">
-        {[
-          { label: "充值金额", content: "可充值任意金额" },
-          { label: "到账时间", content: "通常 1-10 分钟内到账" },
-          { label: "客服支持", content: `遇到问题请联系 ${EMAIL}` },
-        ].map((item, index) => (
-          <div key={index} className="instruction-item">
-            <div className="instruction-label">
-              <div className="instruction-dot" />
-              {item.label}
-            </div>
-            <div className="instruction-content">{item.content}</div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
-  // 二维码区域组件
-  const QrCodeSection = () => (
-    <div className="qr-section">
-      <QrCodeDisplay />
-      <div className="qr-description">
-        <DeviceMobileIcon size={14} color="var(--textTertiary)" />
-        扫描二维码完成充值
-      </div>
-    </div>
-  );
+  const qrImage = paymentMethod === "wechat" ? wechat : alipay;
+  const aspectRatio = paymentMethod === "wechat" ? "2/3" : "3/4";
+  const paymentName = paymentMethod === "wechat" ? "微信支付" : "支付宝";
 
   return (
     <>
       <style>{`
         .recharge-container {
-          max-width: ${isMobile ? "400px" : "1200px"};
-          margin: var(--space-8) auto;
-          padding: ${isMobile ? "var(--space-6)" : "var(--space-10)"};
+          max-width: ${isMobile ? "100%" : "1100px"};
+          margin: 0 auto;
+          padding: ${isMobile ? "var(--space-5)" : "var(--space-12)"};
           color: var(--text);
-          animation: fadeIn 0.5s ease-out;
         }
 
         .page-title {
-          margin-bottom: var(--space-8);
-          text-align: center;
-        }
-
-        .title-content {
-          font-size: ${isMobile ? "1.75rem" : "2rem"};
+          font-size: ${isMobile ? "1.75rem" : "2.25rem"};
           font-weight: 600;
-          color: var(--primary);
+          color: var(--text);
           display: flex;
           align-items: center;
-          justify-content: center;
           gap: var(--space-3);
-          margin: 0;
+          margin: 0 0 var(--space-8);
           letter-spacing: -0.02em;
         }
 
-        .important-notice {
-          background: linear-gradient(135deg, var(--primaryBg) 0%, var(--backgroundAccent) 100%);
-          border-radius: var(--space-3);
-          padding: var(--space-4) var(--space-5);
-          margin-bottom: var(--space-6);
-          position: relative;
-          border-left: 3px solid var(--primary);
+        .notice {
+          background: var(--backgroundSecondary);
+          backdrop-filter: blur(20px);
+          border: 1px solid var(--border);
+          border-radius: ${isMobile ? "10px" : "12px"};
+          padding: var(--space-4);
+          margin-bottom: var(--space-8);
+          font-size: 0.9rem;
+          color: var(--textSecondary);
+          line-height: 1.6;
         }
 
-        .notice-content {
+        .notice-highlight {
+          color: var(--primary);
+          font-weight: 600;
+          font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+          padding: 0 var(--space-1);
+          background: var(--primaryBg);
+          border-radius: 4px;
+        }
+
+        .content-grid {
+          display: grid;
+          grid-template-columns: ${isMobile ? "1fr" : "1.2fr 1fr"};
+          gap: var(--space-8);
+        }
+
+        .card {
+          background: var(--backgroundSecondary);
+          backdrop-filter: blur(20px);
+          border: 1px solid var(--border);
+          border-radius: ${isMobile ? "12px" : "16px"};
+          padding: ${isMobile ? "var(--space-6)" : "var(--space-8)"};
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+        }
+
+        .payment-tabs {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: var(--space-2);
+          margin-bottom: var(--space-8);
+          background: var(--backgroundTertiary);
+          border-radius: 10px;
+          padding: var(--space-1);
+        }
+
+        .payment-tab {
+          padding: ${isMobile ? "var(--space-2)" : "var(--space-3)"};
+          background: transparent;
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
           display: flex;
+          flex-direction: column;
           align-items: center;
-          gap: var(--space-3);
+          gap: var(--space-1);
+          position: relative;
+          color: var(--textSecondary);
+          min-height: ${isMobile ? "64px" : "72px"};
         }
 
-        .notice-icon {
-          width: 20px;
-          height: 20px;
+        .payment-tab:hover:not(:disabled) {
+          background: var(--backgroundHover);
+        }
+
+        .payment-tab.active {
+          background: var(--background);
+          color: var(--text);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .payment-tab:disabled {
+          opacity: 0.4;
+          cursor: not-allowed;
+        }
+
+        .tab-icon {
+          font-size: ${isMobile ? "1.3rem" : "1.5rem"};
+        }
+
+        .tab-name {
+          font-size: ${isMobile ? "0.75rem" : "0.85rem"};
+          font-weight: 500;
+          letter-spacing: -0.01em;
+        }
+
+        .active-indicator {
+          position: absolute;
+          top: 6px;
+          right: 6px;
+          width: 18px;
+          height: 18px;
+          background: var(--primary);
           border-radius: 50%;
-          background: var(--primaryGhost);
           display: flex;
           align-items: center;
           justify-content: center;
-          flex-shrink: 0;
+          color: white;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
         }
 
-        .notice-text {
-          display: flex;
-          align-items: center;
-          gap: var(--space-3);
-          flex-wrap: wrap;
-        }
-
-        .notice-label {
-          color: var(--primary);
+        .coming-badge {
+          position: absolute;
+          top: -2px;
+          right: -2px;
+          background: linear-gradient(135deg, #FF6B6B, #FF8E53);
+          color: white;
+          font-size: 0.55rem;
+          padding: 2px 5px;
+          border-radius: 4px;
           font-weight: 600;
-          font-size: 0.9rem;
-          white-space: nowrap;
+          letter-spacing: 0.02em;
+          box-shadow: 0 2px 4px rgba(255, 107, 107, 0.3);
         }
 
-        .username-badge {
-          display: inline-flex;
-          align-items: center;
-          gap: var(--space-1);
-          background: var(--backgroundAccent);
-          padding: var(--space-1) var(--space-3);
-          border-radius: var(--space-2);
-          box-shadow: var(--shadowLight);
-        }
-
-        .username-text {
-          color: var(--primary);
-          font-family: ui-monospace, 'SF Mono', monospace;
-          font-weight: 500;
-          font-size: 0.85rem;
-          letter-spacing: 0.01em;
-        }
-
-        .main-content {
-          display: flex;
-          flex-direction: ${isMobile ? "column" : "row"};
-          gap: var(--space-8);
-          align-items: ${isMobile ? "stretch" : "flex-start"};
-        }
-
-        .content-section {
-          flex: ${isMobile ? "none" : "1"};
-        }
-
-        .qr-section {
-          background-color: var(--backgroundSecondary);
-          border-radius: var(--space-4);
-          padding: var(--space-8);
+        .qr-wrapper {
           text-align: center;
         }
 
-        .qr-code-container {
-          width: ${isMobile ? "200px" : "280px"};
-          height: ${isMobile ? "200px" : "280px"};
-          background-color: #FFFFFF;
-          border-radius: var(--space-4);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          margin: 0 auto;
-          position: relative;
-          box-shadow: var(--shadowMedium);
+        .qr-container {
+          width: 100%;
+          max-width: ${isMobile ? "280px" : "320px"};
+          aspect-ratio: ${aspectRatio};
+          background: white;
+          border-radius: 12px;
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
           overflow: hidden;
+          position: relative;
+          margin: 0 auto;
+          transition: aspect-ratio 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          border: 1px solid rgba(0, 0, 0, 0.06);
         }
 
-        .qr-code-image {
+        .qr-image {
           width: 100%;
           height: 100%;
-          object-fit: cover;
-          border-radius: var(--space-3);
+          object-fit: contain;
+          opacity: ${imageLoaded ? "1" : "0"};
+          transition: opacity 0.4s ease;
         }
 
-        .qr-code-badge {
+        .qr-loading {
           position: absolute;
-          bottom: var(--space-3);
-          right: var(--space-3);
-          width: 28px;
-          height: 28px;
-          background-color: rgba(255, 255, 255, 0.95);
-          border-radius: var(--space-2);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          box-shadow: var(--shadowLight);
-          backdrop-filter: blur(8px);
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          color: var(--textTertiary);
+          font-size: 0.85rem;
+          font-weight: 500;
         }
 
-        .qr-description {
+        .qr-tip {
           margin-top: var(--space-5);
           display: flex;
           align-items: center;
@@ -244,105 +231,141 @@ const RechargePage = () => {
           gap: var(--space-2);
           color: var(--textSecondary);
           font-size: 0.85rem;
-          font-weight: 400;
         }
 
-        .instructions-container {
-          background-color: var(--backgroundSecondary);
-          border-radius: var(--space-4);
-          padding: var(--space-8);
-        }
-
-        .instructions-title {
-          margin: 0 0 var(--space-6) 0;
-          color: var(--text);
-          font-size: 1rem;
-          font-weight: 600;
+        .info-title {
           display: flex;
           align-items: center;
-          gap: var(--space-3);
+          gap: var(--space-2);
+          margin: 0 0 var(--space-6);
+          font-size: 1rem;
+          font-weight: 600;
+          color: var(--text);
           letter-spacing: -0.01em;
         }
 
-        .instructions-list {
+        .info-list {
           display: flex;
           flex-direction: column;
           gap: var(--space-4);
         }
 
-        .instruction-item {
-          display: flex;
-          flex-direction: column;
-          gap: var(--space-1);
+        .info-item {
+          display: grid;
+          grid-template-columns: 80px 1fr;
+          gap: var(--space-4);
+          align-items: start;
         }
 
-        .instruction-label {
-          display: flex;
-          align-items: center;
-          gap: var(--space-2);
-          color: var(--text);
+        .info-label {
+          color: var(--textSecondary);
           font-weight: 500;
           font-size: 0.85rem;
         }
 
-        .instruction-dot {
-          width: 3px;
-          height: 3px;
-          background-color: var(--primary);
-          border-radius: 50%;
-          flex-shrink: 0;
+        .info-content {
+          color: var(--text);
+          font-size: 0.85rem;
+          line-height: 1.6;
         }
 
-        .instruction-content {
-          padding-left: var(--space-3);
-          color: var(--textSecondary);
-          font-size: 0.8rem;
-          line-height: 1.4;
-        }
-
-        @keyframes fadeIn {
-          from { 
-            opacity: 0; 
-            transform: translateY(var(--space-4)); 
-          }
-          to { 
-            opacity: 1; 
-            transform: translateY(0); 
-          }
+        .info-note {
+          display: block;
+          color: var(--textTertiary);
+          font-size: 0.75rem;
+          margin-top: var(--space-1);
         }
 
         @media (max-width: 768px) {
-          .notice-text {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: var(--space-2);
-          }
-          
-          .username-badge {
-            align-self: flex-start;
+          .info-item {
+            grid-template-columns: auto 1fr;
+            gap: var(--space-3);
           }
         }
       `}</style>
 
       <div className="recharge-container">
-        {/* 标题区域 */}
-        <div className="page-title">
-          <h1 className="title-content">
-            <CreditCardIcon size={isMobile ? 22 : 26} color="var(--primary)" />
-            账户充值
-          </h1>
+        <h1 className="page-title">
+          <RiSecurePaymentLine size={isMobile ? 24 : 28} />
+          账户充值
+        </h1>
+
+        <div className="notice">
+          转账时请务必填写备注
+          <span className="notice-highlight">
+            {auth.user?.username || "username"}
+          </span>
+          否则无法到账
         </div>
 
-        {/* 精简的重要提醒 */}
-        <ImportantNotice />
+        <div className="content-grid">
+          <div className="card">
+            <div className="payment-tabs">
+              {paymentMethods.map((method) => {
+                const Icon = method.icon;
+                const isActive = paymentMethod === method.id;
+                return (
+                  <button
+                    key={method.id}
+                    className={`payment-tab ${isActive ? "active" : ""}`}
+                    onClick={() =>
+                      !method.disabled && setPaymentMethod(method.id)
+                    }
+                    disabled={method.disabled}
+                  >
+                    <Icon
+                      className="tab-icon"
+                      style={{ color: isActive ? method.color : undefined }}
+                    />
+                    <span className="tab-name">{method.name}</span>
+                    {isActive && !method.disabled && (
+                      <div className="active-indicator">
+                        <RiCheckLine size={11} />
+                      </div>
+                    )}
+                    {method.disabled && (
+                      <span className="coming-badge">即将推出</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
 
-        {/* 主要内容区域 */}
-        <div className="main-content">
-          <div className="content-section">
-            <QrCodeSection />
+            <div className="qr-wrapper">
+              <div className="qr-container">
+                {!imageLoaded && <div className="qr-loading">加载中...</div>}
+                <img
+                  src={qrImage}
+                  alt={`${paymentName}充值二维码`}
+                  className="qr-image"
+                  onLoad={() => setImageLoaded(true)}
+                />
+              </div>
+              <div className="qr-tip">
+                <RiSmartphoneLine size={16} />
+                使用{paymentName}扫码付款
+              </div>
+            </div>
           </div>
-          <div className="content-section">
-            <RechargeInstructions />
+
+          <div className="card">
+            <h3 className="info-title">
+              <RiInformationLine size={20} />
+              充值说明
+            </h3>
+            <div className="info-list">
+              {instructions.map((item, i) => (
+                <div key={i} className="info-item">
+                  <div className="info-label">{item.label}</div>
+                  <div className="info-content">
+                    {item.content}
+                    {item.note && (
+                      <span className="info-note">{item.note}</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
