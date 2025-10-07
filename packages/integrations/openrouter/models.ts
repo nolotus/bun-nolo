@@ -82,4 +82,15 @@ export const openrouterModels = [
       write: 1.625 * 11, // 调整为 *11：17.875
     },
   },
+  // 新添加的模型：OpenAI: GPT-5 Pro (Created Oct 6, 2025)
+  {
+    name: "openai/gpt-5-pro",
+    displayName: "OpenAI: GPT-5 Pro",
+    hasVision: true,
+    price: { input: 15 * 11, output: 120 * 11 }, // 调整为 *11：input 165, output 1320 (基于 $15/M input, $120/M output)
+    maxOutputTokens: 200000,
+    contextWindow: 400000,
+    supportsTool: true,
+    // pricePerImage 和 cache 未指定，因此省略；如需添加可补充
+  },
 ];
