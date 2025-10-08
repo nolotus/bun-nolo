@@ -3,17 +3,40 @@ export const openrouterModels = [
     name: "anthropic/claude-opus-4",
     displayName: "Anthropic: Claude Opus 4",
     hasVision: true,
-    price: { input: 15 * 11, output: 75 * 11 }, // 调整为 *11：input 165, output 825
+    price: {
+      input: 15 * 11,
+      output: 75 * 11, // 调整为 *11：input 165, output 825
+      webSearch: 10 * 11, // per 1k searches (Claude API)
+    },
     maxOutputTokens: 200000,
     contextWindow: 200000,
     supportsTool: true,
     pricePerImage: 24 * 11, // 调整为 *11：264（原为 24 * 8，现在统一 *11）
   },
+  // 新添加的变体：Anthropic: Claude Opus 4 (Online)
+  {
+    name: "anthropic/claude-opus-4:online",
+    displayName: "Anthropic: Claude Opus 4 (Online)",
+    hasVision: true,
+    price: {
+      input: 15 * 11,
+      output: 75 * 11, // 复制原模型：input 165, output 825
+      webSearch: 10 * 11, // per 1k searches (Claude API)
+    },
+    maxOutputTokens: 200000,
+    contextWindow: 200000,
+    supportsTool: true,
+    pricePerImage: 24 * 11, // 复制原模型：264
+  },
   {
     name: "anthropic/claude-opus-4.1",
     displayName: "Anthropic: Claude Opus 4.1",
     hasVision: true,
-    price: { input: 15 * 11, output: 75 * 11 }, // 调整为 *11：input 165, output 825
+    price: {
+      input: 15 * 11,
+      output: 75 * 11, // 调整为 *11：input 165, output 825
+      webSearch: 10 * 11, // per 1k searches (Claude API)
+    },
     maxOutputTokens: 32000,
     contextWindow: 200000,
     supportsTool: true,
@@ -23,21 +46,63 @@ export const openrouterModels = [
       write: 18.75 * 11, // 调整为 *11：206.25
     },
   },
+  // 新添加的变体：Anthropic: Claude Opus 4.1 (Online)
+  {
+    name: "anthropic/claude-opus-4.1:online",
+    displayName: "Anthropic: Claude Opus 4.1 (Online)",
+    hasVision: true,
+    price: {
+      input: 15 * 11,
+      output: 75 * 11, // 复制原模型：input 165, output 825
+      webSearch: 10 * 11, // per 1k searches (Claude API)
+    },
+    maxOutputTokens: 32000,
+    contextWindow: 200000,
+    supportsTool: true,
+    pricePerImage: 24 * 11, // 复制原模型：264
+    cache: {
+      read: 1.5 * 11, // 复制原模型：16.5
+      write: 18.75 * 11, // 复制原模型：206.25
+    },
+  },
   {
     name: "anthropic/claude-sonnet-4",
     displayName: "Anthropic: Claude Sonnet 4",
     hasVision: true,
-    price: { input: 3 * 11, output: 15 * 11 }, // 调整为 *11：input 33, output 165
+    price: {
+      input: 3 * 11,
+      output: 15 * 11, // 调整为 *11：input 33, output 165
+      webSearch: 10 * 11, // per 1k searches (Claude API)
+    },
     maxOutputTokens: 200000,
     contextWindow: 200000,
     supportsTool: true,
     pricePerImage: 4.8 * 11, // 调整为 *11：52.8（原为 4.8 * 8，现在统一 *11）
   },
+  // 新添加的变体：Anthropic: Claude Sonnet 4 (Online)
+  {
+    name: "anthropic/claude-sonnet-4:online",
+    displayName: "Anthropic: Claude Sonnet 4 (Online)",
+    hasVision: true,
+    price: {
+      input: 3 * 11,
+      output: 15 * 11, // 复制原模型：input 33, output 165
+      webSearch: 10 * 11, // per 1k searches (Claude API)
+    },
+    maxOutputTokens: 200000,
+    contextWindow: 200000,
+    supportsTool: true,
+    pricePerImage: 4.8 * 11, // 复制原模型：52.8
+  },
   {
     name: "anthropic/claude-sonnet-4.5",
     displayName: "Anthropic: Claude Sonnet 4.5",
     hasVision: true,
-    price: { input: 3 * 11, output: 15 * 11 }, // 基于规格 ≤200K：input $3 *11=33, output $15 *11=165 (>200K 时可扩展为 $6/$22.50 *11=66/247.5)
+    price: {
+      input: 3 * 11,
+      output: 15 * 11, // 基于规格 ≤200K：input $3 *11=33, output $15 *11=165 (>200K 时可扩展为 $6/$22.50 *11=66/247.5)
+      webSearch: 10 * 11, // per 1k searches (Claude API)
+    },
     maxOutputTokens: 64000, // 更新为 64K
     contextWindow: 1000000, // 1M context
     supportsTool: true,
@@ -45,6 +110,25 @@ export const openrouterModels = [
     cache: {
       read: 0.3 * 11, // 基于规格 ≤200K：$0.30 *11=3.3 (>200K 时 $0.60 *11=6.6)
       write: 3.75 * 11, // 基于规格 ≤200K：$3.75 *11=41.25 (>200K 时 $7.50 *11=82.5)
+    },
+  },
+  // 新添加的变体：Anthropic: Claude Sonnet 4.5 (Online)
+  {
+    name: "anthropic/claude-sonnet-4.5:online",
+    displayName: "Anthropic: Claude Sonnet 4.5 (Online)",
+    hasVision: true,
+    price: {
+      input: 3 * 11,
+      output: 15 * 11, // 复制原模型：input 33, output 165
+      webSearch: 10 * 11, // per 1k searches (Claude API)
+    },
+    maxOutputTokens: 64000,
+    contextWindow: 1000000,
+    supportsTool: true,
+    pricePerImage: 4.8 * 11, // 复制原模型：52.8
+    cache: {
+      read: 0.3 * 11, // 复制原模型：3.3
+      write: 3.75 * 11, // 复制原模型：41.25
     },
   },
   {
@@ -87,10 +171,89 @@ export const openrouterModels = [
     name: "openai/gpt-5-pro",
     displayName: "OpenAI: GPT-5 Pro",
     hasVision: true,
-    price: { input: 15 * 11, output: 120 * 11 }, // 调整为 *11：input 165, output 1320 (基于 $15/M input, $120/M output)
+    price: {
+      input: 15 * 11,
+      output: 120 * 11, // 调整为 *11：input 165, output 1320 (基于 $15/M input, $120/M output)
+      webSearch: 10 * 11, // $10 / 1k calls (OpenAI)
+    },
     maxOutputTokens: 200000,
     contextWindow: 400000,
     supportsTool: true,
     // pricePerImage 和 cache 未指定，因此省略；如需添加可补充
+  },
+  // 新添加的变体：OpenAI: GPT-5 Pro (Online)
+  {
+    name: "openai/gpt-5-pro:online",
+    displayName: "OpenAI: GPT-5 Pro (Online)",
+    hasVision: true,
+    price: {
+      input: 15 * 11,
+      output: 120 * 11, // 复制原模型：input 165, output 1320
+      webSearch: 10 * 11, // $10 / 1k calls (OpenAI)
+    },
+    maxOutputTokens: 200000,
+    contextWindow: 400000,
+    supportsTool: true,
+    // pricePerImage 和 cache 未指定，因此省略
+  },
+  // 新添加的模型：OpenAI: GPT-5 (Created Aug 7, 2025)
+  {
+    name: "openai/gpt-5",
+    displayName: "OpenAI: GPT-5",
+    hasVision: true,
+    price: {
+      input: 1.25 * 11,
+      output: 10 * 11, // 调整为 *11：input 13.75, output 110 (基于 $1.25/M input, $10/M output)
+      webSearch: 10 * 11, // $10 / 1k calls (OpenAI)
+    },
+    maxOutputTokens: 200000,
+    contextWindow: 400000,
+    supportsTool: true,
+    // pricePerImage 和 cache 未指定，因此省略；web search $10/K 可后续扩展 price 对象
+  },
+  // 新添加的变体：OpenAI: GPT-5 (Online)
+  {
+    name: "openai/gpt-5:online",
+    displayName: "OpenAI: GPT-5 (Online)",
+    hasVision: true,
+    price: {
+      input: 1.25 * 11,
+      output: 10 * 11, // 复制原模型：input 13.75, output 110
+      webSearch: 10 * 11, // $10 / 1k calls (OpenAI)
+    },
+    maxOutputTokens: 200000,
+    contextWindow: 400000,
+    supportsTool: true,
+    // pricePerImage 和 cache 未指定，因此省略
+  },
+  // 新添加的模型：OpenAI: GPT-5 Mini (Created Aug 7, 2025)
+  {
+    name: "openai/gpt-5-mini",
+    displayName: "OpenAI: GPT-5 Mini",
+    hasVision: true,
+    price: {
+      input: 0.25 * 11,
+      output: 2 * 11, // 调整为 *11：input 2.75, output 22 (基于 $0.25/M input, $2/M output)
+      webSearch: 10 * 11, // $10 / 1k calls (OpenAI)
+    },
+    maxOutputTokens: 200000,
+    contextWindow: 400000,
+    supportsTool: true,
+    // pricePerImage 和 cache 未指定，因此省略；web search $10/K 可后续扩展 price 对象
+  },
+  // 新添加的变体：OpenAI: GPT-5 Mini (Online)
+  {
+    name: "openai/gpt-5-mini:online",
+    displayName: "OpenAI: GPT-5 Mini (Online)",
+    hasVision: true,
+    price: {
+      input: 0.25 * 11,
+      output: 2 * 11, // 复制原模型：input 2.75, output 22
+      webSearch: 10 * 11, // $10 / 1k calls (OpenAI)
+    },
+    maxOutputTokens: 200000,
+    contextWindow: 400000,
+    supportsTool: true,
+    // pricePerImage 和 cache 未指定，因此省略
   },
 ];
