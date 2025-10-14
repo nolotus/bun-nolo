@@ -127,7 +127,7 @@ export async function handleSignUp(req) {
 
     await saveUserDataToDb(userId, userData, userSettings, userProfile);
 
-    const initialBalance = inviterId ? 6.6 : 1;
+    const initialBalance = inviterId ? 6.6 : 2;
     const reason = inviterId ? "invited_signup_bonus" : "new_user_bonus";
     const initialRechargeResult = await rechargeUserBalance(
       userId,
