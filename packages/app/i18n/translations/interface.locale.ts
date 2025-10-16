@@ -77,38 +77,37 @@ export default {
       home: "Home",
       welcomeSection: {
         heroTitle: "Your AI, Your Rules",
-        waveEmoji: "🔒",
         heroDescription:
-          "Experience private AI assistance. Build smart companions that learn from your files and adapt to your style, all while keeping your data secure.",
+          "Experience the next generation of AI. Utilize powerful multi-modal tools, build your own intelligent agents, and monetize your creations in a vibrant marketplace.",
         ctaButton: "Start Building",
         feature1: {
-          title: "Smart Knowledge Hub",
+          title: "Multi-Modal AI Workspace",
           description:
-            "Turn any document or file into your AI's memory. Watch it get smarter with every upload, delivering insights tailored to you.",
+            "Go beyond simple chat. Upload documents, analyze images, and even generate video. Orchestrate multiple AIs in a single conversation to execute complex plans.",
           highlights: {
-            0: "📚 Smart Document Processing",
-            1: "🔍 Visual Intelligence",
-            2: "🎨 Custom Personalities",
+            0: "📚 Docs & Image Analysis",
+            1: "🎨 Image & Video Generation",
+            2: "🤖 Multi-AI Orchestration",
           },
         },
         feature2: {
-          title: "Unbreakable Security",
+          title: "No-Code AI Builder",
           description:
-            "Your conversations stay yours. With military-grade encryption and local deployment, your data never leaves your control.",
+            "Become an AI creator. Visually combine your own prompts, tools, and private knowledge bases to build specialized AI agents for any purpose, from a personal tutor to an automated customer service bot.",
           highlights: {
-            0: "🛡️ Zero-Trust Architecture",
-            1: "🔐 End-to-End Encryption",
-            2: "🌐 Transparency First",
+            0: "🧩 Build with Blocks",
+            1: "🛠️ Integrate Your Tools",
+            2: "🧠 Train on Your Data",
           },
         },
         feature3: {
-          title: "Seamless Sync",
+          title: "The Creator Marketplace",
           description:
-            "Your AI follows you across every device. Start on your phone, continue on your laptop, with a perfectly synced experience.",
+            "Don't just build for yourself. Publish your custom AIs, tools, or even curated knowledge bases on our marketplace. Share your expertise and create new revenue streams.",
           highlights: {
-            0: "⚡ Lightning Fast",
-            1: "🔄 Perfect Sync",
-            2: "🌍 Universal Access",
+            0: "🌐 Discover & Share",
+            1: "💰 Monetize Your Creations",
+            2: "📚 Trade Knowledge Bases",
           },
         },
       },
@@ -128,7 +127,6 @@ export default {
       inviterIdOptionalPlaceholder: "Enter inviter ID (optional)",
       inviterAvatarAlt: "Inviter avatar: {{name}}",
 
-      // ——————— 新增对话页相关 Key ———————
       errors: {
         loadingMessages: "Error loading messages",
       },
@@ -210,39 +208,38 @@ export default {
       deleteSuccess: "删除成功",
       home: "首页",
       welcomeSection: {
-        heroTitle: "你的AI，你做主",
-        waveEmoji: "🔒",
+        heroTitle: "你的AI，无限创造",
         heroDescription:
-          "体验拥有完全隐私控制权的AI助手。打造懂你的智能伙伴，从你的文件中学习并适应你的风格，全程确保数据安全。",
+          "体验下一代AI。直接使用强大的多模态工具，构建你自己的智能体，并在充满活力的创作者市场中将你的作品变为收益。",
         ctaButton: "开始构建",
         feature1: {
-          title: "智能知识中枢",
+          title: "多模态AI工作空间",
           description:
-            "将任何文档或文件转化为AI的记忆。AI会随着每次上传变得更聪明，提供专属于你的洞察。",
+            "超越简单聊天。上传文档、识别图像，甚至生成视频。在同一个对话中协同多个AI，执行你设定的复杂任务流。",
           highlights: {
-            0: "📚 智能文档处理",
-            1: "🔍 视觉智能分析",
-            2: "🎨 个性化定制",
+            0: "📚 文档与图像识别",
+            1: "🎨 图像与视频生成",
+            2: "🤖 多AI协同执行",
           },
         },
         feature2: {
-          title: "坚不可摧的安全",
+          title: "无代码AI构建器",
           description:
-            "你的对话完全属于你。通过军用级加密和本地部署，你的数据永远在你的掌控之中。",
+            "成为AI创造者。通过可视化界面，自由组合你的提示词、外部工具和私有知识库，打造从个人导师到自动化客服等任何专属AI。",
           highlights: {
-            0: "🛡️ 零信任架构",
-            1: "🔐 端到端加密",
-            2: "🌐 透明优先",
+            0: "🧩 积木式构建",
+            1: "🛠️ 集成你的工具",
+            2: "🧠 训练你的数据",
           },
         },
         feature3: {
-          title: "无缝同步",
+          title: "创作者市场",
           description:
-            "你的AI跨设备伴随你。在手机上开始，在电脑上继续，体验完美同步与一致性。",
+            "不止于自用。你可以在市场中发布你定制的AI、工具、甚至是知识库。分享你的专业知识，开创全新的收入来源。",
           highlights: {
-            0: "⚡ 闪电般快速",
-            1: "🔄 完美同步",
-            2: "🌍 全球触达",
+            0: "🌐 发现与分享",
+            1: "💰 将创作变现",
+            2: "📚 知识库亦可交易",
           },
         },
       },
@@ -262,7 +259,6 @@ export default {
       inviterIdOptionalPlaceholder: "请输入推荐人ID（选填）",
       inviterAvatarAlt: "邀请人头像: {{name}}",
 
-      // ——————— 新增对话页相关 Key ———————
       errors: {
         loadingMessages: "加载消息失败",
       },
@@ -344,39 +340,38 @@ export default {
       deleteSuccess: "刪除成功",
       home: "首頁",
       welcomeSection: {
-        heroTitle: "你的AI，你做主",
-        waveEmoji: "🔒",
+        heroTitle: "你的AI，無限創造",
         heroDescription:
-          "體驗擁有完全隱私控制權的AI助手。打造懂你的智能夥伴，從您的文件中學習並適應您的風格，全程確保數據安全。",
+          "體驗下一代AI。直接使用強大的多模態工具，構建您自己的智能體，並在充滿活力的創作者市集中將您的作品變為收益。",
         ctaButton: "開始構建",
         feature1: {
-          title: "智能知識中樞",
+          title: "多模態AI工作空間",
           description:
-            "將任何文檔或文件轉化為AI的記憶。AI會隨著每次上傳變得更聰明，提供專屬於您的洞察。",
+            "超越簡單聊天。上傳文件、識別圖像，甚至生成影片。在同一個對話中協同多個AI，執行您設定的複雜任務流。",
           highlights: {
-            0: "📚 智能文檔處理",
-            1: "🔍 視覺智能分析",
-            2: "🎨 個性化定製",
+            0: "📚 文件與圖像識別",
+            1: "🎨 圖像與影片生成",
+            2: "🤖 多AI協同執行",
           },
         },
         feature2: {
-          title: "堅不可摧的安全",
+          title: "無程式碼AI建構器",
           description:
-            "您的對話完全屬於您。通過軍用級加密和本地部署，您的數據永遠在您的掌控之中。",
+            "成為AI創造者。透過視覺化介面，自由組合您的提示詞、外部工具和私有知識庫，打造從個人導師到自動化客服等任何專屬AI。",
           highlights: {
-            0: "🛡️ 零信任架構",
-            1: "🔐 端到端加密",
-            2: "🌐 透明優先",
+            0: "🧩 積木式建構",
+            1: "🛠️ 整合您的工具",
+            2: "🧠 訓練您的數據",
           },
         },
         feature3: {
-          title: "無縫同步",
+          title: "創作者市集",
           description:
-            "您的AI跨設備伴隨您。在手機上開始，在電腦上繼續，體驗完美同步與一致性。",
+            "不止於自用。您可以在市集中發布您客製化的AI、工具、甚至是知識庫。分享您的專業知識，開創全新的收入來源。",
           highlights: {
-            0: "⚡ 閃電般快速",
-            1: "🔄 完美同步",
-            2: "🌍 全球觸達",
+            0: "🌐 發現與分享",
+            1: "💰 將創作變現",
+            2: "📚 知識庫亦可交易",
           },
         },
       },
@@ -396,7 +391,6 @@ export default {
       inviterIdOptionalPlaceholder: "請輸入推薦人ID（選填）",
       inviterAvatarAlt: "邀請人頭像: {{name}}",
 
-      // ——————— 新增对话页相关 Key ———————
       errors: {
         loadingMessages: "加載消息失敗",
       },
@@ -481,39 +475,38 @@ export default {
       deleteSuccess: "削除成功",
       home: "ホーム",
       welcomeSection: {
-        heroTitle: "あなたのAI、あなたのルール",
-        waveEmoji: "🔒",
+        heroTitle: "あなたのAI、無限の創造性",
         heroDescription:
-          "完全なプライバシー制御でAIの未来を体験。ファイルから学習しあなたのスタイルに適応するスマートなAIを構築。データは常に安全です。",
+          "次世代のAIを体験してください。強力なマルチモーダルツールを活用し、独自のインテリジェントエージェントを構築し、活気あるクリエイターマーケットプレイスであなたの作品を収益化しましょう。",
         ctaButton: "構築を始める",
         feature1: {
-          title: "スマート知識ハブ",
+          title: "マルチモーダルAIワークスペース",
           description:
-            "文書やファイルをAIの記憶に変換。アップロード毎に賢くなり、あなたに合わせたインサイトを提供します。",
+            "シンプルなチャットを超えましょう。ドキュメントのアップロード、画像の認識、さらにはビデオの生成まで。単一の会話で複数のAIを連携させ、あなたが設定した複雑なプランを実行します。",
           highlights: {
-            0: "📚 スマート文書処理",
-            1: "🔍 ビジュアルインテリジェンス",
-            2: "🎨 カスタムパーソナリティ",
+            0: "📚 ドキュメント・画像認識",
+            1: "🎨 画像・動画生成",
+            2: "🤖 マルチAI連携実行",
           },
         },
         feature2: {
-          title: "鉄壁のセキュリティ",
+          title: "ノーコードAIビルダー",
           description:
-            "あなたの会話はあなたのもの。軍事レベルの暗号化とローカル展開により、データは常にあなたの管理下にあります。",
+            "AIクリエイターになりましょう。独自のプロンプト、外部ツール、プライベートナレッジベースを視覚的に組み合わせ、家庭教師から自動化されたカスタマーサービスまで、あらゆる目的の専用AIを構築します。",
           highlights: {
-            0: "🛡️ ゼロトラストアーキテクチャ",
-            1: "🔐 エンドツーエンド暗号化",
-            2: "🌐 透明性ファースト",
+            0: "🧩 ブロックで構築",
+            1: "🛠️ ツールを統合",
+            2: "🧠 あなたのデータで訓練",
           },
         },
         feature3: {
-          title: "シームレス同期",
+          title: "クリエイターマーケットプレイス",
           description:
-            "あなたのAIは全てのデバイスであなたに追随します。スマホで始め、PCで続ける。完璧な同期と一貫した体験。",
+            "自分だけで使うのではありません。カスタムAI、ツール、さらにはナレッジベースをマーケットプレイスで公開できます。あなたの専門知識を共有し、新たな収益源を創出しましょう。",
           highlights: {
-            0: "⚡ 光速の高速性",
-            1: "🔄 完璧な同期",
-            2: "🌍 ユニバーサルアクセス",
+            0: "🌐 発見と共有",
+            1: "💰 創作を収益化",
+            2: "📚 ナレッジベースも取引可能",
           },
         },
       },
@@ -533,7 +526,6 @@ export default {
       inviterIdOptionalPlaceholder: "招待者IDを入力（任意）",
       inviterAvatarAlt: "招待者のアバター: {{name}}",
 
-      // ——————— 新增对话页相关 Key ———————
       errors: {
         loadingMessages: "メッセージの読み込みに失敗しました",
       },
