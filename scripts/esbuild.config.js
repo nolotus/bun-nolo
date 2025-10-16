@@ -1,5 +1,5 @@
 // config.js
-import { isProduction } from "utils/env";
+import { isProduction } from "../packages/utils/env.ts";
 
 const inputPath = "./packages/web/entry.tsx";
 

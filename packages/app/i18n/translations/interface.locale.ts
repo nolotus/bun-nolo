@@ -76,14 +76,14 @@ export default {
       deleteSuccess: "Delete successful",
       home: "Home",
       welcomeSection: {
-        heroTitle: "Your AI, Your Rules",
+        heroTitle: "Explore, Use, and Create AI",
         heroDescription:
-          "Experience the next generation of AI. Utilize powerful multi-modal tools, build your own intelligent agents, and monetize your creations in a vibrant marketplace.",
-        ctaButton: "Start Building",
+          "Dive into a universe of intelligent agents. Instantly use powerful multi-modal AIs, or build your own and share them in our vibrant marketplace.",
+        ctaButton: "Get Started for Free",
         feature1: {
           title: "Multi-Modal AI Workspace",
           description:
-            "Go beyond simple chat. Upload documents, analyze images, and even generate video. Orchestrate multiple AIs in a single conversation to execute complex plans.",
+            "Go beyond simple chat. Access top-tier models like GPT-5, Claude, and Gemini. Upload documents, analyze images, and generate video. Orchestrate multiple AIs in a single conversation to execute complex plans.", // [!code focus]
           highlights: {
             0: "📚 Docs & Image Analysis",
             1: "🎨 Image & Video Generation",
@@ -111,6 +111,7 @@ export default {
           },
         },
       },
+      explorePlaza: "Explore the AI Plaza",
       joinCommunity: "Join Our Community",
       invitedBy: "You've been invited by",
       acceptInvitation: "Accept Invitation",
@@ -208,14 +209,14 @@ export default {
       deleteSuccess: "删除成功",
       home: "首页",
       welcomeSection: {
-        heroTitle: "你的AI，无限创造",
+        heroTitle: "探索、使用、创造 AI",
         heroDescription:
-          "体验下一代AI。直接使用强大的多模态工具，构建你自己的智能体，并在充满活力的创作者市场中将你的作品变为收益。",
-        ctaButton: "开始构建",
+          "进入智能体的宇宙。立即使用强大的多模态AI，或构建你自己的专属AI，并在我们充满活力的创作者市场中分享它们。",
+        ctaButton: "立即免费体验",
         feature1: {
           title: "多模态AI工作空间",
           description:
-            "超越简单聊天。上传文档、识别图像，甚至生成视频。在同一个对话中协同多个AI，执行你设定的复杂任务流。",
+            "超越简单聊天。在同一个对话中，自由切换并协同包括 GPT-5, Claude, 和 Gemini 在内的多个顶尖AI，上传文档、识别图像，甚至生成视频，执行你设定的复杂任务流。", // [!code focus]
           highlights: {
             0: "📚 文档与图像识别",
             1: "🎨 图像与视频生成",
@@ -243,6 +244,7 @@ export default {
           },
         },
       },
+      explorePlaza: "探索 AI 广场",
       joinCommunity: "加入我们的社区",
       invitedBy: "你已被邀请",
       acceptInvitation: "接受邀请",
@@ -340,14 +342,14 @@ export default {
       deleteSuccess: "刪除成功",
       home: "首頁",
       welcomeSection: {
-        heroTitle: "你的AI，無限創造",
+        heroTitle: "探索、使用、創造 AI",
         heroDescription:
-          "體驗下一代AI。直接使用強大的多模態工具，構建您自己的智能體，並在充滿活力的創作者市集中將您的作品變為收益。",
-        ctaButton: "開始構建",
+          "進入智能體的宇宙。立即使用強大的多模態AI，或構建您自己的專屬AI，並在我們充滿活力的創作者市集中分享它們。",
+        ctaButton: "立即免費體驗",
         feature1: {
           title: "多模態AI工作空間",
           description:
-            "超越簡單聊天。上傳文件、識別圖像，甚至生成影片。在同一個對話中協同多個AI，執行您設定的複雜任務流。",
+            "超越簡單聊天。在同一個對話中，自由切換並協同包括 GPT-5, Claude 和 Gemini 在內的多個頂尖 AI，上傳文件、識別圖像，甚至生成影片，執行您設定的複雜任務流。", // [!code focus]
           highlights: {
             0: "📚 文件與圖像識別",
             1: "🎨 圖像與影片生成",
@@ -375,6 +377,7 @@ export default {
           },
         },
       },
+      explorePlaza: "探索 AI 廣場",
       joinCommunity: "加入我們的社區",
       invitedBy: "您已被邀請",
       acceptInvitation: "接受邀請",
@@ -475,14 +478,14 @@ export default {
       deleteSuccess: "削除成功",
       home: "ホーム",
       welcomeSection: {
-        heroTitle: "あなたのAI、無限の創造性",
+        heroTitle: "AIを探索、使用、創造する",
         heroDescription:
-          "次世代のAIを体験してください。強力なマルチモーダルツールを活用し、独自のインテリジェントエージェントを構築し、活気あるクリエイターマーケットプレイスであなたの作品を収益化しましょう。",
-        ctaButton: "構築を始める",
+          "インテリジェントエージェントの世界へようこそ。強力なマルチモーダルAIをすぐに使用したり、独自のAIを構築して活気あるマーケットプレイスで共有したりできます。",
+        ctaButton: "無料で始める",
         feature1: {
           title: "マルチモーダルAIワークスペース",
           description:
-            "シンプルなチャットを超えましょう。ドキュメントのアップロード、画像の認識、さらにはビデオの生成まで。単一の会話で複数のAIを連携させ、あなたが設定した複雑なプランを実行します。",
+            "シンプルなチャットを超えましょう。単一の会話でGPT-5、Claude、Geminiといった最先端のAIモデルを自由に切り替え、連携させ、ドキュメントのアップロード、画像の認識、ビデオ生成など、あなたが設定した複雑なプランを実行します。", // [!code focus]
           highlights: {
             0: "📚 ドキュメント・画像認識",
             1: "🎨 画像・動画生成",
@@ -510,6 +513,7 @@ export default {
           },
         },
       },
+      explorePlaza: "AIプラザを探索",
       joinCommunity: "コミュニティに参加",
       invitedBy: "招待されました",
       acceptInvitation: "招待を受け入れる",
