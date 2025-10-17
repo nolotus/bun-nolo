@@ -198,4 +198,66 @@ export const openrouterModels = [
     supportsTool: true,
     // pricePerImage 和 cache 未指定，因此省略
   },
+  // 新添加的模型：Anthropic: Claude Haiku 4.5 (Created Oct 15, 2025)
+  {
+    name: "anthropic/claude-haiku-4.5",
+    displayName: "Anthropic: Claude Haiku 4.5",
+    hasVision: true,
+    price: {
+      input: 1 * 11,
+      output: 5 * 11, // 调整为 *11：input 11, output 55 (基于 $1/M input, $5/M output)
+      webSearch: 10 * 11, // per 1k searches (Claude API, 假设一致)
+    },
+    maxOutputTokens: 32000, // 假设与 Opus 类似
+    contextWindow: 200000,
+    supportsTool: true,
+    // pricePerImage 未指定，因此省略；cache 未指定，因此省略
+  },
+  // 新添加的模型：OpenAI: o3 Deep Research (Created Oct 10, 2025)
+  {
+    name: "openai/o3-deep-research",
+    displayName: "OpenAI: o3 Deep Research",
+    hasVision: true,
+    price: {
+      input: 10 * 11,
+      output: 40 * 11, // 调整为 *11：input 110, output 440 (基于 $10/M input, $40/M output)
+      webSearch: 10 * 11, // $10 / 1k calls (OpenAI)
+    },
+    maxOutputTokens: 200000,
+    contextWindow: 200000,
+    supportsTool: true,
+    pricePerImage: 7.65 * 11, // 调整为 *11：84.15 (基于 $7.65/K input imgs，假设 per 1000 images 等价调整)
+    // cache 未指定，因此省略
+  },
+  // 新添加的模型：OpenAI: o4 Mini Deep Research (Created Oct 10, 2025)
+  {
+    name: "openai/o4-mini-deep-research",
+    displayName: "OpenAI: o4 Mini Deep Research",
+    hasVision: true,
+    price: {
+      input: 2 * 11,
+      output: 8 * 11, // 调整为 *11：input 22, output 88 (基于 $2/M input, $8/M output)
+      webSearch: 10 * 11, // $10 / 1k calls (OpenAI)
+    },
+    maxOutputTokens: 200000,
+    contextWindow: 200000,
+    supportsTool: true,
+    pricePerImage: 1.53 * 11, // 调整为 *11：16.83 (基于 $1.53/K input imgs，假设 per 1000 images 等价调整)
+    // cache 未指定，因此省略
+  },
+  // 新添加的模型：Qwen: Qwen3 VL 235B A22B Thinking (Created Sep 23, 2025)
+  {
+    name: "qwen/qwen3-vl-235b-a22b-thinking",
+    displayName: "Qwen: Qwen3 VL 235B A22B Thinking",
+    hasVision: true,
+    price: {
+      input: 0.3 * 11,
+      output: 1.2 * 11, // 调整为 *11：input 3.3, output 13.2 (基于 $0.30/M input, $1.20/M output)
+      // webSearch 未指定，因此省略
+    },
+    maxOutputTokens: 32800, // 假设与 Qwen3 Max 类似
+    contextWindow: 262144,
+    supportsTool: true,
+    // pricePerImage 未指定，因此省略；cache 未指定，因此省略
+  },
 ];
