@@ -8,7 +8,7 @@ interface FormFieldProps {
   label?: string;
   required?: boolean;
   error?: string;
-  helperText?: string; // 改回 helperText
+  helperText?: string;
   horizontal?: boolean;
   labelWidth?: string;
   disabled?: boolean;
@@ -22,7 +22,6 @@ interface LabelProps extends LabelHTMLAttributes<HTMLLabelElement> {
   error?: boolean;
 }
 
-// 内部 Label 组件 - 简化实现
 const Label: React.FC<LabelProps> = ({
   children,
   required,
@@ -45,7 +44,7 @@ export const FormField: React.FC<FormFieldProps> = ({
   label,
   required = false,
   error,
-  helperText, // 改回 helperText
+  helperText,
   horizontal = false,
   labelWidth = "140px",
   disabled = false,
@@ -55,7 +54,6 @@ export const FormField: React.FC<FormFieldProps> = ({
 }) => {
   const hasError = Boolean(error);
 
-  // 构建CSS类名
   const fieldClasses = [
     "form-field",
     horizontal && "horizontal",
@@ -73,7 +71,11 @@ export const FormField: React.FC<FormFieldProps> = ({
           required={required}
           error={hasError}
           htmlFor={htmlFor}
-          style={horizontal ? { flexBasis: labelWidth } : undefined}
+          style={
+            horizontal
+              ? ({ "--label-width": labelWidth } as React.CSSProperties)
+              : undefined
+          }
         >
           {label}
         </Label>
@@ -92,6 +94,7 @@ export const FormField: React.FC<FormFieldProps> = ({
       </div>
 
       <style href="form-field" precedence="medium">{`
+        /* 桌面端默认样式 */
         .form-field {
           display: flex;
           flex-direction: column;
@@ -122,10 +125,17 @@ export const FormField: React.FC<FormFieldProps> = ({
           transition: color 0.2s ease;
         }
 
+        /* 横向布局时的 label 宽度 - 只在桌面端生效 */
         .form-field.horizontal .form-label {
           flex-shrink: 0;
-          padding-top: calc(var(--space-2) + 1px); /* 与输入框视觉对齐 */
+          padding-top: calc(var(--space-2) + 1px);
           white-space: nowrap;
+        }
+
+        @media (min-width: 769px) {
+          .form-field.horizontal .form-label {
+            flex-basis: var(--label-width, 140px);
+          }
         }
 
         .form-label.has-error {
@@ -205,13 +215,14 @@ export const FormField: React.FC<FormFieldProps> = ({
           color: var(--textQuaternary);
         }
 
-        /* 响应式设计 */
+        /* 响应式设计 - 平板及以下 */
         @media (max-width: 768px) {
           .form-field {
             gap: var(--space-1);
             margin-bottom: var(--space-4);
           }
 
+          /* 强制垂直布局 */
           .form-field.horizontal {
             flex-direction: column;
             gap: var(--space-2);
@@ -219,22 +230,40 @@ export const FormField: React.FC<FormFieldProps> = ({
 
           .form-field.horizontal .form-label {
             padding-top: 0;
+            white-space: normal; /* 允许换行 */
+          }
+        }
+
+        /* 响应式设计 - 手机端 */
+        @media (max-width: 480px) {
+          .form-field {
+            gap: 6px;
+            margin-bottom: var(--space-4);
+          }
+
+          .form-field.horizontal {
+            gap: 6px;
           }
 
           .form-label {
             font-size: 13px;
+            line-height: 1.3;
+            margin-bottom: 0;
+          }
+
+          .form-content {
+            gap: var(--space-1);
           }
 
           .form-help,
           .form-error {
             font-size: 12px;
             padding-left: 0;
+            margin-top: 2px;
           }
-        }
 
-        @media (max-width: 480px) {
-          .form-field {
-            margin-bottom: var(--space-3);
+          .form-field + .form-field {
+            margin-top: calc(var(--space-2) * -1);
           }
         }
 
@@ -256,18 +285,12 @@ export const FormField: React.FC<FormFieldProps> = ({
           }
         }
 
-        /* 细节优化 */
-        .form-field + .form-field {
-          margin-top: calc(var(--space-1) * -1); /* 减少相邻字段间距 */
-        }
-
-        /* 当字段获得焦点时，微妙的整体提升 */
+        /* 焦点状态优化 */
         .form-field:focus-within {
           position: relative;
           z-index: 1;
         }
 
-        /* 帮助文本的微妙动画 */
         .form-help,
         .form-error {
           opacity: 0.9;
