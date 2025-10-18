@@ -26,12 +26,12 @@ export interface ModelWithProvider extends Model {
  * 这是整个应用中模型选择器的唯一数据源。
  */
 export const ALL_MODELS: ModelWithProvider[] = [
-  ...mistralModels.map((m) => ({ ...m, provider: "mistral" })),
   ...googleModels.map((m) => ({ ...m, provider: "google" })),
   ...openAIModels.map((m) => ({ ...m, provider: "openai" })),
   ...openrouterModels.map((m) => ({ ...m, provider: "openrouter" })),
+  ...deepinfraModels.map((m) => ({ ...m, provider: "deepinfra" })),
   ...xaiModels.map((m) => ({ ...m, provider: "xai" })),
   ...deepSeekModels.map((m) => ({ ...m, provider: "deepseek" })),
-  ...deepinfraModels.map((m) => ({ ...m, provider: "deepinfra" })),
   ...sambanovaModels.map((m) => ({ ...m, provider: "sambanova" })),
+  ...mistralModels.map((m) => ({ ...m, provider: "mistral" })),
 ];
