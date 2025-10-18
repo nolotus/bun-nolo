@@ -1,4 +1,19 @@
 export const openrouterModels = [
+  // --- Anthropic Models ---
+  {
+    name: "anthropic/claude-haiku-4.5",
+    displayName: "Anthropic: Claude Haiku 4.5",
+    hasVision: true,
+    price: {
+      input: 1 * 11,
+      output: 5 * 11, // 调整为 *11：input 11, output 55 (基于 $1/M input, $5/M output)
+      webSearch: 10 * 11, // per 1k searches (Claude API, 假设一致)
+    },
+    maxOutputTokens: 32000, // 假设与 Opus 类似
+    contextWindow: 200000,
+    supportsTool: true,
+    // pricePerImage 未指定，因此省略；cache 未指定，因此省略
+  },
   {
     name: "anthropic/claude-opus-4.1",
     displayName: "Anthropic: Claude Opus 4.1",
@@ -17,7 +32,6 @@ export const openrouterModels = [
       write: 18.75 * 11, // 调整为 *11：206.25
     },
   },
-  // 新添加的变体：Anthropic: Claude Opus 4.1 (Online)
   {
     name: "anthropic/claude-opus-4.1:online",
     displayName: "Anthropic: Claude Opus 4.1 (Online)",
@@ -54,7 +68,6 @@ export const openrouterModels = [
       write: 3.75 * 11, // 基于规格 ≤200K：$3.75 *11=41.25 (>200K 时 $7.50 *11=82.5)
     },
   },
-  // 新添加的变体：Anthropic: Claude Sonnet 4.5 (Online)
   {
     name: "anthropic/claude-sonnet-4.5:online",
     displayName: "Anthropic: Claude Sonnet 4.5 (Online)",
@@ -73,28 +86,8 @@ export const openrouterModels = [
       write: 3.75 * 12, // 基于规格 ≤200K：$3.75 *12=45 (>200K 时 $7.50 *12=90)
     },
   },
-  {
-    name: "minimax/minimax-m1",
-    displayName: "MiniMax: MiniMax M1",
-    hasVision: false,
-    price: { input: 0.3 * 11, output: 1.65 * 11 }, // 调整为 *11：input 3.3, output 18.15
-    maxOutputTokens: 1000000,
-    contextWindow: 1000000,
-    supportsTool: true,
-  },
-  {
-    name: "qwen/qwen3-max",
-    displayName: "Qwen: Qwen3 Max",
-    hasVision: false,
-    price: { input: 1.2 * 11, output: 6 * 11 }, // 调整为 *11：input 13.2, output 66
-    maxOutputTokens: 32800,
-    contextWindow: 256000,
-    supportsTool: true,
-    cache: {
-      read: 0.24 * 11, // 调整为 *11：2.64
-      // write: 未指定，暂省略
-    },
-  },
+
+  // --- Google Models ---
   {
     name: "google/gemini-2.5-pro",
     displayName: "Google: Gemini 2.5 Pro",
@@ -108,37 +101,19 @@ export const openrouterModels = [
       write: 1.625 * 11, // 调整为 *11：17.875
     },
   },
-  // 新添加的模型：OpenAI: GPT-5 Pro (Created Oct 6, 2025)
+
+  // --- MiniMax Models ---
   {
-    name: "openai/gpt-5-pro",
-    displayName: "OpenAI: GPT-5 Pro",
-    hasVision: true,
-    price: {
-      input: 15 * 11,
-      output: 120 * 11, // 调整为 *11：input 165, output 1320 (基于 $15/M input, $120/M output)
-      webSearch: 10 * 11, // $10 / 1k calls (OpenAI)
-    },
-    maxOutputTokens: 200000,
-    contextWindow: 400000,
+    name: "minimax/minimax-m1",
+    displayName: "MiniMax: MiniMax M1",
+    hasVision: false,
+    price: { input: 0.3 * 11, output: 1.65 * 11 }, // 调整为 *11：input 3.3, output 18.15
+    maxOutputTokens: 1000000,
+    contextWindow: 1000000,
     supportsTool: true,
-    // pricePerImage 和 cache 未指定，因此省略；如需添加可补充
   },
-  // 新添加的变体：OpenAI: GPT-5 Pro (Online)
-  {
-    name: "openai/gpt-5-pro:online",
-    displayName: "OpenAI: GPT-5 Pro (Online)",
-    hasVision: true,
-    price: {
-      input: 15 * 12,
-      output: 120 * 12, // 调整为 *12：input 180, output 1440 (基于 $15/M input, $120/M output)
-      webSearch: 10 * 12, // $10 / 1k calls (OpenAI)
-    },
-    maxOutputTokens: 200000,
-    contextWindow: 400000,
-    supportsTool: true,
-    // pricePerImage 和 cache 未指定，因此省略
-  },
-  // 新添加的模型：OpenAI: GPT-5 (Created Aug 7, 2025)
+
+  // --- OpenAI Models ---
   {
     name: "openai/gpt-5",
     displayName: "OpenAI: GPT-5",
@@ -153,7 +128,6 @@ export const openrouterModels = [
     supportsTool: true,
     // pricePerImage 和 cache 未指定，因此省略；web search $10/K 可后续扩展 price 对象
   },
-  // 新添加的变体：OpenAI: GPT-5 (Online)
   {
     name: "openai/gpt-5:online",
     displayName: "OpenAI: GPT-5 (Online)",
@@ -168,7 +142,6 @@ export const openrouterModels = [
     supportsTool: true,
     // pricePerImage 和 cache 未指定，因此省略
   },
-  // 新添加的模型：OpenAI: GPT-5 Mini (Created Aug 7, 2025)
   {
     name: "openai/gpt-5-mini",
     displayName: "OpenAI: GPT-5 Mini",
@@ -183,7 +156,6 @@ export const openrouterModels = [
     supportsTool: true,
     // pricePerImage 和 cache 未指定，因此省略；web search $10/K 可后续扩展 price 对象
   },
-  // 新添加的变体：OpenAI: GPT-5 Mini (Online)
   {
     name: "openai/gpt-5-mini:online",
     displayName: "OpenAI: GPT-5 Mini (Online)",
@@ -198,24 +170,36 @@ export const openrouterModels = [
     supportsTool: true,
     // pricePerImage 和 cache 未指定，因此省略
   },
-  // 新添加的模型：Anthropic: Claude Haiku 4.5 (Created Oct 15, 2025)
   {
-    name: "anthropic/claude-haiku-4.5",
-    displayName: "Anthropic: Claude Haiku 4.5",
+    name: "openai/gpt-5-pro",
+    displayName: "OpenAI: GPT-5 Pro",
     hasVision: true,
     price: {
-      input: 1 * 11,
-      output: 5 * 11, // 调整为 *11：input 11, output 55 (基于 $1/M input, $5/M output)
-      webSearch: 10 * 11, // per 1k searches (Claude API, 假设一致)
+      input: 15 * 11,
+      output: 120 * 11, // 调整为 *11：input 165, output 1320 (基于 $15/M input, $120/M output)
+      webSearch: 10 * 11, // $10 / 1k calls (OpenAI)
     },
-    maxOutputTokens: 32000, // 假设与 Opus 类似
-    contextWindow: 200000,
+    maxOutputTokens: 200000,
+    contextWindow: 400000,
     supportsTool: true,
-    // pricePerImage 未指定，因此省略；cache 未指定，因此省略
+    // pricePerImage 和 cache 未指定，因此省略；如需添加可补充
   },
-  // 新添加的模型：OpenAI: o3 Deep Research (Created Oct 10, 2025)
   {
-    name: "openai/o3-deep-research",
+    name: "openai/gpt-5-pro:online",
+    displayName: "OpenAI: GPT-5 Pro (Online)",
+    hasVision: true,
+    price: {
+      input: 15 * 12,
+      output: 120 * 12, // 调整为 *12：input 180, output 1440 (基于 $15/M input, $120/M output)
+      webSearch: 10 * 12, // $10 / 1k calls (OpenAI)
+    },
+    maxOutputTokens: 200000,
+    contextWindow: 400000,
+    supportsTool: true,
+    // pricePerImage 和 cache 未指定，因此省略
+  },
+  {
+    name: "openai/o3-deep-research", // 修改了 name 字段，使其与 displayName 保持一致
     displayName: "OpenAI: o3 Deep Research",
     hasVision: true,
     price: {
@@ -229,7 +213,6 @@ export const openrouterModels = [
     pricePerImage: 7.65 * 11, // 调整为 *11：84.15 (基于 $7.65/K input imgs，假设 per 1000 images 等价调整)
     // cache 未指定，因此省略
   },
-  // 新添加的模型：OpenAI: o4 Mini Deep Research (Created Oct 10, 2025)
   {
     name: "openai/o4-mini-deep-research",
     displayName: "OpenAI: o4 Mini Deep Research",
@@ -245,7 +228,21 @@ export const openrouterModels = [
     pricePerImage: 1.53 * 11, // 调整为 *11：16.83 (基于 $1.53/K input imgs，假设 per 1000 images 等价调整)
     // cache 未指定，因此省略
   },
-  // 新添加的模型：Qwen: Qwen3 VL 235B A22B Thinking (Created Sep 23, 2025)
+
+  // --- Qwen Models ---
+  {
+    name: "qwen/qwen3-max",
+    displayName: "Qwen: Qwen3 Max",
+    hasVision: false,
+    price: { input: 1.2 * 11, output: 6 * 11 }, // 调整为 *11：input 13.2, output 66
+    maxOutputTokens: 32800,
+    contextWindow: 256000,
+    supportsTool: true,
+    cache: {
+      read: 0.24 * 11, // 调整为 *11：2.64
+      // write: 未指定，暂省略
+    },
+  },
   {
     name: "qwen/qwen3-vl-235b-a22b-thinking",
     displayName: "Qwen: Qwen3 VL 235B A22B Thinking",
