@@ -7,9 +7,9 @@ import { renderReactApp } from "./html/renderReactApp";
 import { serializeState } from "./html/serializeState";
 import { htmlEnd, htmlStart } from "./html/template";
 import i18nServer from "app/i18n/i18n.server";
-import { loadSiteRoutes } from "app/router/siteRegistry";
+import { detectSite, loadRoutes } from "app/web/siteRoutes";
 
-/* ----------------------- 资源缓存 ----------------------- */
+/* 资源缓存（保持你的实现） */
 let cachedAssets = null;
 let lastCheckTime = 0;
 const CACHE_DURATION = 60_000;
@@ -30,7 +30,6 @@ const getLatestAssets = async () => {
   }
 };
 
-/* ----------------------- 主处理函数 ----------------------- */
 export const handleRender = async (req) => {
   const hostname = req.headers.get("host");
   const url = new URL(req.url);
@@ -52,12 +51,12 @@ export const handleRender = async (req) => {
       description: t("seo.description", { ns: "common" }),
     };
 
-    // 核心：统一通过注册表解析首屏路由（SSR）
-    const initialRoutes = await loadSiteRoutes(hostname, undefined);
+    // 统一：SSR 首屏使用与客户端相同的站点与路由加载逻辑
+    const siteId = detectSite(hostname);
+    const initialRoutes = await loadRoutes(siteId, undefined);
 
-    const renderStartTime = performance.now();
     const store = createAppStore();
-
+    const renderStartTime = performance.now();
     const stream = await renderToReadableStream(
       renderReactApp(store, url, hostname, lng, initialRoutes),
       {
@@ -72,7 +71,6 @@ export const handleRender = async (req) => {
       `Render to stream time: ${performance.now() - renderStartTime}ms`
     );
 
-    // 复制 React 流，用于手工拼装 HTML
     const [, copyReactStream] = stream.tee();
     const { readable, writable } = new TransformStream();
     const writer = writable.getWriter();
@@ -90,7 +88,7 @@ export const handleRender = async (req) => {
     // 写 head 与样式
     writer.write(new TextEncoder().encode(htmlStart(seoData, bootstrapCss)));
 
-    // === 保留的 writeToStreamAsync，用于后续传递动态片段/数据 ===
+    // 保留：writeToStreamAsync（注释段原样）+ 注入 siteId 给客户端
     async function writeToStreamAsync() {
       const dispatchStartTime = performance.now();
 
@@ -113,8 +111,13 @@ export const handleRender = async (req) => {
       // }
       // maybe need delete api relate
 
+      // 1) 注入 Redux 初始状态
       const preloadedState = store.getState();
       writer.write(new TextEncoder().encode(serializeState(preloadedState)));
+
+      // 2) 注入站点标识，供客户端在 hydrate 前加载相同路由
+      const siteScript = `<script>window.__SITE_ID__=${JSON.stringify(siteId)};</script>`;
+      writer.write(new TextEncoder().encode(siteScript));
 
       console.log(`Dispatch time: ${performance.now() - dispatchStartTime}ms`);
 
@@ -123,7 +126,7 @@ export const handleRender = async (req) => {
     }
     writeToStreamAsync();
 
-    // 将 React 可读流写入 body
+    // 把 React 流写入 body
     const reader = copyReactStream.getReader();
     (async () => {
       writer.write(new TextEncoder().encode('<div id="root">'));
@@ -161,11 +164,8 @@ export const handleRender = async (req) => {
     console.error("渲染过程中发生错误:", error);
     return new Response(
       `
-      <!DOCTYPE html>
-      <html lang="zh-CN">
-      <head><meta charset="UTF-8" /><title>服务器错误</title></head>
-      <body><pre>${String(error)}</pre></body>
-      </html>
+      <!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8" /><title>服务器错误</title></head>
+      <body><pre>${String(error)}</pre></body></html>
       `,
       {
         status: 500,

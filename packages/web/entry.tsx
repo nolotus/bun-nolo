@@ -11,29 +11,38 @@ import { webTokenManager } from "auth/web/tokenManager";
 import App from "app/web/App";
 import { createAppStore } from "app/store";
 import { browserDb } from "database/browser/db";
-import { loadSiteRoutes } from "app/router/siteRegistry";
+import { detectSite, loadRoutes, type SiteId } from "app/web/siteRoutes";
 import "./input.css";
 
-const preloadedState = (window as any).__PRELOADED_STATE__;
+declare global {
+  interface Window {
+    __PRELOADED_STATE__?: any;
+    __SITE_ID__?: SiteId;
+  }
+}
+
+const preloadedState = window.__PRELOADED_STATE__;
 const hostname = window.location.hostname;
 const lng = window.navigator.language;
 
-// 创建 store
+// 创建浏览器端 store
 const browserStore = createAppStore({
   dbInstance: browserDb,
   tokenManager: webTokenManager,
   preloadedState,
 });
-delete (window as any).__PRELOADED_STATE__;
+delete window.__PRELOADED_STATE__;
 
-// 预构建首屏路由以避免水合闪烁（与 SSR 使用同一解析器）
-async function bootstrap() {
-  const initialRoutes: RouteObject[] = await loadSiteRoutes(
-    hostname,
-    undefined
-  );
+const domNode = document.getElementById("root") as HTMLElement;
 
-  const AppRoot: React.FC = () => (
+(async () => {
+  // 与 SSR 保持一致：优先使用服务端注入的 siteId；没有则自行判定
+  const siteId: SiteId = window.__SITE_ID__ || detectSite(hostname);
+
+  // hydrate 前预加载对应站点的路由，确保与 SSR 一致 -> 不闪烁
+  const initialRoutes: RouteObject[] = await loadRoutes(siteId, undefined);
+
+  const AppRoot = () => (
     <React.StrictMode>
       <Provider store={browserStore}>
         {isProduction ? (
@@ -49,12 +58,9 @@ async function bootstrap() {
     </React.StrictMode>
   );
 
-  const domNode = document.getElementById("root") as HTMLElement;
   if (isProduction) {
     hydrateRoot(domNode, <AppRoot />);
   } else {
     createRoot(domNode).render(<AppRoot />);
   }
-}
-
-bootstrap();
+})();

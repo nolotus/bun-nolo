@@ -21,7 +21,7 @@ const dateUrl = "date.nolo.chat";
 interface AppProps {
   hostname: string;
   lng?: string;
-  initialRoutes: RouteObject[]; // 明确要求由外部传入，App 只负责渲染与初始化，提升可维护性
+  initialRoutes: RouteObject[]; // 必填：由 SSR 或入口提前准备好
 }
 
 export default function App({ hostname, lng = "en", initialRoutes }: AppProps) {
@@ -31,7 +31,7 @@ export default function App({ hostname, lng = "en", initialRoutes }: AppProps) {
 
   useSystemTheme();
 
-  // 路由交由服务端/入口统一解析，这里只消费
+  // 直接渲染首屏路由，确保与 SSR 一致 -> 无闪烁
   const element = useRoutes(initialRoutes);
 
   // 系统初始化（date 站点跳过）
