@@ -31,8 +31,8 @@ import {
 // Components
 import WelcomeSection from "./WelcomeSection";
 import AgentBlock from "ai/agent/web/AgentBlock";
-import PubCybots from "ai/cybot/web/PubCybots";
 import Tabs, { TabItem } from "render/web/ui/Tabs";
+import PublicAgents from "ai/agent/web/AgentExplore";
 
 // ... LoadingShimmer 和 EmptyPlaceholder 组件保持不变 ...
 const LoadingShimmer = () => (
@@ -237,7 +237,7 @@ const Home = () => {
       id: "communityAI",
       label: "AI 广场",
       icon: <LuGlobe size={20} />,
-      component: <PubCybots limit={9} />,
+      component: <PublicAgents limit={9} />,
     },
   ];
 

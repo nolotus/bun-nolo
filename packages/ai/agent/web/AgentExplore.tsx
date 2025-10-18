@@ -1,19 +1,23 @@
-// Models 页面 - 针对 MainLayout 优化
+// AgentExplore 页面 - 针对 MainLayout 优化
 import React from "react";
-import PubCybots from "ai/cybot/web/PubCybots";
+// 1. 导入新的 PublicAgents 组件
+import PublicAgents from "ai/agent/web/PublicAgents";
 
-const Models: React.FC = () => {
+const AgentExplore: React.FC = () => {
   return (
-    <div className="ai-plaza">
-      <div className="ai-plaza-header">
-        <h1 className="ai-plaza-title">AI广场</h1>
-        <p className="ai-plaza-subtitle">发现并探索更多智能助手</p>
+    // 2. 更新根 div 的 className
+    <div className="agent-explore">
+      <div className="agent-explore-header">
+        <h1 className="agent-explore-title">AI广场</h1>
+        <p className="agent-explore-subtitle">发现并探索更多智能助手</p>
       </div>
-      <div className="ai-plaza-content">
-        <PubCybots limit={100} />
+      <div className="agent-explore-content">
+        {/* 3. 使用新的 PublicAgents 组件 */}
+        <PublicAgents limit={100} />
       </div>
-      <style href="ai-plaza-styles" precedence="default">{`
-        .ai-plaza {
+      {/* 4. 更新 style 标签的 href 和所有 CSS 类名 */}
+      <style href="agent-explore-styles" precedence="default">{`
+        .agent-explore {
           padding: var(--space-8) var(--space-8);
           max-width: 1400px;
           margin: 0 auto;
@@ -21,12 +25,12 @@ const Models: React.FC = () => {
           background: var(--backgroundSecondary);
         }
 
-        .ai-plaza-header {
+        .agent-explore-header {
           margin-bottom: var(--space-8);
           text-align: center;
         }
 
-        .ai-plaza-title {
+        .agent-explore-title {
           font-size: 2.25rem;
           font-weight: 600;
           color: var(--text);
@@ -34,7 +38,7 @@ const Models: React.FC = () => {
           letter-spacing: -0.03em;
         }
 
-        .ai-plaza-subtitle {
+        .agent-explore-subtitle {
           font-size: 1.1rem;
           color: var(--textSecondary);
           margin: 0;
@@ -42,7 +46,7 @@ const Models: React.FC = () => {
           letter-spacing: -0.01em;
         }
 
-        .ai-plaza-content {
+        .agent-explore-content {
           background: var(--background);
           border-radius: 16px;
           padding: var(--space-8);
@@ -52,41 +56,41 @@ const Models: React.FC = () => {
 
         /* 适配 MainLayout 的响应式 */
         @media (max-width: 1200px) {
-          .ai-plaza {
+          .agent-explore {
             padding: var(--space-6) var(--space-6);
             max-width: none;
           }
           
-          .ai-plaza-content {
+          .agent-explore-content {
             padding: var(--space-6);
           }
         }
 
         @media (max-width: 768px) {
-          .ai-plaza {
+          .agent-explore {
             padding: var(--space-4) var(--space-4);
           }
           
-          .ai-plaza-title {
+          .agent-explore-title {
             font-size: 1.75rem;
           }
           
-          .ai-plaza-subtitle {
+          .agent-explore-subtitle {
             font-size: 1rem;
           }
           
-          .ai-plaza-content {
+          .agent-explore-content {
             padding: var(--space-4);
             border-radius: 12px;
           }
         }
 
         @media (max-width: 480px) {
-          .ai-plaza {
+          .agent-explore {
             padding: var(--space-3) var(--space-3);
           }
           
-          .ai-plaza-content {
+          .agent-explore-content {
             padding: var(--space-3);
             border-radius: 8px;
           }
@@ -96,4 +100,5 @@ const Models: React.FC = () => {
   );
 };
 
-export default Models;
+// 5. 更新导出
+export default AgentExplore;

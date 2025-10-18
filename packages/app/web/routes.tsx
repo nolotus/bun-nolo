@@ -7,7 +7,7 @@ import { spaceRoutes } from "create/space/routes";
 
 import { commonRoutes } from "./generatorRoutes";
 const PricePage = lazy(() => import("app/pages/Price"));
-const Models = lazy(() => import("ai/cybot/web/Models"));
+const AgentExplore = lazy(() => import("ai/agent/web/AgentExplore"));
 const RechargePage = lazy(() => import("app/pages/Recharge"));
 
 export const routes = (currentUser: any) => [
@@ -41,7 +41,7 @@ export const routes = (currentUser: any) => [
         path: "explore",
         element: (
           <Suspense>
-            <Models />
+            <AgentExplore />
           </Suspense>
         ),
       },

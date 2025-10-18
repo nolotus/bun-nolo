@@ -1,7 +1,7 @@
-// ai/agent/server/fetchPublicAgents.ts
+// ai/agent/server/fetchPublic Agents.ts
 
 import serverDb from "database/server/db";
-import { pubAgentKeys } from "database/keys"; // 假设 'pubCybotKeys' 已重命名为 'pubAgentKeys'
+import { pubAgentKeys } from "database/keys";
 import { Agent } from "app/types";
 
 /**
@@ -15,6 +15,7 @@ export interface FetchPublicAgentsOptions {
     | "rating"
     | "outputPriceAsc"
     | "outputPriceDesc";
+  searchName?: string;
 }
 
 /**
@@ -47,9 +48,18 @@ async function dbList<T>(
 export async function fetchPublicAgents(
   options: FetchPublicAgentsOptions = {}
 ): Promise<FetchPublicAgentsResult> {
-  const { limit = 20, sortBy = "newest" } = options;
+  const { limit = 20, sortBy = "newest", searchName } = options;
   const { start, end } = pubAgentKeys.list();
-  const list = await dbList<Agent>(start, end, (v) => v.isPublic);
+
+  // 先获取所有公开的 Agent
+  let list = await dbList<Agent>(start, end, (v) => v.isPublic);
+
+  // 如果有 searchName，则进行过滤 (不区分大小写)
+  if (searchName) {
+    list = list.filter((agent) =>
+      agent.name?.toLowerCase().includes(searchName.toLowerCase())
+    );
+  }
 
   // 根据 sortBy 参数对列表进行排序
   list.sort((a, b) => {
@@ -58,10 +68,19 @@ export async function fetchPublicAgents(
         return (b.metrics?.useCount ?? 0) - (a.metrics?.useCount ?? 0);
       case "rating":
         return (b.metrics?.rating ?? 0) - (a.metrics?.rating ?? 0);
+
+      // [修复] 使用 parseFloat 强制转换类型，确保数字比较
       case "outputPriceAsc":
-        return (a.outputPrice ?? Infinity) - (b.outputPrice ?? Infinity);
+        const priceA_asc = parseFloat(String(a.outputPrice)) || Infinity;
+        const priceB_asc = parseFloat(String(b.outputPrice)) || Infinity;
+        return priceA_asc - priceB_asc;
+
+      // [修复] 使用 parseFloat 强制转换类型，确保数字比较
       case "outputPriceDesc":
-        return (b.outputPrice ?? -Infinity) - (a.outputPrice ?? -Infinity);
+        const priceA_desc = parseFloat(String(a.outputPrice)) || -Infinity;
+        const priceB_desc = parseFloat(String(b.outputPrice)) || -Infinity;
+        return priceB_desc - priceA_desc;
+
       case "newest":
       default:
         return (
