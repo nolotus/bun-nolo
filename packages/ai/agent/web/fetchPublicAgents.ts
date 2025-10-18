@@ -1,5 +1,3 @@
-// ai/agent/web/fetchPublicAgents.ts
-
 import { browserDb } from "database/browser/db";
 import { pino } from "pino";
 import { pubAgentKeys } from "database/keys";
@@ -18,6 +16,17 @@ interface FetchPublicAgentsOptions {
   searchName?: string;
 }
 
+function toNumber(n: unknown, fallback: number) {
+  const v = typeof n === "number" ? n : parseFloat(String(n));
+  return Number.isFinite(v) ? v : fallback;
+}
+
+function toTimeMs(t: unknown) {
+  if (typeof t === "number") return t;
+  const n = Date.parse(String(t ?? 0));
+  return Number.isFinite(n) ? n : 0;
+}
+
 export async function fetchPublicAgents(
   options: FetchPublicAgentsOptions = {}
 ) {
@@ -27,58 +36,71 @@ export async function fetchPublicAgents(
     const { start, end } = pubAgentKeys.list();
     let results: Agent[] = [];
 
-    // 使用 iterator 获取范围数据
-    for await (const [key, value] of browserDb.iterator({
+    for await (const [, value] of browserDb.iterator({
       gte: start,
       lte: end,
     })) {
-      if (value.isPublic) {
-        results.push(value);
-      }
+      if (value?.isPublic) results.push(value as Agent);
     }
 
-    // 添加名称过滤逻辑
     if (searchName) {
+      const kw = searchName.toLowerCase();
       results = results.filter((agent) =>
-        agent.name?.toLowerCase().includes(searchName.toLowerCase())
+        agent.name?.toLowerCase().includes(kw)
       );
     }
 
-    // 更新排序逻辑以支持价格排序
     results.sort((a, b) => {
+      let diff = 0;
       switch (sortBy) {
-        case "popular":
-          return (b.dialogCount || 0) - (a.dialogCount || 0);
-        case "rating":
-          return (b.messageCount || 0) - (a.messageCount || 0);
-
-        // [修复] 使用 parseFloat 强制转换类型，确保数字比较
-        case "outputPriceAsc":
-          const priceA_asc = parseFloat(String(a.outputPrice)) || Infinity;
-          const priceB_asc = parseFloat(String(b.outputPrice)) || Infinity;
-          return priceA_asc - priceB_asc;
-
-        // [修复] 使用 parseFloat 强制转换类型，确保数字比较
-        case "outputPriceDesc":
-          const priceA_desc = parseFloat(String(a.outputPrice)) || -Infinity;
-          const priceB_desc = parseFloat(String(b.outputPrice)) || -Infinity;
-          return priceB_desc - priceA_desc;
-
+        case "popular": {
+          const ua = toNumber(
+            (a as any).metrics?.useCount ?? (a as any).dialogCount,
+            0
+          );
+          const ub = toNumber(
+            (b as any).metrics?.useCount ?? (b as any).dialogCount,
+            0
+          );
+          diff = ub - ua;
+          break;
+        }
+        case "rating": {
+          const ra = toNumber(
+            (a as any).metrics?.rating ?? (a as any).messageCount,
+            0
+          );
+          const rb = toNumber(
+            (b as any).metrics?.rating ?? (b as any).messageCount,
+            0
+          );
+          diff = rb - ra;
+          break;
+        }
+        case "outputPriceAsc": {
+          const pa = toNumber((a as any).outputPrice, Number.POSITIVE_INFINITY);
+          const pb = toNumber((b as any).outputPrice, Number.POSITIVE_INFINITY);
+          diff = pa - pb;
+          break;
+        }
+        case "outputPriceDesc": {
+          const pa = toNumber((a as any).outputPrice, Number.NEGATIVE_INFINITY);
+          const pb = toNumber((b as any).outputPrice, Number.NEGATIVE_INFINITY);
+          diff = pb - pa;
+          break;
+        }
         case "newest":
-        default:
-          const timeA =
-            typeof a.createdAt === "string"
-              ? Date.parse(a.createdAt)
-              : a.createdAt;
-          const timeB =
-            typeof b.createdAt === "string"
-              ? Date.parse(b.createdAt)
-              : b.createdAt;
-          return timeB - timeA;
+        default: {
+          const ta = toTimeMs((a as any).createdAt);
+          const tb = toTimeMs((b as any).createdAt);
+          diff = tb - ta;
+          break;
+        }
       }
+      if (diff !== 0) return diff;
+      return String(a.id).localeCompare(String(b.id));
     });
 
-    // 分页
     const paginatedResults = results.slice(0, limit);
 
     logger.debug(
@@ -89,7 +111,7 @@ export async function fetchPublicAgents(
         limit,
         firstItemCreatedAt: paginatedResults[0]?.createdAt,
       },
-      "Fetched public agents"
+      "Fetched public agents (local)"
     );
 
     return {
@@ -98,7 +120,7 @@ export async function fetchPublicAgents(
       hasMore: limit < results.length,
     };
   } catch (error) {
-    logger.error({ error }, "Failed to fetch public agents");
+    logger.error({ error }, "Failed to fetch public agents (local)");
     throw error;
   }
 }

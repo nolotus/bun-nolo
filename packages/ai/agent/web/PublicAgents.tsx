@@ -26,20 +26,17 @@ const LoadingState = memo(() => {
           padding: var(--space-20) var(--space-6);
           min-height: 300px;
         }
-
         .loading-spinner {
           position: relative;
           display: flex;
           align-items: center;
           justify-content: center;
         }
-
         .loading-spinner svg {
           color: var(--primary);
           opacity: 0.8;
           animation: spin 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
         }
-
         .loading-spinner::before {
           content: '';
           position: absolute;
@@ -49,27 +46,12 @@ const LoadingState = memo(() => {
           background: var(--primaryGhost);
           animation: pulse 1.5s ease-in-out infinite;
         }
-
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-
-        @keyframes pulse {
-          0%, 100% { 
-            transform: scale(1);
-            opacity: 0.3;
-          }
-          50% { 
-            transform: scale(1.4);
-            opacity: 0;
-          }
-        }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.3; } 50% { transform: scale(1.4); opacity: 0; } }
       `}</style>
     </div>
   );
 });
-
 LoadingState.displayName = "LoadingState";
 
 const PublicAgents = memo(({ limit = 20 }: PublicAgentsProps) => {
@@ -78,15 +60,9 @@ const PublicAgents = memo(({ limit = 20 }: PublicAgentsProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
 
-  // Debounce automatic search effect
   useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm);
-    }, 300);
-
-    return () => {
-      clearTimeout(handler);
-    };
+    const handler = setTimeout(() => setDebouncedSearchTerm(searchTerm), 300);
+    return () => clearTimeout(handler);
   }, [searchTerm]);
 
   const { loading, error, data } = usePublicAgents({
@@ -96,11 +72,9 @@ const PublicAgents = memo(({ limit = 20 }: PublicAgentsProps) => {
   });
 
   const handlePriceSortClick = () => {
-    if (sortBy === "outputPriceAsc") {
-      setSortBy("outputPriceDesc");
-    } else {
-      setSortBy("outputPriceAsc");
-    }
+    setSortBy((prev) =>
+      prev === "outputPriceAsc" ? "outputPriceDesc" : "outputPriceAsc"
+    );
   };
 
   if (error) {
@@ -129,14 +103,14 @@ const PublicAgents = memo(({ limit = 20 }: PublicAgentsProps) => {
           <button
             className={`sort-button ${sortBy === "newest" ? "active" : ""}`}
             onClick={() => setSortBy("newest")}
+            title="按发布时间排序"
           >
             发布时间
           </button>
           <button
-            className={`sort-button ${
-              sortBy?.includes("Price") ? "active" : ""
-            }`}
+            className={`sort-button ${sortBy?.includes("Price") ? "active" : ""}`}
             onClick={handlePriceSortClick}
+            title="按价格排序"
           >
             价格
             {sortBy === "outputPriceAsc" && <ArrowUpIcon size={16} />}
@@ -171,8 +145,6 @@ const PublicAgents = memo(({ limit = 20 }: PublicAgentsProps) => {
           flex-direction: column;
           gap: var(--space-6);
         }
-
-        /* 控制栏布局 */
         .agents-controls {
           display: grid;
           grid-template-columns: 1fr auto;
@@ -183,131 +155,46 @@ const PublicAgents = memo(({ limit = 20 }: PublicAgentsProps) => {
           border-radius: 12px;
           border: 1px solid var(--borderLight);
         }
-
-        .search-wrapper {
-          min-width: 0;
-        }
-
-        /* 排序按钮组 */
-        .sort-buttons {
-          display: flex;
-          gap: var(--space-2);
-          flex-shrink: 0;
-        }
-
+        .search-wrapper { min-width: 0; }
+        .sort-buttons { display: flex; gap: var(--space-2); flex-shrink: 0; }
         .sort-button {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          gap: var(--space-2);
-          padding: var(--space-2) var(--space-4);
-          height: 36px;
-          border: 1px solid var(--border);
-          background: var(--background);
-          color: var(--textSecondary);
-          border-radius: 8px;
-          font-size: 0.9rem;
-          font-weight: 450;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          white-space: nowrap;
+          display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
+          padding: var(--space-2) var(--space-4); height: 36px; border: 1px solid var(--border);
+          background: var(--background); color: var(--textSecondary); border-radius: 8px;
+          font-size: 0.9rem; font-weight: 450; cursor: pointer; transition: all 0.2s ease; white-space: nowrap;
         }
-
-        .sort-button:hover {
-          background: var(--backgroundHover);
-          border-color: var(--borderHover);
-          color: var(--text);
-        }
-
-        .sort-button.active {
-          background: var(--primaryGhost);
-          color: var(--primary);
-          border-color: var(--primary);
-          font-weight: 500;
-        }
-
-        .sort-button > svg {
-          color: currentColor;
-        }
-
-        /* 内容区域 */
-        .agents-content {
-          min-height: 200px;
-        }
-
-        /* 网格布局 */
+        .sort-button:hover { background: var(--backgroundHover); border-color: var(--borderHover); color: var(--text); }
+        .sort-button.active { background: var(--primaryGhost); color: var(--primary); border-color: var(--primary); font-weight: 500; }
+        .sort-button > svg { color: currentColor; }
+        .agents-content { min-height: 200px; }
         .agents-grid {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
           gap: var(--space-5);
         }
-
-        /* 加载更多指示器 */
         .loading-more {
-          display: flex;
-          align-items: center;
-          justify-content: center;
+          display: flex; align-items: center; justify-content: center;
           padding: var(--space-8) var(--space-4);
           margin-top: var(--space-4);
           border-top: 1px solid var(--borderLight);
         }
-
-        :global(.loading-more-icon) {
-          animation: spin 1s linear infinite;
-          color: var(--primary);
-          opacity: 0.7;
-        }
-
-        /* 平板响应式 */
+        :global(.loading-more-icon) { animation: spin 1s linear infinite; color: var(--primary); opacity: 0.7; }
         @media (max-width: 900px) {
-          .agents-controls {
-            grid-template-columns: 1fr;
-            gap: var(--space-3);
-          }
-
-          .sort-buttons {
-            width: 100%;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-          }
-
-          .agents-grid {
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: var(--space-4);
-          }
+          .agents-controls { grid-template-columns: 1fr; gap: var(--space-3); }
+          .sort-buttons { width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
+          .agents-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--space-4); }
         }
-
-        /* 手机响应式 */
         @media (max-width: 520px) {
-          .agents-container {
-            gap: var(--space-4);
-          }
-
-          .agents-controls {
-            padding: var(--space-3);
-            border-radius: 8px;
-          }
-
-          .agents-grid {
-            grid-template-columns: 1fr;
-            gap: var(--space-3);
-          }
-
-          .sort-button {
-            padding: var(--space-2) var(--space-3);
-            font-size: 0.875rem;
-          }
+          .agents-container { gap: var(--space-4); }
+          .agents-controls { padding: var(--space-3); border-radius: 8px; }
+          .agents-grid { grid-template-columns: 1fr; gap: var(--space-3); }
+          .sort-button { padding: var(--space-2) var(--space-3); font-size: 0.875rem; }
         }
-
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
       `}</style>
     </div>
   );
 });
-
 PublicAgents.displayName = "PublicAgents";
 
 export default PublicAgents;

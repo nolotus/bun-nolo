@@ -1,12 +1,7 @@
-// ai/agent/server/fetchPublic Agents.ts
-
 import serverDb from "database/server/db";
 import { pubAgentKeys } from "database/keys";
 import { Agent } from "app/types";
 
-/**
- * 获取公开 Agent 列表的选项
- */
 export interface FetchPublicAgentsOptions {
   limit?: number;
   sortBy?:
@@ -18,16 +13,23 @@ export interface FetchPublicAgentsOptions {
   searchName?: string;
 }
 
-/**
- * 获取公开 Agent 列表的返回结果
- */
 export interface FetchPublicAgentsResult {
   data: Agent[];
   total: number;
   hasMore: boolean;
 }
 
-// 通用的数据库列表迭代函数
+function toNumber(n: unknown, fallback: number) {
+  const v = typeof n === "number" ? n : parseFloat(String(n));
+  return Number.isFinite(v) ? v : fallback;
+}
+
+function toTimeMs(t: unknown) {
+  if (typeof t === "number") return t;
+  const n = Date.parse(String(t ?? 0));
+  return Number.isFinite(n) ? n : 0;
+}
+
 async function dbList<T>(
   gte: string,
   lte: string,
@@ -40,53 +42,56 @@ async function dbList<T>(
   return res;
 }
 
-/**
- * 从数据库获取公开的 Agent 列表，支持排序和分页
- * @param options - 查询选项，如 limit 和 sortBy
- * @returns 返回 Agent 列表、总数和是否有更多数据
- */
 export async function fetchPublicAgents(
   options: FetchPublicAgentsOptions = {}
 ): Promise<FetchPublicAgentsResult> {
   const { limit = 20, sortBy = "newest", searchName } = options;
   const { start, end } = pubAgentKeys.list();
 
-  // 先获取所有公开的 Agent
-  let list = await dbList<Agent>(start, end, (v) => v.isPublic);
+  let list = await dbList<Agent>(start, end, (v) => (v as any).isPublic);
 
-  // 如果有 searchName，则进行过滤 (不区分大小写)
   if (searchName) {
-    list = list.filter((agent) =>
-      agent.name?.toLowerCase().includes(searchName.toLowerCase())
-    );
+    const kw = searchName.toLowerCase();
+    list = list.filter((agent) => agent.name?.toLowerCase().includes(kw));
   }
 
-  // 根据 sortBy 参数对列表进行排序
   list.sort((a, b) => {
+    let diff = 0;
     switch (sortBy) {
-      case "popular":
-        return (b.metrics?.useCount ?? 0) - (a.metrics?.useCount ?? 0);
-      case "rating":
-        return (b.metrics?.rating ?? 0) - (a.metrics?.rating ?? 0);
-
-      // [修复] 使用 parseFloat 强制转换类型，确保数字比较
-      case "outputPriceAsc":
-        const priceA_asc = parseFloat(String(a.outputPrice)) || Infinity;
-        const priceB_asc = parseFloat(String(b.outputPrice)) || Infinity;
-        return priceA_asc - priceB_asc;
-
-      // [修复] 使用 parseFloat 强制转换类型，确保数字比较
-      case "outputPriceDesc":
-        const priceA_desc = parseFloat(String(a.outputPrice)) || -Infinity;
-        const priceB_desc = parseFloat(String(b.outputPrice)) || -Infinity;
-        return priceB_desc - priceA_desc;
-
+      case "popular": {
+        const ua = toNumber((a as any).metrics?.useCount, 0);
+        const ub = toNumber((b as any).metrics?.useCount, 0);
+        diff = ub - ua;
+        break;
+      }
+      case "rating": {
+        const ra = toNumber((a as any).metrics?.rating, 0);
+        const rb = toNumber((b as any).metrics?.rating, 0);
+        diff = rb - ra;
+        break;
+      }
+      case "outputPriceAsc": {
+        const pa = toNumber((a as any).outputPrice, Number.POSITIVE_INFINITY);
+        const pb = toNumber((b as any).outputPrice, Number.POSITIVE_INFINITY);
+        diff = pa - pb;
+        break;
+      }
+      case "outputPriceDesc": {
+        const pa = toNumber((a as any).outputPrice, Number.NEGATIVE_INFINITY);
+        const pb = toNumber((b as any).outputPrice, Number.NEGATIVE_INFINITY);
+        diff = pb - pa;
+        break;
+      }
       case "newest":
-      default:
-        return (
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
+      default: {
+        const ta = toTimeMs((a as any).createdAt);
+        const tb = toTimeMs((b as any).createdAt);
+        diff = tb - ta;
+        break;
+      }
     }
+    if (diff !== 0) return diff;
+    return String(a.id).localeCompare(String(b.id));
   });
 
   const data = list.slice(0, limit);

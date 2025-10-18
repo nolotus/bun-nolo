@@ -1,10 +1,8 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { Agent } from "app/types";
 import { fetchPublicAgents as fetchLocal } from "ai/agent/web/fetchPublicAgents";
 import { useAppSelector } from "app/store";
 import { selectCurrentServer } from "app/settings/settingSlice";
-import { useDispatch } from "react-redux";
-import { remove } from "database/dbSlice";
 
 export interface UsePublicAgentsOptions {
   limit?: number;
@@ -23,84 +21,164 @@ interface PublicAgentsState {
   data: Agent[];
 }
 
-interface MergeResult {
-  merged: Agent[];
-  toDelete: string[];
+// —— 工具函数 —— //
+function toNumber(n: unknown, fallback: number) {
+  const v = typeof n === "number" ? n : parseFloat(String(n));
+  return Number.isFinite(v) ? v : fallback;
 }
 
-// [修复 1] 创建一个可复用的排序函数，逻辑与 fetcher 中保持一致
+function toTimeMs(t: unknown) {
+  if (typeof t === "number") return t;
+  const n = Date.parse(String(t ?? 0));
+  return Number.isFinite(n) ? n : 0;
+}
+
+type SortMeta = {
+  createdAtMs: number; // 用于 newest
+  outputPriceNum: number; // 用于价格排序
+  useCount: number; // 用于 popular
+  rating: number; // 用于 rating
+};
+
+type MAgent = Agent & { __sort?: SortMeta };
+
+// 根据本地与远程条目构建排序元信息：优先使用远程值，若远程缺失则取本地；时间取两者较新。
+function buildSortMeta(local?: Agent, remote?: Agent): SortMeta {
+  const createdAtMs = Math.max(
+    toTimeMs(remote?.updatedAt ?? remote?.createdAt),
+    toTimeMs(local?.updatedAt ?? local?.createdAt)
+  );
+
+  // 价格：远程优先，其次本地；解析失败给 Infinity（升序时落后、降序时再特殊处理）
+  const priceRemote = toNumber(
+    (remote as any)?.outputPrice,
+    Number.POSITIVE_INFINITY
+  );
+  const priceLocal = toNumber(
+    (local as any)?.outputPrice,
+    Number.POSITIVE_INFINITY
+  );
+  const outputPriceNum = Number.isFinite(priceRemote)
+    ? priceRemote
+    : priceLocal;
+
+  // 人气/评分：统一口径
+  const useCount =
+    toNumber((remote as any)?.metrics?.useCount, NaN) ??
+    toNumber((local as any)?.metrics?.useCount, NaN) ??
+    toNumber((local as any)?.dialogCount, 0);
+
+  const rating =
+    toNumber((remote as any)?.metrics?.rating, NaN) ??
+    toNumber((local as any)?.metrics?.rating, NaN) ??
+    toNumber((local as any)?.messageCount, 0);
+
+  return {
+    createdAtMs,
+    outputPriceNum: Number.isFinite(outputPriceNum)
+      ? outputPriceNum
+      : Number.POSITIVE_INFINITY,
+    useCount: Number.isFinite(useCount) ? useCount : 0,
+    rating: Number.isFinite(rating) ? rating : 0,
+  };
+}
+
+// 稳定排序：先按 sortBy，比不出结果再按 id 稳定
 const sortAgents = (
   agents: Agent[],
   sortBy: UsePublicAgentsOptions["sortBy"]
 ): Agent[] => {
-  const sortedAgents = [...agents]; // 创建副本以避免直接修改 state
-  sortedAgents.sort((a, b) => {
+  const arr = [...agents] as MAgent[];
+  arr.sort((a, b) => {
+    const sa = (a as MAgent).__sort;
+    const sb = (b as MAgent).__sort;
+
+    let diff = 0;
     switch (sortBy) {
       case "popular":
-        return (b.metrics?.useCount ?? 0) - (a.metrics?.useCount ?? 0);
+        diff = (sb?.useCount ?? 0) - (sa?.useCount ?? 0);
+        break;
       case "rating":
-        return (b.metrics?.rating ?? 0) - (a.metrics?.rating ?? 0);
-      case "outputPriceAsc":
-        const priceA_asc = parseFloat(String(a.outputPrice)) || Infinity;
-        const priceB_asc = parseFloat(String(b.outputPrice)) || Infinity;
-        return priceA_asc - priceB_asc;
-      case "outputPriceDesc":
-        const priceA_desc = parseFloat(String(a.outputPrice)) || -Infinity;
-        const priceB_desc = parseFloat(String(b.outputPrice)) || -Infinity;
-        return priceB_desc - priceA_desc;
+        diff = (sb?.rating ?? 0) - (sa?.rating ?? 0);
+        break;
+      case "outputPriceAsc": {
+        const pa = sa?.outputPriceNum ?? Number.POSITIVE_INFINITY;
+        const pb = sb?.outputPriceNum ?? Number.POSITIVE_INFINITY;
+        diff = pa - pb;
+        break;
+      }
+      case "outputPriceDesc": {
+        const pa = sa?.outputPriceNum ?? Number.NEGATIVE_INFINITY;
+        const pb = sb?.outputPriceNum ?? Number.NEGATIVE_INFINITY;
+        diff = pb - pa;
+        break;
+      }
       case "newest":
       default:
-        const timeA =
-          typeof a.createdAt === "string"
-            ? Date.parse(a.createdAt)
-            : a.createdAt;
-        const timeB =
-          typeof b.createdAt === "string"
-            ? Date.parse(b.createdAt)
-            : b.createdAt;
-        return timeB - timeA;
+        diff = (sb?.createdAtMs ?? 0) - (sa?.createdAtMs ?? 0);
+        break;
     }
+    if (diff !== 0) return diff;
+    return String(a.id).localeCompare(String(b.id));
   });
-  return sortedAgents;
+  return arr;
 };
 
-// [修复 2] mergeAgents 函数现在只负责合并，不再进行任何排序
-function mergeAgents(localData: Agent[], remoteData: Agent[]): MergeResult {
-  const remoteIds = new Set(remoteData.map((agent) => agent.id));
-  const merged: Agent[] = [];
-  const toDelete: string[] = [];
+// “本地优先、远程稍后”的合并：
+// - 同 id：展示以本地为准（本地对象覆盖远程对象），但 __sort 采用两者信息（时间取更近，数值优先远程）。
+// - 远程新增：直接加入。
+// - 不删除本地中远程不存在的条目（你要求“都要”）。
+function mergeAgents(localData: Agent[], remoteData: Agent[]): Agent[] {
+  const remoteMap = new Map<string, Agent>();
+  for (const r of remoteData) remoteMap.set(String(r.id), r);
 
-  localData.forEach((localAgent) => {
-    if (remoteIds.has(localAgent.id)) {
-      merged.push(localAgent);
+  const merged: MAgent[] = [];
+
+  // 先放本地（本地优先）
+  for (const local of localData) {
+    const rid = String(local.id);
+    const remote = remoteMap.get(rid);
+    if (remote) {
+      const meta = buildSortMeta(local, remote);
+      // 展示以本地为准，但带上排序元信息
+      const mergedItem: MAgent = {
+        ...(remote as any),
+        ...(local as any),
+        __sort: meta,
+      };
+      merged.push(mergedItem);
+      remoteMap.delete(rid);
     } else {
-      toDelete.push(localAgent.id);
+      const meta = buildSortMeta(local, undefined);
+      const mergedItem: MAgent = { ...(local as any), __sort: meta };
+      merged.push(mergedItem);
     }
-  });
+  }
 
-  remoteData.forEach((remoteAgent) => {
-    if (!merged.some((agent) => agent.id === remoteAgent.id)) {
-      merged.push(remoteAgent);
-    }
-  });
+  // 再把仅远程有的补上
+  for (const [, remote] of remoteMap) {
+    const meta = buildSortMeta(undefined, remote);
+    const mergedItem: MAgent = { ...(remote as any), __sort: meta };
+    merged.push(mergedItem);
+  }
 
-  // 移除了错误的、写死的排序逻辑
-  return { merged, toDelete };
+  return merged;
 }
 
+// 远程获取（支持 Abort）
 async function fetchRemoteAgents(
   currentServer: string,
-  options: UsePublicAgentsOptions
+  options: UsePublicAgentsOptions,
+  signal?: AbortSignal
 ) {
   const response = await fetch(`${currentServer}/rpc/getPublicAgents`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(options),
+    signal,
   });
-
-  if (!response.ok) {
+  if (!response.ok)
     throw new Error(`Remote fetch failed with status ${response.status}`);
-  }
   return response.json();
 }
 
@@ -110,70 +188,80 @@ export function usePublicAgents({
   searchName = "",
 }: UsePublicAgentsOptions = {}) {
   const currentServer = useAppSelector(selectCurrentServer);
-  const dispatch = useDispatch();
+
   const [state, setState] = useState<PublicAgentsState>({
     loading: true,
     error: null,
     data: [],
   });
 
+  const requestIdRef = useRef(0);
+  const abortRef = useRef<AbortController | null>(null);
+
   const fetchData = useCallback(async () => {
     const options = { limit, sortBy, searchName };
+    const myReqId = ++requestIdRef.current;
 
+    // 先进入 loading，但保留现有 data，减少闪烁
+    setState((prev) => ({ ...prev, loading: true, error: null }));
+
+    // 1) 立即拉本地并展示（本地优先）
+    let localResult: { data: Agent[] } = { data: [] };
+    try {
+      localResult = await fetchLocal(options);
+      if (myReqId !== requestIdRef.current) return;
+      // 本地阶段也做“临时 __sort”，保证排序正确
+      const localDecorated = localResult.data.map((a) => {
+        const m: MAgent = {
+          ...(a as any),
+          __sort: buildSortMeta(a, undefined),
+        };
+        return m;
+      });
+      const localSorted = sortAgents(localDecorated, sortBy).slice(0, limit);
+      setState((prev) => ({ ...prev, data: localSorted }));
+    } catch {
+      // 本地失败也不阻塞，继续远程
+    }
+
+    // 如果没有远程服务器，结束
     if (!currentServer) {
-      try {
-        const localResult = await fetchLocal(options);
-        // 本地模式下，fetchLocal 返回的数据已经排好序
-        setState({ loading: false, error: null, data: localResult.data });
-      } catch (err) {
-        setState({
-          loading: false,
-          error:
-            err instanceof Error
-              ? err
-              : new Error("Failed to fetch local agents"),
-          data: [],
-        });
-      }
+      setState((prev) => ({ ...prev, loading: false }));
       return;
     }
 
+    // 2) 发起远程，请求并合并（远程稍后）
     try {
-      const localResult = await fetchLocal(options);
-      setState((prev) => ({ ...prev, loading: true, data: localResult.data }));
+      abortRef.current?.abort();
+      abortRef.current = new AbortController();
 
-      try {
-        const remoteResult = await fetchRemoteAgents(currentServer, options);
+      const remoteResult = await fetchRemoteAgents(
+        currentServer,
+        options,
+        abortRef.current.signal
+      );
+      if (myReqId !== requestIdRef.current) return;
 
-        // 合并本地和远程数据（此时是未排序的）
-        const { merged, toDelete } = mergeAgents(
-          localResult.data,
-          remoteResult.data
-        );
+      const merged = mergeAgents(
+        localResult.data ?? [],
+        remoteResult.data ?? []
+      );
+      const finalSorted = sortAgents(merged, sortBy).slice(0, limit);
 
-        // [修复 3] 在数据合并后，使用正确的 sortBy 选项进行最终排序
-        const finalSortedData = sortAgents(merged, sortBy);
-
-        toDelete.forEach((id) => {
-          dispatch(remove(id));
-        });
-
-        // 将最终排好序的数据设置到 state 中
-        setState({ loading: false, error: null, data: finalSortedData });
-      } catch (err) {
-        setState((prev) => ({ ...prev, loading: false, error: null }));
-      }
-    } catch (err) {
-      setState({
-        loading: false,
-        error: err instanceof Error ? err : new Error("Failed to fetch agents"),
-        data: [],
-      });
+      setState({ loading: false, error: null, data: finalSorted });
+    } catch (err: any) {
+      if (err?.name === "AbortError") return; // 被新请求中止
+      if (myReqId !== requestIdRef.current) return;
+      // 远程失败：保留本地阶段的结果
+      setState((prev) => ({ ...prev, loading: false, error: null }));
     }
-  }, [limit, sortBy, searchName, currentServer, dispatch]);
+  }, [limit, sortBy, searchName, currentServer]);
 
   useEffect(() => {
     fetchData();
+    return () => {
+      abortRef.current?.abort();
+    };
   }, [fetchData]);
 
   const retry = useCallback(() => {

@@ -32,7 +32,7 @@ import {
 import WelcomeSection from "./WelcomeSection";
 import AgentBlock from "ai/agent/web/AgentBlock";
 import Tabs, { TabItem } from "render/web/ui/Tabs";
-import PublicAgents from "ai/agent/web/AgentExplore";
+import PublicAgents from "ai/agent/web/PublicAgents";
 
 // ... LoadingShimmer 和 EmptyPlaceholder 组件保持不变 ...
 const LoadingShimmer = () => (
