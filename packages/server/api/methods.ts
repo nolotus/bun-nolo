@@ -1,22 +1,12 @@
 // ai/server/apiMethods.ts
 
 import serverDb from "database/server/db";
-import { pubCybotKeys } from "database/keys";
-import { Agent, SpaceMemberWithSpaceInfo } from "app/types";
+import { SpaceMemberWithSpaceInfo } from "app/types";
 import { fetchMessages, MessageWithKey } from "chat/messages/fetchMessages";
 import type { Message } from "chat/messages/types";
+import { fetchPublicAgents } from "ai/agent/server/fetchPublicAgents"; // <--- 1. 导入新的函数
 
-export interface FetchPubCybotsOptions {
-  limit?: number;
-  sortBy?: "newest" | "popular" | "rating";
-}
-export interface FetchPubCybotsResult {
-  data: Agent[];
-  total: number;
-  hasMore: boolean;
-}
-
-// DB 列表迭代
+// DB 列表迭代 (保留，因为 fetchUserSpaceMemberships 仍在使用)
 async function dbList<T>(
   gte: string,
   lte: string,
@@ -27,23 +17,6 @@ async function dbList<T>(
     if (!filter || filter(value as T)) res.push(value as T);
   }
   return res;
-}
-
-export async function fetchPubCybots(
-  options: FetchPubCybotsOptions = {}
-): Promise<FetchPubCybotsResult> {
-  const { limit = 20, sortBy = "newest" } = options;
-  const { start, end } = pubCybotKeys.list();
-  const list = await dbList<Agent>(start, end, (v) => v.isPublic);
-  list.sort((a, b) => {
-    if (sortBy === "popular")
-      return (b.metrics?.useCount ?? 0) - (a.metrics?.useCount ?? 0);
-    if (sortBy === "rating")
-      return (b.metrics?.rating ?? 0) - (a.metrics?.rating ?? 0);
-    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-  });
-  const data = list.slice(0, limit);
-  return { data, total: list.length, hasMore: list.length > limit };
 }
 
 export async function fetchUserSpaceMemberships(
@@ -86,7 +59,8 @@ export async function fetchConvMsgs(
 }
 
 export const apiMethods = {
-  getPubCybots: { handler: fetchPubCybots, auth: false },
+  // 2. 将 getPubCybots 替换为 getPublicAgents
+  getPublicAgents: { handler: fetchPublicAgents, auth: false },
   getUserSpaceMemberships: { handler: fetchUserSpaceMemberships, auth: true },
   getConvMsgs: { handler: fetchConvMsgs, auth: true },
 } as const;

@@ -3,7 +3,7 @@
 import { browserDb } from "database/browser/db";
 import { pino } from "pino";
 
-import { pubCybotKeys } from "database/keys";
+import { pubAgentKeys } from "database/keys";
 import { Agent } from "app/types";
 
 const logger = pino({ name: "fetchPubCybots" });
@@ -17,7 +17,7 @@ export async function fetchPubCybots(options: FetchPubCybotsOptions = {}) {
   const { limit = 20, sortBy = "newest" } = options;
 
   try {
-    const { start, end } = pubCybotKeys.list();
+    const { start, end } = pubAgentKeys.list();
     const results: Agent[] = [];
 
     // 使用 iterator 获取范围数据

@@ -159,7 +159,7 @@ export const createCybotKey = {
   public: (cybotId: string) => createKey(DataType.CYBOT, "pub", cybotId),
 };
 
-export const pubCybotKeys = {
+export const pubAgentKeys = {
   single: (cybotId: string) => createKey(DataType.CYBOT, "pub", cybotId),
   list: () => ({
     start: createKey(DataType.CYBOT, "pub", ""),
