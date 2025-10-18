@@ -1,4 +1,4 @@
 import "./loader.css";
 export const PageLoader = () => {
-	return <div className="loader"></div>;
+  return <div className="loader"></div>;
 };

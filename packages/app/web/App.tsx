@@ -1,11 +1,13 @@
 // src/app/App.tsx
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState, Suspense } from "react";
+import type { RouteObject } from "react-router-dom";
+import { useRoutes, Outlet } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
+
 import { useAppDispatch } from "app/store";
 import { initializeAuth } from "auth/authSlice";
 import { useAuth } from "auth/hooks/useAuth";
 import i18n from "app/i18n";
-import { Toaster } from "react-hot-toast";
-import { useRoutes, Outlet } from "react-router-dom";
 import { addHostToCurrentServer, getSettings } from "app/settings/settingSlice";
 import {
   fetchUserSpaceMemberships,
@@ -14,57 +16,74 @@ import {
 import { useSystemTheme } from "app/theme/useSystemTheme";
 import GlobalThemeController from "app/theme/GlobalThemeController";
 
-// S-Station 页面（非 Dating）
-import Article from "lab/s-station/Article";
-import NavbarComponent from "lab/s-station/Navbar";
-import Moment from "lab/s-station/index";
-
-// Dating 站点导入入口（所有 Dating 路由统一从这里导入）
-import { dateRoutes } from "lab/date/dateRoutes"; // 👈 这是我们新抽离的路由配置
-
-import { routes } from "./routes";
-
 /* -------------------------- 域名常量 -------------------------- */
 const selfrUrl = "selfr.nolo.chat";
 const dateUrl = "date.nolo.chat";
 
-/* -------------------------- 路由生成函数 -------------------------- */
-const generatorRoutes = (hostname: string, auth: any) => {
-  /**
-   * 1️⃣ date.nolo.chat 站点 (约会站点)
-   * - 使用模块化路由配置导入
-   */
-  if (hostname === "nolotus.local" || hostname === dateUrl) {
-    return dateRoutes; // 👈 直接使用我们抽离的路由配置
-  }
+/* -------------------------- 按域名动态装配路由 -------------------------- */
+function useHostRoutes(hostname: string, auth: any) {
+  const [routes, setRoutes] = useState<RouteObject[] | null>(null);
 
-  /**
-   * 2️⃣ selfr.nolo.chat 站点 (S-Station)
-   */
-  if (hostname === selfrUrl) {
-    return [
-      {
-        path: "/",
-        element: (
-          <div>
-            <NavbarComponent />
-            <Outlet />
-          </div>
-        ),
-        children: [
-          { index: true, element: <Moment /> },
-          { path: "article", element: <Article /> },
-          ...routes(auth.user),
-        ],
-      },
-    ];
-  }
+  useEffect(() => {
+    let cancelled = false;
 
-  /**
-   * 3️⃣ 其它未知 hostname
-   */
-  return routes(auth.user);
-};
+    async function load() {
+      // 1) date 站点（含本地开发域名）
+      if (hostname === "nolotus.local" || hostname === dateUrl) {
+        const mod = await import("lab/date/dateRoutes");
+        if (!cancelled) setRoutes(mod.dateRoutes);
+        return;
+      }
+
+      // 2) selfr 站点（S-Station）
+      if (hostname === selfrUrl) {
+        const [
+          { default: NavbarComponent },
+          { default: Moment },
+          { default: Article },
+          modRoutes,
+        ] = await Promise.all([
+          import("lab/s-station/Navbar"),
+          import("lab/s-station/index"),
+          import("lab/s-station/Article"),
+          import("./routes"),
+        ]);
+
+        const built: RouteObject[] = [
+          {
+            path: "/",
+            element: (
+              <div>
+                <NavbarComponent />
+                <Outlet />
+              </div>
+            ),
+            children: [
+              { index: true, element: <Moment /> },
+              { path: "article", element: <Article /> },
+              ...modRoutes.routes(auth.user),
+            ],
+          },
+        ];
+        if (!cancelled) setRoutes(built);
+        return;
+      }
+
+      // 3) 其它未知域名：只加载通用 routes
+      const modRoutes = await import("./routes");
+      if (!cancelled) setRoutes(modRoutes.routes(auth.user));
+    }
+
+    setRoutes(null); // 切换 hostname 或 auth.user 时重置
+    load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [hostname, auth.user]);
+
+  return routes;
+}
 
 /* -------------------------- App 主组件 -------------------------- */
 interface AppProps {
@@ -77,60 +96,53 @@ export default function App({ hostname, lng = "en" }: AppProps) {
   const dispatch = useAppDispatch();
   const initializedRef = useRef(false);
 
-  // 系统主题
+  // 系统主题（跟随系统）
   useSystemTheme();
 
-  // 生成路由
-  const appRoutes = generatorRoutes(hostname, auth);
-  const element = useRoutes(appRoutes);
+  // 动态生成并渲染当前域名需要的路由
+  const hostRoutes = useHostRoutes(hostname, auth);
+  const element = hostRoutes ? useRoutes(hostRoutes) : null;
 
-  /* -------------------- 系统初始化 (优化版) -------------------- */
+  /* -------------------- 系统初始化（date 站点跳过） -------------------- */
   useEffect(() => {
     if (initializedRef.current) return;
     initializedRef.current = true;
 
-    // 【重点优化】date 站点不执行任何后端初始化
     if (hostname === dateUrl) {
       console.log("【Demo模式】跳过后端初始化");
       return;
     }
 
-    const initializeSystem = async () => {
+    (async () => {
       try {
         dispatch(addHostToCurrentServer(hostname));
         await dispatch(initializeAuth()).unwrap();
       } catch (error) {
         console.error("系统初始化失败：", error);
       }
-    };
-    initializeSystem();
+    })();
   }, [dispatch, hostname]);
 
-  /* -------------------- 用户数据初始化 (优化版) -------------------- */
+  /* -------------------- 用户数据初始化（date 站点跳过） -------------------- */
   useEffect(() => {
-    // 【优化】date 站点不加载用户数据
     if (hostname === dateUrl) return;
 
-    const initializeUserData = async () => {
-      if (auth.user?.userId) {
-        const userId = auth.user.userId;
-        try {
-          await dispatch(getSettings()).unwrap();
-          await dispatch(fetchUserSpaceMemberships(userId)).unwrap();
-          await dispatch(loadDefaultSpace(userId)).unwrap();
-        } catch (error) {
-          console.error(`用户数据初始化失败 for ${userId}:`, error);
-        }
+    (async () => {
+      const userId = auth.user?.userId;
+      if (!userId) return;
+      try {
+        await dispatch(getSettings()).unwrap();
+        await dispatch(fetchUserSpaceMemberships(userId)).unwrap();
+        await dispatch(loadDefaultSpace(userId)).unwrap();
+      } catch (error) {
+        console.error(`用户数据初始化失败 for ${userId}:`, error);
       }
-    };
-    initializeUserData();
+    })();
   }, [dispatch, auth.user, hostname]);
 
   /* -------------------- i18n 语言切换 -------------------- */
   useEffect(() => {
-    if (lng) {
-      i18n.changeLanguage(lng);
-    }
+    if (lng) i18n.changeLanguage(lng);
   }, [lng]);
 
   /* -------------------- 渲染 -------------------- */
@@ -138,7 +150,9 @@ export default function App({ hostname, lng = "en" }: AppProps) {
     <>
       <GlobalThemeController />
       <Toaster position="top-right" reverseOrder={false} />
-      {element}
+      <Suspense fallback={<div style={{ padding: 24 }}>Loading...</div>}>
+        {element}
+      </Suspense>
     </>
   );
 }
