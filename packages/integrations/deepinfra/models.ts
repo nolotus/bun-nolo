@@ -88,4 +88,13 @@ export const deepinfraModels: Model[] = [
     maxOutputTokens: 163840,
     contextWindow: 163840,
   },
+  {
+    // PaddlePaddle/PaddleOCR-VL-0.9B – 价格已乘以 10（每 M token）
+    name: "PaddlePaddle/PaddleOCR-VL-0.9B",
+    displayName: "PaddlePaddle/PaddleOCR-VL-0.9B",
+    hasVision: true, // OCR 模型通常支持视觉能力
+    price: { input: 0.14 * 10, output: 0.8 * 10 }, // $1.40 / $8.00 per M token
+    maxOutputTokens: 8192, // 默认值，可根据实际情况调整
+    contextWindow: 131072, // 默认值，可根据实际情况调整
+  },
 ];
