@@ -8,6 +8,7 @@ import {
   RiWechatPayLine,
   RiAlipayLine,
   RiCheckLine,
+  RiErrorWarningLine,
 } from "react-icons/ri";
 import { useAuth } from "auth/hooks/useAuth";
 import wechat from "app/images/wechat.png";
@@ -40,7 +41,7 @@ const RechargePage = () => {
     { label: "充值金额", content: "任意金额" },
     {
       label: "到账时间",
-      content: "1-10 分钟",
+      content: "1-30 分钟",
       note: "人工充值，部分情况会延迟",
     },
     { label: "问题咨询", content: EMAIL },
@@ -167,32 +168,56 @@ const RechargePage = () => {
         }
 
         .notice {
-          background: var(--primaryBg);
+          background: linear-gradient(135deg, rgba(239, 68, 68, 0.08), rgba(220, 38, 38, 0.05));
           backdrop-filter: blur(20px);
-          border: 1px solid var(--borderAccent);
-          border-radius: 8px;
-          padding: var(--space-3);
+          border: 1.5px solid #EF4444;
+          border-radius: 10px;
+          padding: ${isMobile ? "var(--space-4)" : "var(--space-5)"};
           margin-bottom: var(--space-6);
-          font-size: 0.8rem;
-          color: var(--textSecondary);
-          line-height: 1.5;
+          font-size: ${isMobile ? "0.85rem" : "0.9rem"};
+          color: var(--text);
+          line-height: 1.6;
           display: flex;
-          align-items: center;
-          gap: var(--space-2);
+          gap: var(--space-3);
+          box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
         }
 
         .notice-icon {
-          color: var(--primary);
+          color: #EF4444;
           flex-shrink: 0;
+          font-size: 1.25rem;
+          margin-top: 2px;
+        }
+
+        .notice-content {
+          flex: 1;
+        }
+
+        .notice-text {
+          display: block;
+          margin-bottom: var(--space-2);
+          font-weight: 500;
         }
 
         .notice-highlight {
-          color: var(--primary);
-          font-weight: 600;
+          color: #EF4444;
+          font-weight: 700;
           font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
-          padding: 0 var(--space-1);
-          background: var(--backgroundAccent);
-          border-radius: 4px;
+          padding: 2px var(--space-2);
+          background: rgba(239, 68, 68, 0.12);
+          border-radius: 6px;
+          font-size: 1.05em;
+          letter-spacing: 0.02em;
+          border: 1px solid rgba(239, 68, 68, 0.2);
+          display: inline-block;
+        }
+
+        .notice-warning {
+          display: block;
+          color: #DC2626;
+          font-size: 0.8em;
+          font-weight: 600;
+          margin-top: var(--space-1);
         }
 
         .qr-wrapper {
@@ -332,14 +357,18 @@ const RechargePage = () => {
             </div>
 
             <div className="notice">
-              <RiUserLine size={16} className="notice-icon" />
-              <span>
-                转账备注请填写
-                <span className="notice-highlight">
-                  {auth.user?.username || "username"}
+              <RiErrorWarningLine size={20} className="notice-icon" />
+              <div className="notice-content">
+                <span className="notice-text">
+                  转账备注必须填写您的用户名
+                  <span className="notice-highlight">
+                    {auth.user?.username || "username"}
+                  </span>
                 </span>
-                否则无法到账
-              </span>
+                <span className="notice-warning">
+                  ⚠️ 不填写用户名将无法识别充值账户
+                </span>
+              </div>
             </div>
 
             <div className="qr-wrapper">
