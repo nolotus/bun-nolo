@@ -4,8 +4,13 @@ import React, { Suspense, lazy, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { zIndex } from "render/styles/zIndex";
-import { useBalance } from "auth/hooks/useBalance";
 import { useSendPermission } from "../hooks/useSendPermission";
+import { useAppSelector, useAppDispatch } from "app/store";
+import {
+  selectCurrentUserBalance,
+  fetchUserProfile,
+  selectUserId,
+} from "auth/authSlice";
 
 // 懒加载 MessageInput 组件
 const MessageInput = lazy(() => import("./MessageInput"));
@@ -249,32 +254,33 @@ const LoadingInputPlaceholder: React.FC<LoadingInputPlaceholderProps> = ({
 };
 
 const MessageInputContainer: React.FC = () => {
-  const { balance, loading, error: balanceError } = useBalance();
-  const { sendPermission, getErrorMessage } = useSendPermission(balance);
+  const dispatch = useAppDispatch();
+  const balance = useAppSelector(selectCurrentUserBalance);
+  const currentUserId = useAppSelector(selectUserId);
+  const { sendPermission, getErrorMessage } = useSendPermission(balance ?? 0);
   const navigate = useNavigate();
   const { t } = useTranslation("chat");
+
+  // 直接通过 balance 是否为数字来判断加载状态
+  const loading = typeof balance !== "number";
+
+  // 组件挂载后立即开始预加载 MessageInput
+  useEffect(() => {
+    import("./MessageInput");
+  }, []);
+
+  // 当用户 ID 存在时，dispatch action 获取用户 Profile (包括余额)
+  useEffect(() => {
+    if (currentUserId) {
+      dispatch(fetchUserProfile());
+    }
+  }, [currentUserId, dispatch]);
 
   const handleRechargeClick = () => {
     navigate("/recharge");
   };
 
-  // --- [核心优化] 立即开始预加载，不影响UI ---
-  useEffect(() => {
-    // 组件挂载后立即开始预加载 MessageInput
-    import("./MessageInput");
-  }, []);
-
-  // 1. 如果余额加载出错，显示错误
-  if (balanceError) {
-    return (
-      <>
-        <PreloadMessageInput />
-        <ErrorMessage message={balanceError} />
-      </>
-    );
-  }
-
-  // 2. 如果权限还在检查中，显示权限检查状态
+  // 1. 如果权限和余额还在检查中（即 balance 还不是数字），显示加载状态
   if (loading) {
     return (
       <>
@@ -286,7 +292,7 @@ const MessageInputContainer: React.FC = () => {
     );
   }
 
-  // 3. 如果权限检查完成且不允许发送，显示权限错误
+  // 2. 如果权限检查完成且不允许发送，显示权限错误
   if (!sendPermission.allowed) {
     const errorMessage = getErrorMessage(
       sendPermission.reason,
@@ -307,7 +313,7 @@ const MessageInputContainer: React.FC = () => {
     );
   }
 
-  // 4. 一切就绪，显示输入框（此时应该已经预加载完成）
+  // 3. 一切就绪，显示输入框（此时应该已经预加载完成）
   return (
     <Suspense
       fallback={

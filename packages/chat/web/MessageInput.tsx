@@ -1,4 +1,4 @@
-// /chat/web/MessageInput.tsx (完整修改版)
+// /chat/web/MessageInput.tsx (完整修正版)
 
 import React, { useCallback, useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
@@ -13,7 +13,7 @@ import {
   selectPendingFiles,
   type PendingFile,
 } from "../dialog/dialogSlice";
-import { processDocumentFile } from "./fileProcessor"; // <-- 引入新的处理函数
+import { processDocumentFile } from "./fileProcessor";
 
 // web
 import DocxPreviewDialog from "render/web/DocxPreviewDialog";
@@ -79,7 +79,6 @@ const MessageInput: React.FC = () => {
       if (!files) return;
 
       for (const file of Array.from(files)) {
-        // 1. 本地处理图片预览
         if (file.type.startsWith("image/")) {
           const fileId = nanoid();
           const reader = new FileReader();
@@ -92,11 +91,10 @@ const MessageInput: React.FC = () => {
             }
           };
           reader.readAsDataURL(file);
-          continue; // 处理下一张图片
+          continue;
         }
 
-        // 2. 使用外部函数处理文档文件
-        const fileId = nanoid(); // 为整个文件操作生成一个跟踪 ID
+        const fileId = nanoid();
         setProcessingFiles((prev) => new Set(prev).add(fileId));
         setFileErrors((prev) => {
           const m = new Map(prev);
@@ -108,8 +106,6 @@ const MessageInput: React.FC = () => {
           await processDocumentFile({ file, fileId, dispatch, t, toast });
         } catch (err) {
           const msg = err instanceof Error ? err.message : "处理文件时出错";
-          // 注意：toast 错误提示已在 processDocumentFile 中处理
-          // 这里我们只更新组件内部的错误状态，用于UI显示
           setFileErrors((prev) => new Map(prev).set(fileId, msg));
         } finally {
           setProcessingFiles((prev) => {
@@ -171,8 +167,15 @@ const MessageInput: React.FC = () => {
         if (finalParts.length > 0) {
           await dispatch(handleSendMessage({ userInput: content })).unwrap();
         }
-      } catch {
-        toast.error(t("sendFailMessage", "消息发送失败"));
+      } catch (error: any) {
+        // <--- [核心修改] 捕获具体的 error 对象
+        // 从 error 对象中提取 Thunk rejectWithValue 传来的消息
+        // 如果消息存在，就显示它；否则显示通用错误信息
+        const errorMessage =
+          typeof error === "string"
+            ? error
+            : error?.message || t("sendFailMessage", "消息发送失败");
+        toast.error(errorMessage);
       }
     })();
   }, [
@@ -215,12 +218,8 @@ const MessageInput: React.FC = () => {
     processFiles(e.dataTransfer.files);
   };
 
-  // 注意：由于 attachments preview 依赖于 redux state，多 sheet 的 excel 会自动正确显示
-  // fileErrors 的逻辑可能需要调整，因为它现在是基于整个文件，而不是单个 sheet
   const enhancedPendingFiles = pendingFiles.map((f) => ({
     ...f,
-    // 这个 error 逻辑现在不太准确，因为一个文件可能生成多个 attachment
-    // 但作为整体文件的失败指示器仍然有效
     error: fileErrors.get(f.id),
   }));
 
@@ -234,7 +233,6 @@ const MessageInput: React.FC = () => {
     <>
       <style href="message-input" precedence="medium">
         {`
-        /* ... existing styles, no changes needed here ... */
         .message-input-container {
             --container-padding: var(--space-4);
             --container-gap: var(--space-2);

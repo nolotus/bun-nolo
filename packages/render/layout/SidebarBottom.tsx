@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch } from "react-redux"; // useDispatch 已存在
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
 import {
@@ -14,7 +14,6 @@ import {
 } from "react-icons/lu";
 
 import { useAuth } from "auth/hooks/useAuth";
-import { useBalance } from "auth/hooks/useBalance";
 import { useAppSelector } from "app/store";
 import { SettingRoutePaths } from "app/settings/config";
 import {
@@ -23,11 +22,13 @@ import {
   changeUser,
   selectUserId,
   User,
+  fetchUserProfile, // 2. 导入 fetchUserProfile action
+  selectCurrentUserBalance, // 2. 导入 balance selector
 } from "auth/authSlice";
 import DropdownMenu from "render/web/ui/DropDownMenu";
 import { Tooltip } from "render/web/ui/Tooltip";
 
-// 1. 代码简化：提取为可复用的 MenuItem 子组件
+// MenuItem 子组件保持不变
 const MenuItem = ({ icon: Icon, text, onClick, className = "" }) => (
   <button onClick={onClick} className={`dd-item ${className}`}>
     <Icon size={14} />
@@ -42,10 +43,21 @@ const SidebarBottom: React.FC = () => {
   const { user: authUser } = useAuth();
   const users = useAppSelector(selectUsers);
   const currentUserId = useAppSelector(selectUserId);
-  const { balance, loading, error } = useBalance();
+  // 3. 直接从 Redux store 获取余额
+  const balance = useAppSelector(selectCurrentUserBalance);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
-  const isLowBalance = !loading && !error && balance < 10;
+  // 5. 更新余额状态的判断逻辑
+  // 如果 balance 是数字类型，说明已加载；否则视为加载中或未获取
+  const isLoading = typeof balance !== "number";
+  const isLowBalance = !isLoading && balance < 10;
+
+  // 4. 当用户ID存在时，dispatch action 获取用户 Profile (包括余额)
+  useEffect(() => {
+    if (currentUserId) {
+      dispatch(fetchUserProfile());
+    }
+  }, [currentUserId, dispatch]);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -98,8 +110,9 @@ const SidebarBottom: React.FC = () => {
               <span className="username">{authUser.username}</span>
             </NavLink>
           </Tooltip>
+          {/* 5. 更新余额显示逻辑 */}
           <span className={`balance ${isLowBalance ? "low" : ""}`}>
-            {loading ? "..." : error ? "N/A" : `¥${balance.toFixed(2)}`}
+            {isLoading ? "..." : `¥${balance.toFixed(2)}`}
           </span>
         </div>
 
@@ -152,11 +165,13 @@ const SidebarBottom: React.FC = () => {
         </div>
       </div>
 
+      {/* 样式部分保持不变 */}
       <style href="SidebarBottom-compact" precedence="medium">{`
+        /* ... CSS styles ... */
         .SidebarBottom {
           display: flex;
           align-items: center;
-          justify-content: space-between; /* 2. 布局优化：左右内容分离 */
+          justify-content: space-between;
           padding: 0 var(--space-3);
           border-top: 1px solid var(--border);
           background: var(--background);
@@ -172,7 +187,7 @@ const SidebarBottom: React.FC = () => {
         }
 
         .left-content {
-          flex: 1; /* 3. 兼容长用户名：让左侧区域自适应伸缩 */
+          flex: 1;
           min-width: 0;
         }
 
@@ -184,8 +199,8 @@ const SidebarBottom: React.FC = () => {
           display: flex;
           align-items: center;
           gap: var(--space-2);
-          flex: 1; /* 3. 兼容长用户名：让链接填满可用空间 */
-          min-width: 0; /* 允许 flex item 收缩到比内容还小 */
+          flex: 1;
+          min-width: 0;
           padding: var(--space-1) var(--space-2);
           text-decoration: none;
           color: var(--text);
@@ -211,7 +226,7 @@ const SidebarBottom: React.FC = () => {
           font-size: 13px;
           white-space: nowrap;
           overflow: hidden;
-          text-overflow: ellipsis; /* 3. 兼容长用户名：超长时显示省略号 */
+          text-overflow: ellipsis;
         }
 
         .balance {
@@ -328,7 +343,7 @@ const SidebarBottom: React.FC = () => {
         @media (max-width: 768px) {
           .SidebarBottom { padding: 0 var(--space-2); gap: var(--space-1); }
           .left-content, .right-content { gap: var(--space-2); }
-          .balance { display: none; } /* 在移动端窄视图下隐藏余额 */
+          .balance { display: none; }
         }
       `}</style>
     </>

@@ -1,6 +1,10 @@
 // 文件路径: auth/authSlice.ts
 
-import { buildCreateSlice, asyncThunkCreator } from "@reduxjs/toolkit";
+import {
+  buildCreateSlice,
+  asyncThunkCreator,
+  PayloadAction, // 导入 PayloadAction 用于为 reducer 的 payload 提供类型
+} from "@reduxjs/toolkit";
 import { AppThunkApi, RootState } from "app/store";
 import { selectCurrentServer } from "app/settings/settingSlice";
 import { loadDefaultSpace } from "create/space/spaceSlice";
@@ -11,6 +15,7 @@ import { hashPasswordV1 } from "core/password";
 import { signUpAction } from "./action/signUpAction";
 import { loginRequest } from "./client/loginRequest";
 import { parseToken, signToken } from "./token";
+import { authRoutes } from "./routes";
 import type { User } from "./types";
 
 interface AuthState {
@@ -38,6 +43,7 @@ export const authSlice = createSliceWithThunks({
   initialState,
   reducers: (create) => ({
     signIn: create.asyncThunk(
+      /* ... signIn implementation ... */
       async (input, thunkAPI) => {
         const { tokenManager } = thunkAPI.extra;
         const state: RootState = thunkAPI.getState();
@@ -84,6 +90,7 @@ export const authSlice = createSliceWithThunks({
     ),
 
     signUp: create.asyncThunk(signUpAction, {
+      /* ... signUp implementation ... */
       fulfilled: (state, action) => {
         const { user, token } = action.payload;
         state.currentUser = user;
@@ -98,6 +105,7 @@ export const authSlice = createSliceWithThunks({
     }, {}),
 
     initializeAuth: create.asyncThunk(
+      /* ... initializeAuth implementation ... */
       async (_, thunkAPI) => {
         const { tokenManager } = thunkAPI.extra;
         const tokens = await tokenManager!.initTokens();
@@ -123,6 +131,7 @@ export const authSlice = createSliceWithThunks({
     ),
 
     signOut: create.asyncThunk(
+      /* ... signOut implementation ... */
       async (_, thunkAPI) => {
         const { tokenManager } = thunkAPI.extra;
         const state: RootState = thunkAPI.getState();
@@ -159,6 +168,7 @@ export const authSlice = createSliceWithThunks({
     ),
 
     changeUser: create.asyncThunk(
+      /* ... changeUser implementation ... */
       async (user: User, thunkAPI) => {
         const { tokenManager } = thunkAPI.extra;
         const { dispatch } = thunkAPI;
@@ -190,6 +200,86 @@ export const authSlice = createSliceWithThunks({
         },
       }
     ),
+
+    fetchUserProfile: create.asyncThunk(
+      /* ... fetchUserProfile implementation ... */
+      async (_, thunkAPI) => {
+        const state: RootState = thunkAPI.getState();
+        const serverUrl = selectCurrentServer(state);
+        const token = selectCurrentToken(state);
+        const currentUser = selectCurrentUser(state);
+
+        if (!serverUrl || !token || !currentUser?.userId) {
+          return thunkAPI.rejectWithValue(
+            "无法获取用户信息：缺少必要参数（服务器地址、Token或用户ID）"
+          );
+        }
+
+        const { userId } = currentUser;
+        const path = authRoutes.users.detail.createPath({ userId });
+        const url = `${serverUrl}${path}`;
+
+        try {
+          const response = await fetch(url, {
+            method: authRoutes.users.detail.method,
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            return thunkAPI.rejectWithValue(
+              `请求失败: ${response.status} ${errorText}`
+            );
+          }
+
+          const profileData: { balance: number } = await response.json();
+          return { userId, balance: profileData.balance };
+        } catch (error: any) {
+          return thunkAPI.rejectWithValue(
+            error.message || "获取用户信息时发生未知错误"
+          );
+        }
+      },
+      {
+        rejected: (state, action) => {
+          console.error("获取用户 Profile 失败:", action.payload);
+        },
+        fulfilled: (state, action) => {
+          const { userId, balance } = action.payload;
+          if (state.currentUser && state.currentUser.userId === userId) {
+            state.currentUser.balance = balance;
+          }
+          const userIndex = state.users.findIndex(
+            (user) => user.userId === userId
+          );
+          if (userIndex !== -1) {
+            state.users[userIndex].balance = balance;
+          }
+        },
+      }
+    ),
+
+    // 前端临时扣款: 接收一个 cost 数值，从当前用户的余额中扣除。
+    // 这可以让 UI 实时显示余额变化，而无需等待下一次从服务器完整刷新。
+    deductBalance: create.reducer((state, action: PayloadAction<number>) => {
+      const cost = action.payload;
+      // 更新当前登录用户的余额
+      if (state.currentUser && typeof state.currentUser.balance === "number") {
+        state.currentUser.balance -= cost;
+      }
+
+      // 同时更新 users 数组中的该用户，保持数据一致性
+      if (state.currentUser) {
+        const userInArray = state.users.find(
+          (u) => u.userId === state.currentUser!.userId
+        );
+        if (userInArray && typeof userInArray.balance === "number") {
+          userInArray.balance -= cost;
+        }
+      }
+    }),
   }),
 });
 
@@ -200,6 +290,8 @@ export const {
   signOut,
   changeUser,
   initializeAuth,
+  fetchUserProfile,
+  deductBalance, // 导出新的 action
 } = authSlice.actions;
 
 export default authSlice.reducer;
@@ -210,3 +302,5 @@ export const selectUserId = (state: RootState) =>
   state.auth.currentUser?.userId;
 export const selectIsLoggedIn = (state: RootState) => state.auth.isLoggedIn;
 export const selectCurrentToken = (state: RootState) => state.auth.currentToken;
+export const selectCurrentUserBalance = (state: RootState) =>
+  state.auth.currentUser?.balance;
