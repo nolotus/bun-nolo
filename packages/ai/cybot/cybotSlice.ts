@@ -1,5 +1,3 @@
-// /ai/cybot/cybotSlice.ts
-
 import { asyncThunkCreator, buildCreateSlice } from "@reduxjs/toolkit";
 import { RootState } from "app/store";
 import { read } from "database/dbSlice";
@@ -20,12 +18,12 @@ import { Agent } from "app/types";
 import { _executeModel } from "ai/agent/_executeModel";
 import { isResponseAPIModel } from "ai/llm/isResponseAPIModel";
 
-// --- [新增导入，用于权限检查] ---
 import { selectCurrentUserBalance, selectUserId } from "auth/authSlice";
 import { getModelPricing, getPrices, getFinalPrice } from "ai/llm/getPricing";
 
 import { sendOpenAICompletionsRequest } from "../chat/sendOpenAICompletionsRequest";
 import { sendOpenAIResponseRequest } from "../chat/sendOpenAIResponseRequest";
+
 const createSliceWithThunks = buildCreateSlice({
   creators: { asyncThunk: asyncThunkCreator },
 });
@@ -46,6 +44,9 @@ const initialState: CybotState = {
   },
 };
 
+const joinMapValues = (map: Map<string, string>) =>
+  Array.from(map.values()).join("");
+
 export const cybotSlice = createSliceWithThunks({
   name: "cybot",
   initialState,
@@ -62,6 +63,7 @@ export const cybotSlice = createSliceWithThunks({
           thunkApi
         )
     ),
+
     streamLlm: create.asyncThunk(
       (
         args: { cybotId?: string; content: any; parentMessageId?: string },
@@ -77,6 +79,7 @@ export const cybotSlice = createSliceWithThunks({
           thunkApi
         )
     ),
+
     runAgent: create.asyncThunk(
       (args: { cybotId: string; content: any }, thunkApi) =>
         _executeModel(
@@ -89,6 +92,7 @@ export const cybotSlice = createSliceWithThunks({
           thunkApi
         )
     ),
+
     streamAgent: create.asyncThunk(
       (
         args: { cybotId: string; content: any; parentMessageId?: string },
@@ -100,6 +104,7 @@ export const cybotSlice = createSliceWithThunks({
           thunkApi
         )
     ),
+
     streamAgentChatTurn: create.asyncThunk(
       async (
         args: {
@@ -120,17 +125,15 @@ export const cybotSlice = createSliceWithThunks({
           }
 
           // ==================================================================
-          // ▼▼▼ 在此处执行权限和余额检查 ▼▼▼
+          // ▼▼▼ 权限和余额检查 ▼▼▼
           // ==================================================================
           const userBalance = selectCurrentUserBalance(state);
           const currentUserId = selectUserId(state);
 
-          // 检查 1: 余额是否已加载
           if (typeof userBalance !== "number") {
             return rejectWithValue("正在获取用户余额，请稍候...");
           }
 
-          // 检查 2: 白名单 (仅当使用者不是Agent所有者时)
           const isOwner = currentUserId && agentConfig.userId === currentUserId;
           if (!isOwner) {
             const hasWhitelist =
@@ -138,14 +141,14 @@ export const cybotSlice = createSliceWithThunks({
               agentConfig.whitelist.length > 0;
             if (hasWhitelist) {
               const isUserInWhitelist =
-                currentUserId && agentConfig.whitelist.includes(currentUserId);
+                !!currentUserId &&
+                agentConfig.whitelist.includes(currentUserId);
               if (!isUserInWhitelist) {
                 return rejectWithValue("您不在该应用的白名单中，无法使用。");
               }
             }
           }
 
-          // 检查 3: 余额是否充足 (跳过自定义 Provider)
           if (agentConfig.provider !== "Custom") {
             const serverPrices = getModelPricing(
               agentConfig.provider,
@@ -156,13 +159,12 @@ export const cybotSlice = createSliceWithThunks({
             }
             const prices = getPrices(agentConfig, serverPrices);
             const maxPrice = getFinalPrice(prices);
-
             if (userBalance < maxPrice) {
               return rejectWithValue("余额不足，请充值后再试。");
             }
           }
           // ==================================================================
-          // ▲▲▲ 权限和余额检查结束，若通过则继续执行 ▲▲▲
+          // ▲▲▲ 检查结束 ▲▲▲
           // ==================================================================
 
           const keySets = await getFullChatContextKeys(
@@ -175,34 +177,37 @@ export const cybotSlice = createSliceWithThunks({
 
           const [
             botInstructionsMap,
-            currentUserMap,
+            currentInputMap,
             smartReadMap,
             historyMap,
             botKnowledgeMap,
           ] = await Promise.all([
             fetchReferenceContents(finalKeys.botInstructionsContext, dispatch),
-            fetchReferenceContents(finalKeys.currentUserContext, dispatch),
+            fetchReferenceContents(finalKeys.currentInputContext, dispatch),
             fetchReferenceContents(finalKeys.smartReadContext, dispatch),
             fetchReferenceContents(finalKeys.historyContext, dispatch),
             fetchReferenceContents(finalKeys.botKnowledgeContext, dispatch),
           ]);
 
           const pendingFiles = selectPendingFiles(state);
-          let formattedCurrentUserContext = "";
+          let formattedCurrentInputContext = "";
 
-          if (pendingFiles.length > 0 && currentUserMap.size > 0) {
+          if (pendingFiles.length > 0 && currentInputMap.size > 0) {
+            // Group pending files by groupId (or fallback to id)
             const filesByGroup = new Map<string, PendingFile[]>();
             const relevantPendingFiles = pendingFiles.filter((file) =>
-              currentUserMap.has(file.pageKey)
+              currentInputMap.has(file.pageKey)
             );
 
-            relevantPendingFiles.forEach((file) => {
-              const key = file.groupId || file.id;
-              if (!filesByGroup.has(key)) {
-                filesByGroup.set(key, []);
+            for (const file of relevantPendingFiles) {
+              const groupKey = file.groupId || file.id;
+              const group = filesByGroup.get(groupKey);
+              if (group) {
+                group.push(file);
+              } else {
+                filesByGroup.set(groupKey, [file]);
               }
-              filesByGroup.get(key)!.push(file);
-            });
+            }
 
             let sourceCounter = 1;
             filesByGroup.forEach((filesInGroup) => {
@@ -211,45 +216,39 @@ export const cybotSlice = createSliceWithThunks({
                 ? filesInGroup[0].name.split(" (")[0]
                 : filesInGroup[0].name;
 
-              formattedCurrentUserContext += `--- Source ${sourceCounter}: "${sourceName}" ---\n`;
+              formattedCurrentInputContext += `--- Source ${sourceCounter}: "${sourceName}" ---\n`;
 
               filesInGroup.forEach((file) => {
-                const content = currentUserMap.get(file.pageKey);
-                if (content) {
-                  if (isGroup) {
-                    formattedCurrentUserContext += `### Document: "${file.name}"\n${content}\n`;
-                  } else {
-                    formattedCurrentUserContext += `${content}\n`;
-                  }
+                const content = currentInputMap.get(file.pageKey);
+                if (!content) return;
+                if (isGroup) {
+                  formattedCurrentInputContext += `### Document: "${file.name}"\n${content}\n`;
+                } else {
+                  formattedCurrentInputContext += `${content}\n`;
                 }
               });
 
-              formattedCurrentUserContext += `--- End of Source ${sourceCounter} ---\n\n`;
+              formattedCurrentInputContext += `--- End of Source ${sourceCounter} ---\n\n`;
               sourceCounter++;
             });
           } else {
-            formattedCurrentUserContext = Array.from(
-              currentUserMap.values()
-            ).join("");
+            formattedCurrentInputContext = joinMapValues(currentInputMap);
           }
 
-          const botInstructionsContext = Array.from(
-            botInstructionsMap.values()
-          ).join("");
-          const smartReadContext = Array.from(smartReadMap.values()).join("");
-          const historyContext = Array.from(historyMap.values()).join("");
-          const botKnowledgeContext = Array.from(botKnowledgeMap.values()).join(
-            ""
-          );
+          const botInstructionsContext = joinMapValues(botInstructionsMap);
+          const smartReadContext = joinMapValues(smartReadMap);
+          const historyContext = joinMapValues(historyMap);
+          const botKnowledgeContext = joinMapValues(botKnowledgeMap);
 
           const messages = filterAndCleanMessages(selectAllMsgs(state));
+
           const bodyData = generateRequestBody({
             agentConfig,
             messages,
             userInput,
             contexts: {
               botInstructionsContext,
-              currentUserContext: formattedCurrentUserContext.trim() || null,
+              currentInputContext: formattedCurrentInputContext.trim() || null,
               smartReadContext,
               historyContext,
               botKnowledgeContext,
@@ -257,7 +256,7 @@ export const cybotSlice = createSliceWithThunks({
           });
 
           const currentDialog = selectCurrentDialogConfig(state);
-          const dialogKey = currentDialog ? currentDialog.dbKey : undefined;
+          const dialogKey = currentDialog?.dbKey;
 
           if (!dialogKey) {
             return rejectWithValue("当前对话不存在，无法发送消息。");
@@ -271,7 +270,6 @@ export const cybotSlice = createSliceWithThunks({
               dialogKey,
               parentMessageId,
             });
-
             console.log("=== 全量日志 ===\n", logsText);
           } else {
             await sendOpenAICompletionsRequest({

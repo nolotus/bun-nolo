@@ -1,12 +1,11 @@
-// 文件: ai/agent/generatePrompt.ts
+// File: ai/agent/generatePrompt.ts
 
 import { mapLanguage } from "app/i18n/mapLanguage";
 import { Agent } from "app/types";
-
 import { Contexts } from "../types";
 
 /**
- * 创建带有标题和描述的上下文部分。
+ * Create a context section with title and description.
  */
 const createContextSection = (
   title: string,
@@ -17,7 +16,7 @@ const createContextSection = (
   return `## ${title}\n${description}\n\n${content}`;
 };
 
-// 这些严格的指令只应在有上下文时使用
+// These strict instructions should only be included when reference materials are present.
 const CONTEXT_USAGE_INSTRUCTIONS = `INSTRUCTIONS FOR USING THE REFERENCE MATERIALS:
 - The materials provided under "REFERENCE MATERIALS" are your primary source of truth.
 - Prioritize them to answer queries. They are listed in descending order of priority.
@@ -25,31 +24,62 @@ const CONTEXT_USAGE_INSTRUCTIONS = `INSTRUCTIONS FOR USING THE REFERENCE MATERIA
 - If they do not contain the answer, state that and then use your general knowledge.
 - Point out any conflicting information you find within the materials.`;
 
+// Safe check for SSR/Node environments
+const isBrowser = typeof window !== "undefined";
+
+/**
+ * Generate Prompt
+ */
 export const generatePrompt = (options: {
   agentConfig: Agent;
   language?: string;
   contexts?: Contexts;
+  // Allow external viewport (useful for SSR/server rendering)
+  viewport?: { width: number; height: number };
+  // Allow custom mobile breakpoint
+  mobileBreakpoint?: number;
 }): string => {
-  const { agentConfig, language = navigator.language, contexts = {} } = options;
-  const { name, prompt: mainPrompt, id, dbKey } = agentConfig;
-  const mappedLanguage = mapLanguage(language);
+  const {
+    agentConfig,
+    contexts = {},
+    viewport,
+    mobileBreakpoint = 768,
+  } = options;
+
+  // SSR-safe language retrieval
+  const safeLanguage =
+    options.language ??
+    (typeof navigator !== "undefined" ? navigator.language : "en");
+
+  const { name, prompt: mainPrompt, dbKey } = agentConfig;
+  const mappedLanguage = mapLanguage(safeLanguage);
   const currentTime = new Date().toLocaleString("en-US", { timeZone: "UTC" });
 
-  // 1. 基础信息区
+  // 1. Base info + reply preferences
+  const replyPreferences = [
+    "Reply Preferences:",
+    "- Reader-friendly formatting, optimized for quick scanning.",
+    "- You may use Markdown (headings, lists, code blocks) to improve readability.",
+    "- By default, keep answers short; if more detail may help, ask the user before expanding.",
+  ].join("\n");
+
   const baseInfo = [
     name ? `Your name is ${name}.` : "",
     dbKey ? `Your dbKey is ${dbKey}.` : "",
     mappedLanguage ? `Response Language: ${mappedLanguage}.` : "",
     `Current time is ${currentTime}.`,
+    replyPreferences,
   ]
     .filter(Boolean)
     .join("\n");
 
-  // *** 新增代码开始 ***
-  // 2. 响应指南区 (根据屏幕尺寸动态生成)
-  const screenWidth = window.innerWidth;
-  const screenHeight = window.innerHeight;
-  const mobileBreakpoint = 768; // 常用的移动端/平板断点
+  // 2. Response guidelines (dynamic by screen size, SSR safe)
+  const defaultViewport = { width: 1440, height: 900 };
+  const screenWidth =
+    viewport?.width ?? (isBrowser ? window.innerWidth : defaultViewport.width);
+  const screenHeight =
+    viewport?.height ??
+    (isBrowser ? window.innerHeight : defaultViewport.height);
 
   let responseGuidelines = "";
   if (screenWidth < mobileBreakpoint) {
@@ -60,18 +90,16 @@ Your response will be displayed on a small screen (Dimensions: ${screenWidth}x${
 - Use bullet points or numbered lists for easier reading on mobile.
 - Avoid wide tables or code blocks that might require horizontal scrolling.`;
   } else {
-    // （可选）为桌面端也提供上下文，让AI知道它有更多空间发挥
     responseGuidelines = `--- RESPONSE GUIDELINES ---
 Your response will be displayed on a large desktop screen (Dimensions: ${screenWidth}x${screenHeight}px). You can provide more detailed and well-formatted responses.`;
   }
-  // *** 新增代码结束 ***
 
-  // 3. 核心人格与任务区
+  // 3. Core persona & task
   const corePersonaAndTask = mainPrompt
     ? `--- CORE PERSONA & TASK ---\n${mainPrompt}`
     : "";
 
-  // 4. 上下文资料区
+  // 4. Reference materials
   const contextSections = [
     createContextSection(
       "Instructional Documents",
@@ -79,9 +107,10 @@ Your response will be displayed on a large desktop screen (Dimensions: ${screenW
       contexts.botInstructionsContext
     ),
     createContextSection(
-      "User's Current References",
-      "(High priority, from user for this request.)",
-      contexts.currentUserContext
+      "Current Input Context",
+      "(High priority, from the user's current input.)",
+      // Renamed from currentUserContext -> currentInputContext
+      (contexts as any).currentInputContext
     ),
     createContextSection(
       "Smart Context Analysis",
@@ -101,7 +130,6 @@ Your response will be displayed on a large desktop screen (Dimensions: ${screenW
   ].filter(Boolean);
 
   let referenceMaterialsBlock = "";
-
   if (contextSections.length > 0) {
     const materials = contextSections.join("\n\n");
     referenceMaterialsBlock = [
@@ -111,15 +139,16 @@ Your response will be displayed on a large desktop screen (Dimensions: ${screenW
     ].join("\n\n");
   }
 
-  // 5. 最终组装 (已更新)
+  // 5. Final assembly
   const finalPrompt = [
     baseInfo,
-    responseGuidelines, // 将新创建的响应指南加入
+    responseGuidelines,
     corePersonaAndTask,
     referenceMaterialsBlock,
   ]
     .filter(Boolean)
-    .join("\n\n");
+    .join("\n\n")
+    .trim();
 
   return finalPrompt;
 };

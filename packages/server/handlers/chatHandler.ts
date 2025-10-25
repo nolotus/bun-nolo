@@ -1,8 +1,22 @@
 import { getNoloKey } from "ai/llm/getNoloKey";
 import { getUser } from "auth/server/getUser";
 import { authenticateRequest } from "auth/utils";
+import { getModelPricing, getPrices, getFinalPrice } from "ai/llm/getPricing";
 import * as fs from "fs/promises";
 import * as path from "path";
+import pino from "pino";
+
+const logger = pino({
+  level: process.env.LOG_LEVEL || "info",
+  transport:
+    process.env.NODE_ENV === "development"
+      ? {
+          target: "pino-pretty",
+          options: { colorize: true },
+        }
+      : undefined,
+  timestamp: pino.stdTimeFunctions.isoTime,
+});
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -15,6 +29,268 @@ const formatSseError = (msg: string, code: string) =>
     `data: ${JSON.stringify({ error: { msg, code } })}\n\n`
   );
 
+// 计算消息预估成本的辅助函数
+const calculateMessageCost = (
+  model: string,
+  provider: string,
+  messages: any[]
+): number => {
+  try {
+    // 获取服务器价格信息
+    const serverPrices = getModelPricing(provider, model);
+    if (!serverPrices) {
+      logger.info("无法获取模型定价信息");
+      return 0;
+    }
+
+    // 这里需要获取用户的config定价信息，暂时使用默认值
+    // 在实际应用中，你可能需要从数据库或其他地方获取这个信息
+    const userConfig = {
+      inputPrice: 0, // 用户自定义的输入价格
+      outputPrice: 0, // 用户自定义的输出价格
+    };
+
+    // 计算价格
+    const prices = getPrices(userConfig, serverPrices);
+    const finalPrice = getFinalPrice(prices);
+
+    logger.info(`模型 ${model} 预估成本计算`, {
+      serverPrices,
+      userConfig,
+      prices,
+      finalPrice,
+      model,
+      provider,
+    });
+
+    return finalPrice;
+  } catch (error) {
+    logger.error("计算消息成本时出错:", error);
+    return 0;
+  }
+};
+
+// 计算图片URL数量的函数
+const countImageUrls = (messages: any[]): number => {
+  if (!Array.isArray(messages)) return 0;
+
+  return messages.reduce((count: number, msg: any) => {
+    if (msg.content && Array.isArray(msg.content)) {
+      return (
+        count +
+        msg.content.filter((item: any) => item.type === "image_url").length
+      );
+    }
+    return count;
+  }, 0);
+};
+
+// ==================== 各个检查函数 ====================
+
+// 1. 基础余额检查：余额小于等于1时拒绝
+const checkBasicBalance = (balance: number) => {
+  if (balance <= 1) {
+    return {
+      allowed: false,
+      error: {
+        message: "余额不足，无法继续访问",
+        code: "INSUFFICIENT_BALANCE",
+        status: 402,
+        details: { currentBalance: balance },
+      },
+    };
+  }
+  return { allowed: true };
+};
+
+// 2. 多图片余额检查：图片数量大于1且余额小于等于20时拒绝
+const checkMultipleImagesBalance = (balance: number, imageUrlCount: number) => {
+  if (imageUrlCount > 1 && balance <= 20) {
+    return {
+      allowed: false,
+      error: {
+        message: `多图片请求需要余额>20（当前${balance}，图片数${imageUrlCount}）`,
+        code: "INSUFFICIENT_BALANCE_FOR_MULTIPLE_IMAGES",
+        status: 402,
+        details: {
+          currentBalance: balance,
+          imageUrlCount,
+          requiredBalance: 20,
+        },
+      },
+    };
+  }
+  return { allowed: true };
+};
+
+// 3. 预估成本检查：预估成本超过余额50%时给出警告
+const checkEstimatedCost = (
+  balance: number,
+  estimatedCost: number,
+  imageUrlCount: number
+) => {
+  if (estimatedCost > 0 && estimatedCost > balance * 0.5) {
+    logger.warn(
+      `警告：预估成本 $${estimatedCost.toFixed(6)} 超过余额的50% (${(balance * 0.5).toFixed(2)})`,
+      {
+        estimatedCost,
+        balance,
+        threshold: balance * 0.5,
+        imageUrlCount,
+      }
+    );
+  }
+  return { allowed: true }; // 这个检查只是警告，不阻止请求
+};
+
+// 4. Blacklist检查：图片数量超过5时写入文件
+const checkBlacklist = async (
+  userId: string,
+  imageUrlCount: number,
+  messages: any[],
+  model: string,
+  provider: string,
+  estimatedCost: number,
+  auth: any
+) => {
+  let shouldLogToBlacklist = false;
+
+  if (imageUrlCount > 5) {
+    shouldLogToBlacklist = true;
+    const blacklistData = {
+      timestamp: new Date().toISOString(),
+      auth: auth,
+      messages: messages,
+      model: model,
+      imageUrlCount: imageUrlCount,
+      estimatedCost: estimatedCost,
+      requestInfo: {
+        provider: provider,
+        userId: userId,
+      },
+    };
+
+    try {
+      const blacklistPath = path.join(process.cwd(), "blacklist");
+      await fs.appendFile(
+        blacklistPath,
+        JSON.stringify(blacklistData, null, 2) + "\n"
+      );
+      logger.warn(
+        `Blacklist entry added: ${imageUrlCount} image URLs detected, estimated cost: $${estimatedCost.toFixed(6)}`,
+        {
+          imageUrlCount,
+          estimatedCost,
+          userId,
+        }
+      );
+    } catch (fileError) {
+      logger.error("Failed to write to blacklist:", fileError);
+    }
+  }
+
+  return { shouldLogToBlacklist };
+};
+
+// ==================== 统一的请求检查函数 ====================
+interface RequestCheckResult {
+  allowed: boolean;
+  error?: {
+    message: string;
+    code: string;
+    status: number;
+    details?: any;
+  };
+  imageUrlCount?: number;
+  estimatedCost?: number;
+  shouldLogToBlacklist?: boolean;
+}
+
+const performRequestChecks = async (
+  userId: string,
+  balance: number,
+  model: string,
+  provider: string,
+  messages: any[],
+  auth: any
+): Promise<RequestCheckResult> => {
+  try {
+    // 计算图片URL数量
+    const imageUrlCount = countImageUrls(messages);
+    logger.info(`图片URL数量统计`, { imageUrlCount });
+
+    // 计算预估消息成本
+    const estimatedCost = calculateMessageCost(model, provider, messages || []);
+    logger.info(`预估消息成本: $${estimatedCost.toFixed(6)}`, {
+      model,
+      provider,
+      estimatedCost,
+    });
+
+    // ==================== 逐个执行检查 ====================
+
+    // 1. 基础余额检查
+    const basicBalanceCheck = checkBasicBalance(balance);
+    if (!basicBalanceCheck.allowed) {
+      return {
+        allowed: false,
+        error: basicBalanceCheck.error,
+        imageUrlCount,
+        estimatedCost,
+      };
+    }
+
+    // 2. 多图片余额检查
+    const multipleImagesCheck = checkMultipleImagesBalance(
+      balance,
+      imageUrlCount
+    );
+    if (!multipleImagesCheck.allowed) {
+      return {
+        allowed: false,
+        error: multipleImagesCheck.error,
+        imageUrlCount,
+        estimatedCost,
+      };
+    }
+
+    // 3. 预估成本检查（只是警告）
+    checkEstimatedCost(balance, estimatedCost, imageUrlCount);
+
+    // 4. Blacklist检查
+    const blacklistCheck = await checkBlacklist(
+      userId,
+      imageUrlCount,
+      messages,
+      model,
+      provider,
+      estimatedCost,
+      auth
+    );
+
+    // 所有检查通过
+    return {
+      allowed: true,
+      imageUrlCount,
+      estimatedCost,
+      shouldLogToBlacklist: blacklistCheck.shouldLogToBlacklist,
+    };
+  } catch (error) {
+    logger.error("请求检查过程中发生错误:", error);
+    return {
+      allowed: false,
+      error: {
+        message: "请求检查失败",
+        code: "CHECK_FAILED",
+        status: 500,
+        details: {
+          error: error instanceof Error ? error.message : String(error),
+        },
+      },
+    };
+  }
+};
+
 export async function handleChatRequest(req: Request, extraHeaders = {}) {
   const auth = await authenticateRequest(req);
   // 先判断是否需要直接返回鉴权失败的 Response
@@ -22,122 +298,76 @@ export async function handleChatRequest(req: Request, extraHeaders = {}) {
 
   const { userId } = auth;
   const { balance = 0 } = await getUser(userId);
-  console.log("balance", balance);
-
-  // 余额拦截：小于等于 0.1 不允许访问
-  if (balance <= 1) {
-    return new Response(
-      JSON.stringify({
-        error: {
-          message: "余额不足，无法继续访问",
-          code: "INSUFFICIENT_BALANCE",
-        },
-      }),
-      {
-        status: 402, // Payment Required
-        headers: {
-          "Content-Type": "application/json",
-          ...CORS,
-          ...extraHeaders,
-        },
-      }
-    );
-  }
+  logger.info("用户余额检查", { userId, balance });
 
   try {
     const { url, KEY, provider = "", ...body } = await req.json();
-    console.log("body", body);
+    logger.info("处理聊天请求", {
+      url,
+      provider,
+      hasKey: !!KEY,
+      userId,
+      bodyKeys: Object.keys(body),
+    });
+
     const { model, messages } = body;
 
     // 正确显示messages，包含格式化输出
-    console.log("=== Messages Debug Info ===");
-    console.log("Messages type:", typeof messages);
-    console.log(
-      "Messages array length:",
-      Array.isArray(messages) ? messages.length : "Not an array"
+    logger.info("=== Messages Debug Info ===", {
+      type: typeof messages,
+      length: Array.isArray(messages) ? messages.length : "Not an array",
+      content: JSON.stringify(messages, null, 2),
+    });
+    logger.info("=== End Messages Debug ===");
+
+    // 执行统一的请求检查
+    const checkResult = await performRequestChecks(
+      userId,
+      balance,
+      model,
+      provider,
+      messages,
+      auth
     );
-    console.log("Messages content:", JSON.stringify(messages, null, 2));
-    console.log("=== End Messages Debug ===");
 
-    // 检查image_url数量
-    const imageUrlCount = Array.isArray(messages)
-      ? messages.reduce((count: number, msg: any) => {
-          if (msg.content && Array.isArray(msg.content)) {
-            return (
-              count +
-              msg.content.filter((item: any) => item.type === "image_url")
-                .length
-            );
-          }
-          return count;
-        }, 0)
-      : 0;
+    // 如果检查不通过，返回错误响应
+    if (!checkResult.allowed && checkResult.error) {
+      logger.warn("请求检查失败", {
+        userId,
+        balance,
+        errorCode: checkResult.error.code,
+        errorMessage: checkResult.error.message,
+      });
 
-    console.log(`Image URL count: ${imageUrlCount}`);
-
-    // 新增：图片数量大于1时检查余额是否大于20
-    if (imageUrlCount > 1) {
-      console.log(
-        `检测到 ${imageUrlCount} 张图片，检查用户余额是否符合要求（需要 > 20）`
+      return new Response(
+        JSON.stringify({
+          error: {
+            message: checkResult.error.message,
+            code: checkResult.error.code,
+            details: checkResult.error.details,
+          },
+        }),
+        {
+          status: checkResult.error.status,
+          headers: {
+            "Content-Type": "application/json",
+            ...CORS,
+            ...extraHeaders,
+          },
+        }
       );
-      if (balance <= 20) {
-        return new Response(
-          JSON.stringify({
-            error: {
-              message: "使用多张图片需要余额大于20，当前余额不足",
-              code: "INSUFFICIENT_BALANCE_FOR_MULTIPLE_IMAGES",
-              details: {
-                currentBalance: balance,
-                requiredBalance: 20,
-                imageCount: imageUrlCount,
-              },
-            },
-          }),
-          {
-            status: 402, // Payment Required
-            headers: {
-              "Content-Type": "application/json",
-              ...CORS,
-              ...extraHeaders,
-            },
-          }
-        );
-      } else {
-        console.log(`余额检查通过：当前余额 ${balance} > 20`);
-      }
     }
 
-    // 如果image_url数量超过5，写入blacklist
-    if (imageUrlCount > 5) {
-      const blacklistData = {
-        timestamp: new Date().toISOString(),
-        auth: auth,
-        messages: messages,
-        model: model,
-        imageUrlCount: imageUrlCount,
-        requestInfo: {
-          url: url,
-          provider: provider,
-          userId: userId,
-        },
-      };
-
-      try {
-        const blacklistPath = path.join(process.cwd(), "blacklist");
-        await fs.appendFile(
-          blacklistPath,
-          JSON.stringify(blacklistData, null, 2) + "\n"
-        );
-        console.log(
-          `Blacklist entry added: ${imageUrlCount} image URLs detected`
-        );
-      } catch (fileError) {
-        console.error("Failed to write to blacklist:", fileError);
-      }
-    }
+    // 检查通过，继续后续逻辑
+    logger.info("请求检查通过", {
+      userId,
+      imageUrlCount: checkResult.imageUrlCount,
+      estimatedCost: checkResult.estimatedCost,
+    });
 
     const apiKey = KEY?.trim() || getNoloKey(provider);
-    if (!apiKey)
+    if (!apiKey) {
+      logger.warn("API密钥缺失", { provider, userId });
       return new Response(
         JSON.stringify({
           error: { message: "Missing API key", code: "MISSING_KEY" },
@@ -151,6 +381,7 @@ export async function handleChatRequest(req: Request, extraHeaders = {}) {
           },
         }
       );
+    }
 
     const headers = provider.includes("anthropic")
       ? {
@@ -167,6 +398,8 @@ export async function handleChatRequest(req: Request, extraHeaders = {}) {
     const TIMEOUT = 300_000;
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort("timeout"), TIMEOUT);
+
+    logger.info("发送上游请求", { url, provider, model, timeout: TIMEOUT });
 
     const upstream = await fetch(url, {
       method: "POST",
@@ -193,6 +426,13 @@ export async function handleChatRequest(req: Request, extraHeaders = {}) {
           return t;
         }
       })();
+
+      logger.error("上游请求失败", {
+        status: upstream.status,
+        statusText: upstream.statusText,
+        response: t,
+      });
+
       return new Response(
         new ReadableStream({
           start(ctrl) {
@@ -220,9 +460,17 @@ export async function handleChatRequest(req: Request, extraHeaders = {}) {
       })
     );
 
+    logger.info("流式响应开始", { userId, model, provider });
     return new Response(stream, { status: 200, headers: streamHeaders });
   } catch (e: any) {
     const isAbort = e?.name === "AbortError";
+
+    if (isAbort) {
+      logger.error("请求超时", { error: e.message, timeout: TIMEOUT, userId });
+    } else {
+      logger.error("代理失败", { error: e.message, stack: e.stack, userId });
+    }
+
     return new Response(
       JSON.stringify({
         error: {
