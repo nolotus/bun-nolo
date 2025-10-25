@@ -59,11 +59,11 @@ const SendButton: React.FC<SendButtonProps> = ({ onClick, disabled }) => {
           backdrop-filter: blur(8px);
         }
 
-        /* 发送模式样式 - 纤细精致风格 */
+        /* 发送模式样式 - 纤细精致风格 (已修改为圆形图标按钮) */
         .send-button.send-mode {
-          width: 108px;
+          width: 36px;
           height: 36px;
-          border-radius: var(--space-4);
+          border-radius: 50%;
           background: linear-gradient(135deg, 
             var(--primary) 0%, 
             color-mix(in srgb, var(--primary) 85%, #000) 100%
@@ -147,25 +147,12 @@ const SendButton: React.FC<SendButtonProps> = ({ onClick, disabled }) => {
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: var(--space-2);
+          gap: 0;
           width: 100%;
           height: 100%;
           position: relative;
           z-index: 1;
-          padding: 0 var(--space-1);
-        }
-
-        .send-text {
-          font-size: 0.8125rem;
-          font-weight: 500;
-          letter-spacing: -0.005em;
-          transition: all 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-          white-space: nowrap;
-        }
-
-        .send-button.send-mode:hover .send-text {
-          transform: translateX(-1px);
-          letter-spacing: 0.002em;
+          padding: 0;
         }
 
         .send-icon-container {
@@ -176,14 +163,16 @@ const SendButton: React.FC<SendButtonProps> = ({ onClick, disabled }) => {
           align-items: center;
           justify-content: center;
         }
-
+        
+        /* 图标指向上方 */
         .send-icon {
           transition: all 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94);
           filter: drop-shadow(0 0.5px 1px rgba(0, 0, 0, 0.1));
+          transform: rotate(-45deg);
         }
 
         .send-button.send-mode:hover .send-icon {
-          transform: translateX(2px) scale(1.05);
+          transform: translateY(-2px) scale(1.05) rotate(-45deg);
           filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.15));
         }
 
@@ -212,18 +201,18 @@ const SendButton: React.FC<SendButtonProps> = ({ onClick, disabled }) => {
           pointer-events: none;
         }
 
-        /* 发射动画 - 更流畅自然 */
+        /* 发射动画 - 向上飞出效果 */
         @keyframes takeOff {
           0% { 
-            transform: translateX(0) scale(1) rotate(0deg); 
+            transform: translateY(0) scale(1) rotate(-45deg); 
             opacity: 1; 
           }
           40% { 
-            transform: translateX(8px) scale(1.08) rotate(12deg); 
+            transform: translateY(-12px) scale(1.1) rotate(-35deg); 
             opacity: 0.9; 
           }
           100% { 
-            transform: translateX(24px) scale(0.7) rotate(35deg); 
+            transform: translateY(-30px) scale(0.7) rotate(-25deg); 
             opacity: 0; 
           }
         }
@@ -268,23 +257,9 @@ const SendButton: React.FC<SendButtonProps> = ({ onClick, disabled }) => {
           opacity: 1;
         }
 
-        /* 响应式设计 - 保持纤细感 */
+        /* 响应式设计 - 因为默认已经是图标按钮，所以无需额外调整 */
         @media (max-width: 768px) {
-          .send-button.send-mode {
-            width: 36px !important;
-            height: 36px !important;
-            border-radius: 50% !important;
-            padding: 0 !important;
-          }
-          
-          .send-text {
-            display: none;
-          }
-          
-          .send-content {
-            gap: 0;
-            padding: 0;
-          }
+          /* 此处样式已成为默认样式，无需重复定义 */
         }
 
         /* 触摸设备优化 */
@@ -302,7 +277,6 @@ const SendButton: React.FC<SendButtonProps> = ({ onClick, disabled }) => {
         /* 减少动画偏好 */
         @media (prefers-reduced-motion: reduce) {
           .send-button,
-          .send-text,
           .send-icon,
           .stop-indicator {
             transition: none !important;
@@ -348,7 +322,7 @@ const SendButton: React.FC<SendButtonProps> = ({ onClick, disabled }) => {
             <div className="stop-indicator" />
           ) : (
             <>
-              <span className="send-text">{t("send")}</span>
+              {/* 发送文字已被移除 */}
               <div className="send-icon-container">
                 <PaperAirplaneIcon
                   size={14}
