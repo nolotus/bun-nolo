@@ -1,5 +1,3 @@
-// /chat/web/MessageInput.tsx (完整修正版)
-
 import React, { useCallback, useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { zIndex } from "render/styles/zIndex";
@@ -22,6 +20,12 @@ import SendButton from "./ActionButton";
 import FileUploadButton from "./FileUploadButton";
 import { UploadIcon } from "@primer/octicons-react";
 import toast from "react-hot-toast";
+
+// 为消息体定义一个更清晰的类型
+type MessagePart =
+  | { type: "text"; text: string }
+  | { type: "image_url"; image_url: { url: string } }
+  | { type: string; name: string; pageKey: string };
 
 const MessageInput: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -138,7 +142,7 @@ const MessageInput: React.FC = () => {
       return;
     }
 
-    const parts: any[] = [];
+    const parts: MessagePart[] = [];
     if (trimmed) parts.push({ type: "text", text: trimmed });
     pendingFiles.forEach((f) => {
       parts.push({ type: f.type, name: f.name, pageKey: f.pageKey });
@@ -159,8 +163,8 @@ const MessageInput: React.FC = () => {
     (async () => {
       try {
         const images = await Promise.all(imgPromises);
-        const finalParts = [...parts, ...images];
-        let content: string | any[] = finalParts;
+        const finalParts: MessagePart[] = [...parts, ...images];
+        let content: string | MessagePart[] = finalParts;
         if (finalParts.length === 1 && finalParts[0].type === "text") {
           content = finalParts[0].text!;
         }
@@ -168,9 +172,6 @@ const MessageInput: React.FC = () => {
           await dispatch(handleSendMessage({ userInput: content })).unwrap();
         }
       } catch (error: any) {
-        // <--- [核心修改] 捕获具体的 error 对象
-        // 从 error 对象中提取 Thunk rejectWithValue 传来的消息
-        // 如果消息存在，就显示它；否则显示通用错误信息
         const errorMessage =
           typeof error === "string"
             ? error
@@ -191,7 +192,7 @@ const MessageInput: React.FC = () => {
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const ta = e.target;
     ta.style.height = "auto";
-    const maxH = window.innerWidth > 768 ? 140 : 100;
+    const maxH = window.innerWidth > 768 ? 200 : 140; // 增加了最大高度
     ta.style.height = `${Math.min(ta.scrollHeight, maxH)}px`;
     setTextContent(ta.value);
   };
@@ -236,8 +237,8 @@ const MessageInput: React.FC = () => {
         .message-input-container {
             --container-padding: var(--space-4);
             --container-gap: var(--space-2);
-            --container-border-radius: var(--space-2);
-            --element-transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            --container-border-radius: var(--space-3); /* 略微增大圆角 */
+            --element-transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
             
             position: sticky; bottom: 0; width: 100%;
             padding: var(--container-padding);
@@ -248,13 +249,21 @@ const MessageInput: React.FC = () => {
         .input-wrapper { max-width: 100%; margin: 0 auto; }
         .input-controls { display: flex; gap: var(--container-gap); align-items: flex-end; width: 100%; }
         .message-textarea {
-            flex: 1; min-height: 48px; max-height: 160px;
-            padding: var(--container-gap) var(--container-padding);
-            font-size: 15px; line-height: 1.45;
-            border: none; border-radius: var(--container-border-radius);
+            flex: 1;
+            /* --- [核心修改] 增加默认高度 --- */
+            min-height: 72px;
+            max-height: 200px;
+            padding: 22px var(--container-padding); /* 调整内边距以适应高度 */
+            font-size: 16px;
+            line-height: 1.5;
+            /* --- [核心修改] 增加默认边框，使其更显眼 --- */
+            border: 1px solid var(--border);
+            border-radius: var(--container-border-radius);
             background: var(--backgroundSecondary);
             box-shadow: inset 0 1px 2px var(--shadowLight);
-            color: var(--text); resize: none; outline: none;
+            color: var(--text);
+            resize: none;
+            outline: none;
             font-family: -apple-system, BlinkMacSystemFont, sans-serif;
             transition: var(--element-transition);
             letter-spacing: -0.01em;
@@ -262,21 +271,26 @@ const MessageInput: React.FC = () => {
         .message-textarea::placeholder { color: var(--textTertiary); }
         .message-textarea:focus {
             background: var(--background);
+            /* --- [核心修改] 聚焦时边框变色 --- */
+            border-color: var(--primary);
             box-shadow: 0 0 0 3px var(--focus), inset 0 1px 2px var(--shadowMedium);
-            transform: translateY(-1px);
+            transform: translateY(-2px);
         }
         .message-textarea:hover:not(:focus):not(:disabled) {
+            border-color: var(--borderHover);
             background: var(--backgroundHover);
             box-shadow: inset 0 1px 3px var(--shadowMedium);
         }
         .message-textarea:disabled { opacity: 0.6; background: var(--backgroundTertiary); }
         .drop-zone {
             position: absolute; inset: var(--space-2); 
-            background: var(--primaryBg); backdrop-filter: blur(8px);
+            background: rgba(var(--primaryBgRGB), 0.8);
+            backdrop-filter: blur(10px);
             border: 2px dashed var(--primary); border-radius: var(--container-border-radius);
             display: flex; align-items: center; justify-content: center;
             color: var(--primary); font-weight: 500; letter-spacing: -0.01em;
-            opacity: 0; animation: dropZoneFadeIn 0.2s ease-out forwards;
+            opacity: 0;
+            animation: dropZoneFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
         .processing-indicator {
             position: absolute; top: var(--space-2); right: var(--space-2);
@@ -292,18 +306,26 @@ const MessageInput: React.FC = () => {
             animation: spin 1s linear infinite;
         }
         
-        @keyframes dropZoneFadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        @keyframes dropZoneFadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
         @keyframes spin { to { transform: rotate(360deg); } }
         
         @media (max-width: 768px) {
             .message-input-container { --container-padding: var(--space-3); --container-gap: var(--space-2); }
             .input-wrapper { padding-left: 0; padding-right: 0; }
-            .message-textarea { min-height: 44px; font-size: 16px; }
+            .message-textarea {
+                min-height: 66px; /* 移动端高度也增加 */
+                font-size: 16px;
+                padding: 20px var(--space-3);
+            }
         }
         @media (min-width: 768px) { .input-wrapper { padding-left: var(--space-8); padding-right: var(--space-8); } }
         @media (min-width: 1024px) { .input-wrapper { padding-left: var(--space-12); padding-right: var(--space-12); } }
-        @media (min-width: 1440px) { .input-wrapper { max-width: 960px; } }
+        
+        /* --- [核心修改] 最终版宽度，更大气 --- */
+        @media (min-width: 1280px) { .input-wrapper { max-width: 940px; } }
+        @media (min-width: 1440px) { .input-wrapper { max-width: 980px; } }
         @media (min-width: 1600px) { .input-wrapper { max-width: 1080px; } }
+
         @media (prefers-reduced-motion: reduce) {
             .message-textarea, .drop-zone, .processing-spinner { transition: none !important; animation: none !important; }
             .message-textarea:focus { transform: none; }
@@ -363,6 +385,7 @@ const MessageInput: React.FC = () => {
               onPaste={handlePaste}
               aria-label={t("messageInput", "消息输入框")}
               disabled={isDisabled}
+              rows={1} // 初始行数，配合CSS的min-height
             />
 
             <SendButton

@@ -1,6 +1,4 @@
-// /chat/MessageInputContainer.tsx
-
-import React, { Suspense, lazy, useEffect, useState } from "react";
+import React, { Suspense, lazy, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { zIndex } from "render/styles/zIndex";
@@ -56,7 +54,7 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({
           
           box-shadow: 0 2px 4px var(--shadowLight);
           animation: fadeIn 0.3s ease-out;
-          z-index: ${zIndex.messageInputContainer};
+          z-index: ${zIndex.messageInputContainerZIndex};
         }
         .recharge-link {
           color: var(--primary);
@@ -107,7 +105,8 @@ const LoadingInputPlaceholder: React.FC<LoadingInputPlaceholderProps> = ({
         
         .input-placeholder-bar {
           width: 100%;
-          height: 48px;
+          /* --- [核心修改] 同步增加高度 --- */
+          height: 72px;
           background: linear-gradient(
             90deg,
             var(--backgroundSecondary) 25%,
@@ -115,7 +114,8 @@ const LoadingInputPlaceholder: React.FC<LoadingInputPlaceholderProps> = ({
             var(--backgroundSecondary) 75%
           );
           background-size: 200% 100%;
-          border-radius: var(--space-2);
+          /* --- [核心修改] 同步增加边框和圆角 --- */
+          border-radius: var(--space-3);
           border: 1px solid var(--border);
           position: relative;
           overflow: hidden;
@@ -208,7 +208,8 @@ const LoadingInputPlaceholder: React.FC<LoadingInputPlaceholderProps> = ({
             padding-right: 0;
           }
           .input-placeholder-bar {
-            height: 44px;
+             /* --- [核心修改] 同步增加移动端高度 --- */
+            height: 66px;
           }
         }
         @media (min-width: 768px) {
@@ -223,16 +224,11 @@ const LoadingInputPlaceholder: React.FC<LoadingInputPlaceholderProps> = ({
             padding-right: var(--space-12);
           }
         }
-        @media (min-width: 1440px) {
-          .input-placeholder-wrapper {
-            max-width: 960px;
-          }
-        }
-        @media (min-width: 1600px) {
-          .input-placeholder-wrapper {
-            max-width: 1080px;
-          }
-        }
+        
+        /* --- [核心修改] 最终版宽度，与 MessageInput 同步 --- */
+        @media (min-width: 1280px) { .input-placeholder-wrapper { max-width: 940px; } }
+        @media (min-width: 1440px) { .input-placeholder-wrapper { max-width: 980px; } }
+        @media (min-width: 1600px) { .input-placeholder-wrapper { max-width: 1080px; } }
       `}</style>
 
       <div className="input-placeholder-wrapper">
