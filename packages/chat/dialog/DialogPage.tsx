@@ -35,7 +35,6 @@ const spinKeyframes = `
 const LoadingSpinner = () => (
   <>
     <style>{spinKeyframes}</style>
-    {/* [核心修复] 将 height: '100%' 改为 flex: '1 1 0%'，使其在flex布局中撑满空间 */}
     <div
       style={{
         display: "flex",
@@ -171,11 +170,15 @@ const DialogPage = ({ pageKey }: { pageKey: string }) => {
 
   // 初始化 Effect
   useEffect(() => {
+    // 依赖 user 是否存在，但不在数组中直接使用 user 对象
     if (pageKey && user && dialogId) {
       dispatch(initDialog(pageKey));
       dispatch(initMsgs({ dialogId, limit: 10 }));
     }
-  }, [pageKey, user, dispatch, dialogId]);
+    // [核心修复] 将依赖从整个 user 对象改为稳定的 user.userId。
+    // 这样，只有当用户切换或对话页面切换时，才会重新初始化，
+    // 而用户余额 (user.balance) 的变化不会触发此 effect。
+  }, [pageKey, user?.userId, dispatch, dialogId]);
 
   // 清理 Effect
   useEffect(() => {
