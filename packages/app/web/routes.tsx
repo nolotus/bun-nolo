@@ -6,7 +6,7 @@ import MainLayout from "render/layout/MainLayout";
 import { spaceRoutes } from "create/space/routes";
 
 import { commonRoutes } from "./generatorRoutes";
-const PricePage = lazy(() => import("app/pages/Price"));
+const PricePage = lazy(() => import("app/pages/Pricing/Price"));
 const AgentExplore = lazy(() => import("ai/agent/web/AgentExplore"));
 const RechargePage = lazy(() => import("app/pages/Recharge"));
 

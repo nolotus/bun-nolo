@@ -189,20 +189,11 @@ const RechargePage = () => {
           margin-top: 2px;
         }
 
-        .notice-content {
-          flex: 1;
-        }
-
-        .notice-text {
-          display: block;
-          margin-bottom: var(--space-2);
-          font-weight: 500;
-        }
-
+        .notice-content { flex: 1; }
+        .notice-text { display: block; margin-bottom: var(--space-2); font-weight: 500; }
         .notice-highlight {
           color: #EF4444;
           font-weight: 700;
-          font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
           padding: 2px var(--space-2);
           background: rgba(239, 68, 68, 0.12);
           border-radius: 6px;
@@ -211,19 +202,9 @@ const RechargePage = () => {
           border: 1px solid rgba(239, 68, 68, 0.2);
           display: inline-block;
         }
+        .notice-warning { display: block; color: #DC2626; font-size: 0.8em; font-weight: 600; margin-top: var(--space-1); }
 
-        .notice-warning {
-          display: block;
-          color: #DC2626;
-          font-size: 0.8em;
-          font-weight: 600;
-          margin-top: var(--space-1);
-        }
-
-        .qr-wrapper {
-          text-align: center;
-        }
-
+        .qr-wrapper { text-align: center; }
         .qr-container {
           width: 100%;
           max-width: ${isMobile ? "280px" : "320px"};
@@ -237,34 +218,9 @@ const RechargePage = () => {
           transition: aspect-ratio 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           border: 1px solid rgba(0, 0, 0, 0.06);
         }
-
-        .qr-image {
-          width: 100%;
-          height: 100%;
-          object-fit: contain;
-          opacity: ${imageLoaded ? "1" : "0"};
-          transition: opacity 0.4s ease;
-        }
-
-        .qr-loading {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          color: var(--textTertiary);
-          font-size: 0.85rem;
-          font-weight: 500;
-        }
-
-        .qr-tip {
-          margin-top: var(--space-5);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: var(--space-2);
-          color: var(--textSecondary);
-          font-size: 0.85rem;
-        }
+        .qr-image { width: 100%; height: 100%; object-fit: contain; opacity: ${imageLoaded ? "1" : "0"}; transition: opacity 0.4s ease; }
+        .qr-loading { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: var(--textTertiary); font-size: 0.85rem; font-weight: 500; }
+        .qr-tip { margin-top: var(--space-5); display: flex; align-items: center; justify-content: center; gap: var(--space-2); color: var(--textSecondary); font-size: 0.85rem; }
 
         .info-title {
           display: flex;
@@ -277,37 +233,32 @@ const RechargePage = () => {
           letter-spacing: -0.01em;
         }
 
-        .info-list {
-          display: flex;
-          flex-direction: column;
-          gap: var(--space-4);
-        }
-
+        .info-list { display: flex; flex-direction: column; gap: var(--space-4); }
         .info-item {
           display: grid;
           grid-template-columns: 80px 1fr;
           gap: var(--space-4);
           align-items: start;
         }
+        .info-label { color: var(--textSecondary); font-weight: 500; font-size: 0.85rem; }
+        .info-content { color: var(--text); font-size: 0.85rem; line-height: 1.6; }
+        .info-note { display: block; color: var(--textTertiary); font-size: 0.75rem; margin-top: var(--space-1); }
 
-        .info-label {
-          color: var(--textSecondary);
-          font-weight: 500;
-          font-size: 0.85rem;
-        }
-
-        .info-content {
+        /* 简洁规则提示 */
+        .rule-mini {
+          margin-top: var(--space-4);
+          display: flex;
+          gap: var(--space-2);
+          align-items: flex-start;
+          padding: var(--space-3);
+          border: 1px solid var(--border);
+          border-radius: 10px;
+          background: var(--background);
           color: var(--text);
-          font-size: 0.85rem;
+          font-size: 0.9rem;
           line-height: 1.6;
         }
-
-        .info-note {
-          display: block;
-          color: var(--textTertiary);
-          font-size: 0.75rem;
-          margin-top: var(--space-1);
-        }
+        .rule-mini .icon { color: var(--primary); margin-top: 2px; }
 
         @media (max-width: 768px) {
           .info-item {
@@ -393,6 +344,7 @@ const RechargePage = () => {
               <RiInformationLine size={20} />
               充值说明
             </h3>
+
             <div className="info-list">
               {instructions.map((item, i) => (
                 <div key={i} className="info-item">
@@ -405,6 +357,15 @@ const RechargePage = () => {
                   </div>
                 </div>
               ))}
+            </div>
+
+            {/* 简洁的使用规则提示 */}
+            <div className="rule-mini">
+              <RiInformationLine className="icon" size={18} />
+              <div>
+                可任意充值；如需使用联网模型或上传多张图片/多个文档，账户余额需大于
+                20。
+              </div>
             </div>
           </div>
         </div>

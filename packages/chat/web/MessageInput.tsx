@@ -13,6 +13,9 @@ import {
 } from "../dialog/dialogSlice";
 import { processDocumentFile } from "./fileProcessor";
 
+// 新增：导入余额选择器
+import { selectCurrentUserBalance } from "auth/authSlice";
+
 // web
 import DocxPreviewDialog from "render/web/DocxPreviewDialog";
 import AttachmentsPreview, { PendingImagePreview } from "./AttachmentsPreview";
@@ -39,6 +42,11 @@ const MessageInput: React.FC = () => {
   >([]);
   const pendingFiles = useAppSelector(selectPendingFiles);
 
+  // 新增：读取余额（默认 0）
+  const balance = useAppSelector(selectCurrentUserBalance) ?? 0;
+  // 新增：是否允许多图（严格大于 20 才允许）
+  const canUploadMultipleImages = balance > 20;
+
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [localPreviewingFile, setLocalPreviewingFile] =
@@ -55,7 +63,7 @@ const MessageInput: React.FC = () => {
     if (!container) return;
     const resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
-        const height = entry.target.offsetHeight;
+        const height = (entry.target as HTMLElement).offsetHeight;
         document.documentElement.style.setProperty(
           "--message-input-height",
           `${height}px`
@@ -78,12 +86,28 @@ const MessageInput: React.FC = () => {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
+  // 改造：上传图片时根据余额限制图片数量（<=20 仅允许 1 张）
   const processFiles = useCallback(
     async (files: FileList | null) => {
       if (!files) return;
 
-      for (const file of Array.from(files)) {
-        if (file.type.startsWith("image/")) {
+      const all = Array.from(files);
+      const imageFiles = all.filter((f) => f.type.startsWith("image/"));
+      const otherFiles = all.filter((f) => !f.type.startsWith("image/"));
+
+      // 当前预览中的图片数量
+      const currentImages = localImagePreviews.length;
+      // 本次允许新增的图片数量（balance <= 20 仅允许凑到 1 张）
+      const maxAdditionalImages = canUploadMultipleImages
+        ? Infinity
+        : Math.max(0, 1 - currentImages);
+
+      if (imageFiles.length > 0) {
+        const allowedImages = imageFiles.slice(0, maxAdditionalImages);
+        const rejectedCount = imageFiles.length - allowedImages.length;
+
+        // 处理允许的图片
+        for (const file of allowedImages) {
           const fileId = nanoid();
           const reader = new FileReader();
           reader.onloadend = () => {
@@ -95,9 +119,22 @@ const MessageInput: React.FC = () => {
             }
           };
           reader.readAsDataURL(file);
-          continue;
         }
 
+        // 超出的图片提示
+        if (rejectedCount > 0) {
+          toast.error(
+            t(
+              "insufficientBalanceForMultipleImages",
+              "余额不足 20，仅可上传 1 张图片（已拒绝 {{count}} 张）",
+              { count: rejectedCount }
+            )
+          );
+        }
+      }
+
+      // 处理非图片文件：沿用原逻辑
+      for (const file of otherFiles) {
         const fileId = nanoid();
         setProcessingFiles((prev) => new Set(prev).add(fileId));
         setFileErrors((prev) => {
@@ -120,7 +157,7 @@ const MessageInput: React.FC = () => {
         }
       }
     },
-    [dispatch, t]
+    [dispatch, t, localImagePreviews.length, canUploadMultipleImages]
   );
 
   const clearInputState = useCallback(() => {
@@ -137,6 +174,18 @@ const MessageInput: React.FC = () => {
   const sendMessage = useCallback(() => {
     const trimmed = textContent.trim();
     if (!trimmed && !localImagePreviews.length && !pendingFiles.length) return;
+
+    // 新增：发送前兜底校验（余额 <= 20 时不允许发送多图）
+    if (!canUploadMultipleImages && localImagePreviews.length > 1) {
+      toast.error(
+        t(
+          "insufficientBalanceForMultipleImagesSend",
+          "余额不足 20，无法发送多张图片。请保留 1 张或先充值。"
+        )
+      );
+      return;
+    }
+
     if (processingFiles.size > 0) {
       toast.error(t("waitForProcessing", "请等待文件处理完成"));
       return;
@@ -151,10 +200,13 @@ const MessageInput: React.FC = () => {
     const imgPromises = localImagePreviews.map(async (img) => {
       try {
         const url = await compressImage(img.url);
-        return { type: "image_url", image_url: { url } };
+        return { type: "image_url", image_url: { url } } as MessagePart;
       } catch {
         toast.error(t("compressionErrorMessage", "图片压缩失败，将发送原图"));
-        return { type: "image_url", image_url: { url: img.url } };
+        return {
+          type: "image_url",
+          image_url: { url: img.url },
+        } as MessagePart;
       }
     });
 
@@ -166,7 +218,7 @@ const MessageInput: React.FC = () => {
         const finalParts: MessagePart[] = [...parts, ...images];
         let content: string | MessagePart[] = finalParts;
         if (finalParts.length === 1 && finalParts[0].type === "text") {
-          content = finalParts[0].text!;
+          content = (finalParts[0] as any).text!;
         }
         if (finalParts.length > 0) {
           await dispatch(handleSendMessage({ userInput: content })).unwrap();
@@ -187,6 +239,7 @@ const MessageInput: React.FC = () => {
     dispatch,
     clearInputState,
     t,
+    canUploadMultipleImages,
   ]);
 
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -228,7 +281,12 @@ const MessageInput: React.FC = () => {
     textContent.trim() ||
     localImagePreviews.length > 0 ||
     pendingFiles.length > 0;
+
   const isDisabled = processingFiles.size > 0;
+
+  // 新增：是否违反图片数量限制（用于禁用发送按钮/提示）
+  const violatesImageLimit =
+    !canUploadMultipleImages && localImagePreviews.length > 1;
 
   return (
     <>
@@ -306,7 +364,7 @@ const MessageInput: React.FC = () => {
             animation: spin 1s linear infinite;
         }
         
-        @keyframes dropZoneFadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+        @keyframes dropZoneFadeIn { from { opacity:0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
         @keyframes spin { to { transform: rotate(360deg); } }
         
         @media (max-width: 768px) {
@@ -390,7 +448,7 @@ const MessageInput: React.FC = () => {
 
             <SendButton
               onClick={sendMessage}
-              disabled={!hasContent || isDisabled}
+              disabled={!hasContent || isDisabled || violatesImageLimit}
             />
           </div>
         </div>
