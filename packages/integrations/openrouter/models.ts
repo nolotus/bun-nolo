@@ -37,17 +37,17 @@ export const openrouterModels = [
     displayName: "Anthropic: Claude Opus 4.1 (Online)",
     hasVision: true,
     price: {
-      input: 15 * 12,
-      output: 75 * 12, // 调整为 *12：input 180, output 900
-      webSearch: 10 * 12, // per 1k searches (Claude API)
+      input: 15 * 13, // 已修改为 *13
+      output: 75 * 13, // 已修改为 *13
+      webSearch: 10 * 13, // 已修改为 *13
     },
     maxOutputTokens: 32000,
     contextWindow: 200000,
     supportsTool: true,
-    pricePerImage: 24 * 12, // 调整为 *12：288
+    pricePerImage: 24 * 13, // 已修改为 *13
     cache: {
-      read: 1.5 * 12, // 调整为 *12：18
-      write: 18.75 * 12, // 调整为 *12：225
+      read: 1.5 * 13, // 已修改为 *13
+      write: 18.75 * 13, // 已修改为 *13
     },
   },
   {
@@ -73,17 +73,17 @@ export const openrouterModels = [
     displayName: "Anthropic: Claude Sonnet 4.5 (Online)",
     hasVision: true,
     price: {
-      input: 3 * 12,
-      output: 15 * 12, // 基于规格 ≤200K：input $3 *12=36, output $15 *12=180 (>200K 时可扩展为 $6/$22.50 *12=72/270)
-      webSearch: 10 * 12, // per 1k searches (Claude API)
+      input: 3 * 13, // 已修改为 *13
+      output: 15 * 13, // 已修改为 *13
+      webSearch: 10 * 13, // 已修改为 *13
     },
     maxOutputTokens: 64000,
     contextWindow: 1000000,
     supportsTool: true,
-    pricePerImage: 4.8 * 12, // 保持与 sonnet-4 一致：57.6
+    pricePerImage: 4.8 * 13, // 保持 *13 不变
     cache: {
-      read: 0.3 * 12, // 基于规格 ≤200K：$0.30 *12=3.6 (>200K 时 $0.60 *12=7.2)
-      write: 3.75 * 12, // 基于规格 ≤200K：$3.75 *12=45 (>200K 时 $7.50 *12=90)
+      read: 0.3 * 13, // 已修改为 *13
+      write: 3.75 * 13, // 已修改为 *13
     },
   },
 
@@ -133,9 +133,9 @@ export const openrouterModels = [
     displayName: "OpenAI: GPT-5 (Online)",
     hasVision: true,
     price: {
-      input: 1.25 * 12,
-      output: 10 * 12, // 调整为 *12：input 15, output 120 (基于 $1.25/M input, $10/M output)
-      webSearch: 10 * 12, // $10 / 1k calls (OpenAI)
+      input: 1.25 * 13, // 已修改为 *13
+      output: 10 * 13, // 已修改为 *13
+      webSearch: 10 * 13, // 已修改为 *13
     },
     maxOutputTokens: 200000,
     contextWindow: 400000,
@@ -161,9 +161,9 @@ export const openrouterModels = [
     displayName: "OpenAI: GPT-5 Mini (Online)",
     hasVision: true,
     price: {
-      input: 0.25 * 12,
-      output: 2 * 12, // 调整为 *12：input 3, output 24 (基于 $0.25/M input, $2/M output)
-      webSearch: 10 * 12, // $10 / 1k calls (OpenAI)
+      input: 0.25 * 13, // 已修改为 *13
+      output: 2 * 13, // 已修改为 *13
+      webSearch: 10 * 13, // 已修改为 *13
     },
     maxOutputTokens: 200000,
     contextWindow: 400000,
@@ -189,9 +189,9 @@ export const openrouterModels = [
     displayName: "OpenAI: GPT-5 Pro (Online)",
     hasVision: true,
     price: {
-      input: 15 * 12,
-      output: 120 * 12, // 调整为 *12：input 180, output 1440 (基于 $15/M input, $120/M output)
-      webSearch: 10 * 12, // $10 / 1k calls (OpenAI)
+      input: 15 * 13, // 已修改为 *13
+      output: 120 * 13, // 已修改为 *13
+      webSearch: 10 * 13, // 已修改为 *13
     },
     maxOutputTokens: 200000,
     contextWindow: 400000,
