@@ -43,7 +43,7 @@ const FileUploadButton: React.FC<FileUploadButtonProps> = ({
           --button-size: 44px;
           width: var(--button-size);
           height: var(--button-size);
-          border-radius: var(--container-border-radius);
+          border-radius: 50%; /* 修改为圆形 */
           border: 1px solid var(--border);
           display: flex;
           align-items: center;
