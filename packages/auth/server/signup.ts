@@ -1,11 +1,5 @@
 // database/server/signup.ts
-// 功能：注册接口 + 按 IP 灵活配额限制（默认：同一 IP 每日仅允许注册 1 个）
-//
-// 说明：
-// - 可配置多窗口配额（如：1日2个、7日5个、30日x个）
-// - 当前默认只启用 { days: 1, limit: 1 }，满足“一日一个”
-// - 统计基于“每天一个计数键”，多窗口时累加最近 N 天的键值判断
-// - 实现简单，易于落地；适用于配额 N<=30 的场景
+// 注册接口（按 IP 配额限制，默认：同一 IP 每日仅允许注册 1 个；支持灵活扩展周/月窗口）
 
 import i18nServer from "app/i18n/i18n.server";
 import serverDb from "database/server/db.js";
@@ -25,22 +19,19 @@ import { prepareUserSettings } from "app/settings/prepareUserSetting";
 
 const logger = pino({ name: "signup" });
 
-/** ------------------ 可配置的 IP 配额 ------------------ **
- * 配置示例：
- * - 仅每日 1 个：[{ days: 1, limit: 1 }]
- * - 每日 2 个 + 7 日 5 个：[{ days: 1, limit: 2 }, { days: 7, limit: 5 }]
- * - 每日 2 个 + 7 日 5 个 + 30 日 10 个：[{ days: 1, limit: 2 }, { days: 7, limit: 5 }, { days: 30, limit: 10 }]
+/**
+ * 可配置的 IP 配额：
+ * - 当前默认：每日 1 个
+ * - 示例（未来可改）：[{ days: 1, limit: 2 }, { days: 7, limit: 5 }, { days: 30, limit: 10 }]
  */
 const IP_QUOTAS: Array<{ days: number; limit: number }> = [
-  { days: 1, limit: 1 }, // 当前需求：一日一个
-  // { days: 7, limit: 5 },
-  // { days: 30, limit: 10 },
+  { days: 1, limit: 1 },
 ];
 
-/** ------------------ IP 限制相关 ------------------ **/
+/** ========== IP 配额计数 ========== */
 
 const ABUSE_PREFIX = {
-  byIpDay: (ip: string, day: string) => `abuse:signup:ip:${ip}:${day}`, // value: stringified number
+  byIpDay: (ip: string, day: string) => `abuse:signup:ip:${ip}:${day}`, // value: string number
 };
 
 function getDayKey(d: Date = new Date()) {
@@ -49,7 +40,6 @@ function getDayKey(d: Date = new Date()) {
 }
 
 function getDayKeysBackwards(days: number): string[] {
-  // 含今天在内，往前数 N 天
   const keys: string[] = [];
   const now = new Date();
   for (let i = 0; i < days; i++) {
@@ -60,30 +50,6 @@ function getDayKeysBackwards(days: number): string[] {
   return keys;
 }
 
-// 从代理头中尽可能获取真实来源 IP；不信任 body.clientIp，仅用于日志
-function getClientIp(req: Request): string | null {
-  try {
-    const h = req.headers;
-    const cfIp = h.get("cf-connecting-ip");
-    const realIp = h.get("x-real-ip");
-    const xff = h.get("x-forwarded-for");
-    const xffIp = xff?.split(",")[0]?.trim();
-
-    const ip = cfIp || realIp || xffIp || "";
-    if (ip && ip !== "unknown") return ip;
-
-    const forwarded = h.get("forwarded"); // e.g., for=1.2.3.4;
-    if (forwarded) {
-      const m = forwarded.match(/for="?([^;"]+)"?/i);
-      if (m?.[1]) return m[1];
-    }
-    return null;
-  } catch {
-    return null;
-  }
-}
-
-// 读取单日计数（不存在即 0）
 async function getIpDayCount(ip: string, dayKey: string): Promise<number> {
   try {
     const val = await serverDb.get(ABUSE_PREFIX.byIpDay(ip, dayKey));
@@ -95,14 +61,12 @@ async function getIpDayCount(ip: string, dayKey: string): Promise<number> {
   }
 }
 
-// 累加最近 N 天计数
 async function getIpCountInDays(ip: string, days: number): Promise<number> {
   const keys = getDayKeysBackwards(days);
   const counts = await Promise.all(keys.map((k) => getIpDayCount(ip, k)));
   return counts.reduce((a, b) => a + b, 0);
 }
 
-// 生成人类可读的窗口描述
 function windowLabel(days: number) {
   if (days === 1) return "今日";
   if (days === 7) return "近7日";
@@ -110,22 +74,21 @@ function windowLabel(days: number) {
   return `近${days}日`;
 }
 
-// 检查多窗口配额，若任一窗口超限则拒绝
 async function checkIpQuotas(ip: string, t: any) {
   for (const q of IP_QUOTAS) {
     const used = await getIpCountInDays(ip, q.days);
     if (used >= q.limit) {
-      const msg = `${windowLabel(q.days)}该 IP 注册数已达上限（限制：${q.limit}）`;
-      return createErrorResponse(
-        t ? t("errors.ipQuotaExceeded", { defaultValue: msg }) : msg,
-        429
-      );
+      const defaultMsg = `${windowLabel(q.days)}该 IP 注册数已达上限（限制：${q.limit}）`;
+      const msg =
+        typeof t === "function"
+          ? t("errors.ipQuotaExceeded") || defaultMsg
+          : defaultMsg;
+      return createErrorResponse(msg, 429);
     }
   }
   return null;
 }
 
-// 成功注册后记录“今天 +1”
 async function recordIpRegistration(ip: string) {
   const today = getDayKey();
   const key = ABUSE_PREFIX.byIpDay(ip, today);
@@ -138,7 +101,7 @@ async function recordIpRegistration(ip: string) {
   await serverDb.put(key, String(count + 1));
 }
 
-/** ------------------ 原有辅助函数（携带 t） ------------------ **/
+/** ========== 原有辅助函数（传入 t） ========== */
 
 function validateRequestMethod(method: string, t: any) {
   if (method === "OPTIONS") {
@@ -227,35 +190,44 @@ function signUserMessage(
   return signMessage(message, secretKey);
 }
 
-/** ------------------ 主处理函数 ------------------ **/
+/** ========== 主处理函数（仅依赖 req.ip，不再从 headers 回退解析） ========== */
 
-export async function handleSignUp(req: Request) {
-  let t: any = null;
+export async function handleSignUp(req: any) {
+  let t: any = null; // 在 try 外声明 t，catch 中可用
   try {
-    const acceptLanguage = req.headers.get("accept-language");
+    // i18n（仍从 headers 读取语言，这个在上游已透传）
+    const acceptLanguage: string | null = req.headers?.get("accept-language");
     const lng = acceptLanguage?.split(",")[0] || "zh-CN";
     t = await i18nServer.cloneInstance({ lng }).init();
 
     // 1) 方法校验
-    const methodValidation = validateRequestMethod((req as any).method, t);
+    const methodValidation = validateRequestMethod(req.method, t);
     if (methodValidation) return methodValidation;
 
-    // 2) 解析 body（若上层是原生 Fetch Request，请改为：const body = await req.json();）
-    const body: any = (req as any).body;
-    const userDataResult = extractUserData(body, t);
+    // 2) 解析 body 并校验
+    const userDataResult = extractUserData(req.body, t);
     if (userDataResult instanceof Response) return userDataResult;
     const { username, publicKey, locale, email, inviterId } = userDataResult;
 
-    // 3) IP 配额检查（灵活多窗口；默认仅“每日1个”）
-    const ip = getClientIp(req);
+    // 3) 取 IP：仅依赖上游注入的 req.ip
+    const ip: string | null = req.ip || null;
+
     if (ip) {
+      // 多窗口配额检查（默认仅“每日 1 个”）
       const quotaRes = await checkIpQuotas(ip, t);
       if (quotaRes) {
-        logger.warn({ ip, username }, "Blocked signup due to IP quota limit.");
+        logger.warn(
+          { ip, username, reportedClientIp: req?.reportedClientIp },
+          "Blocked signup due to IP quota limit."
+        );
         return quotaRes;
       }
     } else {
-      logger.warn({ username }, "Could not determine client IP for signup.");
+      // 若上游没有提供 IP，这里仅记录；如需严格限制，可改为直接返回 400/403
+      logger.warn(
+        { username, reportedClientIp: req?.reportedClientIp },
+        "Could not determine client IP for signup."
+      );
     }
 
     // 4) 生成 userId 并查重
@@ -263,14 +235,13 @@ export async function handleSignUp(req: Request) {
     const userExistsResult = await checkUserExists(userId, t);
     if (userExistsResult) return userExistsResult;
 
-    // 5) 组装数据并落库
+    // 5) 组装并写入
     const userData = prepareUserData(userDataResult);
     const userSettings = prepareUserSettings(locale);
     const userProfile = prepareUserProfile(username, email);
-
     await saveUserDataToDb(userId, userData, userSettings, userProfile);
 
-    // 6) 成功注册后记录“今日 +1”，参与后续配额判断
+    // 6) 成功后计入“今日 +1”
     if (ip) {
       try {
         await recordIpRegistration(ip);
@@ -282,7 +253,7 @@ export async function handleSignUp(req: Request) {
       }
     }
 
-    // 7) 充值逻辑（保持原样）
+    // 7) 赠送余额（保持原逻辑）
     const initialBalance = inviterId ? 6.6 : 2;
     const reason = inviterId ? "invited_signup_bonus" : "new_user_bonus";
     const initialRechargeResult = await rechargeUserBalance(
@@ -291,7 +262,6 @@ export async function handleSignUp(req: Request) {
       reason,
       `signup_${userId}_${ulid()}`
     );
-
     if (!initialRechargeResult.success) {
       logger.error(
         { userId, initialBalance, error: initialRechargeResult.error },
@@ -308,7 +278,6 @@ export async function handleSignUp(req: Request) {
         inviterRewardReason,
         `invite_${inviterId}_${userId}_${ulid()}`
       );
-
       if (!inviterRechargeResult.success) {
         logger.warn(
           { inviterId, userId, error: inviterRechargeResult.error },
@@ -317,7 +286,7 @@ export async function handleSignUp(req: Request) {
       }
     }
 
-    // 8) 使用服务端密钥签名返回数据
+    // 8) 签名返回
     const encryptedDataResult = signUserMessage(username, userId, publicKey, t);
     if (encryptedDataResult instanceof Response) return encryptedDataResult;
     const encryptedData = encryptedDataResult;
