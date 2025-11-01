@@ -1,3 +1,4 @@
+// CategoryHeader.tsx
 import React, { useState, useCallback, useMemo } from "react";
 import { useAppDispatch, useAppSelector } from "app/store";
 import { ConfirmModal } from "render/web/ui/ConfirmModal";
@@ -20,7 +21,7 @@ import { useTranslation } from "react-i18next";
 import { useInlineEdit } from "render/web/ui/useInlineEdit";
 import InlineEditInput from "render/web/ui/InlineEditInput";
 import { UNCATEGORIZED_ID } from "create/space/constants";
-import toast from "react-hot-toast"; // 确保 toast 已导入
+import toast from "react-hot-toast";
 
 interface CategoryHeaderProps {
   categoryId: string;
@@ -42,7 +43,7 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
   isCategorySelected,
   onSelectCategory,
 }) => {
-  const { t } = useTranslation("space"); // 指定命名空间为 "space"
+  const { t } = useTranslation("space");
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
@@ -55,7 +56,7 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
   const isUncategorized = categoryId === UNCATEGORIZED_ID;
   const isCollapsed = collapsedCategories[categoryId] ?? false;
   const displayCategoryName = isUncategorized
-    ? t("uncategorized") // 引用 "uncategorized"
+    ? t("uncategorized")
     : categoryName;
 
   const handleSaveName = useCallback(
@@ -70,12 +71,13 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
   const { isEditing, startEditing, inputRef, inputProps } = useInlineEdit({
     initialValue: displayCategoryName,
     onSave: handleSaveName,
-    placeholder: t("categoryNamePlaceholder"), // 引用 "categoryNamePlaceholder"
+    placeholder: t("categoryNamePlaceholder"),
     disabled: isUncategorized,
   });
 
   const handleToggleCollapse = () =>
     dispatch(toggleCategoryCollapse({ categoryId }));
+
   const handleDelete = () => {
     if (spaceId && !isUncategorized) {
       dispatch(deleteCategory({ spaceId, categoryId }));
@@ -90,7 +92,7 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
       navigate(`/${pageKey}?edit=true`);
     } catch (error) {
       console.error("Failed to create page:", error);
-      toast.error(t("createPageFailed")); // 引用 "createPageFailed"
+      toast.error(t("createPageFailed"));
     }
   };
 
@@ -140,16 +142,14 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
             className="CategoryHeader__checkbox"
             checked={isCategorySelected}
             onChange={onSelectCategory}
-            aria-label={t("selectCategory", {
-              // 引用 "selectCategory"
-              name: displayCategoryName,
-            })}
+            aria-label={t("selectCategory", { name: displayCategoryName })}
           />
         ) : (
           <button
             className={`CategoryHeader__collapse-btn ${isCollapsed ? "is-collapsed" : ""}`}
             onClick={handleToggleCollapse}
-            title={isCollapsed ? t("expand") : t("collapse")} // 引用 "expand" 和 "collapse"
+            title={isCollapsed ? t("expand") : t("collapse")}
+            aria-expanded={!isCollapsed}
             type="button"
           >
             <ChevronDownIcon size={16} />
@@ -162,7 +162,7 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
           <span
             className={`CategoryHeader__name ${canDrag ? "is-draggable" : ""}`}
             {...nameProps}
-            title={canDrag ? t("dragToReorder") : displayCategoryName} // 引用 "dragToReorder"
+            title={canDrag ? t("dragToReorder") : displayCategoryName}
             onDoubleClick={canEdit ? startEditing : undefined}
           >
             {displayCategoryName}
@@ -174,7 +174,7 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
             <button
               className="CategoryHeader__action-btn"
               onClick={handleAddPage}
-              title={t("newPage")} // 引用 "newPage"
+              title={t("newPage")}
               type="button"
             >
               <PlusIcon size={14} />
@@ -182,7 +182,7 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
             <button
               className="CategoryHeader__action-btn"
               onClick={startEditing}
-              title={t("editName")} // 引用 "editName"
+              title={t("editName")}
               type="button"
             >
               <PencilIcon size={14} />
@@ -190,7 +190,7 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
             <button
               className="CategoryHeader__action-btn is-danger"
               onClick={() => setIsDeleteModalOpen(true)}
-              title={t("deleteCategory")} // 引用 "deleteCategory"
+              title={t("deleteCategory")}
               type="button"
             >
               <TrashIcon size={14} />
@@ -204,13 +204,10 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
           isOpen={isDeleteModalOpen}
           onClose={() => setIsDeleteModalOpen(false)}
           onConfirm={handleDelete}
-          title={t("deleteCategory")} // 引用 "deleteCategory"
-          message={t("deleteCategoryConfirm", {
-            // 引用 "deleteCategoryConfirm"
-            name: displayCategoryName,
-          })}
-          confirmText={t("common.confirmDelete")} // 引用 "common.confirmDelete"
-          cancelText={t("common.cancel")} // 引用 "common.cancel"
+          title={t("deleteCategory")}
+          message={t("deleteCategoryConfirm", { name: displayCategoryName })}
+          confirmText={t("common.confirmDelete")}
+          cancelText={t("common.cancel")}
           type="error"
           showCancel
         />
@@ -259,19 +256,16 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
         }
         .CategoryHeader__name {
           flex: 1;
-          font-weight: 500;
+          font-weight: 600;           /* 提升到 600，Windows 上更明显 */
+          letter-spacing: 0.005em;    /* 轻微字距提升可读性 */
           color: var(--text);
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
           padding: var(--space-1) 0;
         }
-        .CategoryHeader__name.is-draggable {
-          cursor: grab;
-        }
-        .CategoryHeader__name.is-draggable:active {
-          cursor: grabbing;
-        }
+        .CategoryHeader__name.is-draggable { cursor: grab; }
+        .CategoryHeader__name.is-draggable:active { cursor: grabbing; }
         .CategoryHeader__actions {
           display: flex;
           gap: 1px;
@@ -293,8 +287,16 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
         .CategoryHeader__checkbox {
           width: 16px;
           height: 16px;
-          margin: 4px; /* visually align with collapse button */
+          margin: 4px;
           cursor: pointer;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .CategoryHeader,
+          .CategoryHeader__collapse-btn,
+          .CategoryHeader__action-btn,
+          .CategoryHeader__actions {
+            transition: none !important;
+          }
         }
       `}</style>
     </>

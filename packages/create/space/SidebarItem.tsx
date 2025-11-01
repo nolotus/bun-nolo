@@ -1,3 +1,4 @@
+// SidebarItem.tsx
 import React, {
   useState,
   useRef,
@@ -107,6 +108,7 @@ const SidebarMenuItem = forwardRef<
     className="SidebarItem__menu-item"
     onClick={onClick}
     role="menuitem"
+    type="button"
   >
     <Icon size={16} className="SidebarItem__menu-item-icon" />
     <span>{label}</span>
@@ -430,7 +432,7 @@ const SidebarItem = forwardRef<HTMLDivElement, SidebarItemProps>(
               background: var(--primaryGhost);
               color: var(--primary);
               border-color: color-mix(in srgb, var(--primary) 20%, transparent);
-              font-weight: 500;
+              font-weight: 600; /* 提升到 600，Windows 上更明显 */
               transform: translateX(4px);
               box-shadow: 0 2px 6px color-mix(in srgb, var(--primary) 12%, transparent);
             }
@@ -469,7 +471,7 @@ const SidebarItem = forwardRef<HTMLDivElement, SidebarItemProps>(
             }
 
             .SidebarItem--state-active .SidebarItem__content-icon { color: var(--primary); }
-            .SidebarItem:hover .SidebarItem__content-icon { color: var(--text); transform: scale(1.05); }
+            .Item:hover .SidebarItem__content-icon { color: var(--text); transform: scale(1.05); }
 
             .SidebarItem__drag-handle {
               position: absolute;
@@ -518,6 +520,11 @@ const SidebarItem = forwardRef<HTMLDivElement, SidebarItemProps>(
               overflow: hidden;
               white-space: nowrap;
               text-overflow: ellipsis;
+              letter-spacing: 0.005em; /* 轻微字距提升可读性 */
+            }
+
+            .SidebarItem--state-active .SidebarItem__content-title {
+              font-weight: 600; /* 让标题本身也更醒目 */
             }
 
             .SidebarItem__actions {
@@ -545,7 +552,10 @@ const SidebarItem = forwardRef<HTMLDivElement, SidebarItemProps>(
               pointer-events: auto;
             }
 
-            .SidebarItem--state-dragging .SidebarItem__actions { opacity: 0 !important; pointer-events: none !important; }
+            .SidebarItem--state-dragging .SidebarItem__actions {
+              opacity: 0 !important;
+              pointer-events: none !important;
+            }
             
             .SidebarItem__context-menu {
               background: var(--background);
@@ -626,6 +636,17 @@ const SidebarItem = forwardRef<HTMLDivElement, SidebarItemProps>(
               border-color: color-mix(in srgb, var(--primary) 25%, transparent);
               transform: translateX(2px);
               box-shadow: 0 1px 4px color-mix(in srgb, var(--primary) 8%, transparent);
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+              .SidebarItem,
+              .SidebarItem__icon-wrapper,
+              .SidebarItem__drag-handle,
+              .SidebarItem__actions,
+              .SidebarItem__menu-item {
+                transition: none !important;
+                transform: none !important;
+              }
             }
           `}
         </style>
