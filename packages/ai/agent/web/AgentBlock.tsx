@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState, lazy, Suspense } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
@@ -9,13 +9,9 @@ import { useCouldEdit } from "auth/hooks/useCouldEdit";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
 import { useModal } from "render/ui/Modal";
 
-// UI Components
 import Avatar from "render/web/ui/Avatar";
 import Button from "render/web/ui/Button";
-import { Dialog } from "render/web/ui/Dialog";
-import AgentForm from "ai/llm/web/AgentForm";
 
-// Icons from Lucide
 import {
   LuArrowRight,
   LuCoins,
@@ -36,6 +32,21 @@ interface AgentBlockProps {
   reload: () => Promise<void>;
 }
 
+// 懒加载编辑相关（最佳投入产出比：只在需要编辑时加载）
+const loadDialog = () => import("render/web/ui/Dialog");
+const loadAgentForm = () => import("ai/llm/web/AgentForm");
+
+const DialogLazy = lazy(() =>
+  loadDialog().then((m) => ({ default: m.Dialog }))
+);
+const AgentFormLazy = lazy(() => loadAgentForm()); // 该模块是默认导出
+
+// 预取编辑相关资源（在 hover/focus/打开菜单/点编辑 时触发一次即可）
+const preloadEditBundle = () => {
+  loadDialog();
+  loadAgentForm();
+};
+
 const AgentBlock = ({ item, reload }: AgentBlockProps) => {
   const { t } = useTranslation("ai");
   const dispatch = useAppDispatch();
@@ -54,7 +65,7 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
     if (isLoading) return;
     try {
       await createNewDialog({ agents: [agentKey] });
-    } catch (error) {
+    } catch {
       toast.error(t("createDialogError"));
     }
   };
@@ -70,7 +81,7 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
       await dispatch(remove(agentKey));
       toast.success(t("deleteSuccess"));
       await reload();
-    } catch (error) {
+    } catch {
       setDeleting(false);
       setConfirmingDelete(false);
       toast.error(t("deleteError"));
@@ -79,6 +90,7 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
 
   const handleEdit = useCallback(() => {
     setShowActions(false);
+    preloadEditBundle(); // 点击编辑前预取，进一步减少等待
     openEdit();
   }, [openEdit]);
 
@@ -86,9 +98,9 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
     (e: React.MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
-      setIsFavorite(!isFavorite);
+      setIsFavorite((v) => !v);
       toast.success(
-        isFavorite ? t("removedFromFavorites") : t("addedToFavorites")
+        !isFavorite ? t("addedToFavorites") : t("removedFromFavorites")
       );
     },
     [isFavorite, t]
@@ -98,10 +110,16 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
     (e: React.MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
-      setShowActions(!showActions);
+      const next = !showActions;
+      setShowActions(next);
+      if (next) preloadEditBundle(); // 打开菜单时预取一次
     },
     [showActions]
   );
+
+  useEffect(() => {
+    if (showActions) preloadEditBundle(); // 兜底：菜单已显示则预取（避免极端时序）
+  }, [showActions]);
 
   const handleViewDetails = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -155,6 +173,8 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           {allowEdit && (
             <button
               className={`agent__more ${showActions ? "agent__more--active" : ""}`}
+              onPointerEnter={preloadEditBundle}
+              onFocus={preloadEditBundle}
               onClick={handleMoreClick}
               title={t("moreActions")}
             >
@@ -168,6 +188,8 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           <div className="agent__actions-menu">
             <button
               className="agent__action-item agent__action-item--edit"
+              onPointerEnter={preloadEditBundle}
+              onFocus={preloadEditBundle}
               onClick={handleEdit}
             >
               <LuPencil size={14} />
@@ -280,22 +302,45 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
         </div>
       </div>
 
-      {/* 编辑对话框 - 保持原有的弹窗方式 */}
+      {/* 编辑对话框（仅需要时渲染，内部组件懒加载） */}
       {editVisible && (
-        <Dialog
-          isOpen={editVisible}
-          onClose={closeEdit}
-          title={`${t("edit")} ${item.name || t("agent")}`}
-          size="large"
+        <Suspense
+          fallback={
+            <div className="agent__dialog-fallback">
+              <div className="agent__dialog-spinner" />
+              <div className="agent__dialog-text">{t("loading")}</div>
+            </div>
+          }
         >
-          <AgentForm
-            mode="edit"
-            initialValues={item}
+          <DialogLazy
+            isOpen={editVisible}
             onClose={closeEdit}
-            CreateIcon={LuPlus}
-            EditIcon={LuRefreshCw}
-          />
-        </Dialog>
+            title={`${t("edit")} ${item.name || t("agent")}`}
+            size="large"
+          >
+            <Suspense
+              fallback={
+                <div
+                  style={{
+                    padding: 24,
+                    textAlign: "center",
+                    color: "var(--textSecondary)",
+                  }}
+                >
+                  {t("loading")}
+                </div>
+              }
+            >
+              <AgentFormLazy
+                mode="edit"
+                initialValues={item}
+                onClose={closeEdit}
+                CreateIcon={LuPlus}
+                EditIcon={LuRefreshCw}
+              />
+            </Suspense>
+          </DialogLazy>
+        </Suspense>
       )}
 
       <style href="agent-block" precedence="medium">{`
@@ -394,14 +439,8 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
         }
 
         @keyframes slideDown {
-          from {
-            opacity: 0;
-            transform: translateY(-8px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+          from { opacity: 0; transform: translateY(-8px); }
+          to { opacity: 1; transform: translateY(0); }
         }
 
         .agent__action-item {
@@ -418,14 +457,8 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           color: var(--textSecondary);
         }
 
-        .agent__action-item:hover {
-          background: var(--backgroundHover);
-        }
-
-        .agent__action-item--edit:hover {
-          color: var(--primary);
-        }
-
+        .agent__action-item:hover { background: var(--backgroundHover); }
+        .agent__action-item--edit:hover { color: var(--primary); }
         .agent__action-item--delete:hover {
           color: var(--error);
           background: rgba(239, 68, 68, 0.05);
@@ -449,14 +482,8 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
         }
 
         @keyframes slideDownRed {
-          from {
-            opacity: 0;
-            transform: translateY(-100%);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+          from { opacity: 0; transform: translateY(-100%); }
+          to { opacity: 1; transform: translateY(0); }
         }
 
         .agent__delete-message {
@@ -487,18 +514,9 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           transition: all 0.15s ease;
         }
 
-        .agent__delete-cancel:hover {
-          background: rgba(255, 255, 255, 0.3);
-        }
-
-        .agent__delete-confirm-btn:hover {
-          background: rgba(255, 255, 255, 0.3);
-        }
-
-        .agent__delete-confirm-btn:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
+        .agent__delete-cancel:hover { background: rgba(255, 255, 255, 0.3); }
+        .agent__delete-confirm-btn:hover { background: rgba(255, 255, 255, 0.3); }
+        .agent__delete-confirm-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
         .agent__spinner {
           width: 14px;
@@ -509,11 +527,7 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           animation: spin 1s linear infinite;
         }
 
-        @keyframes spin {
-          to {
-            transform: rotate(360deg);
-          }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
         .agent__header {
           display: flex;
@@ -523,7 +537,6 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           margin-top: var(--space-0);
         }
 
-        /* 删除确认状态下调整头部边距 */
         .agent:has(.agent__delete-confirm) .agent__header {
           margin-top: var(--space-12);
         }
@@ -556,9 +569,7 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           transition: color 0.2s ease;
         }
 
-        .agent:hover .agent__title {
-          color: var(--primary);
-        }
+        .agent:hover .agent__title { color: var(--primary); }
 
         .agent__title-arrow {
           color: var(--textTertiary);
@@ -572,7 +583,7 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           transform: translateX(0);
           color: var(--primary);
         }
-        
+
         .agent__price {
           font-size: 0.8rem;
           color: var(--textTertiary);
@@ -580,7 +591,7 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           align-items: center;
           gap: var(--space-1);
         }
-        
+
         .agent__price-unit {
           color: var(--textQuaternary);
           font-size: 0.75rem;
@@ -627,24 +638,12 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           background: var(--backgroundSecondary);
           border-radius: var(--space-2);
         }
-        
-        .agent__desc::-webkit-scrollbar {
-          width: 4px;
-        }
-        
-        .agent__desc::-webkit-scrollbar-thumb {
-          background-color: var(--border);
-          border-radius: 4px;
-        }
 
-        .agent__actions {
-          display: flex;
-          margin-top: auto;
-        }
+        .agent__desc::-webkit-scrollbar { width: 4px; }
+        .agent__desc::-webkit-scrollbar-thumb { background-color: var(--border); border-radius: 4px; }
 
-        .agent__primary {
-          flex: 1;
-        }
+        .agent__actions { display: flex; margin-top: auto; }
+        .agent__primary { flex: 1; }
 
         .agent-exit {
           opacity: 0;
@@ -652,40 +651,41 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           transition: all 0.25s ease;
         }
 
+        /* 懒加载 Dialog 的全屏 fallback */
+        .agent__dialog-fallback {
+          position: fixed;
+          inset: 0;
+          background: color-mix(in oklab, var(--background) 65%, black 35%);
+          backdrop-filter: blur(3px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 9999;
+          flex-direction: column;
+          gap: 12px;
+        }
+        .agent__dialog-spinner {
+          width: 28px;
+          height: 28px;
+          border: 3px solid rgba(255,255,255,0.35);
+          border-top: 3px solid var(--primary);
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+        }
+        .agent__dialog-text {
+          color: var(--text);
+          font-size: 0.9rem;
+        }
+
         /* 移动端 */
         @media (max-width: 768px) {
-          .agent {
-            padding: var(--space-4);
-          }
-          
-          .agent__top-actions {
-            top: var(--space-3);
-            right: var(--space-3);
-          }
-          
-          .agent__header {
-            padding-right: var(--space-10);
-          }
-          
-          .agent__favorite,
-          .agent__more {
-            width: 32px;
-            height: 32px;
-          }
-          
-          .agent__title-arrow {
-            opacity: 1;
-            transform: none;
-          }
-          
-          .agent__favorite,
-          .agent__more {
-            opacity: 1;
-          }
-
-          .agent__actions-menu {
-            right: var(--space-3);
-          }
+          .agent { padding: var(--space-4); }
+          .agent__top-actions { top: var(--space-3); right: var(--space-3); }
+          .agent__header { padding-right: var(--space-10); }
+          .agent__favorite, .agent__more { width: 32px; height: 32px; }
+          .agent__title-arrow { opacity: 1; transform: none; }
+          .agent__favorite, .agent__more { opacity: 1; }
+          .agent__actions-menu { right: var(--space-3); }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -698,10 +698,7 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
             transition: none;
             animation: none;
           }
-          
-          .agent:hover {
-            transform: none;
-          }
+          .agent:hover { transform: none; }
         }
       `}</style>
     </>
