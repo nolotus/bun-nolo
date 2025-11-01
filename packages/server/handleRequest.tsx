@@ -12,42 +12,11 @@ import { handleRPCRequest } from "./handleRPCRequest";
 const logger = pino({ name: "server:request" });
 const res = createResponse();
 
-/**
- * 从标准代理头中尽可能提取真实客户端 IP
- * 优先级：cf-connecting-ip > x-real-ip > x-forwarded-for(首个) > forwarded
- * 不信任客户端 body.clientIp，仅作参考
- */
-function extractClientIp(headers: Headers): string | null {
-  try {
-    const cf = headers.get("cf-connecting-ip");
-    if (cf && cf !== "unknown") return cf.trim();
-
-    const real = headers.get("x-real-ip");
-    if (real && real !== "unknown") return real.trim();
-
-    const xff = headers.get("x-forwarded-for");
-    if (xff) {
-      const first = xff.split(",")[0]?.trim();
-      if (first && first !== "unknown") return first;
-    }
-
-    const forwarded = headers.get("forwarded"); // e.g. for=1.2.3.4;proto=https;by=...
-    if (forwarded) {
-      const m = forwarded.match(/for="?([^;"]+)"?/i);
-      if (m?.[1] && m[1] !== "unknown") return m[1].trim();
-    }
-  } catch {}
-  return null;
-}
-
 // 注意：这个函数现在只处理没有被 `routes` 匹配到的请求
-export const handleRequest = async (request: Request, server) => {
+export const handleRequest = async (request: Request, server: any) => {
   const upgraded = server.upgrade(request, {
-    data: {
-      createdAt: Date.now(),
-    },
+    data: { createdAt: Date.now() },
   });
-
   if (upgraded) return undefined;
 
   const url = new URL(request.url);
@@ -74,14 +43,18 @@ export const handleRequest = async (request: Request, server) => {
       }
     }
 
-    // 新增：提取真实来源 IP（来自代理头）
-    const clientIp = extractClientIp(request.headers);
+    // 仅使用 Bun 提供的 IP
+    const ipInfo =
+      typeof server.requestIP === "function" ? server.requestIP(request) : null;
+    const ipFromServer = ipInfo?.address || null;
 
-    // 可选：记录客户端上报的 IP（仅作参考，不参与风控判定）
-    const reportedClientIp =
-      (body && body.clientIp) || request.headers.get("x-client-ip") || null;
+    // 简洁的 IP 调试日志
+    logger.info(
+      { method: request.method, path: url.pathname, ipFromServer, ipInfo },
+      "IP debug: incoming request"
+    );
 
-    // 统一封装给下游的 req 对象
+    // 下游 req 对象（仅注入必要字段）
     const req: any = {
       url, // URL 实例
       body: body || {},
@@ -90,9 +63,10 @@ export const handleRequest = async (request: Request, server) => {
       headers: request.headers,
       method: request.method,
 
-      // 新增字段：真实 IP 与上报 IP
-      ip: clientIp, // 真实来源 IP（从代理头解析）
-      reportedClientIp, // 客户端上报 IP（仅日志参考）
+      // 只注入 ip（来自 Bun）
+      ip: ipFromServer,
+      // 可选：给下游做更详细的调试
+      ipDebug: { ipFromServer, ipInfo },
     };
 
     if (url.pathname.startsWith(API_ENDPOINTS.USERS)) {
@@ -110,7 +84,7 @@ export const handleRequest = async (request: Request, server) => {
   }
 
   try {
-    // 这个函数现在是所有未匹配路由的最终处理器，通常用于渲染前端应用 (SPA)
+    // 未匹配路由：渲染前端应用
     return await handleRender(request);
   } catch (error) {
     logger.error({ error }, "Render failed");
