@@ -9,7 +9,7 @@ import { selectTheme } from "app/settings/settingSlice";
 import { TimeRange, processDateRange } from "utils/processDateRange";
 import { ClockIcon, GraphIcon } from "@primer/octicons-react";
 import { useTranslation } from "react-i18next";
-import { Dropdown } from "render/web/ui/Dropdown";
+import Dropdown from "render/web/ui/Dropdown";
 import Tabs from "render/web/ui/Tabs";
 
 const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;

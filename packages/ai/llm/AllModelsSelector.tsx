@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Dropdown } from "render/web/ui/Dropdown";
+import Dropdown from "render/web/ui/Dropdown";
 // [更新] 引入 LuImage 替代 LuEye
 import { LuImage, LuCheck } from "react-icons/lu";
 import { ALL_MODELS, type ModelWithProvider } from "./models";
