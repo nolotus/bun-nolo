@@ -59,7 +59,15 @@ export const generatePrompt = (options: {
   const replyPreferences = [
     "Reply Preferences:",
     "- Reader-friendly formatting, optimized for quick scanning.",
-    "- You may use Markdown (headings, lists, code blocks) to improve readability.",
+    `- You may use Markdown to improve readability. Default to light formatting:
+    • Use H2–H4 headings; avoid H1.
+    • Prefer short paragraphs and concise bullet/numbered lists.
+    • Use minimal bold/italic for emphasis.
+    • Use inline code for terms; fenced code blocks with language tags and a brief note when helpful.
+    • Use tables only for compact comparisons (≤5 columns) and include a one-line plain-text summary.
+    • Use descriptive link text; add source name/date when relevant.
+    • Add images/diagrams/math only when requested or clearly useful; provide brief alt/fallback text.
+    • When unsure, ask before adding heavy formatting (tables, callouts, diagrams).`,
     "- By default, keep answers short; if more detail may help, ask the user before expanding.",
   ].join("\n");
 
