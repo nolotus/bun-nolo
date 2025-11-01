@@ -1,6 +1,6 @@
-// File: TopBar.jsx (Complete Code)
+// File: TopBar.jsx
 
-import React, { useState, useEffect, Suspense, lazy } from "react";
+import React, { useState, useEffect, Suspense, lazy, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 import { LuLogIn, LuMenu, LuHouse } from "react-icons/lu";
@@ -11,55 +11,49 @@ import { selectCurrentDialogConfig } from "chat/dialog/dialogSlice";
 import { extractUserId } from "core/prefix";
 import { zIndex } from "render/styles/zIndex";
 import { RoutePaths } from "auth/web/routes";
-import NavListItem from "render/layout/blocks/NavListItem";
-import LanguageSwitcher from "render/web/ui/LanguageSwitcher";
 import { Tooltip } from "render/web/ui/Tooltip";
 
-// 懒加载组件
-import DialogMenu from "./DialogMenu";
-import PageMenu from "./PageMenu";
+// 懒加载
+const DialogMenu = lazy(() => import("./DialogMenu"));
+const PageMenu = lazy(() => import("./PageMenu"));
 const CreateMenuButton = lazy(() => import("./CreateMenuButton"));
+const LanguageSwitcher = lazy(() => import("render/web/ui/LanguageSwitcher"));
+const NavListItem = lazy(() => import("render/layout/blocks/NavListItem"));
 
 const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
   const { t } = useTranslation();
   const { isLoggedIn, user } = useAuth();
   const { pageKey } = useParams();
 
-  // Redux 选择器
   const currentDialog = useAppSelector(selectCurrentDialogConfig);
   const page = useAppSelector(selectPageData);
 
-  // 本地状态
   const [isScrolled, setIsScrolled] = useState(false);
 
-  // 检测页面滚动
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 0);
-    };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener("scroll", handleScroll);
+    const onScroll = () => setIsScrolled(window.scrollY > 0);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // 判断当前用户是否可以编辑页面
-  const creator = pageKey ? extractUserId(pageKey) : null;
-  const isCreator = creator === user?.userId;
-  const canEdit = isCreator || !page.creator;
-  const showEdit = pageKey?.startsWith("page") && canEdit && page.isInitialized;
+  // 是否显示页面编辑菜单（与原逻辑一致）
+  const showEdit = useMemo(() => {
+    const isPage = !!pageKey && pageKey.startsWith("page");
+    if (!isPage || !page?.isInitialized) return false;
+    const creator = extractUserId(pageKey);
+    const isCreator = creator === user?.userId;
+    return isCreator || !page?.creator;
+  }, [pageKey, page?.isInitialized, page?.creator, user?.userId]);
 
-  // 动态生成 Tooltip 内容，适配不同操作系统
+  // 动态快捷键提示
   const isMac =
     typeof window !== "undefined" &&
     /Mac|iPod|iPhone|iPad/.test(window.navigator.platform);
 
   const sidebarToggleTooltipContent = (
     <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "var(--space-2)",
-      }}
+      style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}
     >
       <span>{t("toggleSidebar")}</span>
       <kbd
@@ -71,7 +65,7 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
           fontSize: "11px",
           color: "var(--textTertiary)",
           fontFamily: "sans-serif",
-          lineHeight: "1",
+          lineHeight: 1,
         }}
       >
         {isMac ? "⌘" : "Ctrl"} + B
@@ -84,12 +78,15 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
       <div className={`topbar ${isScrolled ? "topbar--scrolled" : ""}`}>
         <div className="topbar__section topbar__section--left">
           {!isLoggedIn && (
-            <NavListItem
-              label={t("home")}
-              icon={<LuHouse size={16} />}
-              path="/"
-            />
+            <Suspense fallback={null}>
+              <NavListItem
+                label={t("home")}
+                icon={<LuHouse size={16} />}
+                path="/"
+              />
+            </Suspense>
           )}
+
           {toggleSidebar && (
             <Tooltip content={sidebarToggleTooltipContent} placement="bottom">
               <button
@@ -104,28 +101,32 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
         </div>
 
         <div className="topbar__center">
-          {currentDialog && !showEdit ? (
-            <DialogMenu currentDialog={currentDialog} />
-          ) : showEdit ? (
-            <PageMenu />
-          ) : null}
+          <Suspense fallback={null}>
+            {showEdit ? (
+              <PageMenu />
+            ) : currentDialog ? (
+              <DialogMenu currentDialog={currentDialog} />
+            ) : null}
+          </Suspense>
         </div>
 
         <div className="topbar__section topbar__section--right">
           {isLoggedIn ? (
-            <>
-              <Suspense fallback={<div style={{ width: 24 }} />}>
-                <CreateMenuButton />
-              </Suspense>
-            </>
+            <Suspense fallback={<div style={{ width: 24 }} />}>
+              <CreateMenuButton />
+            </Suspense>
           ) : (
             <>
-              <LanguageSwitcher />
-              <NavListItem
-                label={t("login")}
-                icon={<LuLogIn size={16} />}
-                path={RoutePaths.LOGIN}
-              />
+              <Suspense fallback={null}>
+                <LanguageSwitcher />
+              </Suspense>
+              <Suspense fallback={null}>
+                <NavListItem
+                  label={t("login")}
+                  icon={<LuLogIn size={16} />}
+                  path={RoutePaths.LOGIN}
+                />
+              </Suspense>
             </>
           )}
         </div>
@@ -146,31 +147,19 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
           transition: border-color 0.2s ease-in-out;
           gap: var(--space-4);
         }
-        .topbar--scrolled {
-            border-bottom-color: var(--border);
-        }
-        .topbar__section {
-          display: flex;
-          align-items: center;
-          gap: var(--space-2);
-        }
-        .topbar__section--left {
-            justify-content: flex-start;
-        }
-        .topbar__section--right {
-            justify-content: flex-end;
-        }
+        .topbar--scrolled { border-bottom-color: var(--border); }
+
+        .topbar__section { display: flex; align-items: center; gap: var(--space-2); }
+        .topbar__section--left { justify-content: flex-start; }
+        .topbar__section--right { justify-content: flex-end; }
+
         .topbar__center {
           display: flex;
           align-items: center;
           gap: var(--space-4);
-          min-width: 0; /* Prevents long titles from pushing layout */
+          min-width: 0; /* 防止长标题挤压布局 */
         }
-        .topbar__actions {
-          display: flex;
-          align-items: center;
-          gap: var(--space-3);
-        }
+
         .topbar__title {
           margin: 0;
           font-size: 16px;
@@ -180,6 +169,7 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
           overflow: hidden;
           text-overflow: ellipsis;
         }
+
         .topbar__button {
           display: flex;
           align-items: center;
@@ -194,102 +184,40 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
           transition: all .15s ease;
           flex-shrink: 0;
         }
-        .topbar__button:hover {
-          background: var(--backgroundHover);
-          color: var(--text);
-        }
-        .topbar__button:disabled {
-          opacity: .5;
-          cursor: not-allowed;
-        }
-        .topbar__button--delete:hover {
-          background: var(--primaryGhost);
-          color: var(--error);
-        }
-        .topbar__button--mobile {
-          width: 100% !important;
-          justify-content: flex-start !important;
-          gap: var(--space-3) !important;
-          padding: var(--space-3) !important;
-          height: auto !important;
-          font-size: 14px;
-          font-weight: 400;
-        }
-        .topbar__spinner {
-          width: 16px;
-          height: 16px;
-          border: 2px solid var(--borderLight);
-          border-top-color: var(--primary);
-          border-radius: 50%;
-          animation: spin .8s linear infinite;
-        }
-        @keyframes spin {
-          100% { transform: rotate(360deg); }
+        .topbar__button:hover { background: var(--backgroundHover); color: var(--text); }
+        .topbar__button:disabled { opacity: .5; cursor: not-allowed; }
+        .topbar__button--delete:hover { background: var(--primaryGhost); color: var(--error); }
+
+        /* 桌面/移动 操作区切换（供 PageMenu 内部使用） */
+        .topbar__actions {
+          display: flex;
+          align-items: center;
+          gap: var(--space-3);
         }
         .topbar__mobile-menu {
           position: relative;
-          display: none;
+          display: none; /* 默认隐藏移动版 */
         }
-        .topbar__backdrop {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          z-index: ${zIndex.topbarMenuBackdrop};
-          background: transparent;
-        }
-        .topbar__dropdown {
-          position: absolute;
-          top: calc(100% + var(--space-2));
-          right: 0;
-          background: var(--background);
-          border: 1px solid var(--border);
-          border-radius: 8px;
-          min-width: 240px;
-          padding: var(--space-2);
-          z-index: ${zIndex.topbarMenu};
-          box-shadow: var(--shadowHeavy);
-        }
-        .topbar__menu-section {
-          display: flex;
-          flex-direction: column;
-          gap: var(--space-1);
-          margin-bottom: var(--space-2);
-          padding-bottom: var(--space-2);
-          border-bottom: 1px solid var(--borderLight);
-        }
-        .topbar__menu-section:last-child {
-          margin: 0;
-          padding: 0;
-          border: none;
-        }
+
         @media (max-width: 768px) {
           .topbar {
             grid-template-columns: auto 1fr auto;
             padding: 0 var(--space-2);
             gap: var(--space-2);
           }
-          .topbar__center {
-            justify-content: center;
-          }
-          .topbar__title {
-            font-size: 15px;
-            max-width: calc(100vw - 200px);
-          }
-          .topbar__actions {
-            display: none !important;
-          }
+          .topbar__center { justify-content: center; }
+          .topbar__title { font-size: 15px; max-width: calc(100vw - 200px); }
+
+          .topbar__actions { display: none !important; }   /* 移动端隐藏桌面版操作区 */
           .topbar__mobile-menu {
-            display: flex;
+            display: flex;                                  /* 移动端显示移动版操作区 */
             align-items: center;
             gap: var(--space-2);
           }
         }
+
         @media (max-width: 480px) {
-          .topbar__title {
-            font-size: 14px;
-          }
+          .topbar__title { font-size: 14px; }
         }
       `}</style>
     </>
