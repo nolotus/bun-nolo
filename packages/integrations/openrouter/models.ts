@@ -104,15 +104,6 @@ export const openrouterModels = [
 
   // --- MiniMax Models ---
   {
-    name: "minimax/minimax-m1",
-    displayName: "MiniMax: MiniMax M1",
-    hasVision: false,
-    price: { input: 0.3 * 11, output: 1.65 * 11 }, // 调整为 *11：input 3.3, output 18.15
-    maxOutputTokens: 1000000,
-    contextWindow: 1000000,
-    supportsTool: true,
-  },
-  {
     name: "minimax/minimax-m2",
     displayName: "MiniMax: MiniMax M2",
     hasVision: false, // 假设 M2 不支持视觉，如果支持请修改
@@ -123,16 +114,6 @@ export const openrouterModels = [
     maxOutputTokens: 196608,
     contextWindow: 196608,
     supportsTool: true,
-  },
-  {
-    name: "minimax/minimax-m2:free",
-    displayName: "MiniMax: MiniMax M2 (Free)",
-    hasVision: false, // 假设 M2 不支持视觉，如果支持请修改
-    price: { input: 0.01 * 11, output: 0.01 * 11 }, // 假设一个非常小的非零价格
-    maxOutputTokens: 204800, // 来自提供的上下文
-    contextWindow: 204800, // 来自提供的上下文
-    supportsTool: true, // 假设支持工具
-    // cache 未指定，因此省略
   },
 
   // --- OpenAI Models ---
