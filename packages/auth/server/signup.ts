@@ -1,4 +1,11 @@
-// database/server/signup.ts (完整最终版本 - 含同一 IP 每日仅允许注册 1 个)
+// database/server/signup.ts
+// 功能：注册接口 + 按 IP 灵活配额限制（默认：同一 IP 每日仅允许注册 1 个）
+//
+// 说明：
+// - 可配置多窗口配额（如：1日2个、7日5个、30日x个）
+// - 当前默认只启用 { days: 1, limit: 1 }，满足“一日一个”
+// - 统计基于“每天一个计数键”，多窗口时累加最近 N 天的键值判断
+// - 实现简单，易于落地；适用于配额 N<=30 的场景
 
 import i18nServer from "app/i18n/i18n.server";
 import serverDb from "database/server/db.js";
@@ -18,31 +25,53 @@ import { prepareUserSettings } from "app/settings/prepareUserSetting";
 
 const logger = pino({ name: "signup" });
 
-/** ---------- IP 限制相关 ---------- **/
+/** ------------------ 可配置的 IP 配额 ------------------ **
+ * 配置示例：
+ * - 仅每日 1 个：[{ days: 1, limit: 1 }]
+ * - 每日 2 个 + 7 日 5 个：[{ days: 1, limit: 2 }, { days: 7, limit: 5 }]
+ * - 每日 2 个 + 7 日 5 个 + 30 日 10 个：[{ days: 1, limit: 2 }, { days: 7, limit: 5 }, { days: 30, limit: 10 }]
+ */
+const IP_QUOTAS: Array<{ days: number; limit: number }> = [
+  { days: 1, limit: 1 }, // 当前需求：一日一个
+  // { days: 7, limit: 5 },
+  // { days: 30, limit: 10 },
+];
+
+/** ------------------ IP 限制相关 ------------------ **/
+
 const ABUSE_PREFIX = {
-  byIpDay: (ip: string, day: string) => `abuse:signup:ip:${ip}:${day}`,
+  byIpDay: (ip: string, day: string) => `abuse:signup:ip:${ip}:${day}`, // value: stringified number
 };
 
-function getDayKey(d = new Date()) {
-  // 形如 20251101
+function getDayKey(d: Date = new Date()) {
+  // e.g., 20251101
   return d.toISOString().slice(0, 10).replace(/-/g, "");
 }
 
-// 从代理头中尽可能获取真实来源 IP；不信任客户端传来的 body.clientIp
+function getDayKeysBackwards(days: number): string[] {
+  // 含今天在内，往前数 N 天
+  const keys: string[] = [];
+  const now = new Date();
+  for (let i = 0; i < days; i++) {
+    const d = new Date(now);
+    d.setDate(now.getDate() - i);
+    keys.push(getDayKey(d));
+  }
+  return keys;
+}
+
+// 从代理头中尽可能获取真实来源 IP；不信任 body.clientIp，仅用于日志
 function getClientIp(req: Request): string | null {
   try {
     const h = req.headers;
     const cfIp = h.get("cf-connecting-ip");
     const realIp = h.get("x-real-ip");
     const xff = h.get("x-forwarded-for");
-
-    // x-forwarded-for 可能是多个 IP，用第一个
     const xffIp = xff?.split(",")[0]?.trim();
 
     const ip = cfIp || realIp || xffIp || "";
     if (ip && ip !== "unknown") return ip;
 
-    // 作为兜底：某些环境可以从 remote-addr/forwarded 获取
     const forwarded = h.get("forwarded"); // e.g., for=1.2.3.4;
     if (forwarded) {
       const m = forwarded.match(/for="?([^;"]+)"?/i);
@@ -54,44 +83,62 @@ function getClientIp(req: Request): string | null {
   }
 }
 
-// 检查当日同一 IP 是否已注册过（达到 1 次则拒绝）
-async function checkIpQuota(ip: string, t: any) {
-  const dayKey = getDayKey();
-  const key = ABUSE_PREFIX.byIpDay(ip, dayKey);
+// 读取单日计数（不存在即 0）
+async function getIpDayCount(ip: string, dayKey: string): Promise<number> {
   try {
-    const count = Number(await serverDb.get(key));
-    if (count >= 1) {
-      // 返回 429 Too Many Requests
+    const val = await serverDb.get(ABUSE_PREFIX.byIpDay(ip, dayKey));
+    const n = Number(val);
+    return Number.isFinite(n) ? n : 0;
+  } catch (e: any) {
+    if (e?.code === "LEVEL_NOT_FOUND") return 0;
+    throw e;
+  }
+}
+
+// 累加最近 N 天计数
+async function getIpCountInDays(ip: string, days: number): Promise<number> {
+  const keys = getDayKeysBackwards(days);
+  const counts = await Promise.all(keys.map((k) => getIpDayCount(ip, k)));
+  return counts.reduce((a, b) => a + b, 0);
+}
+
+// 生成人类可读的窗口描述
+function windowLabel(days: number) {
+  if (days === 1) return "今日";
+  if (days === 7) return "近7日";
+  if (days === 30) return "近30日";
+  return `近${days}日`;
+}
+
+// 检查多窗口配额，若任一窗口超限则拒绝
+async function checkIpQuotas(ip: string, t: any) {
+  for (const q of IP_QUOTAS) {
+    const used = await getIpCountInDays(ip, q.days);
+    if (used >= q.limit) {
+      const msg = `${windowLabel(q.days)}该 IP 注册数已达上限（限制：${q.limit}）`;
       return createErrorResponse(
-        t
-          ? t("errors.ipQuotaExceeded")
-          : "Too many registrations from this IP today",
+        t ? t("errors.ipQuotaExceeded", { defaultValue: msg }) : msg,
         429
       );
     }
-  } catch (e: any) {
-    if (e?.code !== "LEVEL_NOT_FOUND") {
-      throw e;
-    }
-    // 未找到表示今天还没有注册过，放行
   }
   return null;
 }
 
-// 成功注册后记录当日次数 +1
+// 成功注册后记录“今天 +1”
 async function recordIpRegistration(ip: string) {
-  const dayKey = getDayKey();
-  const key = ABUSE_PREFIX.byIpDay(ip, dayKey);
+  const today = getDayKey();
+  const key = ABUSE_PREFIX.byIpDay(ip, today);
   let count = 0;
   try {
     count = Number(await serverDb.get(key)) || 0;
   } catch (e: any) {
-    // LEVEL_NOT_FOUND 则从 0 开始
+    // LEVEL_NOT_FOUND => 从 0 开始
   }
   await serverDb.put(key, String(count + 1));
 }
 
-/** ---------- 原有辅助函数（将 t 作为参数传入） ---------- **/
+/** ------------------ 原有辅助函数（携带 t） ------------------ **/
 
 function validateRequestMethod(method: string, t: any) {
   if (method === "OPTIONS") {
@@ -104,7 +151,6 @@ function validateRequestMethod(method: string, t: any) {
 }
 
 function extractUserData(body: any, t: any) {
-  // clientIp 如果从前端传来，仅用于日志参考，不参与风控判定
   const { username, publicKey, locale, email, inviterId } = body || {};
   if (!username || !publicKey || !locale) {
     return createErrorResponse(t("errors.missingFields"), 400);
@@ -181,10 +227,10 @@ function signUserMessage(
   return signMessage(message, secretKey);
 }
 
-/** ---------- 主处理函数 ---------- **/
+/** ------------------ 主处理函数 ------------------ **/
 
 export async function handleSignUp(req: Request) {
-  let t: any = null; // 在 try 外部声明 t，以便 catch 中也能访问
+  let t: any = null;
   try {
     const acceptLanguage = req.headers.get("accept-language");
     const lng = acceptLanguage?.split(",")[0] || "zh-CN";
@@ -194,23 +240,21 @@ export async function handleSignUp(req: Request) {
     const methodValidation = validateRequestMethod((req as any).method, t);
     if (methodValidation) return methodValidation;
 
-    // 2) 解析 body
-    // 注意：这里假设上层已解析出 req.body 是对象；若是原始 Fetch Request，请改为：const body = await req.json();
+    // 2) 解析 body（若上层是原生 Fetch Request，请改为：const body = await req.json();）
     const body: any = (req as any).body;
     const userDataResult = extractUserData(body, t);
     if (userDataResult instanceof Response) return userDataResult;
     const { username, publicKey, locale, email, inviterId } = userDataResult;
 
-    // 3) IP 限制：同一 IP 当天仅允许注册 1 次
+    // 3) IP 配额检查（灵活多窗口；默认仅“每日1个”）
     const ip = getClientIp(req);
     if (ip) {
-      const ipCheck = await checkIpQuota(ip, t);
-      if (ipCheck) {
-        logger.warn({ ip, username }, "Blocked signup due to daily IP limit.");
-        return ipCheck;
+      const quotaRes = await checkIpQuotas(ip, t);
+      if (quotaRes) {
+        logger.warn({ ip, username }, "Blocked signup due to IP quota limit.");
+        return quotaRes;
       }
     } else {
-      // 未能识别 IP 时，仅记录告警但不阻断（可改为阻断按需）
       logger.warn({ username }, "Could not determine client IP for signup.");
     }
 
@@ -226,7 +270,7 @@ export async function handleSignUp(req: Request) {
 
     await saveUserDataToDb(userId, userData, userSettings, userProfile);
 
-    // 6) 成功注册后，记录当日 IP 次数 +1（用于下一次拦截）
+    // 6) 成功注册后记录“今日 +1”，参与后续配额判断
     if (ip) {
       try {
         await recordIpRegistration(ip);
@@ -238,7 +282,7 @@ export async function handleSignUp(req: Request) {
       }
     }
 
-    // 7) 充值逻辑（可保留或按需调整）
+    // 7) 充值逻辑（保持原样）
     const initialBalance = inviterId ? 6.6 : 2;
     const reason = inviterId ? "invited_signup_bonus" : "new_user_bonus";
     const initialRechargeResult = await rechargeUserBalance(
