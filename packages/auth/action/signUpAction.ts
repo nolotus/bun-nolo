@@ -1,4 +1,5 @@
 // authSlice.ts
+
 import { selectCurrentServer } from "app/settings/settingSlice";
 import { addDays, formatISO } from "date-fns";
 import { verifySignedMessage } from "core/crypto";
@@ -11,9 +12,35 @@ import { SERVERS } from "database/requests";
 
 const TIMEOUT = 5000;
 
+type SignUpSendData = {
+  username: string;
+  publicKey: string;
+  locale: string;
+  email?: string;
+  inviterId?: string;
+  clientIp?: string | null; // 新增：客户端公网 IP（可选）
+};
+
+// 获取客户端公网 IP（失败时返回 null，不阻塞注册流程）
+const getPublicIp = async (): Promise<string | null> => {
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 1500); // 1.5s 超时
+    const res = await fetch("https://api.ipify.org?format=json", {
+      signal: controller.signal,
+    });
+    clearTimeout(timer);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data?.ip || null;
+  } catch {
+    return null;
+  }
+};
+
 const signUpToServer = async (
   server: string,
-  sendData: any,
+  sendData: SignUpSendData,
   nolotusPubKey: string,
   signal?: AbortSignal
 ) => {
@@ -22,6 +49,10 @@ const signUpToServer = async (
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        // 可选：把客户端 IP 放到头部，方便后端记录/比对
+        ...(sendData?.clientIp
+          ? { "X-Client-IP": String(sendData.clientIp) }
+          : {}),
       },
       body: JSON.stringify(sendData),
       signal,
@@ -45,7 +76,7 @@ const signUpToServer = async (
 
 const signUpToBackupServers = (
   servers: string[],
-  sendData: any,
+  sendData: SignUpSendData,
   nolotusPubKey: string
 ) => {
   servers.forEach((server) => {
@@ -56,6 +87,7 @@ const signUpToBackupServers = (
       .then((result) => {
         clearTimeout(timeoutId);
         if (!result) {
+          // 备份注册失败时，此处可按需记录日志或上报
         }
       })
       .catch(() => {
@@ -64,21 +96,27 @@ const signUpToBackupServers = (
   });
 };
 
-export const signUpAction = async (user, thunkAPI) => {
+export const signUpAction = async (user: any, thunkAPI: any) => {
   const { username, locale, password, email, inviterId } = user;
   const state = thunkAPI.getState();
   const tokenManager = thunkAPI.extra.tokenManager;
+
+  // 本地生成密钥对
   const encryptionKey = await hashPasswordV1(password);
   const { publicKey, secretKey } = generateKeyPairFromSeedV1(
     username + encryptionKey + locale
   );
 
-  const sendData = {
+  // 新增：获取客户端公网 IP（失败则为 null）
+  const clientIp = await getPublicIp();
+
+  const sendData: SignUpSendData = {
     username,
     publicKey,
     locale,
     email,
     inviterId,
+    clientIp, // 新增字段：传给后端
   };
 
   const nolotusPubKey = "pqjbGua2Rp-wkh3Vip1EBV6p4ggZWtWvGyNC37kKPus";
@@ -94,8 +132,9 @@ export const signUpAction = async (user, thunkAPI) => {
   if (!remoteData) {
     throw new Error("Failed to register on current server");
   }
-  const localUserId = generateUserIdV1(publicKey, username, locale);
 
+  // 本地重新计算 userId，校验服务端回包一致性
+  const localUserId = generateUserIdV1(publicKey, username, locale);
   const isValid =
     remoteData.publicKey === publicKey &&
     remoteData.username === username &&
@@ -105,16 +144,17 @@ export const signUpAction = async (user, thunkAPI) => {
     throw new Error("Server data does not match local data");
   }
 
+  // 异步向备份服务器同步注册
   const backupServers = [SERVERS.MAIN, SERVERS.US].filter(
     (server) => server !== currentServer
   );
-
   if (backupServers.length > 0) {
     Promise.resolve().then(() => {
       signUpToBackupServers(backupServers, sendData, nolotusPubKey);
     });
   }
 
+  // 生成本地登录 token
   const now = new Date();
   const exp = formatISO(addDays(now, 7));
   const iat = formatISO(now);
