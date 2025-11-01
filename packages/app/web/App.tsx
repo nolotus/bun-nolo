@@ -21,65 +21,55 @@ const dateUrl = "date.nolo.chat";
 interface AppProps {
   hostname: string;
   lng?: string;
-  initialRoutes: RouteObject[]; // 必填：由 SSR 或入口提前准备好
+  initialRoutes: RouteObject[];
 }
 
 export default function App({ hostname, lng = "en", initialRoutes }: AppProps) {
-  const auth = useAuth();
   const dispatch = useAppDispatch();
+  const auth = useAuth();
   const initializedRef = useRef(false);
 
   useSystemTheme();
-
-  // 直接渲染首屏路由，确保与 SSR 一致 -> 无闪烁
   const element = useRoutes(initialRoutes);
 
-  // 系统初始化（date 站点跳过）
   useEffect(() => {
-    if (initializedRef.current) return;
-    initializedRef.current = true;
+    // i18n：语言变化即更新
+    if (lng) i18n.changeLanguage(lng);
 
-    if (hostname === dateUrl) {
-      console.log("【Demo模式】跳过后端初始化");
-      return;
-    }
-
-    (async () => {
-      try {
-        dispatch(addHostToCurrentServer(hostname));
-        await dispatch(initializeAuth()).unwrap();
-      } catch (error) {
-        console.error("系统初始化失败：", error);
-      }
-    })();
-  }, [dispatch, hostname]);
-
-  // 用户数据初始化（date 站点跳过）
-  useEffect(() => {
+    // Demo 站点跳过后端初始化与用户数据
     if (hostname === dateUrl) return;
 
+    // 一次性系统初始化（只运行一次）
+    if (!initializedRef.current) {
+      initializedRef.current = true;
+      (async () => {
+        try {
+          dispatch(addHostToCurrentServer(hostname));
+          await dispatch(initializeAuth()).unwrap();
+        } catch (e) {
+          console.error("系统初始化失败:", e);
+        }
+      })();
+    }
+
+    // 用户数据（依赖登录态）
+    const userId = auth.user?.userId;
+    if (!userId) return;
     (async () => {
-      const userId = auth.user?.userId;
-      if (!userId) return;
       try {
         await dispatch(getSettings()).unwrap();
         await dispatch(fetchUserSpaceMemberships(userId)).unwrap();
         await dispatch(loadDefaultSpace(userId)).unwrap();
-      } catch (error) {
-        console.error(`用户数据初始化失败 for ${userId}:`, error);
+      } catch (e) {
+        console.error(`用户数据初始化失败 for ${userId}:`, e);
       }
     })();
-  }, [dispatch, auth.user, hostname]);
-
-  // i18n
-  useEffect(() => {
-    if (lng) i18n.changeLanguage(lng);
-  }, [lng]);
+  }, [dispatch, hostname, lng, auth.user?.userId]);
 
   return (
     <>
       <GlobalThemeController />
-      <Toaster position="top-right" reverseOrder={false} />
+      <Toaster position="top-right" />
       {element}
     </>
   );

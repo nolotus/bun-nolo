@@ -1,80 +1,54 @@
 // render/page/PageLoader.tsx
-
-import React, { Suspense, lazy, useEffect } from "react";
+import React, { lazy, Suspense, useEffect } from "react";
+import { useParams, useSearchParams } from "react-router-dom";
 import { useAppDispatch } from "app/store";
-import { useParams, useLocation } from "react-router-dom";
-
-// 导入 Action
 import { resetPage } from "./pageSlice";
 import { changeSpace } from "create/space/spaceSlice";
-import DialogPage from "chat/dialog/DialogPage";
-import AgentPage from "ai/agent/web/AgentPage";
-// 懒加载子组件
-const RenderPage = lazy(() => import("./RenderPage"));
 
-// 导入工具
+// 懒加载子页面，防止同步依赖进入首页
+const RenderPage = lazy(() => import("./RenderPage"));
+const DialogPage = lazy(() => import("chat/dialog/DialogPage"));
+const AgentPage = lazy(() => import("ai/agent/web/AgentPage"));
+
 import NoMatch from "../NoMatch";
 
-// 加载提示组件
-const LoadingFallback = () => (
+const Fallback = (
   <div
-    style={{
-      padding: "40px",
-      textAlign: "center",
-      color: "var(--textSecondary)",
-    }}
+    style={{ padding: 40, textAlign: "center", color: "var(--textSecondary)" }}
   >
     加载页面组件...
   </div>
 );
 
-/**
- * 页面加载器组件
- * 根据 URL 中的 pageKey 加载不同的页面组件 (RenderPage 或 DialogPage)
- * 并处理 URL searchParams 中的 spaceId
- */
 const PageLoader = () => {
   const { pageKey } = useParams<{ pageKey?: string }>();
-  const location = useLocation(); // 获取 location 对象以访问 searchParams
+  const [params] = useSearchParams();
   const dispatch = useAppDispatch();
 
-  // 处理 URL searchParams 中的 spaceId
+  // 从 URL 同步 spaceId
   useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
-    const spaceId = searchParams.get("spaceId");
+    const spaceId = params.get("spaceId");
+    if (spaceId) dispatch(changeSpace(spaceId));
+  }, [dispatch, params]);
 
-    // 如果 spaceId 存在，则 dispatch changeSpace action
-    if (spaceId) {
-      dispatch(changeSpace(spaceId));
-    }
-  }, [dispatch, location.search]);
-
-  // 组件卸载时清理页面状态
-  useEffect(() => {
-    return () => {
+  // 卸载时重置页面状态
+  useEffect(
+    () => () => {
       dispatch(resetPage());
-    };
-  }, [dispatch]);
+    },
+    [dispatch]
+  );
 
-  // 根据 pageKey 前缀渲染不同的组件
-  if (pageKey?.startsWith("page")) {
-    return (
-      <Suspense fallback={<LoadingFallback />}>
-        <RenderPage pageKey={pageKey} />
-      </Suspense>
-    );
-  } else if (pageKey?.startsWith("dialog")) {
-    return <DialogPage pageKey={pageKey} />;
-  } else if (pageKey?.startsWith("cybot")) {
-    return <AgentPage agentKey={pageKey} />;
-  }
+  if (!pageKey) return <NoMatch message="请选择一个页面或对话。" />;
 
-  // 如果 pageKey 为空或未匹配，可以显示一个默认页面或 NoMatch
-  if (!pageKey) {
-    return <NoMatch message="请选择一个页面或对话。" />;
-  }
+  // 外层 routes 已有 Suspense，这里只做分发
+  if (pageKey.startsWith("page")) return <RenderPage pageKey={pageKey} />;
+  if (pageKey.startsWith("dialog")) return <DialogPage pageKey={pageKey} />;
+  if (pageKey.startsWith("cybot")) return <AgentPage agentKey={pageKey} />;
 
   return <NoMatch message={`无法识别或处理的页面类型: ${pageKey}`} />;
 };
 
+// 若希望此处也提供独立 fallback，可解除注释：
+// export default () => <Suspense fallback={Fallback}><PageLoader /></Suspense>;
 export default PageLoader;
