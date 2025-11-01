@@ -1,25 +1,35 @@
-import React from "react";
-
+// app/web/generatorRoutes.tsx
+import React, { lazy, Suspense } from "react";
 import { authRoutes } from "auth/web/routes";
 import { createRoutes } from "create/routes";
 import { settingRoutes } from "app/settings/routes";
 import { lifeRoutes } from "life/routes";
 
-import PageLoader from "render/page/PageLoader";
+// 懒加载 PageLoader，避免它及其依赖链进入首页首包
+const PageLoader = lazy(() => import("render/page/PageLoader"));
 
-// --- commonRoutes ---
+const Fallback = (
+  <div
+    style={{ padding: 40, textAlign: "center", color: "var(--textSecondary)" }}
+  >
+    加载中...
+  </div>
+);
+
 export const commonRoutes = [
   ...authRoutes,
   ...createRoutes,
-  settingRoutes,
+  settingRoutes, // 若它是数组改为 ...settingRoutes
   ...lifeRoutes,
-  // ...pluginRoutes, // 如果有插件路由
-
-  // 动态页面路由放最后
+  // 动态页面路由放最后；用 Suspense 包裹懒加载的 PageLoader
   {
-    path: ":pageKey", // 使用 :pageKey 作为路径参数
-    element: <PageLoader />, // 直接渲染 PageLoader 组件
+    path: ":pageKey",
+    element: (
+      <Suspense fallback={Fallback}>
+        <PageLoader />
+      </Suspense>
+    ),
   },
-  // 可以添加一个 404 路由在最后
+  // 最后可加 404
   // { path: "*", element: <NotFoundPage /> },
 ];
