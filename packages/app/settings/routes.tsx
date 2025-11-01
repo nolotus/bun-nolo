@@ -1,32 +1,20 @@
-import React, { lazy, Suspense } from "react";
+import React, { lazy } from "react";
 import { Navigate } from "react-router-dom";
 import { SettingRoutePaths } from "./config";
 
-// 仅 Layout 懒加载
-const SettingLayout = lazy(() => import("./web/SettingLayout"));
+// Layout 同步导入（不 lazy）
+import SettingLayout from "./web/SettingLayout";
 
-// 子页面同步导入（不 lazy）
-import Appearance from "./web/Appearance";
-import UserProfile from "./web/UserProfile";
-import EditorConfig from "./web/EditorConfig";
-import ChatConfig from "./web/ChatConfig";
-import Productivity from "./web/Productivity";
-
-const SettingsFallback = (
-  <div
-    style={{ padding: 40, textAlign: "center", color: "var(--textSecondary)" }}
-  >
-    加载设置中...
-  </div>
-);
+// 子页面全部 lazy
+const Appearance = lazy(() => import("./web/Appearance"));
+const UserProfile = lazy(() => import("./web/UserProfile"));
+const EditorConfig = lazy(() => import("./web/EditorConfig"));
+const ChatConfig = lazy(() => import("./web/ChatConfig"));
+const Productivity = lazy(() => import("./web/Productivity"));
 
 export const settingRoutes = {
   path: SettingRoutePaths.SETTING,
-  element: (
-    <Suspense fallback={SettingsFallback}>
-      <SettingLayout />
-    </Suspense>
-  ),
+  element: <SettingLayout />, // 注意：这里不再用 Suspense 包裹
   children: [
     {
       index: true,
