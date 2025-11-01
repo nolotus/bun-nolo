@@ -113,6 +113,18 @@ export const openrouterModels = [
     supportsTool: true,
   },
   {
+    name: "minimax/minimax-m2",
+    displayName: "MiniMax: MiniMax M2",
+    hasVision: false, // 假设 M2 不支持视觉，如果支持请修改
+    price: {
+      input: 0.15 * 11, // $0.15/M input * 11 = 1.65
+      output: 0.45 * 11, // $0.45/M output * 11 = 4.95
+    },
+    maxOutputTokens: 196608,
+    contextWindow: 196608,
+    supportsTool: true,
+  },
+  {
     name: "minimax/minimax-m2:free",
     displayName: "MiniMax: MiniMax M2 (Free)",
     hasVision: false, // 假设 M2 不支持视觉，如果支持请修改
