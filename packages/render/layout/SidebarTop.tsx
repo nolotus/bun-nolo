@@ -1,6 +1,14 @@
-// render/layout/SidebarTop.tsx (已更新)
+// render/layout/SidebarTop.tsx
 
-import React, { useCallback, useEffect, useId, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  lazy,
+  Suspense,
+} from "react";
 import { useTranslation } from "react-i18next";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "app/store";
@@ -11,10 +19,18 @@ import {
   selectSpaceLoading,
 } from "create/space/spaceSlice";
 import { createSpaceKey } from "create/space/spaceKeys";
-import { SpaceItem } from "create/space/components/SpaceItem";
+// 注意：SpaceItem 改为懒加载
+// import { SpaceItem } from "create/space/components/SpaceItem";
 import { useClickOutside } from "app/hooks/useClickOutside";
 import { LuHouse, LuChevronDown } from "react-icons/lu";
 import { zIndex } from "../styles/zIndex";
+
+// 懒加载 SpaceItem（将命名导出映射为默认导出）
+const loadSpaceItem = () =>
+  import("create/space/components/SpaceItem").then((m) => ({
+    default: m.SpaceItem,
+  }));
+const SpaceItem = lazy(loadSpaceItem);
 
 export const SidebarTop: React.FC = () => {
   const { t } = useTranslation("space");
@@ -51,6 +67,11 @@ export const SidebarTop: React.FC = () => {
     [dispatch, navigate]
   );
 
+  // 悬停/聚焦时预取 SpaceItem 代码块，减少点击时等待
+  const warmupDropdown = useCallback(() => {
+    loadSpaceItem();
+  }, []);
+
   return (
     <>
       <div className="SidebarTop">
@@ -66,6 +87,8 @@ export const SidebarTop: React.FC = () => {
           <button
             type="button"
             className="SidebarTop__trigger"
+            onPointerEnter={warmupDropdown}
+            onFocus={warmupDropdown}
             onClick={() => !loading && setIsDropdownOpen((v) => !v)}
             disabled={loading}
             aria-haspopup="true"
@@ -81,28 +104,36 @@ export const SidebarTop: React.FC = () => {
           {isDropdownOpen && (
             <div id={menuId} className="SidebarTop__menu" role="menu">
               <div className="SidebarTop__content">
-                {spaces.length > 0 ? (
-                  spaces.map((s) => (
-                    <SpaceItem
-                      key={s.dbKey || s.spaceId}
-                      spaceItem={s}
-                      isCurrentSpace={space?.id === s.spaceId}
-                      onSelect={() => handleSelectSpace(s.spaceId)}
-                      onSettingsClick={(e) => {
-                        e.stopPropagation();
-                        const id = createSpaceKey.spaceIdFromMember(s.dbKey);
-                        if (id) {
-                          navigate(`/space/${id}/settings`);
-                          setIsDropdownOpen(false);
-                        }
-                      }}
-                    />
-                  ))
-                ) : (
-                  <div className="SidebarTop__item SidebarTop__item--empty">
-                    {t("no_spaces_yet")}
-                  </div>
-                )}
+                <Suspense
+                  fallback={
+                    <div className="SidebarTop__item SidebarTop__item--empty">
+                      {t("loading")}
+                    </div>
+                  }
+                >
+                  {spaces.length > 0 ? (
+                    spaces.map((s: any) => (
+                      <SpaceItem
+                        key={s.dbKey || s.spaceId}
+                        spaceItem={s}
+                        isCurrentSpace={space?.id === s.spaceId}
+                        onSelect={() => handleSelectSpace(s.spaceId)}
+                        onSettingsClick={(e) => {
+                          e.stopPropagation();
+                          const id = createSpaceKey.spaceIdFromMember(s.dbKey);
+                          if (id) {
+                            navigate(`/space/${id}/settings`);
+                            setIsDropdownOpen(false);
+                          }
+                        }}
+                      />
+                    ))
+                  ) : (
+                    <div className="SidebarTop__item SidebarTop__item--empty">
+                      {t("no_spaces_yet")}
+                    </div>
+                  )}
+                </Suspense>
               </div>
             </div>
           )}
@@ -111,14 +142,8 @@ export const SidebarTop: React.FC = () => {
 
       <style href="SidebarTop-styles" precedence="component">{`
         @keyframes SidebarTop-slideIn {
-          from {
-            opacity: 0;
-            transform: translateY(calc(var(--space-1) * -1)) scale(0.98);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-          }
+          from { opacity: 0; transform: translateY(calc(var(--space-1) * -1)) scale(0.98); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
         .SidebarTop {
@@ -129,17 +154,15 @@ export const SidebarTop: React.FC = () => {
           height: var(--headerHeight);
           flex-shrink: 0;
           box-sizing: border-box;
-          
-          /* [修改] 使用放射状渐变模拟左上角的光源效果 */
-          background-color: var(--background); /* 保持基础背景色 */
+
+          /* 左上角柔和光源效果 */
+          background-color: var(--background);
           background-image: radial-gradient(
-            ellipse 80% 150% at 0% 0%, /* 一个源自左上角的柔和椭圆渐变 */
-            var(--focus) 0%,           /* 从主题的焦点色开始（自带透明度） */
-            transparent 70%             /* 在70%的半径处完全过渡到透明 */
+            ellipse 80% 150% at 0% 0%,
+            var(--focus) 0%,
+            transparent 70%
           );
           background-repeat: no-repeat;
-          
-          /* [修改] 移除底部边框，完全靠光晕和留白区分 */
         }
 
         .SidebarTop__homeButton {
@@ -157,22 +180,10 @@ export const SidebarTop: React.FC = () => {
           text-decoration: none;
           transition: background-color 0.2s ease, color 0.2s ease;
         }
+        .SidebarTop__homeButton:hover { color: var(--text); background-color: var(--backgroundHover); }
+        .SidebarTop__homeButton.active { background-color: var(--primaryGhost); color: var(--primary); }
 
-        .SidebarTop__homeButton:hover {
-          color: var(--text);
-          background-color: var(--backgroundHover);
-        }
-
-        .SidebarTop__homeButton.active {
-          background-color: var(--primaryGhost);
-          color: var(--primary);
-        }
-
-        .SidebarTop__dropdown {
-          flex: 1;
-          position: relative;
-          min-width: 0;
-        }
+        .SidebarTop__dropdown { flex: 1; position: relative; min-width: 0; }
 
         .SidebarTop__trigger {
           display: flex;
@@ -187,21 +198,15 @@ export const SidebarTop: React.FC = () => {
           font-family: inherit;
           transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
         }
-
         .SidebarTop__trigger:hover:not(:disabled):not([aria-expanded="true"]) {
           background-color: var(--backgroundHover);
           border-color: var(--borderHover);
         }
-
         .SidebarTop__trigger[aria-expanded="true"] {
           border-color: var(--primary);
           box-shadow: 0 0 0 3px var(--focus);
         }
-
-        .SidebarTop__trigger:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
+        .SidebarTop__trigger:disabled { opacity: 0.6; cursor: not-allowed; }
 
         .SidebarTop__label {
           flex: 1;
@@ -220,7 +225,6 @@ export const SidebarTop: React.FC = () => {
           flex-shrink: 0;
           margin-left: var(--space-1);
         }
-
         .SidebarTop__trigger[aria-expanded="true"] .SidebarTop__chevron {
           transform: rotate(180deg);
           color: var(--primary);
@@ -247,7 +251,7 @@ export const SidebarTop: React.FC = () => {
           overflow-y: auto;
           padding: var(--space-1);
         }
-        
+
         .SidebarTop__item {
           display: flex;
           align-items: center;
@@ -264,11 +268,8 @@ export const SidebarTop: React.FC = () => {
           font-family: inherit;
           transition: background-color 0.2s ease, color 0.2s ease;
         }
+        .SidebarTop__item:hover { background-color: var(--backgroundHover); }
 
-        .SidebarTop__item:hover {
-          background-color: var(--backgroundHover);
-        }
-        
         .SidebarTop__item--empty {
           color: var(--textTertiary);
           justify-content: center;
@@ -276,14 +277,9 @@ export const SidebarTop: React.FC = () => {
           font-style: italic;
           font-size: 0.8rem;
         }
+        .SidebarTop__item--empty:hover { background-color: transparent; }
 
-        .SidebarTop__item--empty:hover {
-          background-color: transparent;
-        }
-
-        .SidebarTop__item svg {
-          flex-shrink: 0;
-        }
+        .SidebarTop__item svg { flex-shrink: 0; }
       `}</style>
     </>
   );

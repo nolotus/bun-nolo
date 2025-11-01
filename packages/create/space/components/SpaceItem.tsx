@@ -1,30 +1,36 @@
-import { useTheme } from "app/theme";
+// create/space/components/SpaceItem.tsx
+import React from "react";
 import { useTranslation } from "react-i18next";
-import { CheckIcon, GearIcon } from "@primer/octicons-react";
 import { NavLink } from "react-router-dom";
+import { LuCheck, LuSettings } from "react-icons/lu";
 
 interface SpaceItemProps {
-  spaceItem: any;
+  spaceItem: {
+    spaceId: string;
+    spaceName?: string;
+    dbKey?: string;
+  };
   isCurrentSpace: boolean;
   onSelect: (spaceId: string) => void;
   onSettingsClick: (e: React.MouseEvent, spaceMemberpath: string) => void;
 }
 
-export const SpaceItem = ({
+export const SpaceItem: React.FC<SpaceItemProps> = ({
   spaceItem,
   isCurrentSpace,
   onSelect,
   onSettingsClick,
-}: SpaceItemProps) => {
-  const theme = useTheme();
+}) => {
   const { t } = useTranslation();
 
   const handleLinkClick = (e: React.MouseEvent) => {
-    // 如果是中键点击或按住 Ctrl/Cmd，让浏览器处理默认行为（新标签页打开）
-    if (e.button === 1 || e.ctrlKey || e.metaKey) {
+    // 中键/⌘/Ctrl 点击走浏览器默认新开行为
+    if (
+      (e as React.MouseEvent<HTMLAnchorElement>).button === 1 ||
+      e.ctrlKey ||
+      e.metaKey
+    )
       return;
-    }
-    // 否则阻止默认导航，使用自定义逻辑
     e.preventDefault();
     onSelect(spaceItem.spaceId);
   };
@@ -43,7 +49,7 @@ export const SpaceItem = ({
       >
         <div className="space-list-item__content">
           {isCurrentSpace && (
-            <CheckIcon size={12} className="space-list-item__check" />
+            <LuCheck size={14} className="space-list-item__check" />
           )}
           <span className="space-list-item__title" title={spaceItem.spaceName}>
             {spaceItem.spaceName || spaceItem.spaceId}
@@ -53,11 +59,11 @@ export const SpaceItem = ({
 
       <button
         className="space-list-item__settings"
-        onClick={(e) => onSettingsClick(e, spaceItem.dbKey)}
+        onClick={(e) => onSettingsClick(e, spaceItem.dbKey || "")}
         aria-label={t("space_settings")}
         type="button"
       >
-        <GearIcon size={12} />
+        <LuSettings size={14} />
       </button>
 
       <style>{`
@@ -74,8 +80,8 @@ export const SpaceItem = ({
           align-items: center;
           padding: 6px 8px;
           border-radius: 6px;
-          transition: all 0.15s ease;
-          color: ${theme.text};
+          transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+          color: var(--text);
           font-size: 13px;
           font-weight: 400;
           text-decoration: none;
@@ -85,23 +91,18 @@ export const SpaceItem = ({
         }
 
         .space-list-item__link:hover {
-          background: ${theme.backgroundHover};
+          background: var(--backgroundHover);
         }
 
         .space-list-item__link:focus-visible {
-          background: ${theme.backgroundHover};
-          box-shadow: 0 0 0 1px ${theme.primary};
+          background: var(--backgroundHover);
+          box-shadow: 0 0 0 1px var(--primary);
         }
 
-        .space-list-item__link--current {
-          background: ${theme.backgroundSecondary};
-          color: ${theme.primary};
-          font-weight: 500;
-        }
-
+        .space-list-item__link--current,
         .space-list-item__link--active {
-          background: ${theme.backgroundSecondary};
-          color: ${theme.primary};
+          background: var(--backgroundSecondary);
+          color: var(--primary);
           font-weight: 500;
         }
 
@@ -114,7 +115,7 @@ export const SpaceItem = ({
         }
 
         .space-list-item__check {
-          color: ${theme.primary};
+          color: var(--primary);
           flex-shrink: 0;
         }
 
@@ -132,8 +133,8 @@ export const SpaceItem = ({
           padding: 4px;
           margin-left: 4px;
           border-radius: 4px;
-          color: ${theme.textSecondary};
-          transition: all 0.15s ease;
+          color: var(--textSecondary);
+          transition: background-color 0.15s ease, color 0.15s ease, opacity 0.15s ease;
           background: transparent;
           border: none;
           cursor: pointer;
@@ -155,14 +156,14 @@ export const SpaceItem = ({
         }
 
         .space-list-item__settings:hover {
-          background: ${theme.backgroundSecondary};
-          color: ${theme.text};
+          background: var(--backgroundSecondary);
+          color: var(--text);
           opacity: 1;
         }
 
         .space-list-item__settings:focus-visible {
           opacity: 1;
-          outline: 1px solid ${theme.primary};
+          outline: 1px solid var(--primary);
           outline-offset: 1px;
         }
       `}</style>
