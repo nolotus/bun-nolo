@@ -116,6 +116,24 @@ export const openrouterModels = [
     supportsTool: true,
   },
 
+  // --- MoonshotAI Models ---
+  {
+    name: "moonshotai/kimi-k2-thinking:nitro", // 添加 :nitro 后缀
+    displayName: "MoonshotAI: Kimi K2 Thinking :nitro", // 添加 :nitro 后缀
+    hasVision: false, // 根据提供信息，Kimi K2 Thinking 默认不具备视觉能力，如需修改请告知
+    price: {
+      input: 1.15, // 已调整为 $1.15/M input tokens
+      output: 8, // 已调整为 $8/M output tokens
+    },
+    maxOutputTokens: 262144, // 262.1K
+    contextWindow: 262144, // 262.1K context
+    supportsTool: false, // 根据提供信息，未提及工具支持，默认为 false
+    cache: {
+      read: 0.15, // 已调整为 $0.15
+      // write, inputAudio, inputAudioCache 未指定，因此省略
+    },
+  },
+
   // --- OpenAI Models ---
   {
     name: "openai/gpt-5",
