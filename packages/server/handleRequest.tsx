@@ -48,12 +48,6 @@ export const handleRequest = async (request: Request, server: any) => {
       typeof server.requestIP === "function" ? server.requestIP(request) : null;
     const ipFromServer = ipInfo?.address || null;
 
-    // 简洁的 IP 调试日志
-    logger.info(
-      { method: request.method, path: url.pathname, ipFromServer, ipInfo },
-      "IP debug: incoming request"
-    );
-
     // 下游 req 对象（仅注入必要字段）
     const req: any = {
       url, // URL 实例
