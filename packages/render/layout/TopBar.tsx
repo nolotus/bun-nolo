@@ -10,7 +10,7 @@ import { selectPageData } from "render/page/pageSlice";
 import { selectCurrentDialogConfig } from "chat/dialog/dialogSlice";
 import { extractUserId } from "core/prefix";
 import { zIndex } from "render/styles/zIndex";
-import { RoutePaths } from "auth/web/routes";
+import { AppRoutePaths } from "app/constants/routePaths";
 import { Tooltip } from "render/web/ui/Tooltip";
 
 // 懒加载
@@ -124,7 +124,7 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
                 <NavListItem
                   label={t("login")}
                   icon={<LuLogIn size={16} />}
-                  path={RoutePaths.LOGIN}
+                  path={AppRoutePaths.LOGIN}
                 />
               </Suspense>
             </>

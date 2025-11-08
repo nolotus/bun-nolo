@@ -4,7 +4,7 @@ import { NavLink } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import NavListItem from "render/layout/blocks/NavListItem";
 import { SignInIcon } from "@primer/octicons-react";
-import { RoutePaths } from "auth/web/routes";
+import { AppRoutePaths } from "app/constants/routePaths";
 
 const styles = {
   container: {
@@ -58,7 +58,7 @@ const NavbarComponent = () => {
           <NavListItem
             label={t("login")}
             icon={<SignInIcon size={16} />}
-            path={RoutePaths.LOGIN}
+            path={AppRoutePaths.LOGIN}
           />
         )}
       </div>
