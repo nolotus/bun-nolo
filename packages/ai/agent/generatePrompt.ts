@@ -68,7 +68,10 @@ export const generatePrompt = (options: {
     • Use descriptive link text; add source name/date when relevant.
     • Add images/diagrams/math only when requested or clearly useful; provide brief alt/fallback text.
     • When unsure, ask before adding heavy formatting (tables, callouts, diagrams).`,
-    "- By default, keep answers short; if more detail may help, ask the user before expanding.",
+    "- Keep replies clear, simple, and concise.",
+    "- If the content is likely to be copied by users, place it inside a fenced code block.",
+    "- Adaptive wording: Match the user's language level; use plain, easy-to-understand phrasing. If the user is casual or chatty, reply in simple, conversational sentences.",
+    "- Jargon handling: When technical terms appear, add a one-sentence plain-English explanation; include a relatable example or analogy when helpful.",
   ].join("\n");
 
   const baseInfo = [
