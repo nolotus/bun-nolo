@@ -13,10 +13,8 @@ import {
 } from "../dialog/dialogSlice";
 import { processDocumentFile } from "./fileProcessor";
 
-// 新增：导入余额选择器
 import { selectCurrentUserBalance } from "auth/authSlice";
 
-// web
 import DocxPreviewDialog from "render/web/DocxPreviewDialog";
 import AttachmentsPreview, { PendingImagePreview } from "./AttachmentsPreview";
 import SendButton from "./ActionButton";
@@ -24,7 +22,6 @@ import FileUploadButton from "./FileUploadButton";
 import { UploadIcon } from "@primer/octicons-react";
 import toast from "react-hot-toast";
 
-// 为消息体定义一个更清晰的类型
 type MessagePart =
   | { type: "text"; text: string }
   | { type: "image_url"; image_url: { url: string } }
@@ -42,9 +39,7 @@ const MessageInput: React.FC = () => {
   >([]);
   const pendingFiles = useAppSelector(selectPendingFiles);
 
-  // 新增：读取余额（默认 0）
   const balance = useAppSelector(selectCurrentUserBalance) ?? 0;
-  // 新增：是否允许多图（严格大于 20 才允许）
   const canUploadMultipleImages = balance > 20;
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -86,7 +81,6 @@ const MessageInput: React.FC = () => {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // 改造：上传图片时根据余额限制图片数量（<=20 仅允许 1 张）
   const processFiles = useCallback(
     async (files: FileList | null) => {
       if (!files) return;
@@ -94,10 +88,7 @@ const MessageInput: React.FC = () => {
       const all = Array.from(files);
       const imageFiles = all.filter((f) => f.type.startsWith("image/"));
       const otherFiles = all.filter((f) => !f.type.startsWith("image/"));
-
-      // 当前预览中的图片数量
       const currentImages = localImagePreviews.length;
-      // 本次允许新增的图片数量（balance <= 20 仅允许凑到 1 张）
       const maxAdditionalImages = canUploadMultipleImages
         ? Infinity
         : Math.max(0, 1 - currentImages);
@@ -105,8 +96,6 @@ const MessageInput: React.FC = () => {
       if (imageFiles.length > 0) {
         const allowedImages = imageFiles.slice(0, maxAdditionalImages);
         const rejectedCount = imageFiles.length - allowedImages.length;
-
-        // 处理允许的图片
         for (const file of allowedImages) {
           const fileId = nanoid();
           const reader = new FileReader();
@@ -121,7 +110,6 @@ const MessageInput: React.FC = () => {
           reader.readAsDataURL(file);
         }
 
-        // 超出的图片提示
         if (rejectedCount > 0) {
           toast.error(
             t(
@@ -133,7 +121,6 @@ const MessageInput: React.FC = () => {
         }
       }
 
-      // 处理非图片文件：沿用原逻辑
       for (const file of otherFiles) {
         const fileId = nanoid();
         setProcessingFiles((prev) => new Set(prev).add(fileId));
@@ -175,7 +162,6 @@ const MessageInput: React.FC = () => {
     const trimmed = textContent.trim();
     if (!trimmed && !localImagePreviews.length && !pendingFiles.length) return;
 
-    // 新增：发送前兜底校验（余额 <= 20 时不允许发送多图）
     if (!canUploadMultipleImages && localImagePreviews.length > 1) {
       toast.error(
         t(
@@ -245,7 +231,7 @@ const MessageInput: React.FC = () => {
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const ta = e.target;
     ta.style.height = "auto";
-    const maxH = window.innerWidth > 768 ? 200 : 140; // 增加了最大高度
+    const maxH = window.innerWidth > 768 ? 200 : 140;
     ta.style.height = `${Math.min(ta.scrollHeight, maxH)}px`;
     setTextContent(ta.value);
   };
@@ -283,8 +269,6 @@ const MessageInput: React.FC = () => {
     pendingFiles.length > 0;
 
   const isDisabled = processingFiles.size > 0;
-
-  // 新增：是否违反图片数量限制（用于禁用发送按钮/提示）
   const violatesImageLimit =
     !canUploadMultipleImages && localImagePreviews.length > 1;
 
@@ -292,10 +276,11 @@ const MessageInput: React.FC = () => {
     <>
       <style href="message-input" precedence="medium">
         {`
-        .message-input-container {
+        /* [命名规范] 根元素 Block */
+        .msg-input {
             --container-padding: var(--space-4);
             --container-gap: var(--space-2);
-            --container-border-radius: var(--space-3); /* 略微增大圆角 */
+            --container-border-radius: var(--space-3);
             --element-transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
             
             position: sticky; bottom: 0; width: 100%;
@@ -304,43 +289,64 @@ const MessageInput: React.FC = () => {
             background: var(--background);
             z-index: ${zIndex.messageInputContainerZIndex};
         }
-        .input-wrapper { max-width: 100%; margin: 0 auto; }
-        .input-controls { display: flex; gap: var(--container-gap); align-items: flex-end; width: 100%; }
-        .message-textarea {
+        .msg-input__wrapper { max-width: 100%; margin: 0 auto; }
+        .msg-input__controls { display: flex; gap: var(--container-gap); align-items: flex-end; width: 100%; }
+        
+        /* [命名规范] Element: 包裹输入区的容器 */
+        .msg-input__text-container {
             flex: 1;
-            /* --- [核心修改] 增加默认高度 --- */
-            min-height: 72px;
-            max-height: 200px;
-            padding: 22px var(--container-padding); /* 调整内边距以适应高度 */
-            font-size: 16px;
-            line-height: 1.5;
-            /* --- [核心修改] 增加默认边框，使其更显眼 --- */
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            min-height: 52px;
+            padding: 12px var(--container-padding);
             border: 1px solid var(--border);
             border-radius: var(--container-border-radius);
             background: var(--backgroundSecondary);
             box-shadow: inset 0 1px 2px var(--shadowLight);
-            color: var(--text);
-            resize: none;
-            outline: none;
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
             transition: var(--element-transition);
-            letter-spacing: -0.01em;
         }
-        .message-textarea::placeholder { color: var(--textTertiary); }
-        .message-textarea:focus {
-            background: var(--background);
-            /* --- [核心修改] 聚焦时边框变色 --- */
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px var(--focus), inset 0 1px 2px var(--shadowMedium);
-            transform: translateY(-2px);
-        }
-        .message-textarea:hover:not(:focus):not(:disabled) {
+        
+        .msg-input__text-container:hover:not(:focus-within) {
             border-color: var(--borderHover);
             background: var(--backgroundHover);
             box-shadow: inset 0 1px 3px var(--shadowMedium);
         }
-        .message-textarea:disabled { opacity: 0.6; background: var(--backgroundTertiary); }
-        .drop-zone {
+        
+        .msg-input__text-container:focus-within {
+            background: var(--background);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--focus), inset 0 1px 2px var(--shadowMedium);
+            transform: translateY(-2px);
+        }
+        
+        /* [命名规范] Modifier: 处理中状态 */
+        .msg-input--processing .msg-input__text-container {
+            opacity: 0.6; 
+            background: var(--backgroundTertiary);
+        }
+        
+        /* [命名规范] Element: 文本输入框 */
+        .msg-input__textarea {
+            width: 100%;
+            max-height: 200px;
+            font-size: 16px;
+            line-height: 1.5;
+            color: var(--text);
+            resize: none;
+            outline: none;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            letter-spacing: -0.01em;
+            padding: 0;
+            border: none;
+            background: transparent;
+            box-shadow: none;
+            margin-top: ${localImagePreviews.length > 0 || pendingFiles.length > 0 ? "var(--space-2)" : "0"};
+        }
+        .msg-input__textarea::placeholder { color: var(--textTertiary); }
+        .msg-input__textarea:disabled { opacity: 1; }
+
+        .msg-input__dropzone {
             position: absolute; inset: var(--space-2); 
             background: rgba(var(--primaryBgRGB), 0.8);
             backdrop-filter: blur(10px);
@@ -350,7 +356,7 @@ const MessageInput: React.FC = () => {
             opacity: 0;
             animation: dropZoneFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
-        .processing-indicator {
+        .msg-input__processing-indicator {
             position: absolute; top: var(--space-2); right: var(--space-2);
             display: flex; align-items: center; gap: var(--space-1);
             padding: var(--space-1) var(--space-2); border-radius: var(--space-1);
@@ -358,7 +364,7 @@ const MessageInput: React.FC = () => {
             font-size: 12px; color: var(--textSecondary);
             box-shadow: 0 2px 4px var(--shadowLight);
         }
-        .processing-spinner {
+        .msg-input__processing-spinner {
             width: 10px; height: 10px; border-radius: 50%;
             border: 1px solid var(--primary); border-top: 1px solid transparent;
             animation: spin 1s linear infinite;
@@ -368,37 +374,33 @@ const MessageInput: React.FC = () => {
         @keyframes spin { to { transform: rotate(360deg); } }
         
         @media (max-width: 768px) {
-            .message-input-container { --container-padding: var(--space-3); --container-gap: var(--space-2); }
-            .input-wrapper { padding-left: 0; padding-right: 0; }
-            .message-textarea {
-                min-height: 66px; /* 移动端高度也增加 */
-                font-size: 16px;
-                padding: 20px var(--space-3);
-            }
+            .msg-input { --container-padding: var(--space-3); --container-gap: var(--space-2); }
+            .msg-input__wrapper { padding-left: 0; padding-right: 0; }
+            .msg-input__text-container { padding: 10px var(--space-3); min-height: 48px; }
+            .msg-input__textarea { font-size: 16px; }
         }
-        @media (min-width: 768px) { .input-wrapper { padding-left: var(--space-8); padding-right: var(--space-8); } }
-        @media (min-width: 1024px) { .input-wrapper { padding-left: var(--space-12); padding-right: var(--space-12); } }
+        @media (min-width: 768px) { .msg-input__wrapper { padding-left: var(--space-8); padding-right: var(--space-8); } }
+        @media (min-width: 1024px) { .msg-input__wrapper { padding-left: var(--space-12); padding-right: var(--space-12); } }
         
-        /* --- [核心修改] 最终版宽度，更大气 --- */
-        @media (min-width: 1280px) { .input-wrapper { max-width: 940px; } }
-        @media (min-width: 1440px) { .input-wrapper { max-width: 980px; } }
-        @media (min-width: 1600px) { .input-wrapper { max-width: 1080px; } }
+        @media (min-width: 1280px) { .msg-input__wrapper { max-width: 940px; } }
+        @media (min-width: 1440px) { .msg-input__wrapper { max-width: 980px; } }
+        @media (min-width: 1600px) { .msg-input__wrapper { max-width: 1080px; } }
 
         @media (prefers-reduced-motion: reduce) {
-            .message-textarea, .drop-zone, .processing-spinner { transition: none !important; animation: none !important; }
-            .message-textarea:focus { transform: none; }
+            .msg-input__text-container, .msg-input__dropzone, .msg-input__processing-spinner { transition: none !important; animation: none !important; }
+            .msg-input__text-container:focus-within { transform: none; }
         }
         @media (prefers-contrast: high) {
-            .message-textarea { border: 2px solid var(--border); }
-            .drop-zone { border-width: 3px; }
+            .msg-input__text-container { border: 2px solid var(--border); }
+            .msg-input__dropzone { border-width: 3px; }
         }
-        @media print { .message-input-container { display: none; } }
+        @media print { .msg-input { display: none; } }
       `}
       </style>
 
       <div
         ref={containerRef}
-        className={`message-input-container ${isDisabled ? "processing" : ""}`}
+        className={`msg-input ${isDisabled ? "msg-input--processing" : ""}`} // [命名规范] 应用 Block 和 Modifier
         onDragOver={(e) => {
           e.preventDefault();
           setIsDragOver(true);
@@ -407,21 +409,8 @@ const MessageInput: React.FC = () => {
         onDrop={handleDrop}
         aria-label={t("messageInputArea", "消息输入区域")}
       >
-        <div className="input-wrapper">
-          <AttachmentsPreview
-            imagePreviews={localImagePreviews}
-            pendingFiles={enhancedPendingFiles}
-            onRemoveImage={(id) =>
-              setLocalImagePreviews((prev) =>
-                prev.filter((img) => img.id !== id)
-              )
-            }
-            onPreviewFile={setLocalPreviewingFile}
-            processingFiles={processingFiles}
-            isMobile={isMobile}
-          />
-
-          <div className="input-controls">
+        <div className="msg-input__wrapper">
+          <div className="msg-input__controls">
             <FileUploadButton
               disabled={isDisabled}
               onFilesSelected={(files) => {
@@ -429,22 +418,38 @@ const MessageInput: React.FC = () => {
               }}
             />
 
-            <textarea
-              ref={textareaRef}
-              className="message-textarea"
-              value={textContent}
-              placeholder={
-                isDisabled
-                  ? t("waitForProcessing", "等待文件处理完成...")
-                  : t("messageOrFileHere", "输入消息或拖入文件...")
-              }
-              onChange={handleTextareaChange}
-              onKeyDown={handleKeyDown}
-              onPaste={handlePaste}
-              aria-label={t("messageInput", "消息输入框")}
-              disabled={isDisabled}
-              rows={1} // 初始行数，配合CSS的min-height
-            />
+            <div className="msg-input__text-container">
+              {" "}
+              {/* [命名规范] Element */}
+              <AttachmentsPreview
+                imagePreviews={localImagePreviews}
+                pendingFiles={enhancedPendingFiles}
+                onRemoveImage={(id) =>
+                  setLocalImagePreviews((prev) =>
+                    prev.filter((img) => img.id !== id)
+                  )
+                }
+                onPreviewFile={setLocalPreviewingFile}
+                processingFiles={processingFiles}
+                isMobile={isMobile}
+              />
+              <textarea
+                ref={textareaRef}
+                className="msg-input__textarea" /* [命名规范] Element */
+                value={textContent}
+                placeholder={
+                  isDisabled
+                    ? t("waitForProcessing", "等待文件处理完成...")
+                    : t("messageOrFileHere", "输入消息或拖入文件...")
+                }
+                onChange={handleTextareaChange}
+                onKeyDown={handleKeyDown}
+                onPaste={handlePaste}
+                aria-label={t("messageInput", "消息输入框")}
+                disabled={isDisabled}
+                rows={1}
+              />
+            </div>
 
             <SendButton
               onClick={sendMessage}
@@ -454,8 +459,11 @@ const MessageInput: React.FC = () => {
         </div>
 
         {processingFiles.size > 0 && (
-          <div className="processing-indicator">
-            <div className="processing-spinner" />
+          <div className="msg-input__processing-indicator">
+            {" "}
+            {/* [命名规范] Element */}
+            <div className="msg-input__processing-spinner" />{" "}
+            {/* [命名规范] Element */}
             <span>
               {t("processingFiles", "处理中 {{count}} 个文件", {
                 count: processingFiles.size,
@@ -465,7 +473,9 @@ const MessageInput: React.FC = () => {
         )}
 
         {isDragOver && (
-          <div className="drop-zone" aria-live="polite">
+          <div className="msg-input__dropzone" aria-live="polite">
+            {" "}
+            {/* [命名规范] Element */}
             <UploadIcon size={20} style={{ marginRight: "var(--space-2)" }} />
             {t("dropToUpload", "松开即可上传")}
           </div>
