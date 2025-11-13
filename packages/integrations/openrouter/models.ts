@@ -122,8 +122,8 @@ export const openrouterModels = [
     displayName: "MoonshotAI: Kimi K2 Thinking :nitro", // 添加 :nitro 后缀
     hasVision: false, // 根据提供信息，Kimi K2 Thinking 默认不具备视觉能力，如需修改请告知
     price: {
-      input: 1.15, // 已调整为 $1.15/M input tokens
-      output: 8, // 已调整为 $8/M output tokens
+      input: 1.15 * 11, // 已调整为 $1.15/M input tokens
+      output: 8 * 11, // 已调整为 $8/M output tokens
     },
     maxOutputTokens: 262144, // 262.1K
     contextWindow: 262144, // 262.1K context
