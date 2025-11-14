@@ -149,6 +149,20 @@ export const openrouterModels = [
     supportsTool: true,
     // pricePerImage 和 cache 未指定，因此省略；web search $10/K 可后续扩展 price 对象
   },
+  // 新添加的 OpenAI: GPT-5.1 模型
+  {
+    name: "openai/gpt-5.1",
+    displayName: "OpenAI: GPT-5.1",
+    hasVision: true, // 假设 GPT-5.1 支持视觉
+    price: {
+      input: 1.25 * 11,
+      output: 10 * 11,
+      webSearch: 10 * 11,
+    },
+    maxOutputTokens: 200000, // 与 GPT-5 保持一致
+    contextWindow: 400000,
+    supportsTool: true, // 假设 GPT-5.1 支持工具
+  },
   {
     name: "openai/gpt-5:online",
     displayName: "OpenAI: GPT-5 (Online)",
