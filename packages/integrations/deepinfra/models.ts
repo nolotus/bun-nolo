@@ -11,18 +11,6 @@ export const deepinfraModels: Model[] = [
     maxOutputTokens: 8192,
     contextWindow: 131072,
   },
-
-  {
-    // Moonshot AI – Kimi‑K2‑Instruct（价格已乘以 10）
-    name: "moonshotai/Kimi-K2-Instruct",
-    displayName: "Kimi K2 Instruct",
-    hasVision: false,
-    // 原价 $0.50 / $2.00 per M token，乘以 10 后
-    price: { input: 0.5 * 10, output: 2.0 * 10 }, // $5.00 / $20.00 per M token
-    maxOutputTokens: 8192,
-    contextWindow: 131072,
-  },
-
   {
     // Qwen – 3‑235B‑A22B‑Thinking‑2507（价格已乘以 10）
     name: "Qwen/Qwen3-235B-A22B-Thinking-2507",
@@ -33,7 +21,6 @@ export const deepinfraModels: Model[] = [
     maxOutputTokens: 8192,
     contextWindow: 262144,
   },
-
   {
     // Qwen – 3‑235B‑A22B‑Instruct‑2507（非‑thinking 版，价格已乘以 10）
     name: "Qwen/Qwen3-235B-A22B-Instruct-2507",
@@ -44,7 +31,6 @@ export const deepinfraModels: Model[] = [
     maxOutputTokens: 8192,
     contextWindow: 262144,
   },
-
   {
     // Qwen – 3‑Coder‑480B‑A35B‑Instruct（价格已乘以 10）
     name: "Qwen/Qwen3-Coder-480B-A35B-Instruct",
@@ -55,7 +41,6 @@ export const deepinfraModels: Model[] = [
     maxOutputTokens: 8192,
     contextWindow: 262144,
   },
-
   {
     // Google Gemini 2.5 Pro – 价格已乘以 10（每 M token）
     name: "google/gemini-2.5-pro",
@@ -66,7 +51,6 @@ export const deepinfraModels: Model[] = [
     maxOutputTokens: 8192, // 若官方给出更大上限，可自行替换
     contextWindow: 1_000_000, // 1 M 上下文窗口
   },
-
   {
     // Qwen – Qwen3-Next-80B-A3B-Instruct（价格已乘以 10）
     name: "Qwen/Qwen3-Next-80B-A3B-Instruct",
@@ -77,7 +61,6 @@ export const deepinfraModels: Model[] = [
     maxOutputTokens: 8192,
     contextWindow: 131072, // 假设与多数 Qwen3 模型一致，如无官方数据可调整
   },
-
   {
     // DeepSeek V3.1 Terminus – 价格已乘以 10（每 M token）
     name: "deepseek-ai/DeepSeek-V3.1-Terminus",
