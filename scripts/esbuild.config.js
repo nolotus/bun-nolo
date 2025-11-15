@@ -1,3 +1,4 @@
+// esbuild.config.js
 import { isProduction } from "../packages/utils/env.ts";
 
 const inputPath = "./packages/web/entry.tsx";
@@ -35,8 +36,11 @@ export const config = {
   },
   resolveExtensions: [".tsx", ".ts", ".jsx", ".js"],
   conditions: ["browser", "default"],
-  entryNames: "[name]-[hash]",
-  chunkNames: "chunks/[name]-[hash]",
-  assetNames: "assets/[name]-[hash]",
+
+  // 核心修复：chunks 必须带 hash，否则 splitting 会导致命名冲突
+  entryNames: isProduction ? "[name]-[hash]" : "[name]",
+  chunkNames: "chunks/[name]-[hash]", // ✅ 始终带 hash
+  assetNames: isProduction ? "assets/[name]-[hash]" : "assets/[name]",
+
   external: ["react-native*"],
 };
