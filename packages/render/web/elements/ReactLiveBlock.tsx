@@ -10,9 +10,8 @@ type ProcessResult = {
 };
 
 /**
- * 优化后的代码处理函数 (保持不变)
+ * 代码预处理函数
  * @param rawCode 原始代码字符串
- * @returns 一个包含处理后代码或错误信息的对象
  */
 const processCodeForLivePreview = (rawCode: string): ProcessResult => {
   if (!rawCode?.trim()) {
@@ -32,7 +31,7 @@ const processCodeForLivePreview = (rawCode: string): ProcessResult => {
     return { code: processedCode, error: null };
   }
 
-  // 3. 智能查找最后一个定义的React组件名 (大写字母开头)
+  // 3. 智能查找最后一个定义的 React 组件名 (大写字母开头)
   const componentNameMatch = processedCode.match(
     /((?:function|const|class)\s+([A-Z]\w*)|(const\s+([A-Z]\w*)\s*=\s*\([^)]*\)\s*=>))/g
   );
@@ -61,7 +60,7 @@ const processCodeForLivePreview = (rawCode: string): ProcessResult => {
 };
 
 /**
- * 导出 live scope
+ * 导出 live scope（保留 theme，用于让示例代码内部可以使用 theme）
  */
 export const createLiveScope = (theme: any) => ({
   React,
@@ -71,16 +70,16 @@ export const createLiveScope = (theme: any) => ({
 });
 
 /**
- * 优化和整理后的 ReactLiveBlock 组件
+ * ReactLiveBlock 组件
+ * - 不再依赖 theme（全部使用全局 CSS 变量）
  */
 const ReactLiveBlock: React.FC<{
   rawCode: string;
   language: "jsx" | "tsx";
-  theme: any;
   showPreview: boolean;
   liveScope: Record<string, unknown>;
   className?: string;
-}> = ({ rawCode, language, theme, showPreview, liveScope, className }) => {
+}> = ({ rawCode, language, showPreview, liveScope, className }) => {
   const [previewState, setPreviewState] = useState<ProcessResult>({
     code: null,
     error: null,
@@ -92,38 +91,37 @@ const ReactLiveBlock: React.FC<{
     }
   }, [showPreview, rawCode]);
 
-  // --- 极简样式 ---
+  // 使用 CSS 变量的极简样式
+  // 依赖的变量（在 :root 注入）：
+  //   --backgroundGhost
+  //   --space-4
+  //   --errorGhost
+  //   --error
   const styles = `
     .live-preview-wrapper {
-      /* 预览区域的背景色，用于和页面背景区分 */
-      background: ${theme.backgroundGhost};
+      background: var(--backgroundGhost);
     }
     .live-preview-content { 
-      /* 内容的内边距，给预览组件留出呼吸空间 */
-      padding: ${theme.space[4]};
-      min-height: 100px; /* 保留一个较小的最小高度 */
+      padding: var(--space-4);
+      min-height: 100px;
     }
     .live-error, .preview-error { 
-      /* 错误信息的内边距 */
-      padding: ${theme.space[4]};
-      /* 错误信息的背景和文字颜色 */
-      background: ${theme.errorGhost};
-      color: ${theme.error}; 
+      padding: var(--space-4);
+      background: var(--errorGhost);
+      color: var(--error);
       font-size: 13px;
       font-family: monospace;
       line-height: 1.5;
     }
   `;
 
-  if (!showPreview) {
-    return null;
-  }
+  if (!showPreview) return null;
 
   return (
     <>
       <style>{styles}</style>
       <div className={`live-preview-wrapper ${className || ""}`}>
-        {/* 优先显示预处理阶段的错误 */}
+        {/* 预处理阶段的错误 */}
         {previewState.error && (
           <div className="preview-error">{previewState.error}</div>
         )}

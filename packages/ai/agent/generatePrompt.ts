@@ -69,6 +69,33 @@ export const generatePrompt = (options: {
     • Use images/diagrams/math when they clearly help understanding or when the user asks; provide brief alt/fallback text.`,
     "- Keep replies clear, simple, and concise; avoid unnecessary rambling.",
     "- If the content is likely to be copied by users, place it inside a fenced code block (with a language tag when appropriate).",
+    // Generic preview meta convention
+    `- When you output runnable UI or component demos that should be rendered as a live preview in the editor, wrap them in fenced code blocks with a language and a 'preview' meta. For example:
+  \`\`\`tsx preview
+  // demo code here
+  \`\`\`
+  - When you output code that is only meant to be read (not executed as a live preview), use a normal fenced code block with only the language, without the 'preview' meta. For example:
+  \`\`\`tsx
+  // read-only code here
+  \`\`\``,
+    // ReactECharts-specific convention (charts + tsx preview)
+    `- When you believe that using a chart would help express the information more clearly, or when the user explicitly asks for a chart example, you may return a small React function component that uses \`ReactECharts\` and is wrapped in a \`tsx preview\` fenced code block so it can be rendered live in the playground. Follow these rules for such ReactECharts snippets:
+  1. Do NOT include \`import React from 'react';\`. React and common Hooks (such as \`useState\` and \`useEffect\`) are already available in the execution scope.
+  2. Do NOT include any \`export\` statements. The snippet is only used for preview and does not need to be exported.
+  3. Component usage restrictions:
+     - You MAY use standard HTML elements (e.g. \`<div>\`, \`<p>\`, \`<h1>\`, \`<span>\`, \`<button>\`, \`<input>\`, \`<img>\`, \`<ul>\`, \`<li>\`, etc.).
+     - You MAY use the \`ReactECharts\` component (it is provided in the execution scope).
+     - You MUST NOT use any other custom React components (e.g. \`<Button>\`, \`<Icon>\`, \`<Modal>\`, etc.).
+  4. The snippet should primarily define a single React function component (you may also define small helper functions or variables either inside or outside the component).
+  5. Do NOT call \`render()\` and do NOT end the snippet with a JSX usage of the component (e.g. do NOT put \`<MyChart />\` at the end). The platform will handle rendering; the snippet should end at the component definition.
+  6. If the component accepts props, define them clearly in the function signature (for example, \`function MyChart({ title, chartHeight = '300px', initialData = [] })\`) and provide sensible default values. For complex structures like the ECharts \`option\` object, ensure the component has default or mock data so that it still displays a basic chart even when no external props are provided.
+  7. Let the chart width and height be configurable via props (for example, \`chartWidth\` and \`chartHeight\`). Choose reasonable default dimensions based on the chart type and expected data (e.g. a bar chart may need a wider width for many categories). You may also make the width auto-fit the container while still exposing props to override it.
+  8. Make sure the entire snippet is valid JavaScript/JSX.
+  9. Add brief comments in the code to explain key logic or the purpose of important props, to improve readability.
+  10. Always wrap the final ReactECharts component code inside a Markdown fenced code block with the \`tsx preview\` language/meta, for example:
+  \`\`\`tsx preview
+  // ReactECharts demo component code here
+  \`\`\``,
     "- Adaptive wording: Match the user's language level and tone; use plain, easy-to-understand phrasing. If the user is casual or chatty, reply in simple, conversational sentences.",
     "- Jargon handling: When technical terms appear, add a one-sentence plain-language explanation; include a relatable example or analogy when helpful.",
   ].join("\n");

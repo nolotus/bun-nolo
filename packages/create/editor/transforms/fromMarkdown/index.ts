@@ -1,12 +1,11 @@
 // ========================================================================
-// START: 最终修复版的 mdastToSlate.ts
+// START: 最终修复版的 mdastToSlate.ts（已加入 preview 支持 & 语法修正）
 // ========================================================================
 
 import { visit } from "unist-util-visit";
 import { processInlineNodes } from "./inline";
 import { transformTable } from "./table";
 
-// ... SlateNode 接口和 ensureValidNode 函数保持不变 ...
 interface SlateNode {
   type: string;
   children: Array<any>;
@@ -24,8 +23,14 @@ interface SlateNode {
   start?: number;
   value?: number;
   columns?: any[];
+  // 新增：从 Markdown meta 里解析出来的 preview 标记
+  // 使用字符串是为了兼容 CodeBlock 里 element.preview === "true" 的判断
+  preview?: string;
 }
 
+/**
+ * 基础校验，保证 node 至少有 type 和 children 数组
+ */
 function ensureValidNode(node: any): boolean {
   if (!node || typeof node !== "object") return false;
   if (!node.type) return false;
@@ -38,13 +43,37 @@ function ensureValidNode(node: any): boolean {
   return true;
 }
 
+/**
+ * 从 mdast 的 code 节点中解析 preview meta
+ * 支持：
+ * ```tsx preview
+ * ```tsx preview=true
+ */
+function getPreviewFlagFromMeta(node: any): "true" | undefined {
+  const meta = typeof node.meta === "string" ? node.meta.trim() : "";
+  if (!meta) return undefined;
+
+  const tokens = meta.split(/\s+/);
+
+  const hasPreview = tokens.some((tok) => {
+    if (tok === "preview") return true;
+    if (tok.startsWith("preview=")) {
+      const [, value] = tok.split("=");
+      return value === "true";
+    }
+    return false;
+  });
+
+  return hasPreview ? "true" : undefined;
+}
+
 export function mdastToSlate(mdastTree: any): SlateNode[] {
   if (!mdastTree) {
     return [{ type: "paragraph", children: [{ text: "" }] }];
   }
 
   const slateNodes: SlateNode[] = [];
-  const processedNodes = new Set();
+  const processedNodes = new Set<any>();
 
   function processBlockChildren(children: any[]): any[] {
     if (!Array.isArray(children)) return [{ text: "" }];
@@ -96,19 +125,21 @@ export function mdastToSlate(mdastTree: any): SlateNode[] {
             children: processInlineNodes(child.children),
           });
           break;
+
         case "code":
           result.push({
             type: "code-block",
             language: child.lang || "text",
-            children: (child.value || "")
-              .split("\n")
-              .map((line: string) => ({
-                type: "code-line",
-                children: [{ text: line }],
-              })),
+            // 在列表里的代码块，同样从 meta 里解析 preview
+            preview: getPreviewFlagFromMeta(child),
+            children: (child.value || "").split("\n").map((line: string) => ({
+              type: "code-line",
+              children: [{ text: line }],
+            })),
           });
           processedNodes.add(child);
           break;
+
         case "list":
           result.push({
             type: "list",
@@ -134,6 +165,7 @@ export function mdastToSlate(mdastTree: any): SlateNode[] {
           });
           processedNodes.add(child);
           break;
+
         default:
           break;
       }
@@ -150,14 +182,15 @@ export function mdastToSlate(mdastTree: any): SlateNode[] {
     try {
       switch (node.type) {
         // =================================================================
-        // 这是被最终修复的地方
+        // 代码块：最终修复版 + preview 支持
         // =================================================================
         case "code":
-          // 移除了错误的 IF 判断，现在它可以正确处理所有未被处理过的代码块
           slateNodes.push({
             type: "code-block",
             language: node.lang || "text",
-            children: node.value.split("\n").map((line) => ({
+            // 顶层代码块，从 meta 里解析 preview
+            preview: getPreviewFlagFromMeta(node),
+            children: (node.value || "").split("\n").map((line: string) => ({
               type: "code-line",
               children: [{ text: line }],
             })),
@@ -185,14 +218,14 @@ export function mdastToSlate(mdastTree: any): SlateNode[] {
           });
           break;
 
-        // ... 其他所有 case 保持不变 ...
         case "blockquote":
           slateNodes.push({
             type: "quote",
             children: processBlockChildren(node.children),
           });
           break;
-        case "heading":
+
+        case "heading": {
           function getHeadingText(depth: number): string {
             const headings = ["one", "two", "three", "four", "five", "six"];
             return headings[depth - 1] || "one";
@@ -204,7 +237,10 @@ export function mdastToSlate(mdastTree: any): SlateNode[] {
               : [{ text: "" }],
           });
           break;
+        }
+
         case "paragraph":
+          // 列表项里的 paragraph 在 processListItemChildren 里处理，这里只处理非 listItem 父级
           if (!parent || parent.type !== "listItem") {
             slateNodes.push({
               type: "paragraph",
@@ -212,16 +248,21 @@ export function mdastToSlate(mdastTree: any): SlateNode[] {
             });
           }
           break;
-        case "table":
+
+        case "table": {
           const tableNode = transformTable(node);
           if (tableNode) {
             slateNodes.push(tableNode);
           }
           break;
+        }
+
         case "thematicBreak":
           slateNodes.push({ type: "thematic-break", children: [{ text: "" }] });
           break;
+
         case "html":
+          // 只处理块级 html（从第一列开始）
           if (node.position?.start.column === 1) {
             slateNodes.push({
               type: "html-block",
@@ -243,5 +284,5 @@ export function mdastToSlate(mdastTree: any): SlateNode[] {
 }
 
 // ========================================================================
-// END: 最终修复版的 mdastToSlate.ts
+// END: 最终修复版的 mdastToSlate.ts（已加入 preview 支持 & 语法修正）
 // ========================================================================
