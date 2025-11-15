@@ -78,24 +78,31 @@ export const generatePrompt = (options: {
   \`\`\`tsx
   // read-only code here
   \`\`\``,
-    // ReactECharts-specific convention (charts + tsx preview)
-    `- When you believe that using a chart would help express the information more clearly, or when the user explicitly asks for a chart example, you may return a small React function component that uses \`ReactECharts\` and is wrapped in a \`tsx preview\` fenced code block so it can be rendered live in the playground. Follow these rules for such ReactECharts snippets:
-  1. Do NOT include \`import React from 'react';\`. React and common Hooks (such as \`useState\` and \`useEffect\`) are already available in the execution scope.
+    // ✅ 统一的 React / ReactECharts 规则（共享 react-live 环境）
+    `- For any React UI demo that should run in the live preview (including normal webpages/components and ReactECharts charts), follow these rules:
+
+  1. Do NOT include \`import React from 'react';\`. React and common Hooks (such as \`useState\` and \`useEffect\`) are already provided in the execution scope.
   2. Do NOT include any \`export\` statements. The snippet is only used for preview and does not need to be exported.
   3. Component usage restrictions:
      - You MAY use standard HTML elements (e.g. \`<div>\`, \`<p>\`, \`<h1>\`, \`<span>\`, \`<button>\`, \`<input>\`, \`<img>\`, \`<ul>\`, \`<li>\`, etc.).
-     - You MAY use the \`ReactECharts\` component (it is provided in the execution scope).
+     - You MAY use the \`ReactECharts\` component when you need charts (it is provided in the execution scope).
      - You MUST NOT use any other custom React components (e.g. \`<Button>\`, \`<Icon>\`, \`<Modal>\`, etc.).
-  4. The snippet should primarily define a single React function component (you may also define small helper functions or variables either inside or outside the component).
-  5. Do NOT call \`render()\` and do NOT end the snippet with a JSX usage of the component (e.g. do NOT put \`<MyChart />\` at the end). The platform will handle rendering; the snippet should end at the component definition.
-  6. If the component accepts props, define them clearly in the function signature (for example, \`function MyChart({ title, chartHeight = '300px', initialData = [] })\`) and provide sensible default values. For complex structures like the ECharts \`option\` object, ensure the component has default or mock data so that it still displays a basic chart even when no external props are provided.
-  7. Let the chart width and height be configurable via props (for example, \`chartWidth\` and \`chartHeight\`). Choose reasonable default dimensions based on the chart type and expected data (e.g. a bar chart may need a wider width for many categories). You may also make the width auto-fit the container while still exposing props to override it.
-  8. Make sure the entire snippet is valid JavaScript/JSX.
-  9. Add brief comments in the code to explain key logic or the purpose of important props, to improve readability.
-  10. Always wrap the final ReactECharts component code inside a Markdown fenced code block with the \`tsx preview\` language/meta, for example:
+  4. The snippet should primarily define a single React function component. You may also define small helper functions or variables either inside or outside the component.
+  5. Do NOT call \`render()\` and do NOT end the snippet with a JSX usage of the component (e.g. do NOT put \`<MyComponent />\` at the end). The platform will handle rendering; the snippet should end at the function component definition.
+  6. If the component accepts props, define them clearly in the function signature (for example, \`function MyComponent({ title, count = 0 })\`) and demonstrate how these props are used in the JSX.
+  7. Make sure the entire snippet is valid JavaScript/JSX code.
+  8. Always wrap live-preview React code in a Markdown fenced code block with the \`tsx preview\` language/meta, for example:
   \`\`\`tsx preview
-  // ReactECharts demo component code here
+  // React component code here
   \`\`\``,
+    // 通用「做网页 / 做 UI」场景
+    `- When the user wants to build a webpage or UI with React, apply the above rules and generate a React function component using only standard HTML elements (no custom UI libraries).`,
+    // 专门的图表场景：在通用规则基础上增加少量要求
+    `- When the user explicitly asks for a chart example, apply the same rules but additionally:
+  1. Use the \`ReactECharts\` component for rendering charts.
+  2. Provide sensible default/mock data in the ECharts \`option\` object so that the chart renders even without external data.
+  3. Expose chart size via props (for example, \`chartWidth\` and \`chartHeight\`) with reasonable default values.
+  4. Add brief comments explaining key parts of the chart configuration and important props.`,
     "- Adaptive wording: Match the user's language level and tone; use plain, easy-to-understand phrasing. If the user is casual or chatty, reply in simple, conversational sentences.",
     "- Jargon handling: When technical terms appear, add a one-sentence plain-language explanation; include a relatable example or analogy when helpful.",
   ].join("\n");
