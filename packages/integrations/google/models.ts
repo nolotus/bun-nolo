@@ -4,24 +4,6 @@ import type { Model } from "ai/llm/types";
 
 export const googleModels: Model[] = [
   {
-    name: "gemini-2.5-pro-preview-06-05",
-    displayName: "Gemini 2.5 Pro (Preview 06-05)",
-    provider: "google",
-    description:
-      "Preview version of Gemini 2.5 Pro (release 06-05). May have different performance and features.",
-    hasVision: true,
-    hasAudio: true,
-    contextWindow: 1048576,
-    maxOutputTokens: 65536,
-    supportsReasoningEffort: true, // 添加支持推理功能
-    price: {
-      input: 1.25 * 10,
-      output: 10 * 10,
-      cachingWrite: 0.2 * 10,
-      cachingRead: 0.2 * 10,
-    },
-  },
-  {
     name: "gemini-2.5-pro",
     displayName: "Gemini 2.5 Pro",
     provider: "google",
