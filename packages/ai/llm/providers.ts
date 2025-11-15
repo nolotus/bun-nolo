@@ -3,7 +3,7 @@ import { anthropicModels } from "integrations/anthropic/anthropicModels";
 import { deepSeekModels } from "integrations/deepseek/models";
 import { googleModels } from "integrations/google/models";
 import { mistralModels } from "integrations/mistral/models";
-import { openAIModels } from "integrations/openai/models";
+// import { openAIModels } from "integrations/openai/models";
 import { ollamaModels } from "integrations/ollama/models";
 import { sambanovaModels } from "integrations/sambanova/models";
 import { openrouterModels } from "integrations/openrouter/models";
@@ -20,7 +20,7 @@ const allModels: Model[] = [
   ...deepSeekModels,
   ...googleModels,
   ...mistralModels,
-  ...openAIModels,
+  // ...openAIModels,
   ...ollamaModels,
   ...sambanovaModels,
   ...openrouterModels,
@@ -41,7 +41,7 @@ const MODEL_MAP = {
   mistral: mistralModels,
   google: googleModels,
   sambanova: sambanovaModels,
-  openai: openAIModels,
+  // openai: openAIModels,
   openrouter: openrouterModels,
   xai: xaiModels,
 } as const;

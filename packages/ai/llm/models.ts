@@ -6,7 +6,7 @@ import type { Model } from "./types";
 import { deepSeekModels } from "integrations/deepseek/models";
 import { googleModels } from "integrations/google/models";
 import { mistralModels } from "integrations/mistral/models";
-import { openAIModels } from "integrations/openai/models";
+// import { openAIModels } from "integrations/openai/models";
 import { sambanovaModels } from "integrations/sambanova/models";
 import { openrouterModels } from "integrations/openrouter/models";
 import { xaiModels } from "integrations/xai/models";
@@ -26,7 +26,7 @@ export interface ModelWithProvider extends Model {
  */
 export const ALL_MODELS: ModelWithProvider[] = [
   ...googleModels.map((m) => ({ ...m, provider: "google" })),
-  ...openAIModels.map((m) => ({ ...m, provider: "openai" })),
+  // ...openAIModels.map((m) => ({ ...m, provider: "openai" })),
   ...openrouterModels.map((m) => ({ ...m, provider: "openrouter" })),
   ...xaiModels.map((m) => ({ ...m, provider: "xai" })),
   ...deepSeekModels.map((m) => ({ ...m, provider: "deepseek" })),
