@@ -1,6 +1,5 @@
 // ai/llm/providers.ts
 import { anthropicModels } from "integrations/anthropic/anthropicModels";
-import { deepinfraModels } from "integrations/deepinfra/models";
 import { deepSeekModels } from "integrations/deepseek/models";
 import { googleModels } from "integrations/google/models";
 import { mistralModels } from "integrations/mistral/models";
@@ -18,7 +17,6 @@ import type { Agent } from "app/types";
  * ────────────────────────────────────────── */
 const allModels: Model[] = [
   ...anthropicModels,
-  ...deepinfraModels,
   ...deepSeekModels,
   ...googleModels,
   ...mistralModels,
@@ -39,7 +37,6 @@ export const supportedReasoningModels = allModels
 const MODEL_MAP = {
   anthropic: anthropicModels,
   ollama: ollamaModels,
-  deepinfra: deepinfraModels,
   deepseek: deepSeekModels,
   mistral: mistralModels,
   google: googleModels,

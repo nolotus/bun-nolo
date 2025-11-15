@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from "react";
 import { Table, TableRow, TableCell } from "render/web/ui/Table";
-import { deepinfraModels } from "integrations/deepinfra/models";
 import { openAIModels } from "integrations/openai/models";
 import { mistralModels } from "integrations/mistral/models";
 import { googleModels } from "integrations/google/models";
@@ -102,7 +101,6 @@ const ModelComparison: React.FC = () => {
 
   const allModels = useMemo(() => {
     const providers = [
-      [deepinfraModels, "Deepinfra"],
       [mistralModels, "Mistral"],
       [openAIModels, "OpenAI"],
       [googleModels, "Google"],
