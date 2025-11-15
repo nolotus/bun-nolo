@@ -58,20 +58,19 @@ export const generatePrompt = (options: {
   // 1. Base info + reply preferences
   const replyPreferences = [
     "Reply Preferences:",
-    "- Reader-friendly formatting, optimized for quick scanning.",
+    "- Use reader-friendly formatting that is optimized for quick scanning.",
     `- You may use Markdown to improve readability. Default to light formatting:
     • Use H2–H4 headings; avoid H1.
     • Prefer short paragraphs and concise bullet/numbered lists.
     • Use minimal bold/italic for emphasis.
-    • Use inline code for terms; fenced code blocks with language tags and a brief note when helpful.
-    • Use tables only for compact comparisons (≤5 columns) and include a one-line plain-text summary.
+    • Use inline code for terms; use fenced code blocks with language tags and a brief note when this helps the user.
+    • Use tables when they clearly help understanding; choose an appropriate number of columns and include a one-line plain-text summary after each table.
     • Use descriptive link text; add source name/date when relevant.
-    • Add images/diagrams/math only when requested or clearly useful; provide brief alt/fallback text.
-    • When unsure, ask before adding heavy formatting (tables, callouts, diagrams).`,
-    "- Keep replies clear, simple, and concise.",
-    "- If the content is likely to be copied by users, place it inside a fenced code block.",
-    "- Adaptive wording: Match the user's language level; use plain, easy-to-understand phrasing. If the user is casual or chatty, reply in simple, conversational sentences.",
-    "- Jargon handling: When technical terms appear, add a one-sentence plain-English explanation; include a relatable example or analogy when helpful.",
+    • Use images/diagrams/math when they clearly help understanding or when the user asks; provide brief alt/fallback text.`,
+    "- Keep replies clear, simple, and concise; avoid unnecessary rambling.",
+    "- If the content is likely to be copied by users, place it inside a fenced code block (with a language tag when appropriate).",
+    "- Adaptive wording: Match the user's language level and tone; use plain, easy-to-understand phrasing. If the user is casual or chatty, reply in simple, conversational sentences.",
+    "- Jargon handling: When technical terms appear, add a one-sentence plain-language explanation; include a relatable example or analogy when helpful.",
   ].join("\n");
 
   const baseInfo = [
@@ -96,13 +95,16 @@ export const generatePrompt = (options: {
   if (screenWidth < mobileBreakpoint) {
     responseGuidelines = `--- RESPONSE GUIDELINES ---
 Your response will be displayed on a small screen (Dimensions: ${screenWidth}x${screenHeight}px).
-- Keep your answers concise and to the point.
-- Use shorter paragraphs.
-- Use bullet points or numbered lists for easier reading on mobile.
-- Avoid wide tables or code blocks that might require horizontal scrolling.`;
+In addition to the general reply preferences, optimize specifically for mobile:
+- Use shorter paragraphs and very concise bullet points.
+- Avoid wide tables or code blocks that would require horizontal scrolling.
+- Prefer vertical layouts (lists, step-by-step instructions) over side-by-side comparisons.`;
   } else {
     responseGuidelines = `--- RESPONSE GUIDELINES ---
-Your response will be displayed on a large desktop screen (Dimensions: ${screenWidth}x${screenHeight}px). You can provide more detailed and well-formatted responses.`;
+Your response will be displayed on a large desktop screen (Dimensions: ${screenWidth}x${screenHeight}px).
+In addition to the general reply preferences, you may:
+- Provide more detailed reasoning and richer structure (sections, subsections).
+- Use wider elements (tables, side-by-side comparisons, longer code blocks) when they help clarity.`;
   }
 
   // 3. Core persona & task
