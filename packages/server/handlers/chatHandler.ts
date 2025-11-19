@@ -2,8 +2,6 @@ import { getNoloKey } from "ai/llm/getNoloKey";
 import { getUser } from "auth/server/getUser";
 import { authenticateRequest } from "auth/utils";
 import { getModelPricing, getPrices, getFinalPrice } from "ai/llm/getPricing";
-import * as fs from "fs/promises";
-import * as path from "path";
 import pino from "pino";
 
 const logger = pino({
@@ -44,7 +42,6 @@ const calculateMessageCost = (
     }
 
     // 这里需要获取用户的config定价信息，暂时使用默认值
-    // 在实际应用中，你可能需要从数据库或其他地方获取这个信息
     const userConfig = {
       inputPrice: 0, // 用户自定义的输入价格
       outputPrice: 0, // 用户自定义的输出价格
@@ -143,55 +140,6 @@ const checkEstimatedCost = (
   return { allowed: true }; // 这个检查只是警告，不阻止请求
 };
 
-// 4. Blacklist检查：图片数量超过5时写入文件
-const checkBlacklist = async (
-  userId: string,
-  imageUrlCount: number,
-  messages: any[],
-  model: string,
-  provider: string,
-  estimatedCost: number,
-  auth: any
-) => {
-  let shouldLogToBlacklist = false;
-
-  if (imageUrlCount > 5) {
-    shouldLogToBlacklist = true;
-    const blacklistData = {
-      timestamp: new Date().toISOString(),
-      auth: auth,
-      messages: messages,
-      model: model,
-      imageUrlCount: imageUrlCount,
-      estimatedCost: estimatedCost,
-      requestInfo: {
-        provider: provider,
-        userId: userId,
-      },
-    };
-
-    try {
-      const blacklistPath = path.join(process.cwd(), "blacklist");
-      await fs.appendFile(
-        blacklistPath,
-        JSON.stringify(blacklistData, null, 2) + "\n"
-      );
-      logger.warn(
-        `Blacklist entry added: ${imageUrlCount} image URLs detected, estimated cost: $${estimatedCost.toFixed(6)}`,
-        {
-          imageUrlCount,
-          estimatedCost,
-          userId,
-        }
-      );
-    } catch (fileError) {
-      logger.error("Failed to write to blacklist:", fileError);
-    }
-  }
-
-  return { shouldLogToBlacklist };
-};
-
 // ==================== 统一的请求检查函数 ====================
 interface RequestCheckResult {
   allowed: boolean;
@@ -203,7 +151,6 @@ interface RequestCheckResult {
   };
   imageUrlCount?: number;
   estimatedCost?: number;
-  shouldLogToBlacklist?: boolean;
 }
 
 const performRequestChecks = async (
@@ -257,23 +204,11 @@ const performRequestChecks = async (
     // 3. 预估成本检查（只是警告）
     checkEstimatedCost(balance, estimatedCost, imageUrlCount);
 
-    // 4. Blacklist检查
-    const blacklistCheck = await checkBlacklist(
-      userId,
-      imageUrlCount,
-      messages,
-      model,
-      provider,
-      estimatedCost,
-      auth
-    );
-
     // 所有检查通过
     return {
       allowed: true,
       imageUrlCount,
       estimatedCost,
-      shouldLogToBlacklist: blacklistCheck.shouldLogToBlacklist,
     };
   } catch (error) {
     logger.error("请求检查过程中发生错误:", error);

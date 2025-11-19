@@ -1,3 +1,5 @@
+// ai/llm/types.ts
+
 export interface ModelPrice {
   input: number;
   output: number;
@@ -6,13 +8,29 @@ export interface ModelPrice {
   inputCacheHit?: number; // 为DeepSeek模型保留
 }
 
+// 新增：定价阶梯定义
+export interface PricingTier {
+  minContext: number; // 触发此价格的最小 Token 数 (例如 200001)
+  price: ModelPrice; // 此阶梯对应的完整价格表
+}
+
+// 新增：定价策略定义
+export interface PricingStrategy {
+  type: "tiered_context"; // 目前支持基于上下文长度的阶梯定价
+  tiers: PricingTier[];
+}
+
 export interface Model {
   name: string;
   displayName?: string; // 可选的 displayName 字段
   hasVision: boolean;
-  contextWindow?: any;
-  price: ModelPrice;
-  maxOutputTokens?: any; // 最大输出令牌数
+  contextWindow?: any; // 建议改为 number，但保持你原有的 any 兼容
+  price: ModelPrice; // 基础/默认价格
+
+  // 新增字段：支持高级定价策略
+  pricingStrategy?: PricingStrategy;
+
+  maxOutputTokens?: any; // 最大输出令牌数，建议改为 number
   jsonOutput?: boolean; // 是否支持 JSON 结构化输出
   fnCall?: boolean; // 是否支持函数调用
   provider?: string; // 供应商

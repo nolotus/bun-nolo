@@ -65,11 +65,27 @@ export const googleModels: Model[] = [
     contextWindow: 2097152, // 2M tokens (assumed, pending official specs)
     maxOutputTokens: 65536, // Assumed based on 2.5 Pro capability
     supportsReasoningEffort: true,
+    // Base tier (Tier 1: ≤ 200k tokens)
     price: {
-      input: 2.0 * 10, // Base tier: $2.00 per 1M tokens (≤200k tokens)
-      output: 12.0 * 10, // Base tier: $12.00 per 1M tokens (≤200k tokens, incl. thinking)
-      cachingWrite: 0.2 * 10, // Base tier: $0.20 per 1M tokens (≤200k tokens)
-      cachingRead: 0.2 * 10, // Base tier: $0.20 per 1M tokens (≤200k tokens)
+      input: 2.0 * 10, // $2.00 per 1M
+      output: 12.0 * 10, // $12.00 per 1M
+      cachingWrite: 0.2 * 10, // $0.20 per 1M
+      cachingRead: 0.2 * 10, // $0.20 per 1M
+    },
+    // Tier 2: > 200k tokens
+    pricingStrategy: {
+      type: "tiered_context",
+      tiers: [
+        {
+          minContext: 200001, // Threshold > 200k
+          price: {
+            input: 4.0 * 10, // $4.00 per 1M (2x)
+            output: 18.0 * 10, // $18.00 per 1M (1.5x)
+            cachingWrite: 0.4 * 10, // $0.40 per 1M (2x)
+            cachingRead: 0.4 * 10, // $0.40 per 1M (2x)
+          },
+        },
+      ],
     },
   },
 ];
