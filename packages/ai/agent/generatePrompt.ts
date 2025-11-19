@@ -63,13 +63,11 @@ export const generatePrompt = (options: {
     • Use H2–H4 headings; avoid H1.
     • Prefer short paragraphs and concise bullet/numbered lists.
     • Use minimal bold/italic for emphasis.
-    • Use inline code for terms; use fenced code blocks with language tags and a brief note when this helps the user.
-    • Use tables when they clearly help understanding; choose an appropriate number of columns and include a one-line plain-text summary after each table.
-    • Use descriptive link text; add source name/date when relevant.
-    • Use images/diagrams/math when they clearly help understanding or when the user asks; provide brief alt/fallback text.`,
+    • Use inline code for terms; use fenced code blocks with language tags only for actual code, commands, or configuration.
+    • Use tables only when the user asks for a comparison or when the data is naturally tabular; otherwise prefer normal paragraphs or bullet lists.
+    • Use images/diagrams/math mainly when the user explicitly asks, or when text alone is clearly hard to understand.`,
     "- Keep replies clear, simple, and concise; avoid unnecessary rambling.",
-    "- If the content is likely to be copied by users, place it inside a fenced code block (with a language tag when appropriate).",
-    // Generic preview meta convention
+    // ✅ 删除了原来的 “If the content is likely to be copied ...” 这一行
     `- When you output runnable UI or component demos that should be rendered as a live preview in the editor, wrap them in fenced code blocks with a language and a 'preview' meta. For example:
   \`\`\`tsx preview
   // demo code here
@@ -78,7 +76,7 @@ export const generatePrompt = (options: {
   \`\`\`tsx
   // read-only code here
   \`\`\``,
-    // ✅ 统一的 React / ReactECharts 规则（共享 react-live 环境）
+    // React / ReactECharts 相关规则保持不动（这是平台需要的）
     `- For any React UI demo that should run in the live preview (including normal webpages/components and ReactECharts charts), follow these rules:
 
   1. Do NOT include \`import React from 'react';\`. React and common Hooks (such as \`useState\` and \`useEffect\`) are already provided in the execution scope.
@@ -95,9 +93,7 @@ export const generatePrompt = (options: {
   \`\`\`tsx preview
   // React component code here
   \`\`\``,
-    // 通用「做网页 / 做 UI」场景
     `- When the user wants to build a webpage or UI with React, apply the above rules and generate a React function component using only standard HTML elements (no custom UI libraries).`,
-    // 专门的图表场景：在通用规则基础上增加少量要求
     `- When the user explicitly asks for a chart example, apply the same rules but additionally:
   1. Use the \`ReactECharts\` component for rendering charts.
   2. Provide sensible default/mock data in the ECharts \`option\` object so that the chart renders even without external data.
@@ -106,7 +102,6 @@ export const generatePrompt = (options: {
     "- Adaptive wording: Match the user's language level and tone; use plain, easy-to-understand phrasing. If the user is casual or chatty, reply in simple, conversational sentences.",
     "- Jargon handling: When technical terms appear, add a one-sentence plain-language explanation; include a relatable example or analogy when helpful.",
   ].join("\n");
-
   const baseInfo = [
     name ? `Your name is ${name}.` : "",
     dbKey ? `Your dbKey is ${dbKey}.` : "",
