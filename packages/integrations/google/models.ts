@@ -38,18 +38,18 @@ export const googleModels: Model[] = [
     },
   },
   {
-    name: "gemini-2.5-flash-lite-preview-06-17",
-    displayName: "Gemini 2.5 Flash Lite (Preview 06-17)",
+    name: "gemini-2.5-flash-lite",
+    displayName: "Gemini 2.5 Flash Lite",
     provider: "google",
     description:
-      "Our smallest and most cost-effective model, built for at scale usage. Try it in Google AI Studio.",
+      "Our smallest and most cost-effective model, built for at scale usage.",
     hasVision: false,
     hasAudio: true,
     contextWindow: 1048576,
     maxOutputTokens: 4096,
     price: {
-      input: 0.1 * 10, // $0.10 per 1M tokens,
-      output: 0.4 * 10, // $0.40 per 1M tokens,
+      input: 0.1 * 10, // $0.10 per 1M tokens
+      output: 0.4 * 10, // $0.40 per 1M tokens
       cachingWrite: 0.2 * 10,
       cachingRead: 0.2 * 10,
     },

@@ -290,7 +290,6 @@ const calculateBasicCost = (
       // 旧版 Gemini 使用简单计费
       return calculateSimpleCost(resolvedPrice, usage, externalPrice);
 
-    case "deepinfra":
     case "mistral":
     case "xai":
     case "openrouter":

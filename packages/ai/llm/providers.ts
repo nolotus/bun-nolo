@@ -63,10 +63,6 @@ const API_ENDPOINTS: Record<string, ProviderEndpointMap> = {
     completions: "https://api.openai.com/v1/chat/completions",
     responses: "https://api.openai.com/v1/responses",
   },
-  deepinfra: {
-    default: "https://api.deepinfra.com/v1/openai/chat/completions",
-  },
-
   xai: {
     default: "https://api.x.ai/v1/chat/completions",
   },
