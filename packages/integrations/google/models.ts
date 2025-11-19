@@ -12,7 +12,7 @@ export const googleModels: Model[] = [
     hasAudio: true,
     contextWindow: 1048576,
     maxOutputTokens: 65536,
-    supportsReasoningEffort: true, // 添加支持推理功能
+    supportsReasoningEffort: true,
     price: {
       input: 1.25 * 10,
       output: 10 * 10,
@@ -29,7 +29,7 @@ export const googleModels: Model[] = [
     hasAudio: true,
     contextWindow: 1048576,
     maxOutputTokens: 8192,
-    supportsReasoningEffort: true, // 添加支持推理功能
+    supportsReasoningEffort: true,
     price: {
       input: 0.3 * 10,
       output: 2.5 * 10,
@@ -52,6 +52,24 @@ export const googleModels: Model[] = [
       output: 0.4 * 10, // $0.40 per 1M tokens,
       cachingWrite: 0.2 * 10,
       cachingRead: 0.2 * 10,
+    },
+  },
+  {
+    name: "gemini-3-pro-preview",
+    displayName: "Gemini 3 Pro (Preview)",
+    provider: "google",
+    description:
+      "Google's most advanced model with enhanced reasoning (inc. thinking tokens), vision, and audio. Tiered pricing: Input ≤200k: $2.00/M tokens, >200k: $4.00/M tokens. Output ≤200k: $12.00/M tokens, >200k: $18.00/M tokens. Cache ≤200k: $0.20/M tokens, >200k: $0.40/M tokens. Storage: $4.50/M tokens/hour.",
+    hasVision: true,
+    hasAudio: true,
+    contextWindow: 2097152, // 2M tokens (assumed, pending official specs)
+    maxOutputTokens: 65536, // Assumed based on 2.5 Pro capability
+    supportsReasoningEffort: true,
+    price: {
+      input: 2.0 * 10, // Base tier: $2.00 per 1M tokens (≤200k tokens)
+      output: 12.0 * 10, // Base tier: $12.00 per 1M tokens (≤200k tokens, incl. thinking)
+      cachingWrite: 0.2 * 10, // Base tier: $0.20 per 1M tokens (≤200k tokens)
+      cachingRead: 0.2 * 10, // Base tier: $0.20 per 1M tokens (≤200k tokens)
     },
   },
 ];
