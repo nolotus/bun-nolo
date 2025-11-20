@@ -1,4 +1,4 @@
-// File: integrations/openrouter/ai/models.js (假设路径)
+// File: integrations/openrouter/ai/models.js
 
 export const openrouterModels = [
   // --- Anthropic Models ---
@@ -23,7 +23,6 @@ export const openrouterModels = [
       input: 15 * 11,
       output: 75 * 11,
       webSearch: 10 * 11,
-      // 移动 cache 到这里
       cachingRead: 1.5 * 11,
       cachingWrite: 18.75 * 11,
     },
@@ -63,11 +62,11 @@ export const openrouterModels = [
 
     // Tier 1: Context ≤ 200K (Base Prices * 11)
     price: {
-      input: 3 * 11, // $3 * 11
-      output: 15 * 11, // $15 * 11
+      input: 3 * 11,
+      output: 15 * 11,
       webSearch: 10 * 11,
-      cachingRead: 0.3 * 11, // $0.30 * 11
-      cachingWrite: 3.75 * 11, // $3.75 * 11
+      cachingRead: 0.3 * 11,
+      cachingWrite: 3.75 * 11,
     },
 
     // Tier 2: Context > 200K (High Tier Prices * 11)
@@ -77,11 +76,11 @@ export const openrouterModels = [
         {
           minContext: 200001,
           price: {
-            input: 6 * 11, // $6 * 11
-            output: 22.5 * 11, // $22.50 * 11
-            webSearch: 10 * 11, // 保持一致
-            cachingRead: 0.6 * 11, // $0.60 * 11
-            cachingWrite: 7.5 * 11, // $7.50 * 11
+            input: 6 * 11,
+            output: 22.5 * 11,
+            webSearch: 10 * 11,
+            cachingRead: 0.6 * 11,
+            cachingWrite: 7.5 * 11,
           },
         },
       ],
@@ -102,11 +101,11 @@ export const openrouterModels = [
 
     // Tier 1: Context ≤ 200K (Base Prices * 13)
     price: {
-      input: 3 * 13, // $3 * 13
-      output: 15 * 13, // $15 * 13
+      input: 3 * 13,
+      output: 15 * 13,
       webSearch: 10 * 13,
-      cachingRead: 0.3 * 13, // $0.30 * 13
-      cachingWrite: 3.75 * 13, // $3.75 * 13
+      cachingRead: 0.3 * 13,
+      cachingWrite: 3.75 * 13,
     },
 
     // Tier 2: Context > 200K (High Tier Prices * 13)
@@ -116,11 +115,11 @@ export const openrouterModels = [
         {
           minContext: 200001,
           price: {
-            input: 6 * 13, // $6 * 13
-            output: 22.5 * 13, // $22.50 * 13
+            input: 6 * 13,
+            output: 22.5 * 13,
             webSearch: 10 * 13,
-            cachingRead: 0.6 * 13, // $0.60 * 13
-            cachingWrite: 7.5 * 13, // $7.50 * 13
+            cachingRead: 0.6 * 13,
+            cachingWrite: 7.5 * 13,
           },
         },
       ],
@@ -165,7 +164,7 @@ export const openrouterModels = [
     price: {
       input: 0.6 * 11,
       output: 2.5 * 11,
-      cachingRead: 0.15 * 11, // 注意这里如果原来单位不一样，需确认
+      cachingRead: 0.15 * 11,
     },
     maxOutputTokens: 262144,
     contextWindow: 262144,
@@ -189,6 +188,19 @@ export const openrouterModels = [
   {
     name: "openai/gpt-5.1",
     displayName: "OpenAI: GPT-5.1",
+    hasVision: true,
+    price: {
+      input: 1.25 * 11,
+      output: 10 * 11,
+      webSearch: 10 * 11,
+    },
+    maxOutputTokens: 200000,
+    contextWindow: 400000,
+    supportsTool: true,
+  },
+  {
+    name: "openai/gpt-5.1-codex",
+    displayName: "OpenAI: GPT-5.1-Codex",
     hasVision: true,
     price: {
       input: 1.25 * 11,
