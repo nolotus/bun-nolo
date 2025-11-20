@@ -1,12 +1,10 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useTheme } from "app/theme";
 import copyToClipboard from "utils/clipboard";
-import * as docx from "docx";
 import { Tooltip } from "render/web/ui/Tooltip";
-import MermaidContent from "./MermaidContent";
-import ReactECharts from "echarts-for-react";
 import ReactLiveBlock, { createLiveScope } from "./ReactLiveBlock";
 import JsonBlock from "./JsonBlock";
+import MermaidContent from "./MermaidContent";
 import { BaseModal } from "render/web/ui/BaseModal";
 import {
   CheckIcon,
@@ -17,42 +15,34 @@ import {
   ChevronUpIcon,
   ScreenFullIcon,
 } from "@primer/octicons-react";
-import {
-  ReactFlow,
-  Background,
-  Controls,
-  MiniMap,
-  useNodesState,
-  useEdgesState,
-  addEdge,
-} from "@xyflow/react";
-import "@xyflow/react/dist/style.css";
-import "prismjs/components/prism-javascript";
-import "prismjs/components/prism-jsx";
-import "prismjs/components/prism-typescript";
-import "prismjs/components/prism-tsx";
-import "prismjs/components/prism-markdown";
-import "prismjs/components/prism-python";
-import "prismjs/components/prism-php";
-import "prismjs/components/prism-sql";
-import "prismjs/components/prism-java";
-import "prismjs/components/prism-json";
-import "prismjs/components/prism-yaml";
-import "prismjs/components/prism-mermaid";
-import "prismjs/components/prism-diff";
-import * as THREE from "three";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
 
-const xyFlowUtils = {
-  useNodesState,
-  useEdgesState,
-  addEdge,
-  ReactFlow,
-  Background,
-  Controls,
-  MiniMap,
+const loaders = {
+  chart: () => import("echarts-for-react"),
+  docx: () => import("docx"),
+  flow: () => import("@xyflow/react"),
+  three: () =>
+    Promise.all([
+      import("three"),
+      import("@react-three/fiber"),
+      import("@react-three/drei"),
+    ]),
 };
+
+const needChart = (lang: string, code: string) =>
+  /chart|echart|option\s*=/i.test(lang) || /ReactECharts/.test(code);
+
+const needDocx = (lang: string, code: string, flag?: string) =>
+  flag === "true" || /docx|Document|Packer|Paragraph/.test(lang + code);
+
+const needFlow = (lang: string, code: string) =>
+  /(flow|graph|dag)/i.test(lang) ||
+  /ReactFlow|MiniMap|useNodesState/.test(code);
+
+const needThree = (lang: string, code: string) =>
+  /(three|r3f|gltf|glb|3d)/i.test(lang) ||
+  /(Canvas|OrbitControls|useFrame|useThree|THREE|meshStandardMaterial)/i.test(
+    code
+  );
 
 const CodeBlock = ({ attributes, children, element }) => {
   const theme = useTheme();
@@ -60,6 +50,7 @@ const CodeBlock = ({ attributes, children, element }) => {
   const [showPreview, setShowPreview] = useState(element.preview === "true");
   const [isCollapsed, setIsCollapsed] = useState(element.collapsed === "true");
   const [isFullscreenOpen, setIsFullscreenOpen] = useState(false);
+  const [extraScope, setExtraScope] = useState<Record<string, any>>({});
 
   const [language, filename] = useMemo(() => {
     const lang = element.language || "";
@@ -68,49 +59,99 @@ const CodeBlock = ({ attributes, children, element }) => {
   }, [element.language]);
 
   const content = useMemo(() => {
-    const getText = (nodes) =>
+    const walk = (nodes) =>
       Array.isArray(nodes)
         ? nodes
-            .map((n) => {
-              if (!n) return "";
-              if (typeof n.text === "string") return n.text;
-              if (n.type === "code-line") return getText(n.children) + "\n";
-              if (Array.isArray(n.children)) return getText(n.children);
+            .map((node) => {
+              if (!node) return "";
+              if (typeof node.text === "string") return node.text;
+              if (node.type === "code-line") return walk(node.children) + "\n";
+              if (Array.isArray(node.children)) return walk(node.children);
               return "";
             })
             .join("")
         : "";
     try {
-      return getText(element.children).replace(/\n$/, "");
+      return walk(element.children).replace(/\n$/, "");
     } catch (err) {
       console.error("Extract code error:", err, element);
       return "";
     }
   }, [element.children]);
 
-  const handleCopy = () => {
-    copyToClipboard(content, {
-      onSuccess: () => {
-        setIsCopied(true);
-        setTimeout(() => setIsCopied(false), 2000);
-      },
-      onError: (err) => console.error("Failed to copy:", err),
-    });
-  };
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadDependencies() {
+      const scope: Record<string, any> = {};
+      const tasks: Promise<void>[] = [];
+
+      if (needChart(language, content)) {
+        tasks.push(
+          loaders.chart().then(({ default: ReactECharts }) => {
+            scope.ReactECharts = ReactECharts;
+          })
+        );
+      }
+
+      if (needDocx(language, content, element.useDocx)) {
+        tasks.push(
+          loaders.docx().then((docx) => {
+            scope.docx = docx;
+          })
+        );
+      }
+
+      if (needFlow(language, content)) {
+        tasks.push(
+          loaders.flow().then((flow) => {
+            Object.assign(scope, {
+              ReactFlow: flow.ReactFlow,
+              Background: flow.Background,
+              Controls: flow.Controls,
+              MiniMap: flow.MiniMap,
+              useNodesState: flow.useNodesState,
+              useEdgesState: flow.useEdgesState,
+              addEdge: flow.addEdge,
+            });
+          })
+        );
+      }
+
+      if (needThree(language, content)) {
+        tasks.push(
+          loaders.three().then(([THREE, fiber, drei]) => {
+            Object.assign(scope, {
+              THREE,
+              Canvas: fiber.Canvas,
+              useFrame: fiber.useFrame,
+              useThree: fiber.useThree,
+              OrbitControls: drei.OrbitControls,
+            });
+          })
+        );
+      }
+
+      try {
+        await Promise.all(tasks);
+        if (!cancelled) setExtraScope(scope);
+      } catch (err) {
+        console.error("Lazy dependency load failed:", err);
+      }
+    }
+
+    loadDependencies();
+    return () => {
+      cancelled = true;
+    };
+  }, [language, content, element.useDocx]);
 
   const liveScope = useMemo(
     () => ({
       ...createLiveScope(theme),
-      ReactECharts,
-      docx,
-      ...xyFlowUtils,
-      THREE,
-      Canvas,
-      useFrame,
-      useThree,
-      OrbitControls,
+      ...extraScope,
     }),
-    [theme]
+    [theme, extraScope]
   );
 
   const styles = `
@@ -161,7 +202,7 @@ const CodeBlock = ({ attributes, children, element }) => {
     .code-content {
       margin: 0;
       padding: var(--space-4);
-      font-family: 'SF Mono', 'Monaco', monospace;
+      font-family: 'SF Mono','Monaco',monospace;
       font-size: 14px;
       line-height: 1.6;
       color: var(--text);
@@ -169,13 +210,11 @@ const CodeBlock = ({ attributes, children, element }) => {
     }
     .preview-content { padding: 0; }
     .preview-content-fullscreen {
-      height: 100%;
       min-height: 70vh;
       display: flex;
       flex-direction: column;
     }
     .preview-content-fullscreen .live-preview-wrapper,
-    .preview-content-fullscreen .live-preview-wrapper.fullscreen-live,
     .preview-content-fullscreen .live-preview-content {
       flex: 1;
       min-height: 70vh;
@@ -207,10 +246,6 @@ const CodeBlock = ({ attributes, children, element }) => {
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      gap: var(--space-2);
-    }
-    .fullscreen-preview-body > .preview-content-fullscreen {
-      flex: 1;
     }
     .fullscreen-close-button {
       border: none;
@@ -221,7 +256,6 @@ const CodeBlock = ({ attributes, children, element }) => {
       cursor: pointer;
     }
     .fullscreen-close-button:hover { background: var(--primaryGhost); }
-    .react-flow__attribution { display: none; }
   `;
 
   const elementId = useMemo(
@@ -292,6 +326,16 @@ const CodeBlock = ({ attributes, children, element }) => {
       );
     }
     return null;
+  };
+
+  const handleCopy = () => {
+    copyToClipboard(content, {
+      onSuccess: () => {
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2000);
+      },
+      onError: (err) => console.error("Failed to copy:", err),
+    });
   };
 
   return (
