@@ -7,7 +7,6 @@ import { deepSeekModels } from "integrations/deepseek/models";
 import { googleModels } from "integrations/google/models";
 import { mistralModels } from "integrations/mistral/models";
 // import { openAIModels } from "integrations/openai/models";
-import { sambanovaModels } from "integrations/sambanova/models";
 import { openrouterModels } from "integrations/openrouter/models";
 import { xaiModels } from "integrations/xai/models";
 
@@ -30,6 +29,5 @@ export const ALL_MODELS: ModelWithProvider[] = [
   ...openrouterModels.map((m) => ({ ...m, provider: "openrouter" })),
   ...xaiModels.map((m) => ({ ...m, provider: "xai" })),
   ...deepSeekModels.map((m) => ({ ...m, provider: "deepseek" })),
-  ...sambanovaModels.map((m) => ({ ...m, provider: "sambanova" })),
   ...mistralModels.map((m) => ({ ...m, provider: "mistral" })),
 ];

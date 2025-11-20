@@ -5,7 +5,6 @@ import { googleModels } from "integrations/google/models";
 import { mistralModels } from "integrations/mistral/models";
 // import { openAIModels } from "integrations/openai/models";
 import { ollamaModels } from "integrations/ollama/models";
-import { sambanovaModels } from "integrations/sambanova/models";
 import { openrouterModels } from "integrations/openrouter/models";
 import { xaiModels } from "integrations/xai/models";
 
@@ -22,7 +21,6 @@ const allModels: Model[] = [
   ...mistralModels,
   // ...openAIModels,
   ...ollamaModels,
-  ...sambanovaModels,
   ...openrouterModels,
   ...xaiModels,
 ];
@@ -40,7 +38,6 @@ const MODEL_MAP = {
   deepseek: deepSeekModels,
   mistral: mistralModels,
   google: googleModels,
-  sambanova: sambanovaModels,
   // openai: openAIModels,
   openrouter: openrouterModels,
   xai: xaiModels,
@@ -79,9 +76,7 @@ const API_ENDPOINTS: Record<string, ProviderEndpointMap> = {
   ollama: {
     default: "http://localhost:11434/v1/chat/completions",
   },
-  sambanova: {
-    default: "https://api.sambanova.ai/v1/chat/completions",
-  },
+
   openrouter: {
     default: "https://openrouter.ai/api/v1/chat/completions",
   },

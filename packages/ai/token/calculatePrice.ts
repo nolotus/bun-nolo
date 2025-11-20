@@ -293,7 +293,6 @@ const calculateBasicCost = (
     case "mistral":
     case "xai":
     case "openrouter":
-    case "sambanova":
     default:
       return calculateSimpleCost(resolvedPrice, usage, externalPrice);
   }

@@ -12,8 +12,6 @@ export const getNoloKey = (
       return process.env.GOOGLE_API_KEY;
     case "deepseek":
       return process.env.DEEPSEEK_API_KEY;
-    case "sambanova":
-      return process.env.SAMBA_API_KEY;
     case "openrouter":
       return process.env.OPENROUTER_API_KEY;
     case "openai":
