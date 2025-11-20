@@ -18,6 +18,3 @@ export const useModal = <T,>() => {
 
   return { visible, open, close, modalState };
 };
-
-
-
