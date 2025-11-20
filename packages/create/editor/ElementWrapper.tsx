@@ -23,8 +23,15 @@ const TEXT_BLOCK_TYPES = [
 
 const LazyCodeBlock = lazy(() => import("render/web/elements/CodeBlock"));
 
-export const ElementWrapper: React.FC<any> = (props) => {
-  const { attributes, children, element } = props;
+interface ElementWrapperProps {
+  attributes: any;
+  children: any;
+  element: any;
+  isStreaming?: boolean;
+}
+
+export const ElementWrapper: React.FC<ElementWrapperProps> = (props) => {
+  const { attributes, children, element, isStreaming = false } = props;
   const editor = useSlateStatic();
 
   const getStyle = (style: React.CSSProperties = {}) => ({
@@ -43,7 +50,11 @@ export const ElementWrapper: React.FC<any> = (props) => {
   if (element.type === CodeBlockType) {
     return (
       <Suspense fallback={<pre className="code-loading">代码块加载中...</pre>}>
-        <LazyCodeBlock attributes={attributes} element={element}>
+        <LazyCodeBlock
+          attributes={attributes}
+          element={element}
+          isStreaming={isStreaming}
+        >
           {children}
         </LazyCodeBlock>
       </Suspense>

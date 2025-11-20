@@ -44,10 +44,24 @@ const needThree = (lang: string, code: string) =>
     code
   );
 
-const CodeBlock = ({ attributes, children, element }) => {
+interface CodeBlockProps {
+  attributes: any;
+  children: any;
+  element: any;
+  isStreaming?: boolean;
+}
+
+const CodeBlock = ({
+  attributes,
+  children,
+  element,
+  isStreaming = false,
+}: CodeBlockProps) => {
   const theme = useTheme();
   const [isCopied, setIsCopied] = useState(false);
-  const [showPreview, setShowPreview] = useState(element.preview === "true");
+  const [showPreview, setShowPreview] = useState(
+    !isStreaming && element.preview === "true"
+  );
   const [isCollapsed, setIsCollapsed] = useState(element.collapsed === "true");
   const [isFullscreenOpen, setIsFullscreenOpen] = useState(false);
   const [extraScope, setExtraScope] = useState<Record<string, any>>({});
@@ -154,6 +168,12 @@ const CodeBlock = ({ attributes, children, element }) => {
     [theme, extraScope]
   );
 
+  useEffect(() => {
+    if (!isStreaming && element.preview === "true") {
+      setShowPreview(true);
+    }
+  }, [isStreaming, element.preview]);
+
   const styles = `
     .code-block-wrapper {
       margin: var(--space-6) 0;
@@ -199,6 +219,10 @@ const CodeBlock = ({ attributes, children, element }) => {
       color: var(--text);
       background: var(--primaryGhost);
     }
+    .action-button[disabled] {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
     .code-content {
       margin: 0;
       padding: var(--space-4);
@@ -209,6 +233,14 @@ const CodeBlock = ({ attributes, children, element }) => {
       overflow-x: auto;
     }
     .preview-content { padding: 0; }
+    .preview-placeholder {
+      padding: var(--space-4);
+      font-size: 14px;
+      color: var(--textSecondary);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
     .preview-content-fullscreen {
       min-height: 70vh;
       display: flex;
@@ -263,6 +295,13 @@ const CodeBlock = ({ attributes, children, element }) => {
     [element.id]
   );
 
+  const renderPlaceholder = () => (
+    <div className="preview-content preview-placeholder">
+      <EyeIcon size={16} />
+      <span>代码生成中，请稍候…</span>
+    </div>
+  );
+
   const renderPreview = ({
     previewMode = showPreview,
     collapsed = isCollapsed,
@@ -275,6 +314,10 @@ const CodeBlock = ({ attributes, children, element }) => {
     const wrapperClass = `preview-content${
       fullscreen ? " preview-content-fullscreen" : ""
     }`;
+
+    if (isStreaming) {
+      return renderPlaceholder();
+    }
 
     if (language === "json" && previewMode && content && !collapsed) {
       return (
@@ -355,10 +398,19 @@ const CodeBlock = ({ attributes, children, element }) => {
             )}
           </div>
           <div className="action-buttons">
-            <Tooltip content={showPreview ? "显示代码" : "显示预览"}>
+            <Tooltip
+              content={
+                isStreaming
+                  ? "生成中，预览稍后可用"
+                  : showPreview
+                    ? "显示代码"
+                    : "显示预览"
+              }
+            >
               <button
-                onClick={() => setShowPreview(!showPreview)}
+                onClick={() => !isStreaming && setShowPreview(!showPreview)}
                 className={`action-button ${showPreview ? "active" : ""}`}
+                disabled={isStreaming}
               >
                 {showPreview ? <CodeIcon size={16} /> : <EyeIcon size={16} />}
               </button>
@@ -384,6 +436,7 @@ const CodeBlock = ({ attributes, children, element }) => {
               <button
                 onClick={() => setIsFullscreenOpen(true)}
                 className="action-button"
+                disabled={isStreaming}
               >
                 <ScreenFullIcon size={16} />
               </button>
