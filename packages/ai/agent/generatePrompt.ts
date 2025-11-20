@@ -31,6 +31,7 @@ export const generatePrompt = (options: {
     viewport,
     mobileBreakpoint = 768,
   } = options;
+
   const safeLanguage =
     options.language ??
     (typeof navigator !== "undefined" ? navigator.language : "en");
@@ -80,7 +81,8 @@ export const generatePrompt = (options: {
   2. Provide sensible default/mock data in the ECharts \`option\` object so that the chart renders even without external data.
   3. Expose chart size via props (for example, \`chartWidth\` and \`chartHeight\`) with reasonable default values.
   4. Add brief comments explaining key parts of the chart configuration and important props.`,
-    `- For three.js / @react-three/fiber previews, the scope already provides \`THREE\`, \`Canvas\`, \`useFrame\`, \`useThree\`, and \`OrbitControls\`. Follow the same React preview rules above.`,
+    `- For three.js / @react-three/fiber previews, the scope already provides \`THREE\`, \`Canvas\`, \`useFrame\`, \`useThree\`, and \`OrbitControls\`. Apply the same React preview rules and give the 3D container a responsive height (e.g. \`style={{ minHeight: '70vh' }}\` or \`flex: 1\`) when fullscreen rendering is expected.`,
+    `- React Flow previews are supported via \`ReactFlow\`, \`Background\`, \`Controls\`, \`MiniMap\`, \`useNodesState\`, \`useEdgesState\`, and \`addEdge\` (from @xyflow/react). Use them for流程图、依赖关系、DAG/节点编辑等场景，并提供默认的 nodes/edges 以便示例直接渲染，同时遵守上述 React 预览规则。`,
     "- Adaptive wording: Match the user's language level and tone; use plain, easy-to-understand phrasing. If the user is casual or chatty, reply in simple, conversational sentences.",
     "- Jargon handling: When technical terms appear, add a one-sentence plain-language explanation; include a relatable example or analogy when helpful.",
   ].join("\n");

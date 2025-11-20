@@ -168,6 +168,26 @@ const CodeBlock = ({ attributes, children, element }) => {
       overflow-x: auto;
     }
     .preview-content { padding: 0; }
+    .preview-content-fullscreen {
+      height: 100%;
+      min-height: 70vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .preview-content-fullscreen .live-preview-wrapper,
+    .preview-content-fullscreen .live-preview-wrapper.fullscreen-live,
+    .preview-content-fullscreen .live-preview-content {
+      flex: 1;
+      min-height: 70vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .preview-content-fullscreen .react-live-preview,
+    .preview-content-fullscreen canvas,
+    .preview-content-fullscreen .mermaid {
+      flex: 1;
+      width: 100%;
+    }
     .fullscreen-preview-shell {
       display: flex;
       flex-direction: column;
@@ -183,8 +203,14 @@ const CodeBlock = ({ attributes, children, element }) => {
     }
     .fullscreen-preview-body {
       flex: 1;
-      padding: var(--space-4);
-      overflow: auto;
+      padding: var(--space-2);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+    .fullscreen-preview-body > .preview-content-fullscreen {
+      flex: 1;
     }
     .fullscreen-close-button {
       border: none;
@@ -194,9 +220,7 @@ const CodeBlock = ({ attributes, children, element }) => {
       border-radius: var(--space-1);
       cursor: pointer;
     }
-    .fullscreen-close-button:hover {
-      background: var(--primaryGhost);
-    }
+    .fullscreen-close-button:hover { background: var(--primaryGhost); }
     .react-flow__attribution { display: none; }
   `;
 
@@ -208,20 +232,27 @@ const CodeBlock = ({ attributes, children, element }) => {
   const renderPreview = ({
     previewMode = showPreview,
     collapsed = isCollapsed,
+    fullscreen = false,
   }: {
     previewMode?: boolean;
     collapsed?: boolean;
+    fullscreen?: boolean;
   } = {}) => {
+    const wrapperClass = `preview-content${
+      fullscreen ? " preview-content-fullscreen" : ""
+    }`;
+
     if (language === "json" && previewMode && content && !collapsed) {
       return (
-        <div className="preview-content">
+        <div className={wrapperClass}>
           <JsonBlock rawCode={content} showPreview={previewMode} />
         </div>
       );
     }
+
     if (language === "mermaid") {
       return (
-        <div className="preview-content">
+        <div className={wrapperClass}>
           <MermaidContent
             elementId={elementId}
             content={content}
@@ -233,23 +264,26 @@ const CodeBlock = ({ attributes, children, element }) => {
         </div>
       );
     }
+
     if (
       (language === "jsx" || language === "tsx") &&
       previewMode &&
       !collapsed
     ) {
       return (
-        <div className="preview-content">
+        <div className={wrapperClass}>
           <ReactLiveBlock
             rawCode={content}
             language={language}
             theme={theme}
             showPreview={previewMode}
             liveScope={liveScope}
+            className={fullscreen ? "fullscreen-live" : undefined}
           />
         </div>
       );
     }
+
     if (!collapsed) {
       return (
         <pre className={`code-content language-${language || "plaintext"}`}>
@@ -265,6 +299,7 @@ const CodeBlock = ({ attributes, children, element }) => {
       <style href="code-block" precedence="medium">
         {styles}
       </style>
+
       <div {...attributes} className="code-block-wrapper">
         <div className="code-block-actions">
           <div style={{ display: "flex", alignItems: "center" }}>
@@ -341,7 +376,11 @@ const CodeBlock = ({ attributes, children, element }) => {
             </button>
           </div>
           <div className="fullscreen-preview-body">
-            {renderPreview({ previewMode: true, collapsed: false })}
+            {renderPreview({
+              previewMode: true,
+              collapsed: false,
+              fullscreen: true,
+            })}
           </div>
         </div>
       </BaseModal>
