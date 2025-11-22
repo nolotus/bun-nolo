@@ -10,8 +10,6 @@ import settingReducer from "app/settings/settingSlice";
 // 假设 mobile store 也需要 page 的功能
 import pageReducer, { pageListenerMiddleware } from "render/page/pageSlice"; // <-- 【第1步】导入 reducer 和 middleware
 
-import reactotron from "../../ReactotronConfig";
-
 // 预加载状态，移动端通常为空对象
 const preloadedState = {};
 
@@ -36,10 +34,6 @@ export const mobileStore = configureStore({
 
   // Enhancers 配置保持不变，它与 middleware 是独立配置的
   enhancers: (getDefaultEnhancers) => {
-    // 确保 reactotron.createEnhancer 是一个函数再调用
-    if (typeof reactotron.createEnhancer === "function") {
-      return getDefaultEnhancers().concat(reactotron.createEnhancer());
-    }
     return getDefaultEnhancers();
   },
 
