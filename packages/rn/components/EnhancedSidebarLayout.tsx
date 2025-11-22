@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useMemo } from "react";
 import {
   View,
   StyleSheet,
@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
 import {
   useResponsiveLayout,
   useDrawerAnimation,
@@ -18,11 +17,9 @@ import SidebarContentProvider, {
 } from "./shared/SidebarContentProvider";
 import { Z_INDEX } from "../zIndexLayers";
 
-// 增强的侧边栏布局组件 - 统一处理所有响应式逻辑
 interface EnhancedSidebarLayoutProps {
   children: React.ReactNode;
   sidebarContentConfig: SidebarContentConfig;
-  // 可选的自定义状态管理
   externalLayoutState?: {
     screenWidth: number;
     isDrawerOpen: boolean;
@@ -33,7 +30,6 @@ interface EnhancedSidebarLayoutProps {
     setSidebarWidth: (width: number) => void;
     isLargeScreen: boolean;
   };
-  // 可选的切换函数覆盖
   onToggleSidebar?: () => void;
 }
 
@@ -45,7 +41,6 @@ const EnhancedSidebarLayout: React.FC<EnhancedSidebarLayoutProps> = ({
 }) => {
   const insets = useSafeAreaInsets();
 
-  // 使用外部状态或内部状态
   const internalLayoutState = useResponsiveLayout();
   const layoutState = externalLayoutState || internalLayoutState;
 
@@ -66,25 +61,35 @@ const EnhancedSidebarLayout: React.FC<EnhancedSidebarLayoutProps> = ({
     sidebarWidth
   );
 
-  // 默认的切换逻辑
-  const defaultToggleSidebar = () => {
+  const defaultToggleSidebar = useCallback(() => {
     if (isLargeScreen) {
       setIsDesktopDrawerCollapsed(!isDesktopDrawerCollapsed);
     } else {
-      const newState = !isDrawerOpen;
-      setIsDrawerOpen(newState);
+      setIsDrawerOpen(!isDrawerOpen);
     }
-  };
+  }, [
+    isLargeScreen,
+    isDesktopDrawerCollapsed,
+    isDrawerOpen,
+    setIsDesktopDrawerCollapsed,
+    setIsDrawerOpen,
+  ]);
 
   const toggleSidebar = onToggleSidebar || defaultToggleSidebar;
 
-  const handleResizeSidebar = (newWidth: number) => {
-    setSidebarWidth(newWidth);
-  };
+  const handleResizeSidebar = useCallback(
+    (newWidth: number) => {
+      setSidebarWidth(newWidth);
+    },
+    [setSidebarWidth]
+  );
 
-  // 渲染桌面端侧边栏
-  const renderDesktopSidebar = () => {
-    if (isDesktopDrawerCollapsed) return null;
+  const headerTotalHeight = useMemo(() => insets.top + 60, [insets.top]);
+
+  const desktopSidebar = useMemo(() => {
+    if (isDesktopDrawerCollapsed) {
+      return <View style={[styles.desktopSidebarPlaceholder]} />;
+    }
 
     return (
       <View style={[styles.desktopSidebar, { width: sidebarWidth }]}>
@@ -95,14 +100,15 @@ const EnhancedSidebarLayout: React.FC<EnhancedSidebarLayoutProps> = ({
         />
       </View>
     );
-  };
+  }, [
+    isDesktopDrawerCollapsed,
+    sidebarWidth,
+    sidebarContentConfig,
+    handleResizeSidebar,
+  ]);
 
-  // 渲染移动端侧边栏
-  const renderMobileSidebar = () => {
-    // 计算header的总高度：安全区域顶部 + header基础高度
-    const headerTotalHeight = insets.top + 60;
-
-    return (
+  const mobileSidebar = useMemo(
+    () => (
       <RNAnimated.View
         style={[
           styles.mobileSidebar,
@@ -110,54 +116,62 @@ const EnhancedSidebarLayout: React.FC<EnhancedSidebarLayoutProps> = ({
             width: sidebarWidth,
             transform: [{ translateX: drawerTranslateX }],
             pointerEvents: isDrawerOpen ? "auto" : "none",
-            top: headerTotalHeight, // 动态计算，避免被header遮挡
+            top: headerTotalHeight,
             bottom: insets.bottom,
           },
         ]}
       >
         <SidebarContentProvider config={sidebarContentConfig} />
       </RNAnimated.View>
-    );
-  };
+    ),
+    [
+      sidebarWidth,
+      drawerTranslateX,
+      isDrawerOpen,
+      headerTotalHeight,
+      insets.bottom,
+      sidebarContentConfig,
+    ]
+  );
 
-  // 渲染遮罩层
-  const renderOverlay = () => (
-    <RNAnimated.View
-      style={[
-        styles.overlay,
-        {
-          opacity: overlayOpacity,
-          pointerEvents: isDrawerOpen ? "auto" : "none",
-        },
-      ]}
-    >
-      <TouchableOpacity
-        style={styles.overlayTouchable}
-        onPress={toggleSidebar}
-        activeOpacity={1}
-      />
-    </RNAnimated.View>
+  const overlay = useMemo(
+    () => (
+      <RNAnimated.View
+        style={[
+          styles.overlay,
+          {
+            opacity: overlayOpacity,
+            pointerEvents: isDrawerOpen ? "auto" : "none",
+          },
+        ]}
+      >
+        <TouchableOpacity
+          style={styles.overlayTouchable}
+          onPress={toggleSidebar}
+          activeOpacity={1}
+        />
+      </RNAnimated.View>
+    ),
+    [overlayOpacity, isDrawerOpen, toggleSidebar]
   );
 
   return (
-    <GestureHandlerRootView style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.appLayout}>
-        {/* 桌面端布局 */}
         {isLargeScreen ? (
           <>
-            {renderDesktopSidebar()}
+            {desktopSidebar}
             <View style={styles.mainContent}>{children}</View>
           </>
         ) : (
-          /* 移动端布局 */
           <>
             <View style={styles.mainContent}>{children}</View>
-            {renderMobileSidebar()}
-            {isDrawerOpen && renderOverlay()}
+            {mobileSidebar}
+            {isDrawerOpen && overlay}
           </>
         )}
       </View>
-    </GestureHandlerRootView>
+    </View>
   );
 };
 
@@ -181,6 +195,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
+  desktopSidebarPlaceholder: {
+    width: 0,
+  },
   mobileSidebar: {
     position: "absolute",
     left: 0,
@@ -193,7 +210,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 2, height: 0 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    zIndex: Z_INDEX.RN_SIDEBAR_MOBILE, // 提高zIndex，确保在header之上
+    zIndex: Z_INDEX.RN_SIDEBAR_MOBILE,
   },
   mainContent: {
     flex: 1,
@@ -206,7 +223,7 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
-    zIndex: Z_INDEX.RN_SIDEBAR_OVERLAY, // 在header之上，但在侧边栏之下
+    zIndex: Z_INDEX.RN_SIDEBAR_OVERLAY,
   },
   overlayTouchable: {
     flex: 1,
