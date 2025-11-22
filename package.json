@@ -71,7 +71,7 @@
     "react-native-gesture-handler": "^2.27.1",
     "react-native-keychain": "^9.2.2",
     "react-native-safe-area-context": "^5.2.0",
-    "react-native-svg": "^15.9.0",
+    "react-native-svg": "^15.15.0",
     "react-redux": "^9.2.0",
     "react-router": "^6.23.1",
     "react-router-dom": "^6.23.1",
