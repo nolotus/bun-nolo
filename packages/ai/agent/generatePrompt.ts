@@ -61,30 +61,27 @@ export const generatePrompt = (options: {
   \`\`\``,
     `- For any React UI demo that should run in the live preview (including normal webpages/components and ReactECharts charts), follow these rules:
 
-  1. Do NOT include \`import React from 'react';\`. React and common Hooks (such as \`useState\` and \`useEffect\`) are already provided in the execution scope.
-  2. Do NOT include any \`export\` statements. The snippet is only used for preview and does not need to be exported.
-  3. Component usage restrictions:
-     - You MAY use standard HTML elements (e.g. \`<div>\`, \`<p>\`, \`<h1>\`, \`<span>\`, \`<button>\`, \`<input>\`, \`<img>\`, \`<ul>\`, \`<li>\`, etc.).
-     - You MAY use the \`ReactECharts\` component when you need charts (it is provided in the execution scope).
-     - You MUST NOT use any other custom React components (e.g. \`<Button>\`, \`<Icon>\`, \`<Modal>\`, etc.).
-  4. The snippet should primarily define a single React function component. You may also define small helper functions or variables either inside or outside the component.
-  5. Do NOT call \`render()\` and do NOT end the snippet with a JSX usage of the component (e.g. do NOT put \`<MyComponent />\` at the end). The platform will handle rendering; the snippet should end at the function component definition.
-  6. If the component accepts props, define them clearly in the function signature (for example, \`function MyComponent({ title, count = 0 })\`) and demonstrate how these props are used in the JSX.
-  7. Make sure the entire snippet is valid JavaScript/JSX code.
-  8. Always wrap live-preview React code in a Markdown fenced code block with the \`tsx preview\` language/meta, for example:
-  \`\`\`tsx preview
-  // React component code here
-  \`\`\``,
-    `- When the user wants to build a webpage or UI with React, apply the above rules and generate a React function component using only standard HTML elements (no custom UI libraries).`,
+  1. Do NOT include \`import React from 'react';\`. React and Hooks (such as \`useState\` and \`useEffect\`) are already provided in the execution scope.
+  2. Do NOT include any \`export\` statements.
+  3. You MUST declare exactly one top-level React function component named \`Example\`. This is the component that will be rendered in preview and production.
+  4. You MAY define helper constants/functions (lowercase or camelCase) inside or outside \`Example\`, but DO NOT define additional capitalized components.
+  5. Component usage restrictions:
+     - You MAY use standard HTML elements (e.g. \`<div>\`, \`<p>\`, \`<h1>\`, etc.).
+     - You MAY use the \`ReactECharts\` component when you need charts (it is provided).
+     - You MUST NOT use other custom React components (e.g. \`<Button>\`, \`<Modal>\`).
+  6. The snippet should end with the definition of \`function Example(...) { ... }\` and must NOT call \`render()\` or output JSX usage like \`<Example />\`.
+  7. If the component accepts props, define them in the signature (e.g. \`function Example({ title })\`) and show how they are used.
+  8. Always wrap live-preview React code in a Markdown fenced code block with the \`tsx preview\` language/meta.`,
+    `- When the user wants to build a webpage or UI with React, apply the above rules and generate the single \`Example\` component.`,
     `- When the user explicitly asks for a chart example, apply the same rules but additionally:
   1. Use the \`ReactECharts\` component for rendering charts.
   2. Provide sensible default/mock data in the ECharts \`option\` object so that the chart renders even without external data.
-  3. Expose chart size via props (for example, \`chartWidth\` and \`chartHeight\`) with reasonable default values.
+  3. Expose chart size via props (e.g. \`chartWidth\`, \`chartHeight\`) with reasonable defaults.
   4. Add brief comments explaining key parts of the chart configuration and important props.`,
-    `- For three.js / @react-three/fiber previews, the scope already provides \`THREE\`, \`Canvas\`, \`useFrame\`, \`useThree\`, and \`OrbitControls\`. Apply the same React preview rules and give the 3D container a responsive height (e.g. \`style={{ minHeight: '70vh' }}\` or \`flex: 1\`) when fullscreen rendering is expected.`,
-    `- React Flow previews are supported via \`ReactFlow\`, \`Background\`, \`Controls\`, \`MiniMap\`, \`useNodesState\`, \`useEdgesState\`, and \`addEdge\` (from @xyflow/react). Use them for流程图、依赖关系、DAG/节点编辑等场景，并提供默认的 nodes/edges 以便示例直接渲染，同时遵守上述 React 预览规则。`,
-    "- Adaptive wording: Match the user's language level and tone; use plain, easy-to-understand phrasing. If the user is casual or chatty, reply in simple, conversational sentences.",
-    "- Jargon handling: When technical terms appear, add a one-sentence plain-language explanation; include a relatable example or analogy when helpful.",
+    `- For three.js / @react-three/fiber previews, the scope already provides \`THREE\`, \`Canvas\`, \`useFrame\`, \`useThree\`, and \`OrbitControls\`. Apply the same React preview rules and give the 3D container a responsive height (e.g. \`style={{ minHeight: '70vh' }}\`).`,
+    `- React Flow previews are supported via \`ReactFlow\`, \`Background\`, \`Controls\`, \`MiniMap\`, \`useNodesState\`, \`useEdgesState\`, and \`addEdge\`. Follow the same single-\`Example\` rule.`,
+    "- Adaptive wording: Match the user's language level and tone; use plain, easy-to-understand phrasing.",
+    "- Jargon handling: When technical terms appear, add a one-sentence plain-language explanation.",
   ].join("\n");
 
   const baseInfo = [

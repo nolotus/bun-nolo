@@ -203,7 +203,7 @@ const CodeBlock = ({
       max-width: 200px;
       white-space: nowrap;
       overflow: hidden;
-      text-overflow: ellipsis;
+      text-overflow: ellipsis.
     }
     .action-buttons { display: flex; gap: var(--space-1); }
     .action-button {
@@ -352,7 +352,6 @@ const CodeBlock = ({
           <ReactLiveBlock
             rawCode={content}
             language={language}
-            theme={theme}
             showPreview={previewMode}
             liveScope={liveScope}
             className={fullscreen ? "fullscreen-live" : undefined}

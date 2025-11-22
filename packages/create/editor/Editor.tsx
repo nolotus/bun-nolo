@@ -5,6 +5,7 @@ import {
   createEditor,
   Descendant,
   Node,
+  Range,
 } from "slate";
 import { withHistory, History } from "slate-history";
 import { Editable, Slate, withReact, ReactEditor } from "slate-react";
@@ -27,6 +28,7 @@ import { EditorToolbar } from "./EditorToolbar";
 import { HoveringToolbar } from "./HoveringToolbar";
 import { TableContextMenu } from "./TableContextMenu";
 import { withTables } from "./withTables";
+import { hasPlainCodeBlock } from "./utils/hasPlainCodeBlock";
 
 type CustomEditor = ReactEditor &
   History & {
@@ -68,15 +70,25 @@ const NoloEditor: React.FC<NoloEditorProps> = ({
 
   const wordCountEnabled = useAppSelector(selectEditorWordCountEnabled);
   const [wordCount, setWordCount] = useState(() => countWords(initialValue));
+  const [docVersion, setDocVersion] = useState(0);
+  const [hasPlainCode, setHasPlainCode] = useState(() =>
+    hasPlainCodeBlock(initialValue)
+  );
 
   const decorate = useDecorate(editor);
   const onKeyDown = useOnKeyDown(editor);
 
+  const highlightEnabled = !isStreaming && hasPlainCode;
+
   const renderElement = useCallback(
     (elementProps: any) => (
-      <ElementWrapper {...elementProps} isStreaming={isStreaming} />
+      <ElementWrapper
+        {...elementProps}
+        isStreaming={isStreaming}
+        highlightEnabled={highlightEnabled}
+      />
     ),
-    [isStreaming]
+    [isStreaming, highlightEnabled]
   );
 
   return (
@@ -89,6 +101,8 @@ const NoloEditor: React.FC<NoloEditorProps> = ({
             (op) => op.type !== "set_selection"
           );
           if (isAstChange) {
+            setDocVersion((v) => v + 1);
+            setHasPlainCode(hasPlainCodeBlock(value));
             setWordCount(countWords(value));
             if (onChange) {
               onChange(value);
@@ -103,7 +117,10 @@ const NoloEditor: React.FC<NoloEditorProps> = ({
             <TableContextMenu />
           </div>
         )}
-        <SetNodeToDecorations />
+        <SetNodeToDecorations
+          highlightEnabled={highlightEnabled}
+          docVersion={docVersion}
+        />
         <Editable
           renderPlaceholder={({ attributes }) => (
             <div {...attributes}>
