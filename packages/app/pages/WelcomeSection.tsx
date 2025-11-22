@@ -1,6 +1,5 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
-// 更新了图标以匹配新的功能描述
 import { LuBrainCircuit, LuPalette, LuStore } from "react-icons/lu";
 import { useTranslation } from "react-i18next";
 
@@ -40,20 +39,50 @@ const WelcomeSection = () => {
     },
   ];
 
+  const gradients = [
+    "linear-gradient(135deg, #2dd4bf, #06b6d4)",
+    "linear-gradient(135deg, #a78bfa, #8b5cf6)",
+    "linear-gradient(135deg, #fb923c, #f97316)",
+  ];
+
+  const highlightStyles = [
+    {
+      bg: "rgba(45, 212, 191, 0.08)",
+      color: "#14b8a6",
+      border: "rgba(45, 212, 191, 0.12)",
+    },
+    {
+      bg: "rgba(139, 92, 246, 0.08)",
+      color: "#8b5cf6",
+      border: "rgba(139, 92, 246, 0.12)",
+    },
+    {
+      bg: "rgba(251, 146, 60, 0.08)",
+      color: "#f97316",
+      border: "rgba(251, 146, 60, 0.12)",
+    },
+  ];
+
   return (
     <section className="welcome-section">
       <div className="ambient-light"></div>
 
       <div className="hero-content">
-        <h1 className="hero-title">
+        <h1 className="hero-title fade-up" style={{ animationDelay: "0.2s" }}>
           <span className="gradient-text">{t("welcomeSection.heroTitle")}</span>
         </h1>
 
-        <p className="hero-description">
+        <p
+          className="hero-description fade-up"
+          style={{ animationDelay: "0.4s" }}
+        >
           {t("welcomeSection.heroDescription")}
         </p>
 
-        <div className="cta-container">
+        <div
+          className="cta-container fade-up"
+          style={{ animationDelay: "0.6s" }}
+        >
           <NavLink to="/signup" className="cta-button">
             {t("welcomeSection.ctaButton")}
           </NavLink>
@@ -64,11 +93,14 @@ const WelcomeSection = () => {
         {features.map((feature, index) => (
           <div
             key={index}
-            className="feature-card"
+            className="feature-card fade-up"
             style={{ animationDelay: `${0.5 + index * 0.15}s` }}
           >
             <div className="feature-header">
-              <div className={`feature-icon-container gradient-${index}`}>
+              <div
+                className="feature-icon-container"
+                style={{ background: gradients[index] }}
+              >
                 {feature.icon}
               </div>
               <h3 className="feature-title">{feature.title}</h3>
@@ -78,14 +110,22 @@ const WelcomeSection = () => {
               <p className="feature-description">{feature.description}</p>
 
               <div className="feature-highlights">
-                {feature.highlights.map((highlight, hIndex) => (
-                  <span
-                    key={hIndex}
-                    className={`highlight-tag highlight-${index}`}
-                  >
-                    {highlight}
-                  </span>
-                ))}
+                {feature.highlights.map((highlight, hIndex) => {
+                  const s = highlightStyles[index];
+                  return (
+                    <span
+                      key={hIndex}
+                      className="highlight-tag"
+                      style={{
+                        background: s.bg,
+                        color: s.color,
+                        borderColor: s.border,
+                      }}
+                    >
+                      {highlight}
+                    </span>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -103,10 +143,7 @@ const WelcomeSection = () => {
 
         .ambient-light {
           position: absolute;
-          top: -50%;
-          left: -50%;
-          right: -50%;
-          bottom: -50%;
+          inset: -50%;
           background: radial-gradient(
             circle at 50% 50%,
             var(--primaryGhost) 0%,
@@ -124,22 +161,9 @@ const WelcomeSection = () => {
           z-index: 2;
         }
 
-        .hero-title,
-        .hero-description,
-        .cta-container,
-        .feature-card {
-          animation: slideUpFadeIn 0.8s ease-out forwards;
+        .fade-up {
           opacity: 0;
-        }
-
-        .hero-title {
-          animation-delay: 0.2s;
-        }
-        .hero-description {
-          animation-delay: 0.4s;
-        }
-        .cta-container {
-          animation-delay: 0.6s;
+          animation: slideUpFadeIn 0.8s ease-out forwards;
         }
 
         .hero-title {
@@ -170,10 +194,8 @@ const WelcomeSection = () => {
           font-size: 1.35rem;
           line-height: 1.65;
           color: var(--textSecondary);
-          margin-bottom: var(--space-10);
+          margin: 0 auto var(--space-10);
           max-width: 680px;
-          margin-left: auto;
-          margin-right: auto;
           font-weight: 400;
         }
 
@@ -195,10 +217,8 @@ const WelcomeSection = () => {
         .cta-button::after {
           content: "";
           position: absolute;
-          top: 0;
+          inset: 0;
           left: -100%;
-          width: 100%;
-          height: 100%;
           background: linear-gradient(
             90deg,
             transparent,
@@ -212,14 +232,11 @@ const WelcomeSection = () => {
           transform: translateY(-2px);
           box-shadow: 0 7px 20px var(--primaryGhost);
         }
-
-        .cta-button:hover::after {
-          left: 100%;
-        }
+        .cta-button:hover::after { left: 100%; }
 
         .features-container {
           display: grid;
-          grid-template-columns: repeat(3, 1fr);
+          grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
           gap: var(--space-8);
           position: relative;
           z-index: 1;
@@ -238,9 +255,7 @@ const WelcomeSection = () => {
 
         .feature-card:hover {
           transform: translateY(-8px);
-          box-shadow:
-            0 20px 40px var(--shadowMedium),
-            0 0 0 1px var(--primary);
+          box-shadow: 0 20px 40px var(--shadowMedium), 0 0 0 1px var(--primary);
           border-color: var(--primary);
         }
 
@@ -261,21 +276,11 @@ const WelcomeSection = () => {
           color: white;
         }
 
-        .gradient-0 {
-          background: linear-gradient(135deg, #2dd4bf, #06b6d4);
-        }
-        .gradient-1 {
-          background: linear-gradient(135deg, #a78bfa, #8b5cf6);
-        }
-        .gradient-2 {
-          background: linear-gradient(135deg, #fb923c, #f97316);
-        }
-
         .feature-content {
-          flex-grow: 1;
           display: flex;
           flex-direction: column;
           gap: var(--space-5);
+          flex-grow: 1;
         }
 
         .feature-title {
@@ -304,26 +309,8 @@ const WelcomeSection = () => {
           border-radius: 12px;
           font-size: 0.9rem;
           font-weight: 500;
-          transition:
-            transform 0.3s ease,
-            box-shadow 0.3s ease;
+          transition: transform 0.3s ease, box-shadow 0.3s ease;
           border: 1px solid;
-        }
-
-        .highlight-0 {
-          background: rgba(45, 212, 191, 0.08);
-          color: #14b8a6;
-          border-color: rgba(45, 212, 191, 0.12);
-        }
-        .highlight-1 {
-          background: rgba(139, 92, 246, 0.08);
-          color: #8b5cf6;
-          border-color: rgba(139, 92, 246, 0.12);
-        }
-        .highlight-2 {
-          background: rgba(251, 146, 60, 0.08);
-          color: #f97316;
-          border-color: rgba(251, 146, 60, 0.12);
         }
 
         .highlight-tag:hover {
@@ -332,74 +319,25 @@ const WelcomeSection = () => {
         }
 
         @keyframes slideUpFadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
         }
 
         @keyframes ambientPulse {
-          50% {
-            transform: scale(1.1);
-            opacity: 0.5;
-          }
-          0%,
-          100% {
-            transform: scale(1);
-            opacity: 0.3;
-          }
+          50% { transform: scale(1.1); opacity: 0.5; }
+          0%, 100% { transform: scale(1); opacity: 0.3; }
         }
 
-        @media (max-width: 1024px) {
-          .welcome-section {
-            padding: var(--space-12) var(--space-8);
-          }
-          .hero-title {
-            font-size: 2.8rem;
-          }
-          .features-container {
-            gap: var(--space-6);
-          }
-        }
         @media (max-width: 768px) {
-          .welcome-section {
-            padding: var(--space-10) var(--space-6);
-          }
+          .welcome-section { padding: var(--space-10) var(--space-6); }
           .hero-title {
             font-size: 2.4rem;
             flex-direction: column;
             gap: var(--space-3);
           }
-          .hero-description {
-            font-size: 1.2rem;
-          }
-          .features-container {
-            grid-template-columns: 1fr;
-            gap: var(--space-5);
-          }
-          .feature-card {
-            padding: var(--space-6);
-          }
-        }
-        @media (max-width: 480px) {
-          .welcome-section {
-            padding: var(--space-8) var(--space-4);
-          }
-          .hero-title {
-            font-size: 2rem;
-          }
-          .hero-description {
-            font-size: 1.1rem;
-            margin-bottom: var(--space-8);
-          }
-          .cta-button {
-            width: 100%;
-            padding: var(--space-4) var(--space-8);
-          }
+          .hero-description { font-size: 1.2rem; }
+          .feature-card { padding: var(--space-6); }
+          .cta-button { width: 100%; padding: var(--space-4) var(--space-8); }
         }
       `}</style>
     </section>

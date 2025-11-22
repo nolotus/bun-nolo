@@ -1,29 +1,25 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useCallback } from "react";
 import {
   Editor,
   Element as SlateElement,
   createEditor,
   Descendant,
   Node,
+  Range,
 } from "slate";
 import { withHistory, History } from "slate-history";
 import { Editable, Slate, withReact, ReactEditor } from "slate-react";
 
-// 导入 Redux hooks 和 selector
 import { useAppSelector } from "app/store";
 import { selectEditorWordCountEnabled } from "app/settings/settingSlice";
 
-// 导入重构后的语法高亮相关 hooks 和组件
 import { useDecorate, SetNodeToDecorations } from "./syntaxHighlighting";
-
-// 核心功能和插件
 import { toggleMark } from "./mark";
 import { useOnKeyDown } from "./useOnKeyDown";
 import { withLayout } from "./withLayout";
 import { withShortcuts } from "./withShortcuts";
 import { withLinks } from "./withLinks";
 
-// UI 组件和样式
 import { prismThemeCss } from "./theme/prismThemeCss";
 import { PlaceHolder } from "render/page/EditorPlaceHolder";
 import { renderLeaf } from "./renderLeaf";
@@ -32,8 +28,8 @@ import { EditorToolbar } from "./EditorToolbar";
 import { HoveringToolbar } from "./HoveringToolbar";
 import { TableContextMenu } from "./TableContextMenu";
 import { withTables } from "./withTables";
+import { hasPlainCodeBlock } from "./utils/hasPlainCodeBlock";
 
-// 定义自定义编辑器类型
 type CustomEditor = ReactEditor &
   History & {
     nodeToDecorations?: Map<SlateElement, Range[]>;
@@ -43,9 +39,9 @@ interface NoloEditorProps {
   initialValue: Descendant[];
   readOnly?: boolean;
   onChange?: (value: Descendant[]) => void;
+  isStreaming?: boolean;
 }
 
-// 字数统计函数
 const countWords = (nodes: Descendant[]): number => {
   const text = nodes.map((node) => Node.string(node)).join("\n");
   const matches = text.match(/[a-zA-Z0-9]+|[\u4e00-\u9fa5]/g);
@@ -56,6 +52,7 @@ const NoloEditor: React.FC<NoloEditorProps> = ({
   initialValue,
   readOnly = false,
   onChange,
+  isStreaming = false,
 }) => {
   const editor = useMemo(() => {
     const baseEditor = withTables(
@@ -71,14 +68,28 @@ const NoloEditor: React.FC<NoloEditorProps> = ({
     return baseEditor as CustomEditor;
   }, []);
 
-  // 从设置中获取是否显示字数统计
   const wordCountEnabled = useAppSelector(selectEditorWordCountEnabled);
-
-  // 字数统计 state
   const [wordCount, setWordCount] = useState(() => countWords(initialValue));
+  const [docVersion, setDocVersion] = useState(0);
+  const [hasPlainCode, setHasPlainCode] = useState(() =>
+    hasPlainCodeBlock(initialValue)
+  );
 
   const decorate = useDecorate(editor);
   const onKeyDown = useOnKeyDown(editor);
+
+  const highlightEnabled = !isStreaming && hasPlainCode;
+
+  const renderElement = useCallback(
+    (elementProps: any) => (
+      <ElementWrapper
+        {...elementProps}
+        isStreaming={isStreaming}
+        highlightEnabled={highlightEnabled}
+      />
+    ),
+    [isStreaming, highlightEnabled]
+  );
 
   return (
     <div className="nolo-editor-container">
@@ -86,15 +97,13 @@ const NoloEditor: React.FC<NoloEditorProps> = ({
         editor={editor}
         initialValue={initialValue}
         onChange={(value) => {
-          // 仅在 AST (文档结构) 变化时触发
           const isAstChange = editor.operations.some(
             (op) => op.type !== "set_selection"
           );
           if (isAstChange) {
-            // 更新字数统计
+            setDocVersion((v) => v + 1);
+            setHasPlainCode(hasPlainCodeBlock(value));
             setWordCount(countWords(value));
-
-            // 调用外部传入的 onChange
             if (onChange) {
               onChange(value);
             }
@@ -108,7 +117,10 @@ const NoloEditor: React.FC<NoloEditorProps> = ({
             <TableContextMenu />
           </div>
         )}
-        <SetNodeToDecorations />
+        <SetNodeToDecorations
+          highlightEnabled={highlightEnabled}
+          docVersion={docVersion}
+        />
         <Editable
           renderPlaceholder={({ attributes }) => (
             <div {...attributes}>
@@ -117,7 +129,7 @@ const NoloEditor: React.FC<NoloEditorProps> = ({
           )}
           readOnly={readOnly}
           decorate={decorate}
-          renderElement={ElementWrapper}
+          renderElement={renderElement}
           renderLeaf={renderLeaf}
           onKeyDown={onKeyDown}
           onDOMBeforeInput={(event: InputEvent) => {
@@ -140,12 +152,10 @@ const NoloEditor: React.FC<NoloEditorProps> = ({
         <style>{prismThemeCss}</style>
       </Slate>
 
-      {/* 只有在设置开启且非只读模式时才显示字数统计 */}
       {!readOnly && wordCountEnabled && (
         <div className="word-count-display">字数: {wordCount}</div>
       )}
 
-      {/* 编辑器容器和核心元素的样式 */}
       <style>{`
         .nolo-editor-container {
           position: relative;
@@ -179,8 +189,6 @@ const NoloEditor: React.FC<NoloEditorProps> = ({
           border-radius: 3px;
           font-size: 0.85em;
         }
-
-        /* 字数统计样式 */
         .word-count-display {
           text-align: right;
           font-size: 12px;

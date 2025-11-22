@@ -1,5 +1,3 @@
-// MessageItem.tsx - 精简版本
-
 import React, { useState, useMemo, useCallback, memo } from "react";
 import { useAppSelector } from "app/store";
 import { selectUserId } from "auth/authSlice";
@@ -16,7 +14,6 @@ import { FileItem } from "./FileItem";
 import { useMessageInteraction } from "../../hooks/useMessageInteraction";
 import { useThinkingVisibility } from "../../hooks/useThinkingVisibility";
 
-// 流式指示器
 const StreamingIndicator = memo(() => (
   <div className="streaming-indicator">
     <span className="dot" />
@@ -25,7 +22,6 @@ const StreamingIndicator = memo(() => (
   </div>
 ));
 
-// 思考过程组件
 const ThinkingContent = memo(({ thinkContent, isExpanded, onToggle }) => {
   const slate = useMemo(
     () => (thinkContent ? markdownToSlate(thinkContent) : []),
@@ -63,8 +59,7 @@ const ThinkingContent = memo(({ thinkContent, isExpanded, onToggle }) => {
   );
 });
 
-// 文本内容组件
-const MessageText = memo(({ content, role }) => {
+const MessageText = memo(({ content, role, isStreaming = false }) => {
   const slateData = useMemo(
     () => (role === "self" ? [] : markdownToSlate(content)),
     [content, role]
@@ -75,13 +70,17 @@ const MessageText = memo(({ content, role }) => {
       {role === "self" ? (
         <div className="simple-text">{content}</div>
       ) : (
-        <Editor key={content} initialValue={slateData} readOnly />
+        <Editor
+          key={content}
+          initialValue={slateData}
+          readOnly
+          isStreaming={isStreaming}
+        />
       )}
     </div>
   );
 });
 
-// 图片预览组件
 const ImagePreview = memo(({ src, alt, onPreview }) => {
   const handleClick = useCallback(() => onPreview(src), [src, onPreview]);
 
@@ -106,131 +105,141 @@ const ImagePreview = memo(({ src, alt, onPreview }) => {
   );
 });
 
-// 消息内容组件
-const MessageContent = memo(({ content, thinkContent, role }) => {
-  const showThinking = useAppSelector(selectShowThinking);
-  const [filePreview, setFilePreview] = useState(null);
-  const [imgPreview, setImgPreview] = useState(null);
-  const [isThinkingExpanded, toggleThinking] = useThinkingVisibility(
-    showThinking,
-    content,
-    thinkContent
-  );
+const MessageContent = memo(
+  ({ content, thinkContent, role, isStreaming = false }) => {
+    const showThinking = useAppSelector(selectShowThinking);
+    const [filePreview, setFilePreview] = useState(null);
+    const [imgPreview, setImgPreview] = useState(null);
+    const [isThinkingExpanded, toggleThinking] = useThinkingVisibility(
+      showThinking,
+      content,
+      thinkContent
+    );
 
-  const onFile = useCallback((fd) => setFilePreview(fd), []);
-  const onImg = useCallback((src) => setImgPreview(src), []);
-  const closeFile = useCallback(() => setFilePreview(null), []);
-  const closeImg = useCallback(() => setImgPreview(null), []);
+    const onFile = useCallback((fd) => setFilePreview(fd), []);
+    const onImg = useCallback((src) => setImgPreview(src), []);
+    const closeFile = useCallback(() => setFilePreview(null), []);
+    const closeImg = useCallback(() => setImgPreview(null), []);
 
-  // 按段落分组
-  const segments = useMemo(() => {
-    if (!Array.isArray(content)) return [];
-    const segs = [];
-    let cur = null;
-    content.forEach((it) => {
-      const isImg = it.type === "image_url" && it.image_url?.url;
-      if (isImg) {
-        if (cur?.type === "images") {
-          cur.items.push(it);
+    const segments = useMemo(() => {
+      if (!Array.isArray(content)) return [];
+      const segs = [];
+      let cur = null;
+      content.forEach((it) => {
+        const isImg = it.type === "image_url" && it.image_url?.url;
+        if (isImg) {
+          if (cur?.type === "images") {
+            cur.items.push(it);
+          } else {
+            cur = { type: "images", items: [it] };
+            segs.push(cur);
+          }
         } else {
-          cur = { type: "images", items: [it] };
-          segs.push(cur);
+          if (cur?.type === "normal") {
+            cur.items.push(it);
+          } else {
+            cur = { type: "normal", items: [it] };
+            segs.push(cur);
+          }
         }
-      } else {
-        if (cur?.type === "normal") {
-          cur.items.push(it);
-        } else {
-          cur = { type: "normal", items: [it] };
-          segs.push(cur);
-        }
-      }
-    });
-    return segs;
-  }, [content]);
+      });
+      return segs;
+    }, [content]);
 
-  const renderContent = useMemo(() => {
-    if (!content) return <div className="empty-content">思考中</div>;
-    if (typeof content === "string") {
-      return <MessageText content={content} role={role} />;
-    }
-    return segments.map((seg, i) => {
-      if (seg.type === "images") {
-        if (seg.items.length > 1) {
-          return (
-            <div key={i} className="msg-images">
-              {seg.items.map((it, idx) => (
-                <ImagePreview
-                  key={idx}
-                  src={it.image_url.url}
-                  alt={it.alt_text}
-                  onPreview={onImg}
-                />
-              ))}
-            </div>
-          );
-        }
-        const it = seg.items[0];
+    const renderContent = useMemo(() => {
+      if (!content) return <div className="empty-content">思考中</div>;
+      if (typeof content === "string") {
         return (
-          <ImagePreview
-            key={i}
-            src={it.image_url.url}
-            alt={it.alt_text}
-            onPreview={onImg}
+          <MessageText
+            content={content}
+            role={role}
+            isStreaming={isStreaming}
           />
         );
       }
-      return seg.items.map((it, idx) => {
-        if (it.type === "text" && it.text) {
+      return segments.map((seg, i) => {
+        if (seg.type === "images") {
+          if (seg.items.length > 1) {
+            return (
+              <div key={i} className="msg-images">
+                {seg.items.map((it, idx) => (
+                  <ImagePreview
+                    key={idx}
+                    src={it.image_url.url}
+                    alt={it.alt_text}
+                    onPreview={onImg}
+                  />
+                ))}
+              </div>
+            );
+          }
+          const it = seg.items[0];
           return (
-            <MessageText key={`${i}-${idx}`} content={it.text} role={role} />
-          );
-        }
-        if (it.pageKey && it.type) {
-          return (
-            <FileItem
-              key={`${i}-${idx}`}
-              file={it}
-              variant="message"
-              onPreview={() => onFile({ item: it, type: it.type })}
+            <ImagePreview
+              key={i}
+              src={it.image_url.url}
+              alt={it.alt_text}
+              onPreview={onImg}
             />
           );
         }
-        return null;
+        return seg.items.map((it, idx) => {
+          if (it.type === "text" && it.text) {
+            return (
+              <MessageText
+                key={`${i}-${idx}`}
+                content={it.text}
+                role={role}
+                isStreaming={isStreaming}
+              />
+            );
+          }
+          if (it.pageKey && it.type) {
+            return (
+              <FileItem
+                key={`${i}-${idx}`}
+                file={it}
+                variant="message"
+                onPreview={() => onFile({ item: it, type: it.type })}
+              />
+            );
+          }
+          return null;
+        });
       });
-    });
-  }, [content, role, segments, onImg, onFile]);
+    }, [content, role, segments, onImg, onFile, isStreaming]);
 
-  return (
-    <>
-      <div className="msg-content">
-        {role !== "self" && thinkContent && showThinking && (
-          <ThinkingContent
-            thinkContent={thinkContent}
-            isExpanded={isThinkingExpanded}
-            onToggle={toggleThinking}
+    return (
+      <>
+        <div className="msg-content">
+          {role !== "self" && thinkContent && showThinking && (
+            <ThinkingContent
+              thinkContent={thinkContent}
+              isExpanded={isThinkingExpanded}
+              onToggle={toggleThinking}
+            />
+          )}
+          {renderContent}
+        </div>
+
+        {filePreview && (
+          <DocxPreviewDialog
+            isOpen
+            onClose={closeFile}
+            pageKey={filePreview.item.pageKey}
+            fileName={filePreview.item.name}
           />
         )}
-        {renderContent}
-      </div>
+        {imgPreview && (
+          <BaseModal isOpen onClose={closeImg} className="image-modal">
+            <img src={imgPreview} alt="放大预览" className="modal-image" />
+          </BaseModal>
+        )}
+      </>
+    );
+  }
+);
 
-      {filePreview && (
-        <DocxPreviewDialog
-          isOpen
-          onClose={closeFile}
-          pageKey={filePreview.item.pageKey}
-          fileName={filePreview.item.name}
-        />
-      )}
-      {imgPreview && (
-        <BaseModal isOpen onClose={closeImg} className="image-modal">
-          <img src={imgPreview} alt="放大预览" className="modal-image" />
-        </BaseModal>
-      )}
-    </>
-  );
-});
-
-// 主消息组件
 export const MessageItem = memo(({ message }) => {
   const currentUserId = useAppSelector(selectUserId);
   const [collapsed, setCollapsed] = useState(false);
@@ -276,7 +285,6 @@ export const MessageItem = memo(({ message }) => {
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        {/* 桌面端布局 */}
         {!isTouch && (
           <div className="msg-inner desktop">
             <div className="avatar-area">
@@ -307,13 +315,13 @@ export const MessageItem = memo(({ message }) => {
                   content={content || ""}
                   thinkContent={thinkContent || ""}
                   role={isSelf ? "self" : "other"}
+                  isStreaming={isStreaming}
                 />
               </div>
             </div>
           </div>
         )}
 
-        {/* 移动端布局 */}
         {isTouch && (
           <div className="msg-inner mobile">
             <div className="msg-header">
@@ -336,13 +344,13 @@ export const MessageItem = memo(({ message }) => {
                   content={content || ""}
                   thinkContent={thinkContent || ""}
                   role={isSelf ? "self" : "other"}
+                  isStreaming={isStreaming}
                 />
               </div>
             </div>
           </div>
         )}
 
-        {/* 移动端覆盖式操作面板 */}
         {isTouch && (
           <MessageActions
             isRobot={isRobot}

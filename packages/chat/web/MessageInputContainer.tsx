@@ -1,246 +1,123 @@
-// /chat/MessageInputContainer.tsx
-
-import React, { Suspense, lazy, useEffect, useState } from "react";
+import React, { Suspense, lazy, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { zIndex } from "render/styles/zIndex";
-import { useBalance } from "auth/hooks/useBalance";
 import { useSendPermission } from "../hooks/useSendPermission";
+import { useAppSelector, useAppDispatch } from "app/store";
+import {
+  selectCurrentUserBalance,
+  fetchUserProfile,
+  selectUserId,
+} from "auth/authSlice";
 
-// 懒加载 MessageInput 组件
 const MessageInput = lazy(() => import("./MessageInput"));
 
-// --- [关键优化] 组件级别的预加载 ---
-const PreloadMessageInput = () => {
-  useEffect(() => {
-    // 立即开始预加载
-    import("./MessageInput");
-  }, []);
-  return null;
-};
+// --- 样式常量 ---
+// 核心修改：完全复刻 MessageInput 的布局逻辑 (padding/max-width)
+const STYLES = `
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes pulse { 0%, 100% { opacity: 0.4; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.1); } }
+  
+  /* 1. 外层容器：对应 .message-input */
+  .skel-container, .err-container {
+    width: 100%;
+    padding: var(--space-4);
+    padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
+    display: flex; justify-content: center; /* 居中 wrapper */
+    animation: fadeIn 0.3s ease-out;
+  }
 
-interface ErrorMessageProps {
-  message: string;
-  isInsufficientBalance?: boolean;
-  onRechargeClick?: () => void;
-}
+  /* 2. 布局包装器：对应 .message-input__wrapper */
+  .skel-wrapper {
+    width: 100%;
+    /* padding 逻辑将在下方 media query 中精确匹配 */
+  }
 
-const ErrorMessage: React.FC<ErrorMessageProps> = ({
+  /* 3. 骨架条/错误框：对应 .message-input__textarea */
+  .skel-bar, .err-box {
+    width: 100%;
+    height: 72px; /* Desktop height */
+    border-radius: var(--space-3);
+    background: var(--backgroundSecondary);
+    display: flex; align-items: center; justify-content: center;
+  }
+  
+  .skel-bar { border: 1px solid var(--border); }
+  
+  .err-box {
+    border: 1px solid var(--error);
+    color: var(--error);
+    font-size: 0.875rem;
+    gap: var(--space-2);
+    z-index: ${zIndex.messageInputContainerZIndex};
+    box-shadow: 0 2px 4px var(--shadowLight);
+  }
+
+  /* 动画圆点 */
+  .loading-dots { display: flex; gap: 6px; }
+  .dot {
+    width: 5px; height: 5px; border-radius: 50%; background-color: var(--textTertiary);
+    animation: pulse 1.4s infinite ease-in-out both;
+  }
+  .dot:nth-child(1) { animation-delay: -0.32s; }
+  .dot:nth-child(2) { animation-delay: -0.16s; }
+  
+  .recharge-link { color: var(--primary); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+  .recharge-link:hover { color: var(--hover); }
+
+  /* --- 响应式完全对齐 MessageInput --- */
+  @media (max-width: 768px) {
+    .skel-container, .err-container { padding: var(--space-3); } /* Container padding */
+    .skel-wrapper { padding-left: 0; padding-right: 0; } /* Wrapper padding */
+    .skel-bar, .err-box { height: 66px; } /* Input height */
+  }
+  @media (min-width: 768px) { .skel-wrapper { padding-left: var(--space-8); padding-right: var(--space-8); } }
+  @media (min-width: 1024px) { .skel-wrapper { padding-left: var(--space-12); padding-right: var(--space-12); } }
+  
+  @media (min-width: 1280px) { .skel-wrapper { max-width: 940px; } }
+  @media (min-width: 1440px) { .skel-wrapper { max-width: 980px; } }
+  @media (min-width: 1600px) { .skel-wrapper { max-width: 1080px; } }
+`;
+
+const LoadingPlaceholder = () => (
+  <div className="skel-container">
+    <style href="msg-input-styles" precedence="component">
+      {STYLES}
+    </style>
+    <div className="skel-wrapper">
+      <div className="skel-bar">
+        <div className="loading-dots">
+          <div className="dot" />
+          <div className="dot" />
+          <div className="dot" />
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const ErrorMessage = ({
   message,
-  isInsufficientBalance = false,
-  onRechargeClick,
+  showRecharge,
+  onRecharge,
+}: {
+  message: string;
+  showRecharge?: boolean;
+  onRecharge: () => void;
 }) => {
   const { t } = useTranslation("chat");
-
   return (
-    <div className="error-message">
-      <style href="error-message-styles" precedence="component">{`
-        .error-message {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: var(--space-2);
-          margin-top: var(--space-4);
-          padding: var(--space-2) var(--space-4);
-          
-          font-size: 0.875rem; /* 14px */
-          color: var(--error);
-          background-color: var(--backgroundSecondary);
-          border: 1px solid var(--error);
-          border-radius: var(--space-2); /* 8px */
-          
-          box-shadow: 0 2px 4px var(--shadowLight);
-          animation: fadeIn 0.3s ease-out;
-          z-index: ${zIndex.messageInputContainer};
-        }
-        .recharge-link {
-          color: var(--primary);
-          cursor: pointer;
-          text-decoration: underline;
-          text-underline-offset: 2px;
-          transition: color 0.2s ease;
-        }
-        .recharge-link:hover {
-          color: var(--hover);
-        }
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(4px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
-      <span>{message}</span>
-      {isInsufficientBalance && (
-        <span className="recharge-link" onClick={onRechargeClick}>
-          {t("recharge", "充值")}
-        </span>
-      )}
-    </div>
-  );
-};
-
-interface LoadingInputPlaceholderProps {
-  statusText?: string;
-}
-
-const LoadingInputPlaceholder: React.FC<LoadingInputPlaceholderProps> = ({
-  statusText,
-}) => {
-  return (
-    <div className="input-placeholder-container">
-      <style href="input-placeholder-styles" precedence="component">{`
-        .input-placeholder-container {
-          padding: var(--space-4);
-          padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
-          animation: fadeInUp 0.3s ease-out;
-        }
-        
-        .input-placeholder-wrapper {
-          max-width: 100%;
-          margin: 0 auto;
-          position: relative;
-        }
-        
-        .input-placeholder-bar {
-          width: 100%;
-          height: 48px;
-          background: linear-gradient(
-            90deg,
-            var(--backgroundSecondary) 25%,
-            var(--backgroundHover) 50%,
-            var(--backgroundSecondary) 75%
-          );
-          background-size: 200% 100%;
-          border-radius: var(--space-2);
-          border: 1px solid var(--border);
-          position: relative;
-          overflow: hidden;
-          animation: shimmer 1.5s ease-in-out infinite;
-        }
-        
-        /* 光泽效果 */
-        .input-placeholder-bar::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: -100%;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(
-            90deg,
-            transparent,
-            rgba(255, 255, 255, 0.1),
-            transparent
-          );
-          animation: shine 2s ease-in-out infinite;
-        }
-        
-        /* 状态文字覆盖在输入框上 */
-        .status-overlay {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          display: flex;
-          align-items: center;
-          gap: var(--space-2);
-          color: var(--textTertiary);
-          font-size: 0.875rem;
-          z-index: 1;
-        }
-        
-        .loading-dots {
-          display: flex;
-          gap: var(--space-1);
-        }
-        
-        .dot {
-          width: 4px;
-          height: 4px;
-          background-color: var(--primary);
-          border-radius: 50%;
-          animation: pulse 1.4s ease-in-out infinite;
-        }
-        
-        .dot:nth-child(1) { animation-delay: -0.32s; }
-        .dot:nth-child(2) { animation-delay: -0.16s; }
-        .dot:nth-child(3) { animation-delay: 0s; }
-        
-        @keyframes shimmer {
-          0% { background-position: -200% 0; }
-          100% { background-position: 200% 0; }
-        }
-        
-        @keyframes shine {
-          0% { left: -100%; }
-          50% { left: 100%; }
-          100% { left: 100%; }
-        }
-        
-        @keyframes pulse {
-          0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
-          40% { opacity: 1; transform: scale(1); }
-        }
-        
-        @keyframes fadeInUp {
-          from { 
-            opacity: 0; 
-            transform: translateY(var(--space-2));
-          }
-          to { 
-            opacity: 1; 
-            transform: translateY(0);
-          }
-        }
-
-        /* 响应式设计 */
-        @media (max-width: 768px) {
-          .input-placeholder-container {
-            padding: var(--space-3);
-            padding-bottom: calc(var(--space-3) + env(safe-area-inset-bottom, 0px));
-          }
-          .input-placeholder-wrapper {
-            padding-left: 0;
-            padding-right: 0;
-          }
-          .input-placeholder-bar {
-            height: 44px;
-          }
-        }
-        @media (min-width: 768px) {
-          .input-placeholder-wrapper {
-            padding-left: var(--space-8);
-            padding-right: var(--space-8);
-          }
-        }
-        @media (min-width: 1024px) {
-          .input-placeholder-wrapper {
-            padding-left: var(--space-12);
-            padding-right: var(--space-12);
-          }
-        }
-        @media (min-width: 1440px) {
-          .input-placeholder-wrapper {
-            max-width: 960px;
-          }
-        }
-        @media (min-width: 1600px) {
-          .input-placeholder-wrapper {
-            max-width: 1080px;
-          }
-        }
-      `}</style>
-
-      <div className="input-placeholder-wrapper">
-        <div className="input-placeholder-bar">
-          {statusText && (
-            <div className="status-overlay">
-              <span>{statusText}</span>
-              <div className="loading-dots">
-                <div className="dot"></div>
-                <div className="dot"></div>
-                <div className="dot"></div>
-              </div>
-            </div>
+    <div className="err-container">
+      <style href="msg-input-styles" precedence="component">
+        {STYLES}
+      </style>
+      <div className="skel-wrapper">
+        <div className="err-box">
+          <span>{message}</span>
+          {showRecharge && (
+            <span className="recharge-link" onClick={onRecharge}>
+              {t("recharge", "充值")}
+            </span>
           )}
         </div>
       </div>
@@ -249,73 +126,33 @@ const LoadingInputPlaceholder: React.FC<LoadingInputPlaceholderProps> = ({
 };
 
 const MessageInputContainer: React.FC = () => {
-  const { balance, loading, error: balanceError } = useBalance();
-  const { sendPermission, getErrorMessage } = useSendPermission(balance);
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { t } = useTranslation("chat");
+  const balance = useAppSelector(selectCurrentUserBalance);
+  const userId = useAppSelector(selectUserId);
+  const { sendPermission, getErrorMessage } = useSendPermission(balance ?? 0);
 
-  const handleRechargeClick = () => {
-    navigate("/recharge");
-  };
+  const isLoading = typeof balance !== "number";
 
-  // --- [核心优化] 立即开始预加载，不影响UI ---
   useEffect(() => {
-    // 组件挂载后立即开始预加载 MessageInput
     import("./MessageInput");
-  }, []);
+    if (userId) dispatch(fetchUserProfile());
+  }, [userId, dispatch]);
 
-  // 1. 如果余额加载出错，显示错误
-  if (balanceError) {
-    return (
-      <>
-        <PreloadMessageInput />
-        <ErrorMessage message={balanceError} />
-      </>
-    );
-  }
+  if (isLoading) return <LoadingPlaceholder />;
 
-  // 2. 如果权限还在检查中，显示权限检查状态
-  if (loading) {
-    return (
-      <>
-        <PreloadMessageInput />
-        <LoadingInputPlaceholder
-          statusText={t("checking_permission", "正在检查权限和余额...")}
-        />
-      </>
-    );
-  }
-
-  // 3. 如果权限检查完成且不允许发送，显示权限错误
   if (!sendPermission.allowed) {
-    const errorMessage = getErrorMessage(
-      sendPermission.reason,
-      sendPermission.pricing
-    );
-    const isInsufficientBalance =
-      sendPermission.reason === "INSUFFICIENT_BALANCE";
-
     return (
-      <>
-        <PreloadMessageInput />
-        <ErrorMessage
-          message={errorMessage}
-          isInsufficientBalance={isInsufficientBalance}
-          onRechargeClick={handleRechargeClick}
-        />
-      </>
+      <ErrorMessage
+        message={getErrorMessage(sendPermission.reason, sendPermission.pricing)}
+        showRecharge={sendPermission.reason === "INSUFFICIENT_BALANCE"}
+        onRecharge={() => navigate("/recharge")}
+      />
     );
   }
 
-  // 4. 一切就绪，显示输入框（此时应该已经预加载完成）
   return (
-    <Suspense
-      fallback={
-        <LoadingInputPlaceholder
-          statusText={t("loading_input", "正在加载输入框...")}
-        />
-      }
-    >
+    <Suspense fallback={<LoadingPlaceholder />}>
       <MessageInput />
     </Suspense>
   );

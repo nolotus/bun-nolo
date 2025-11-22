@@ -1,11 +1,11 @@
-// /chat/web/MessageInput.tsx (完整修改版)
-
 import React, { useCallback, useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { zIndex } from "render/styles/zIndex";
 import { useAppDispatch, useAppSelector } from "app/store";
 import { compressImage } from "utils/imageUtils";
 import { nanoid } from "nanoid";
+import toast from "react-hot-toast";
+import { UploadIcon } from "@primer/octicons-react";
 
 import {
   handleSendMessage,
@@ -13,391 +13,382 @@ import {
   selectPendingFiles,
   type PendingFile,
 } from "../dialog/dialogSlice";
-import { processDocumentFile } from "./fileProcessor"; // <-- 引入新的处理函数
+import { processDocumentFile } from "./fileProcessor";
+import { selectCurrentUserBalance } from "auth/authSlice";
 
-// web
 import DocxPreviewDialog from "render/web/DocxPreviewDialog";
 import AttachmentsPreview, { PendingImagePreview } from "./AttachmentsPreview";
 import SendButton from "./ActionButton";
 import FileUploadButton from "./FileUploadButton";
-import { UploadIcon } from "@primer/octicons-react";
-import toast from "react-hot-toast";
+
+// --- 样式常量 (恢复原始类名以确保兼容性) ---
+const STYLES = `
+  /* 主容器 */
+  .message-input {
+    --container-padding: var(--space-4);
+    position: sticky; bottom: 0; width: 100%;
+    padding: var(--container-padding);
+    padding-bottom: calc(var(--container-padding) + env(safe-area-inset-bottom, 0px));
+    background: var(--background);
+    z-index: ${zIndex.messageInputContainerZIndex};
+    transition: all 0.2s ease;
+  }
+  
+  /* 禁用/处理中状态 */
+  .message-input.is-processing { cursor: wait; }
+
+  /* 内部包装器 (用于宽度限制) */
+  .message-input__wrapper {
+    width: 100%; margin: 0 auto; position: relative;
+  }
+
+  /* 操作区 Flex 布局 */
+  .message-input__controls {
+    display: flex; gap: var(--space-2); align-items: flex-end;
+  }
+
+  /* 输入框 */
+  .message-input__textarea {
+    flex: 1;
+    min-height: 72px; max-height: 200px;
+    padding: 22px var(--container-padding);
+    font-size: 16px; line-height: 1.5;
+    border: 1px solid var(--border);
+    border-radius: var(--space-3);
+    background: var(--backgroundSecondary);
+    color: var(--text);
+    resize: none; outline: none;
+    transition: all 0.2s;
+    box-shadow: inset 0 1px 2px var(--shadowLight);
+  }
+  .message-input__textarea::placeholder { color: var(--textTertiary); }
+  .message-input__textarea:focus {
+    background: var(--background);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--focus), inset 0 1px 2px var(--shadowMedium);
+    transform: translateY(-1px);
+  }
+  .message-input__textarea:disabled {
+    opacity: 0.7; background: var(--backgroundTertiary); cursor: not-allowed;
+  }
+
+  /* 拖拽上传覆盖层 */
+  .message-input__drop-zone {
+    position: absolute; inset: -8px; z-index: 10;
+    background: rgba(var(--backgroundRGB), 0.85);
+    backdrop-filter: blur(8px);
+    border: 2px dashed var(--primary);
+    border-radius: var(--space-3);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--primary); font-weight: 500;
+    animation: fadeIn 0.2s forwards;
+  }
+
+  /* 处理进度指示器 (右上角) */
+  .message-input__indicator {
+    position: absolute; top: -36px; right: 0;
+    display: flex; align-items: center; gap: 6px;
+    padding: 4px 8px; border-radius: 4px;
+    background: var(--backgroundGhost);
+    backdrop-filter: blur(4px);
+    font-size: 12px; color: var(--textSecondary);
+    box-shadow: 0 2px 4px var(--shadowLight);
+  }
+  .message-input__spinner {
+    width: 10px; height: 10px; border-radius: 50%;
+    border: 1px solid currentColor; border-top-color: transparent;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* 响应式设计 (与骨架屏严格对齐) */
+  @media (max-width: 768px) {
+    .message-input { --container-padding: var(--space-3); }
+    .message-input__textarea { min-height: 66px; padding: 20px var(--space-3); }
+    .message-input__wrapper { padding-left: 0; padding-right: 0; }
+  }
+  @media (min-width: 768px) { .message-input__wrapper { padding-left: var(--space-8); padding-right: var(--space-8); } }
+  @media (min-width: 1024px) { .message-input__wrapper { padding-left: var(--space-12); padding-right: var(--space-12); } }
+  @media (min-width: 1280px) { .message-input__wrapper { max-width: 940px; } }
+  @media (min-width: 1440px) { .message-input__wrapper { max-width: 980px; } }
+  @media (min-width: 1600px) { .message-input__wrapper { max-width: 1080px; } }
+`;
+
+type MessagePart =
+  | { type: "text"; text: string }
+  | { type: "image_url"; image_url: { url: string } }
+  | { type: string; name: string; pageKey: string };
 
 const MessageInput: React.FC = () => {
   const dispatch = useAppDispatch();
   const { t } = useTranslation("chat");
 
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  const [textContent, setTextContent] = useState("");
-  const [localImagePreviews, setLocalImagePreviews] = useState<
-    PendingImagePreview[]
-  >([]);
+  // Redux & State
   const pendingFiles = useAppSelector(selectPendingFiles);
+  const balance = useAppSelector(selectCurrentUserBalance) ?? 0;
+  const canMultiImg = balance > 20;
 
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [isDragOver, setIsDragOver] = useState(false);
-  const [localPreviewingFile, setLocalPreviewingFile] =
-    useState<PendingFile | null>(null);
+  const [text, setText] = useState("");
+  const [imgPreviews, setImgPreviews] = useState<PendingImagePreview[]>([]);
+  const [processing, setProcessing] = useState<Set<string>>(new Set());
+  const [errors, setErrors] = useState<Map<string, string>>(new Map());
 
-  const [processingFiles, setProcessingFiles] = useState<Set<string>>(
-    new Set()
-  );
-  const [fileErrors, setFileErrors] = useState<Map<string, string>>(new Map());
+  const [previewFile, setPreviewFile] = useState<PendingFile | null>(null);
+  const [isDrag, setIsDrag] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const height = entry.target.offsetHeight;
-        document.documentElement.style.setProperty(
-          "--message-input-height",
-          `${height}px`
-        );
-      }
-    });
-    resizeObserver.observe(container);
-    return () => {
-      resizeObserver.disconnect();
-      document.documentElement.style.removeProperty("--message-input-height");
-    };
-  }, []);
+  const areaRef = useRef<HTMLTextAreaElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
 
+  // Effects
   useEffect(() => {
-    const checkMobile = () => {
+    const container = rootRef.current;
+    if (!container) return;
+    const obs = new ResizeObserver((entries) => {
+      document.documentElement.style.setProperty(
+        "--message-input-height",
+        `${entries[0].target.clientHeight}px`
+      );
+    });
+    obs.observe(container);
+
+    const checkMobile = () =>
       setIsMobile(window.innerWidth <= 768 || "ontouchstart" in window);
-    };
     checkMobile();
     window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
+
+    return () => {
+      obs.disconnect();
+      window.removeEventListener("resize", checkMobile);
+    };
   }, []);
 
+  // Handlers
   const processFiles = useCallback(
     async (files: FileList | null) => {
       if (!files) return;
+      const [imgs, docs] = Array.from(files).reduce(
+        (acc, f) => {
+          acc[f.type.startsWith("image/") ? 0 : 1].push(f);
+          return acc;
+        },
+        [[], []] as [File[], File[]]
+      );
 
-      for (const file of Array.from(files)) {
-        // 1. 本地处理图片预览
-        if (file.type.startsWith("image/")) {
-          const fileId = nanoid();
+      // Handle Images
+      if (imgs.length) {
+        const limit = canMultiImg
+          ? Infinity
+          : Math.max(0, 1 - imgPreviews.length);
+        imgs.slice(0, limit).forEach((file) => {
           const reader = new FileReader();
-          reader.onloadend = () => {
-            if (reader.result) {
-              setLocalImagePreviews((prev) => [
-                ...prev,
-                { id: fileId, url: reader.result as string },
-              ]);
-            }
-          };
+          reader.onloadend = () =>
+            reader.result &&
+            setImgPreviews((p) => [
+              ...p,
+              { id: nanoid(), url: reader.result as string },
+            ]);
           reader.readAsDataURL(file);
-          continue; // 处理下一张图片
-        }
+        });
+        if (imgs.length > limit)
+          toast.error(
+            t("insufficientBalanceForMultipleImages", "余额不足20，仅限1张图片")
+          );
+      }
 
-        // 2. 使用外部函数处理文档文件
-        const fileId = nanoid(); // 为整个文件操作生成一个跟踪 ID
-        setProcessingFiles((prev) => new Set(prev).add(fileId));
-        setFileErrors((prev) => {
-          const m = new Map(prev);
-          m.delete(fileId);
+      // Handle Docs
+      for (const file of docs) {
+        const fid = nanoid();
+        setProcessing((p) => new Set(p).add(fid));
+        setErrors((p) => {
+          const m = new Map(p);
+          m.delete(fid);
           return m;
         });
-
         try {
-          await processDocumentFile({ file, fileId, dispatch, t, toast });
-        } catch (err) {
-          const msg = err instanceof Error ? err.message : "处理文件时出错";
-          // 注意：toast 错误提示已在 processDocumentFile 中处理
-          // 这里我们只更新组件内部的错误状态，用于UI显示
-          setFileErrors((prev) => new Map(prev).set(fileId, msg));
+          await processDocumentFile({ file, fileId: fid, dispatch, t, toast });
+        } catch (e: any) {
+          setErrors((p) => new Map(p).set(fid, e.message || "Error"));
         } finally {
-          setProcessingFiles((prev) => {
-            const s = new Set(prev);
-            s.delete(fileId);
+          setProcessing((p) => {
+            const s = new Set(p);
+            s.delete(fid);
             return s;
           });
         }
       }
     },
-    [dispatch, t]
+    [dispatch, t, imgPreviews.length, canMultiImg]
   );
 
-  const clearInputState = useCallback(() => {
-    setTextContent("");
-    setLocalImagePreviews([]);
-    setFileErrors(new Map());
+  const clearState = useCallback(() => {
+    setText("");
+    setImgPreviews([]);
+    setErrors(new Map());
     dispatch(clearPendingAttachments());
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "auto";
-      textareaRef.current.focus();
+    if (areaRef.current) {
+      areaRef.current.style.height = "auto";
+      areaRef.current.focus();
     }
   }, [dispatch]);
 
-  const sendMessage = useCallback(() => {
-    const trimmed = textContent.trim();
-    if (!trimmed && !localImagePreviews.length && !pendingFiles.length) return;
-    if (processingFiles.size > 0) {
-      toast.error(t("waitForProcessing", "请等待文件处理完成"));
+  const sendMessage = useCallback(async () => {
+    const trimmed = text.trim();
+    if (
+      (!trimmed && !imgPreviews.length && !pendingFiles.length) ||
+      processing.size > 0
+    )
       return;
-    }
+    if (!canMultiImg && imgPreviews.length > 1)
+      return toast.error(t("insufficientBalanceForMultipleImagesSend"));
 
-    const parts: any[] = [];
+    const parts: MessagePart[] = [];
     if (trimmed) parts.push({ type: "text", text: trimmed });
-    pendingFiles.forEach((f) => {
-      parts.push({ type: f.type, name: f.name, pageKey: f.pageKey });
-    });
+    pendingFiles.forEach((f) =>
+      parts.push({ type: f.type, name: f.name, pageKey: f.pageKey })
+    );
 
-    const imgPromises = localImagePreviews.map(async (img) => {
-      try {
-        const url = await compressImage(img.url);
-        return { type: "image_url", image_url: { url } };
-      } catch {
-        toast.error(t("compressionErrorMessage", "图片压缩失败，将发送原图"));
-        return { type: "image_url", image_url: { url: img.url } };
+    clearState();
+
+    try {
+      const uploadedImgs = await Promise.all(
+        imgPreviews.map(
+          async (img) =>
+            ({
+              type: "image_url",
+              image_url: {
+                url: await compressImage(img.url).catch(() => img.url),
+              },
+            }) as MessagePart
+        )
+      );
+
+      const finalParts = [...parts, ...uploadedImgs];
+      if (finalParts.length) {
+        const payload =
+          finalParts.length === 1 && finalParts[0].type === "text"
+            ? (finalParts[0] as any).text
+            : finalParts;
+        await dispatch(handleSendMessage({ userInput: payload })).unwrap();
       }
-    });
-
-    clearInputState();
-
-    (async () => {
-      try {
-        const images = await Promise.all(imgPromises);
-        const finalParts = [...parts, ...images];
-        let content: string | any[] = finalParts;
-        if (finalParts.length === 1 && finalParts[0].type === "text") {
-          content = finalParts[0].text!;
-        }
-        if (finalParts.length > 0) {
-          await dispatch(handleSendMessage({ userInput: content })).unwrap();
-        }
-      } catch {
-        toast.error(t("sendFailMessage", "消息发送失败"));
-      }
-    })();
+    } catch (e: any) {
+      toast.error(e.message || t("sendFailMessage"));
+    }
   }, [
-    textContent,
-    localImagePreviews,
+    text,
+    imgPreviews,
     pendingFiles,
-    processingFiles,
+    processing,
+    canMultiImg,
+    clearState,
     dispatch,
-    clearInputState,
     t,
   ]);
 
-  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const ta = e.target;
-    ta.style.height = "auto";
-    const maxH = window.innerWidth > 768 ? 140 : 100;
-    ta.style.height = `${Math.min(ta.scrollHeight, maxH)}px`;
-    setTextContent(ta.value);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (
-      !isMobile &&
-      e.key === "Enter" &&
-      !e.shiftKey &&
-      !e.nativeEvent.isComposing
-    ) {
-      e.preventDefault();
-      sendMessage();
-    }
-  };
-
-  const handlePaste = (e: React.ClipboardEvent) => {
-    processFiles(e.clipboardData.files);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
-    processFiles(e.dataTransfer.files);
-  };
-
-  // 注意：由于 attachments preview 依赖于 redux state，多 sheet 的 excel 会自动正确显示
-  // fileErrors 的逻辑可能需要调整，因为它现在是基于整个文件，而不是单个 sheet
-  const enhancedPendingFiles = pendingFiles.map((f) => ({
-    ...f,
-    // 这个 error 逻辑现在不太准确，因为一个文件可能生成多个 attachment
-    // 但作为整体文件的失败指示器仍然有效
-    error: fileErrors.get(f.id),
-  }));
-
+  const isDisabled = processing.size > 0;
   const hasContent =
-    textContent.trim() ||
-    localImagePreviews.length > 0 ||
-    pendingFiles.length > 0;
-  const isDisabled = processingFiles.size > 0;
+    !!text.trim() || imgPreviews.length > 0 || pendingFiles.length > 0;
 
   return (
     <>
+      {/* 使用原始的 message-input 作为 href ID，确保覆盖原样式 */}
       <style href="message-input" precedence="medium">
-        {`
-        /* ... existing styles, no changes needed here ... */
-        .message-input-container {
-            --container-padding: var(--space-4);
-            --container-gap: var(--space-2);
-            --container-border-radius: var(--space-2);
-            --element-transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-            
-            position: sticky; bottom: 0; width: 100%;
-            padding: var(--container-padding);
-            padding-bottom: calc(var(--container-padding) + env(safe-area-inset-bottom, 0px));
-            background: var(--background);
-            z-index: ${zIndex.messageInputContainerZIndex};
-        }
-        .input-wrapper { max-width: 100%; margin: 0 auto; }
-        .input-controls { display: flex; gap: var(--container-gap); align-items: flex-end; width: 100%; }
-        .message-textarea {
-            flex: 1; min-height: 48px; max-height: 160px;
-            padding: var(--container-gap) var(--container-padding);
-            font-size: 15px; line-height: 1.45;
-            border: none; border-radius: var(--container-border-radius);
-            background: var(--backgroundSecondary);
-            box-shadow: inset 0 1px 2px var(--shadowLight);
-            color: var(--text); resize: none; outline: none;
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            transition: var(--element-transition);
-            letter-spacing: -0.01em;
-        }
-        .message-textarea::placeholder { color: var(--textTertiary); }
-        .message-textarea:focus {
-            background: var(--background);
-            box-shadow: 0 0 0 3px var(--focus), inset 0 1px 2px var(--shadowMedium);
-            transform: translateY(-1px);
-        }
-        .message-textarea:hover:not(:focus):not(:disabled) {
-            background: var(--backgroundHover);
-            box-shadow: inset 0 1px 3px var(--shadowMedium);
-        }
-        .message-textarea:disabled { opacity: 0.6; background: var(--backgroundTertiary); }
-        .drop-zone {
-            position: absolute; inset: var(--space-2); 
-            background: var(--primaryBg); backdrop-filter: blur(8px);
-            border: 2px dashed var(--primary); border-radius: var(--container-border-radius);
-            display: flex; align-items: center; justify-content: center;
-            color: var(--primary); font-weight: 500; letter-spacing: -0.01em;
-            opacity: 0; animation: dropZoneFadeIn 0.2s ease-out forwards;
-        }
-        .processing-indicator {
-            position: absolute; top: var(--space-2); right: var(--space-2);
-            display: flex; align-items: center; gap: var(--space-1);
-            padding: var(--space-1) var(--space-2); border-radius: var(--space-1);
-            background: var(--backgroundGhost); backdrop-filter: blur(4px);
-            font-size: 12px; color: var(--textSecondary);
-            box-shadow: 0 2px 4px var(--shadowLight);
-        }
-        .processing-spinner {
-            width: 10px; height: 10px; border-radius: 50%;
-            border: 1px solid var(--primary); border-top: 1px solid transparent;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes dropZoneFadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        
-        @media (max-width: 768px) {
-            .message-input-container { --container-padding: var(--space-3); --container-gap: var(--space-2); }
-            .input-wrapper { padding-left: 0; padding-right: 0; }
-            .message-textarea { min-height: 44px; font-size: 16px; }
-        }
-        @media (min-width: 768px) { .input-wrapper { padding-left: var(--space-8); padding-right: var(--space-8); } }
-        @media (min-width: 1024px) { .input-wrapper { padding-left: var(--space-12); padding-right: var(--space-12); } }
-        @media (min-width: 1440px) { .input-wrapper { max-width: 960px; } }
-        @media (min-width: 1600px) { .input-wrapper { max-width: 1080px; } }
-        @media (prefers-reduced-motion: reduce) {
-            .message-textarea, .drop-zone, .processing-spinner { transition: none !important; animation: none !important; }
-            .message-textarea:focus { transform: none; }
-        }
-        @media (prefers-contrast: high) {
-            .message-textarea { border: 2px solid var(--border); }
-            .drop-zone { border-width: 3px; }
-        }
-        @media print { .message-input-container { display: none; } }
-      `}
+        {STYLES}
       </style>
 
       <div
-        ref={containerRef}
-        className={`message-input-container ${isDisabled ? "processing" : ""}`}
+        ref={rootRef}
+        className={`message-input ${isDisabled ? "is-processing" : ""}`}
         onDragOver={(e) => {
           e.preventDefault();
-          setIsDragOver(true);
+          setIsDrag(true);
         }}
-        onDragLeave={() => setIsDragOver(false)}
-        onDrop={handleDrop}
-        aria-label={t("messageInputArea", "消息输入区域")}
+        onDragLeave={() => setIsDrag(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setIsDrag(false);
+          processFiles(e.dataTransfer.files);
+        }}
       >
-        <div className="input-wrapper">
+        <div className="message-input__wrapper">
           <AttachmentsPreview
-            imagePreviews={localImagePreviews}
-            pendingFiles={enhancedPendingFiles}
+            imagePreviews={imgPreviews}
+            pendingFiles={pendingFiles.map((f) => ({
+              ...f,
+              error: errors.get(f.id),
+            }))}
             onRemoveImage={(id) =>
-              setLocalImagePreviews((prev) =>
-                prev.filter((img) => img.id !== id)
-              )
+              setImgPreviews((p) => p.filter((i) => i.id !== id))
             }
-            onPreviewFile={setLocalPreviewingFile}
-            processingFiles={processingFiles}
+            onPreviewFile={setPreviewFile}
+            processingFiles={processing}
             isMobile={isMobile}
           />
 
-          <div className="input-controls">
+          <div className="message-input__controls">
             <FileUploadButton
               disabled={isDisabled}
-              onFilesSelected={(files) => {
-                if (!isDisabled) processFiles(files);
-              }}
+              onFilesSelected={processFiles}
             />
 
             <textarea
-              ref={textareaRef}
-              className="message-textarea"
-              value={textContent}
-              placeholder={
-                isDisabled
-                  ? t("waitForProcessing", "等待文件处理完成...")
-                  : t("messageOrFileHere", "输入消息或拖入文件...")
-              }
-              onChange={handleTextareaChange}
-              onKeyDown={handleKeyDown}
-              onPaste={handlePaste}
-              aria-label={t("messageInput", "消息输入框")}
+              ref={areaRef}
+              className="message-input__textarea"
+              value={text}
+              rows={1}
               disabled={isDisabled}
+              placeholder={
+                isDisabled ? t("waitForProcessing") : t("messageOrFileHere")
+              }
+              onChange={(e) => {
+                setText(e.target.value);
+                e.target.style.height = "auto";
+                e.target.style.height = `${Math.min(e.target.scrollHeight, window.innerWidth > 768 ? 200 : 140)}px`;
+              }}
+              onKeyDown={(e) =>
+                !isMobile &&
+                e.key === "Enter" &&
+                !e.shiftKey &&
+                !e.nativeEvent.isComposing &&
+                (e.preventDefault(), sendMessage())
+              }
+              onPaste={(e) => processFiles(e.clipboardData.files)}
             />
 
             <SendButton
               onClick={sendMessage}
-              disabled={!hasContent || isDisabled}
+              disabled={
+                !hasContent ||
+                isDisabled ||
+                (!canMultiImg && imgPreviews.length > 1)
+              }
             />
           </div>
+
+          {/* 状态指示器 */}
+          {processing.size > 0 && (
+            <div className="message-input__indicator">
+              <div className="message-input__spinner" />
+              <span>{t("processingFiles", { count: processing.size })}</span>
+            </div>
+          )}
+
+          {/* 拖拽遮罩 */}
+          {isDrag && (
+            <div className="message-input__drop-zone">
+              <UploadIcon size={20} className="mr-2" /> {t("dropToUpload")}
+            </div>
+          )}
         </div>
 
-        {processingFiles.size > 0 && (
-          <div className="processing-indicator">
-            <div className="processing-spinner" />
-            <span>
-              {t("processingFiles", "处理中 {{count}} 个文件", {
-                count: processingFiles.size,
-              })}
-            </span>
-          </div>
-        )}
-
-        {isDragOver && (
-          <div className="drop-zone" aria-live="polite">
-            <UploadIcon size={20} style={{ marginRight: "var(--space-2)" }} />
-            {t("dropToUpload", "松开即可上传")}
-          </div>
-        )}
-
-        {localPreviewingFile && (
+        {previewFile && (
           <DocxPreviewDialog
-            isOpen={!!localPreviewingFile}
-            onClose={() => setLocalPreviewingFile(null)}
-            pageKey={localPreviewingFile.pageKey}
-            fileName={localPreviewingFile.name}
+            isOpen={!!previewFile}
+            onClose={() => setPreviewFile(null)}
+            pageKey={previewFile.pageKey}
+            fileName={previewFile.name}
           />
         )}
       </div>

@@ -1,5 +1,4 @@
 // 文件路径: render/layout/MainLayout.tsx
-
 import { useAuth } from "auth/hooks/useAuth";
 import ChatSidebar from "chat/web/ChatSidebar";
 import React, {
@@ -8,17 +7,19 @@ import React, {
   useEffect,
   useRef,
   useState,
+  lazy,
 } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { useAppSelector } from "app/store";
 import { zIndex } from "render/styles/zIndex";
 import { setSidebarWidth, selectSidebarWidth } from "app/settings/settingSlice";
-import TopBar from "./TopBar";
 import { SidebarTop } from "./SidebarTop";
 import LifeSidebarContent from "life/LifeSidebarContent";
 import PageContentErrorBoundary from "./PageContentErrorBoundary";
 import SidebarBottom from "./SidebarBottom";
+
+const TopBar = lazy(() => import("./TopBar"));
 
 const MIN_WIDTH = 200;
 const MAX_WIDTH = 600;
@@ -31,29 +32,22 @@ const MainLayout: React.FC = () => {
   const isOpen = sidebarWidth > 0;
 
   const [isResizing, setIsResizing] = useState(false);
-  // 初始化为 false，以确保在服务端渲染时安全。
-  // 真实状态将在客户端的 useEffect 中设置。
   const [isMobile, setIsMobile] = useState(false);
 
   const sidebarRef = useRef<HTMLElement>(null);
   const lastWidthRef = useRef(sidebarWidth);
   const isInitialMount = useRef(true);
-  const resizeDebounceTimer = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    if (sidebarWidth > 0) {
-      lastWidthRef.current = sidebarWidth;
-    }
+    if (sidebarWidth > 0) lastWidthRef.current = sidebarWidth;
   }, [sidebarWidth]);
 
-  let sidebarContent;
-  if (location.pathname.startsWith("/life")) {
-    sidebarContent = <LifeSidebarContent />;
-  } else if (isLoggedIn) {
-    sidebarContent = <ChatSidebar />;
-  } else {
-    sidebarContent = null;
-  }
+  const sidebarContent = location.pathname.startsWith("/life") ? (
+    <LifeSidebarContent />
+  ) : isLoggedIn ? (
+    <ChatSidebar />
+  ) : null;
+
   const hasSidebar = sidebarContent !== null;
 
   const toggleSidebar = useCallback(() => {
@@ -69,12 +63,8 @@ const MainLayout: React.FC = () => {
 
   const resize = useCallback((e: MouseEvent) => {
     requestAnimationFrame(() => {
-      const newWidth = e.clientX;
-      if (newWidth >= MIN_WIDTH && newWidth <= MAX_WIDTH) {
-        if (sidebarRef.current) {
-          sidebarRef.current.style.width = `${newWidth}px`;
-        }
-      }
+      const newWidth = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, e.clientX));
+      if (sidebarRef.current) sidebarRef.current.style.width = `${newWidth}px`;
     });
   }, []);
 
@@ -85,9 +75,7 @@ const MainLayout: React.FC = () => {
       if (sidebarRef.current) {
         const finalWidth = parseInt(sidebarRef.current.style.width, 10);
         sidebarRef.current.style.width = "";
-        if (!isNaN(finalWidth)) {
-          dispatch(setSidebarWidth(finalWidth));
-        }
+        if (!isNaN(finalWidth)) dispatch(setSidebarWidth(finalWidth));
       }
       setIsResizing(false);
     };
@@ -95,7 +83,6 @@ const MainLayout: React.FC = () => {
     window.addEventListener("mousemove", resize);
     window.addEventListener("mouseup", stopResizing);
     window.addEventListener("mouseleave", stopResizing);
-
     return () => {
       window.removeEventListener("mousemove", resize);
       window.removeEventListener("mouseup", stopResizing);
@@ -103,27 +90,12 @@ const MainLayout: React.FC = () => {
     };
   }, [isResizing, dispatch, resize]);
 
-  // 此 useEffect 仅在客户端运行，用于处理所有与 window/document 相关的交互
+  // 客户端：媒体查询 + 快捷键
   useEffect(() => {
-    // 定义一个更新移动端状态的函数
-    const updateMobileState = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
+    const mql = window.matchMedia("(max-width: 768px)");
+    const setMobile = () => setIsMobile(mql.matches);
+    setMobile();
 
-    // 在组件挂载到客户端后，立即调用一次以设置正确的初始状态
-    updateMobileState();
-
-    // 设置防抖的 resize 处理器
-    const debouncedHandleResize = () => {
-      if (resizeDebounceTimer.current) {
-        clearTimeout(resizeDebounceTimer.current);
-      }
-      resizeDebounceTimer.current = setTimeout(() => {
-        updateMobileState(); // 当窗口大小改变时，调用更新函数
-      }, 150);
-    };
-
-    // 设置键盘快捷键处理器
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "b" && hasSidebar) {
         e.preventDefault();
@@ -131,30 +103,23 @@ const MainLayout: React.FC = () => {
       }
     };
 
-    // 绑定事件监听器
-    window.addEventListener("resize", debouncedHandleResize);
+    mql.addEventListener("change", setMobile);
     document.addEventListener("keydown", handleKeyDown);
-
-    // 在组件卸载时清理所有监听器和计时器
     return () => {
-      window.removeEventListener("resize", debouncedHandleResize);
+      mql.removeEventListener("change", setMobile);
       document.removeEventListener("keydown", handleKeyDown);
-      if (resizeDebounceTimer.current) {
-        clearTimeout(resizeDebounceTimer.current);
-      }
     };
   }, [toggleSidebar, hasSidebar]);
 
+  // 首次在移动端进入时自动收起
   useEffect(() => {
-    // 这个 Effect 现在可以在首次渲染后立即正确运行
     if (isInitialMount.current) {
-      if (isMobile && isOpen) {
-        dispatch(setSidebarWidth(0));
-      }
+      if (isMobile && isOpen) dispatch(setSidebarWidth(0));
       isInitialMount.current = false;
     }
   }, [isMobile, isOpen, dispatch]);
 
+  // 移动端侧边栏打开时锁定滚动
   useEffect(() => {
     document.body.style.overflow =
       isOpen && isMobile && hasSidebar ? "hidden" : "auto";
@@ -189,7 +154,9 @@ const MainLayout: React.FC = () => {
         )}
 
         <main className="MainLayout__main">
-          <TopBar toggleSidebar={hasSidebar ? toggleSidebar : undefined} />
+          <Suspense fallback={<div style={{ height: 52 }} />}>
+            <TopBar toggleSidebar={hasSidebar ? toggleSidebar : undefined} />
+          </Suspense>
           <div className="MainLayout__pageContent">
             <PageContentErrorBoundary>
               <Suspense fallback={<div>Loading...</div>}>
@@ -206,16 +173,9 @@ const MainLayout: React.FC = () => {
           min-height: 100dvh;
           background: var(--background);
         }
-
-        .MainLayout.is-resizing {
-          cursor: col-resize;
-          user-select: none;
-        }
-
+        .MainLayout.is-resizing { cursor: col-resize; user-select: none; }
         .MainLayout.is-resizing .MainLayout__sidebar,
-        .MainLayout.is-resizing .MainLayout__main {
-          transition: none !important;
-        }
+        .MainLayout.is-resizing .MainLayout__main { transition: none !important; }
 
         .MainLayout__sidebar {
           height: 100dvh;
@@ -238,18 +198,10 @@ const MainLayout: React.FC = () => {
           scrollbar-width: thin;
           scrollbar-color: var(--textQuaternary) transparent;
         }
-
-        .MainLayout__sidebarContent::-webkit-scrollbar {
-          width: 6px;
-        }
-
-        .MainLayout__sidebarContent::-webkit-scrollbar-track {
-          background: transparent;
-        }
-
+        .MainLayout__sidebarContent::-webkit-scrollbar { width: 6px; }
+        .MainLayout__sidebarContent::-webkit-scrollbar-track { background: transparent; }
         .MainLayout__sidebarContent::-webkit-scrollbar-thumb {
-          background: var(--textQuaternary);
-          border-radius: 3px;
+          background: var(--textQuaternary); border-radius: 3px;
         }
 
         .MainLayout__main {
@@ -261,53 +213,28 @@ const MainLayout: React.FC = () => {
           overflow: hidden;
           background: var(--backgroundSecondary);
         }
-        
-        .MainLayout__pageContent {
-          flex: 1;
-          overflow: auto;
-        }
+        .MainLayout__pageContent { flex: 1; overflow: auto; }
 
         .MainLayout__resizeHandle {
-          position: absolute;
-          top: 0;
-          right: -3px;
-          width: 6px;
-          height: 100%;
-          cursor: col-resize;
-          z-index: ${zIndex.sidebarResizeHandle};
-          display: flex;
-          justify-content: center;
+          position: absolute; top: 0; right: -3px;
+          width: 6px; height: 100%;
+          cursor: col-resize; z-index: ${zIndex.sidebarResizeHandle};
+          display: flex; justify-content: center;
         }
-
         .MainLayout__resizeHandle::after {
-          content: '';
-          width: 1px;
-          height: 100%;
-          background: transparent;
-          transition: background-color 0.2s ease;
+          content: ''; width: 1px; height: 100%;
+          background: transparent; transition: background-color 0.2s ease;
         }
+        .MainLayout__resizeHandle:hover::after,
+        .MainLayout.is-resizing .MainLayout__resizeHandle::after { background: var(--primary); }
 
-        .MainLayout__resizeHandle:hover::after {
-          background: var(--primary);
-        }
-        
-        .MainLayout.is-resizing .MainLayout__resizeHandle::after {
-          background: var(--primary);
-        }
-        
         .MainLayout__backdrop {
-          position: fixed;
-          inset: 0;
-          background: rgba(0, 0, 0, 0.4);
-          backdrop-filter: blur(4px);
+          position: fixed; inset: 0;
+          background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(4px);
           z-index: ${zIndex.sidebarBackdrop};
           animation: fadeIn 0.24s ease;
         }
-
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         @media (max-width: 768px) {
           .MainLayout__sidebar {
@@ -319,14 +246,8 @@ const MainLayout: React.FC = () => {
             border-right: none;
             transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
           }
-          
-          .MainLayout__sidebar.is-open {
-            transform: translateX(0);
-          }
-          
-          .MainLayout__resizeHandle {
-            display: none;
-          }
+          .MainLayout__sidebar.is-open { transform: translateX(0); }
+          .MainLayout__resizeHandle { display: none; }
         }
       `}</style>
     </>

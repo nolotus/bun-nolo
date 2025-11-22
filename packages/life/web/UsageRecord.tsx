@@ -9,7 +9,7 @@ import { selectUserId } from "auth/authSlice";
 import { useTranslation } from "react-i18next";
 import { ClockIcon, CalendarIcon, FilterIcon } from "@primer/octicons-react";
 import Pagination from "render/web/ui/Pagination";
-import { Dropdown } from "render/web/ui/Dropdown";
+import Dropdown from "render/web/ui/Dropdown";
 
 const ITEMS_PER_PAGE = 10;
 const USER_TIMEZONE = Intl.DateTimeFormat().resolvedOptions().timeZone;

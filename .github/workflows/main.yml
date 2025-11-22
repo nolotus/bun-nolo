@@ -146,15 +146,16 @@ jobs:
           username: nolotus
           key: ${{ secrets.SERVER_TW_KEY }}
           script: |
+            set -Eeuo pipefail
             cd bun-nolo
             echo "开始清理旧的 assets 目录..."
 
-            # 获取当前时间戳（秒）
-            CURRENT_TIME=$(date +%s)
-            THRESHOLD_TIME=$((CURRENT_TIME - 86400)) # 24小时前的时间戳（86400秒）
+            # 当前时间（毫秒）
+            CURRENT_TIME_MS=$(( $(date +%s) * 1000 ))
+            THRESHOLD_MS=$(( CURRENT_TIME_MS - 86400000 )) # 24小时=86400000ms
 
-            # 获取所有 assets-* 目录并按时间戳排序（假设目录名为 assets-<timestamp>）
-            ASSET_DIRS=$(ls -d public/assets-* 2>/dev/null | sort -r || echo "")
+            # 获取所有 assets-* 目录（按版本号倒序：新→旧）
+            ASSET_DIRS=$(ls -d public/assets-* 2>/dev/null | sort -V -r || true)
 
             if [ -z "$ASSET_DIRS" ]; then
               echo "没有找到 assets 目录，跳过清理。"
@@ -166,22 +167,20 @@ jobs:
             echo "保留的最近 3 个版本目录："
             echo "$RECENT_DIRS"
 
-            # 遍历所有目录，删除 24 小时以前且不在最近 3 个版本中的目录
+            echo "检查并删除超过 24 小时且不在最近 3 个中的目录..."
             for dir in $ASSET_DIRS; do
-              # 提取目录名中的时间戳（假设格式为 assets-<timestamp>）
-              TIMESTAMP=$(basename "$dir" | cut -d'-' -f2)
-              # 检查是否为数字时间戳
+              base=$(basename "$dir")
+              TIMESTAMP=${base#assets-}
               if [[ "$TIMESTAMP" =~ ^[0-9]+$ ]]; then
-                if [ "$TIMESTAMP" -lt "$THRESHOLD_TIME" ]; then
-                  # 检查是否在最近 3 个版本中
-                  if ! echo "$RECENT_DIRS" | grep -q "$dir"; then
-                    echo "删除 24 小时以前的目录：$dir"
+                if [ "$TIMESTAMP" -lt "$THRESHOLD_MS" ]; then
+                  if ! echo "$RECENT_DIRS" | grep -Fqx "$dir"; then
+                    echo "删除：$dir (ts=$TIMESTAMP < $THRESHOLD_MS)"
                     rm -rf "$dir"
                   else
-                    echo "保留 24 小时以前但在最近 3 个版本中的目录：$dir"
+                    echo "保留（在最近 3 个内）：$dir"
                   fi
                 else
-                  echo "保留 24 小时以内的目录：$dir"
+                  echo "保留（未超过 24h）：$dir"
                 fi
               else
                 echo "跳过非标准格式目录：$dir"
@@ -197,42 +196,38 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
+            set -Eeuo pipefail
             cd /root/bun-nolo
             echo "开始清理旧的 assets 目录..."
 
-            # 获取当前时间戳（秒）
-            CURRENT_TIME=$(date +%s)
-            THRESHOLD_TIME=$((CURRENT_TIME - 86400)) # 24小时前的时间戳（86400秒）
+            CURRENT_TIME_MS=$(( $(date +%s) * 1000 ))
+            THRESHOLD_MS=$(( CURRENT_TIME_MS - 86400000 ))
 
-            # 获取所有 assets-* 目录并按时间戳排序（假设目录名为 assets-<timestamp>）
-            ASSET_DIRS=$(ls -d public/assets-* 2>/dev/null | sort -r || echo "")
+            ASSET_DIRS=$(ls -d public/assets-* 2>/dev/null | sort -V -r || true)
 
             if [ -z "$ASSET_DIRS" ]; then
               echo "没有找到 assets 目录，跳过清理。"
               exit 0
             fi
 
-            # 保留最近 3 个版本
             RECENT_DIRS=$(echo "$ASSET_DIRS" | head -n 3)
             echo "保留的最近 3 个版本目录："
             echo "$RECENT_DIRS"
 
-            # 遍历所有目录，删除 24 小时以前且不在最近 3 个版本中的目录
+            echo "检查并删除超过 24 小时且不在最近 3 个中的目录..."
             for dir in $ASSET_DIRS; do
-              # 提取目录名中的时间戳（假设格式为 assets-<timestamp>）
-              TIMESTAMP=$(basename "$dir" | cut -d'-' -f2)
-              # 检查是否为数字时间戳
+              base=$(basename "$dir")
+              TIMESTAMP=${base#assets-}
               if [[ "$TIMESTAMP" =~ ^[0-9]+$ ]]; then
-                if [ "$TIMESTAMP" -lt "$THRESHOLD_TIME" ]; then
-                  # 检查是否在最近 3 个版本中
-                  if ! echo "$RECENT_DIRS" | grep -q "$dir"; then
-                    echo "删除 24 小时以前的目录：$dir"
+                if [ "$TIMESTAMP" -lt "$THRESHOLD_MS" ]; then
+                  if ! echo "$RECENT_DIRS" | grep -Fqx "$dir"; then
+                    echo "删除：$dir (ts=$TIMESTAMP < $THRESHOLD_MS)"
                     rm -rf "$dir"
                   else
-                    echo "保留 24 小时以前但在最近 3 个版本中的目录：$dir"
+                    echo "保留（在最近 3 个内）：$dir"
                   fi
                 else
-                  echo "保留 24 小时以内的目录：$dir"
+                  echo "保留（未超过 24h）：$dir"
                 fi
               else
                 echo "跳过非标准格式目录：$dir"

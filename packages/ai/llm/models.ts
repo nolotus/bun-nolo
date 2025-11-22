@@ -3,12 +3,10 @@
 import type { Model } from "./types";
 
 // 导入所有提供商的模型数据
-import { deepinfraModels } from "integrations/deepinfra/models";
 import { deepSeekModels } from "integrations/deepseek/models";
 import { googleModels } from "integrations/google/models";
 import { mistralModels } from "integrations/mistral/models";
-import { openAIModels } from "integrations/openai/models";
-import { sambanovaModels } from "integrations/sambanova/models";
+// import { openAIModels } from "integrations/openai/models";
 import { openrouterModels } from "integrations/openrouter/models";
 import { xaiModels } from "integrations/xai/models";
 
@@ -27,11 +25,9 @@ export interface ModelWithProvider extends Model {
  */
 export const ALL_MODELS: ModelWithProvider[] = [
   ...googleModels.map((m) => ({ ...m, provider: "google" })),
-  ...openAIModels.map((m) => ({ ...m, provider: "openai" })),
+  // ...openAIModels.map((m) => ({ ...m, provider: "openai" })),
   ...openrouterModels.map((m) => ({ ...m, provider: "openrouter" })),
-  ...deepinfraModels.map((m) => ({ ...m, provider: "deepinfra" })),
   ...xaiModels.map((m) => ({ ...m, provider: "xai" })),
   ...deepSeekModels.map((m) => ({ ...m, provider: "deepseek" })),
-  ...sambanovaModels.map((m) => ({ ...m, provider: "sambanova" })),
   ...mistralModels.map((m) => ({ ...m, provider: "mistral" })),
 ];

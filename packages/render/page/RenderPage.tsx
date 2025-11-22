@@ -1,6 +1,5 @@
-// components/page/RenderPage.tsx (最终正确且无背景漏出问题版)
-
-import React, { useEffect, useMemo, useCallback, Suspense, lazy } from "react";
+// render/page/RenderPage.tsx
+import React, { useEffect, useMemo, Suspense, lazy } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "app/store";
 import toast from "react-hot-toast";
@@ -8,9 +7,7 @@ import toast from "react-hot-toast";
 import { EditorContent } from "create/editor/utils/slateUtils";
 import { markdownToSlate } from "create/editor/transforms/markdownToSlate";
 import SaveStatusIndicator, { SaveStatus } from "./SaveStatusIndicator";
-import { selectTheme } from "app/settings/settingSlice";
 
-// 懒加载 Editor 以提升初始加载性能
 const Editor = lazy(() => import("create/editor/Editor"));
 
 import {
@@ -30,70 +27,63 @@ import {
 
 const STATUS_RESET_DELAY_MS = 2000;
 
-// --- Helper Hooks ---
-function useKeyboardSave(onSave: () => void, isReadOnly: boolean) {
+// 统一的自动保存钩子：快捷键/失焦/切页/关闭前
+function useAutoSave(onSave: () => void, readOnly: boolean) {
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (isReadOnly) return;
+    if (readOnly) return;
+    const onKey = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "s") {
         e.preventDefault();
         onSave();
       }
     };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onSave, isReadOnly]);
-}
+    const onVis = () => document.visibilityState === "hidden" && onSave();
+    const onUnload = () => onSave();
 
-function useSaveOnEvents(onSave: () => void, isReadOnly: boolean) {
-  useEffect(() => {
-    if (isReadOnly) return;
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "hidden") onSave();
-    };
-    const handleBeforeUnload = () => onSave();
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("keydown", onKey);
+    document.addEventListener("visibilitychange", onVis);
+    window.addEventListener("beforeunload", onUnload);
     return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("keydown", onKey);
+      document.removeEventListener("visibilitychange", onVis);
+      window.removeEventListener("beforeunload", onUnload);
     };
-  }, [onSave, isReadOnly]);
+  }, [onSave, readOnly]);
 }
 
+// 页面数据装载与错误提示
 function usePageData(pageKey: string, urlEditMode: boolean) {
   const dispatch = useAppDispatch();
   const isLoading = useAppSelector(selectPageIsLoading);
   const isInitialized = useAppSelector(selectPageIsInitialized);
   const page = useAppSelector(selectPageData);
   const isReadOnly = useAppSelector(selectIsReadOnly);
-  const error = page.error;
 
   useEffect(() => {
-    if (pageKey) {
+    if (pageKey)
       dispatch(initPage({ pageId: pageKey, isReadOnly: !urlEditMode }));
-    }
   }, [dispatch, pageKey, urlEditMode]);
 
   useEffect(() => {
-    if (error) {
-      toast.error(`加载页面失败: ${error}`);
-    }
-  }, [error]);
+    const err = (page as any)?.error;
+    if (err) toast.error(`加载页面失败: ${err}`);
+  }, [page]);
 
   return { isLoading, isInitialized, page, isReadOnly };
 }
 
-function useInitialValue(page: any, isInitialized: boolean): EditorContent {
+// 初始 Slate 值推导
+function useInitialValue(page: any, ready: boolean): EditorContent {
   return useMemo(() => {
-    if (!isInitialized)
-      return [{ type: "paragraph", children: [{ text: "" }] }];
-    if (Array.isArray(page?.slateData) && page.slateData.length > 0)
+    if (!ready) return [{ type: "paragraph", children: [{ text: "" }] }];
+
+    if (Array.isArray(page?.slateData) && page.slateData.length)
       return page.slateData;
-    if (page.content) {
+
+    if (page?.content) {
       try {
-        const converted = markdownToSlate(page.content);
-        if (converted.length > 0) return converted;
+        const v = markdownToSlate(page.content);
+        if (v.length) return v;
       } catch {
         return [
           { type: "heading-one", children: [{ text: "新页面 (转换失败)" }] },
@@ -101,85 +91,47 @@ function useInitialValue(page: any, isInitialized: boolean): EditorContent {
         ];
       }
     }
+
     return [
       { type: "heading-one", children: [{ text: "新页面" }] },
       { type: "paragraph", children: [{ text: "开始编辑..." }] },
     ];
-  }, [page, isInitialized]);
+  }, [page, ready]);
 }
 
-// --- Helper Components ---
+// 保存状态条
 function PageSaveStatus() {
   const dispatch = useAppDispatch();
   const isSaving = useAppSelector(selectIsSaving);
-  const hasPendingChanges = useAppSelector(selectHasPendingChanges);
+  const hasPending = useAppSelector(selectHasPendingChanges);
   const saveError = useAppSelector(selectSaveError);
   const justSaved = useAppSelector(selectJustSaved);
 
   useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (justSaved) {
-      timer = setTimeout(
-        () => dispatch(resetJustSavedStatus()),
-        STATUS_RESET_DELAY_MS
-      );
-    }
-    return () => clearTimeout(timer);
+    if (!justSaved) return;
+    const t = setTimeout(
+      () => dispatch(resetJustSavedStatus()),
+      STATUS_RESET_DELAY_MS
+    );
+    return () => clearTimeout(t);
   }, [justSaved, dispatch]);
 
   useEffect(() => {
-    if (saveError && saveError !== "内容无变化") {
+    if (saveError && saveError !== "内容无变化")
       toast.error("内容保存失败", { icon: "⚠️" });
-    }
   }, [saveError]);
 
-  const getStatus = (): SaveStatus => {
-    if (isSaving) return "saving";
-    if (saveError && hasPendingChanges) return "error";
-    if (justSaved) return "saved";
-    return null;
-  };
+  const status: SaveStatus = isSaving
+    ? "saving"
+    : saveError && hasPending
+      ? "error"
+      : justSaved
+        ? "saved"
+        : null;
 
-  return (
-    <SaveStatusIndicator
-      status={getStatus()}
-      hasPendingChanges={hasPendingChanges}
-    />
-  );
+  return <SaveStatusIndicator status={status} hasPendingChanges={hasPending} />;
 }
 
-const Loader = () => {
-  const theme = useAppSelector(selectTheme);
-  return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        height: "calc(100dvh - var(--headerHeight))",
-        color: theme.textSecondary,
-        fontSize: 14,
-      }}
-    >
-      加载中...
-    </div>
-  );
-};
-
-const EditorLoader = () => {
-  const theme = useAppSelector(selectTheme);
-  return (
-    <div
-      style={{ padding: 20, textAlign: "center", color: theme.textSecondary }}
-    >
-      加载编辑器...
-    </div>
-  );
-};
-
-// ======================================================================
-// 【核心组件】: RenderPage
-// ======================================================================
 const RenderPage = ({ pageKey }: { pageKey: string }) => {
   const [params] = useSearchParams();
   const dispatch = useAppDispatch();
@@ -191,39 +143,42 @@ const RenderPage = ({ pageKey }: { pageKey: string }) => {
   );
   const initialValue = useInitialValue(page, isInitialized);
 
-  const triggerSaveNow = useCallback(() => {
-    dispatch(savePage());
-  }, [dispatch]);
-
-  const handleChange = useCallback(
-    (value: EditorContent) => {
-      dispatch(updateSlate(value));
-    },
-    [dispatch]
-  );
-
-  const handleBlur = useCallback(() => {
-    if (!isReadOnly) triggerSaveNow();
-  }, [isReadOnly, triggerSaveNow]);
-
-  useKeyboardSave(triggerSaveNow, isReadOnly);
-  useSaveOnEvents(triggerSaveNow, isReadOnly);
+  const saveNow = () => dispatch(savePage());
+  useAutoSave(saveNow, isReadOnly);
 
   if (isLoading || !isInitialized) {
-    return <Loader />;
+    return (
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "calc(100dvh - var(--headerHeight))",
+          fontSize: 14,
+        }}
+      >
+        加载中...
+      </div>
+    );
   }
 
   return (
     <>
       <div className="RenderPage-container">
         <div className="RenderPage-editor-wrapper">
-          <Suspense fallback={<EditorLoader />}>
+          <Suspense
+            fallback={
+              <div style={{ padding: 20, textAlign: "center" }}>
+                加载编辑器...
+              </div>
+            }
+          >
             <div key={pageKey}>
               <Editor
                 initialValue={initialValue}
-                onChange={handleChange}
+                onChange={(v) => dispatch(updateSlate(v))}
+                onBlur={() => !isReadOnly && saveNow()}
                 readOnly={isReadOnly}
-                onBlur={handleBlur}
               />
             </div>
           </Suspense>
@@ -233,23 +188,16 @@ const RenderPage = ({ pageKey }: { pageKey: string }) => {
 
       <style href="RenderPage-styles" precedence="low">{`
         .RenderPage-container {
-          /*
-           * ✅ 新增关键行: 占满父级的高度容器 (MainLayout__pageContent)
-           * 保证在内容较少时编辑区仍铺满屏幕背景
-           */
           min-height: 100%;
-          
           width: 100%;
           background: var(--background);
           color: var(--text);
         }
-
         .RenderPage-editor-wrapper {
           max-width: 800px;
           margin: 0 auto;
           padding: var(--space-5) var(--space-4);
         }
-        
         [contenteditable="true"] {
           outline: none;
           caret-color: var(--primary);
@@ -258,19 +206,8 @@ const RenderPage = ({ pageKey }: { pageKey: string }) => {
           line-height: 1.7;
           color: var(--text);
         }
-        
         @media (max-width: 768px) {
-          .RenderPage-editor-wrapper { 
-            padding: var(--space-4) var(--space-3);
-          }
-        }
-        
-        @media print {
-          .RenderPage-editor-wrapper { 
-            max-width: 100%; 
-            padding: 0; 
-            margin: 0; 
-          }
+          .RenderPage-editor-wrapper { padding: var(--space-4) var(--space-3); }
         }
       `}</style>
     </>

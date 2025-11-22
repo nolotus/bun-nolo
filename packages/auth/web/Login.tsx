@@ -13,7 +13,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 
 import Button from "render/web/ui/Button";
 import { Input, PasswordInput } from "render/web/form/Input";
-import { RoutePaths } from "./routes";
+import { AppRoutePaths } from "app/constants/routePaths";
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -99,7 +99,7 @@ const Login: React.FC = () => {
 
           <div className="signup-section">
             <span className="link-text">{t("noAccount")}</span>
-            <NavLink to={RoutePaths.SIGNUP} className="signup-link">
+            <NavLink to={AppRoutePaths.SIGNUP} className="signup-link">
               {t("signUpNow")}
             </NavLink>
           </div>

@@ -1,12 +1,11 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useTheme } from "app/theme";
 import copyToClipboard from "utils/clipboard";
-import * as docx from "docx";
 import { Tooltip } from "render/web/ui/Tooltip";
-import MermaidContent from "./MermaidContent";
-import ReactECharts from "echarts-for-react";
 import ReactLiveBlock, { createLiveScope } from "./ReactLiveBlock";
 import JsonBlock from "./JsonBlock";
+import MermaidContent from "./MermaidContent";
+import { BaseModal } from "render/web/ui/BaseModal";
 import {
   CheckIcon,
   CodeIcon,
@@ -17,105 +16,163 @@ import {
   ScreenFullIcon,
 } from "@primer/octicons-react";
 
-// --- React Flow / XY Flow Imports ---
-import {
-  ReactFlow,
-  Background,
-  Controls,
-  MiniMap,
-  useNodesState,
-  useEdgesState,
-  addEdge,
-} from "@xyflow/react";
-import "@xyflow/react/dist/style.css";
-
-import "prismjs/components/prism-javascript";
-import "prismjs/components/prism-jsx";
-import "prismjs/components/prism-typescript";
-import "prismjs/components/prism-tsx";
-import "prismjs/components/prism-markdown";
-import "prismjs/components/prism-python";
-import "prismjs/components/prism-php";
-import "prismjs/components/prism-sql";
-import "prismjs/components/prism-java";
-import "prismjs/components/prism-json";
-import "prismjs/components/prism-yaml";
-import "prismjs/components/prism-mermaid";
-import "prismjs/components/prism-diff";
-
-const xyFlowUtils = {
-  useNodesState,
-  useEdgesState,
-  addEdge,
-  ReactFlow,
-  Background,
-  Controls,
-  MiniMap,
+const loaders = {
+  chart: () => import("echarts-for-react"),
+  docx: () => import("docx"),
+  flow: () => import("@xyflow/react"),
+  three: () =>
+    Promise.all([
+      import("three"),
+      import("@react-three/fiber"),
+      import("@react-three/drei"),
+    ]),
 };
 
-const CodeBlock = ({ attributes, children, element }) => {
+const needChart = (lang: string, code: string) =>
+  /chart|echart|option\s*=/i.test(lang) || /ReactECharts/.test(code);
+
+const needDocx = (lang: string, code: string, flag?: string) =>
+  flag === "true" || /docx|Document|Packer|Paragraph/.test(lang + code);
+
+const needFlow = (lang: string, code: string) =>
+  /(flow|graph|dag)/i.test(lang) ||
+  /ReactFlow|MiniMap|useNodesState/.test(code);
+
+const needThree = (lang: string, code: string) =>
+  /(three|r3f|gltf|glb|3d)/i.test(lang) ||
+  /(Canvas|OrbitControls|useFrame|useThree|THREE|meshStandardMaterial)/i.test(
+    code
+  );
+
+interface CodeBlockProps {
+  attributes: any;
+  children: any;
+  element: any;
+  isStreaming?: boolean;
+}
+
+const CodeBlock = ({
+  attributes,
+  children,
+  element,
+  isStreaming = false,
+}: CodeBlockProps) => {
   const theme = useTheme();
   const [isCopied, setIsCopied] = useState(false);
-  const [showPreview, setShowPreview] = useState(element.preview === "true");
+  const [showPreview, setShowPreview] = useState(
+    !isStreaming && element.preview === "true"
+  );
   const [isCollapsed, setIsCollapsed] = useState(element.collapsed === "true");
-  const [showRightPreview, setShowRightPreview] = useState(false);
+  const [isFullscreenOpen, setIsFullscreenOpen] = useState(false);
+  const [extraScope, setExtraScope] = useState<Record<string, any>>({});
 
   const [language, filename] = useMemo(() => {
     const lang = element.language || "";
     const idx = lang.indexOf(":");
-    if (idx > -1) {
-      return [lang.substring(0, idx), lang.substring(idx + 1)];
-    }
-    return [lang, null];
+    return idx > -1 ? [lang.slice(0, idx), lang.slice(idx + 1)] : [lang, null];
   }, [element.language]);
 
   const content = useMemo(() => {
-    const getText = (nodes) => {
-      if (!Array.isArray(nodes)) return "";
-      return nodes
-        .map((n) => {
-          if (!n) return "";
-          if (n.text !== undefined) return n.text;
-          if (n.type === "code-line" && Array.isArray(n.children)) {
-            return getText(n.children) + "\n";
-          }
-          if (Array.isArray(n.children)) {
-            return getText(n.children);
-          }
-          return "";
-        })
-        .join("");
-    };
+    const walk = (nodes) =>
+      Array.isArray(nodes)
+        ? nodes
+            .map((node) => {
+              if (!node) return "";
+              if (typeof node.text === "string") return node.text;
+              if (node.type === "code-line") return walk(node.children) + "\n";
+              if (Array.isArray(node.children)) return walk(node.children);
+              return "";
+            })
+            .join("")
+        : "";
     try {
-      const txt = getText(element.children);
-      return txt.replace(/\n$/, "");
+      return walk(element.children).replace(/\n$/, "");
     } catch (err) {
-      console.error("Error extracting code content:", err, element);
+      console.error("Extract code error:", err, element);
       return "";
     }
   }, [element.children]);
 
-  const handleCopy = () => {
-    copyToClipboard(content, {
-      onSuccess: () => {
-        setIsCopied(true);
-        setTimeout(() => setIsCopied(false), 2000);
-      },
-      onError: (err) => {
-        console.error("Failed to copy:", err);
-      },
-    });
-  };
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadDependencies() {
+      const scope: Record<string, any> = {};
+      const tasks: Promise<void>[] = [];
+
+      if (needChart(language, content)) {
+        tasks.push(
+          loaders.chart().then(({ default: ReactECharts }) => {
+            scope.ReactECharts = ReactECharts;
+          })
+        );
+      }
+
+      if (needDocx(language, content, element.useDocx)) {
+        tasks.push(
+          loaders.docx().then((docx) => {
+            scope.docx = docx;
+          })
+        );
+      }
+
+      if (needFlow(language, content)) {
+        tasks.push(
+          loaders.flow().then((flow) => {
+            Object.assign(scope, {
+              ReactFlow: flow.ReactFlow,
+              Background: flow.Background,
+              Controls: flow.Controls,
+              MiniMap: flow.MiniMap,
+              useNodesState: flow.useNodesState,
+              useEdgesState: flow.useEdgesState,
+              addEdge: flow.addEdge,
+            });
+          })
+        );
+      }
+
+      if (needThree(language, content)) {
+        tasks.push(
+          loaders.three().then(([THREE, fiber, drei]) => {
+            Object.assign(scope, {
+              THREE,
+              Canvas: fiber.Canvas,
+              useFrame: fiber.useFrame,
+              useThree: fiber.useThree,
+              OrbitControls: drei.OrbitControls,
+            });
+          })
+        );
+      }
+
+      try {
+        await Promise.all(tasks);
+        if (!cancelled) setExtraScope(scope);
+      } catch (err) {
+        console.error("Lazy dependency load failed:", err);
+      }
+    }
+
+    loadDependencies();
+    return () => {
+      cancelled = true;
+    };
+  }, [language, content, element.useDocx]);
 
   const liveScope = useMemo(
     () => ({
       ...createLiveScope(theme),
-      ReactECharts,
-      docx,
-      ...xyFlowUtils,
+      ...extraScope,
     }),
-    [theme]
+    [theme, extraScope]
   );
+
+  useEffect(() => {
+    if (!isStreaming && element.preview === "true") {
+      setShowPreview(true);
+    }
+  }, [isStreaming, element.preview]);
 
   const styles = `
     .code-block-wrapper {
@@ -123,173 +180,306 @@ const CodeBlock = ({ attributes, children, element }) => {
       background: var(--background);
       border-radius: var(--space-2);
       overflow: hidden;
-      position: relative;
     }
     .code-block-actions {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      height: var(--space-8);
-      background: var(--backgroundGhost);
       padding: 0 var(--space-2);
+      background: var(--backgroundGhost);
+      height: var(--space-8);
     }
-    .language-tag {
-      font-size: 12px;
-      color: var(--textSecondary);
-      padding: var(--space-1) var(--space-2);
-      background: var(--primaryGhost);
-      border-radius: var(--space-1);
-      text-transform: uppercase;
-    }
+    .language-tag,
     .filename-tag {
       font-size: 12px;
-      color: var(--textSecondary);
       padding: var(--space-1) var(--space-2);
-      margin-left: var(--space-2);
-      background: var(--backgroundSecondary);
       border-radius: var(--space-1);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      color: var(--textSecondary);
+    }
+    .language-tag { background: var(--primaryGhost); text-transform: uppercase; }
+    .filename-tag {
+      background: var(--backgroundSecondary);
+      margin-left: var(--space-2);
       max-width: 200px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis.
     }
-    .action-buttons {
-      display: flex;
-      gap: var(--space-1);
-    }
+    .action-buttons { display: flex; gap: var(--space-1); }
     .action-button {
-      background: transparent;
       border: none;
-      cursor: pointer;
+      background: transparent;
       padding: var(--space-2);
       color: var(--textSecondary);
       border-radius: var(--space-1);
-      transition: color 0.2s;
+      cursor: pointer;
     }
     .action-button:hover,
     .action-button.active {
       color: var(--text);
       background: var(--primaryGhost);
     }
+    .action-button[disabled] {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
     .code-content {
       margin: 0;
       padding: var(--space-4);
-      font-family: 'SF Mono', 'Monaco', monospace;
+      font-family: 'SF Mono','Monaco',monospace;
       font-size: 14px;
       line-height: 1.6;
       color: var(--text);
       overflow-x: auto;
-      display: ${isCollapsed ? "none" : "block"};
     }
-    .preview-content {
-      padding: 0;
-      margin: 0;
+    .preview-content { padding: 0; }
+    .preview-placeholder {
+      padding: var(--space-4);
+      font-size: 14px;
+      color: var(--textSecondary);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
     }
-    .react-flow__pane {
-      cursor: grab;
+    .preview-content-fullscreen {
+      min-height: 70vh;
+      display: flex;
+      flex-direction: column;
     }
-    .react-flow__attribution {
-      display: none;
+    .preview-content-fullscreen .live-preview-wrapper,
+    .preview-content-fullscreen .live-preview-content {
+      flex: 1;
+      min-height: 70vh;
+      display: flex;
+      flex-direction: column;
     }
-    .react-live-preview {
-      min-height: 300px;
+    .preview-content-fullscreen .react-live-preview,
+    .preview-content-fullscreen canvas,
+    .preview-content-fullscreen .mermaid {
+      flex: 1;
+      width: 100%;
     }
+    .fullscreen-preview-shell {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      background: var(--background);
+    }
+    .fullscreen-preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--space-3) var(--space-4);
+      border-bottom: 1px solid var(--border);
+    }
+    .fullscreen-preview-body {
+      flex: 1;
+      padding: var(--space-2);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .fullscreen-close-button {
+      border: none;
+      background: var(--backgroundGhost);
+      color: var(--text);
+      padding: var(--space-2) var(--space-3);
+      border-radius: var(--space-1);
+      cursor: pointer;
+    }
+    .fullscreen-close-button:hover { background: var(--primaryGhost); }
   `;
 
-  const CodeBlockActions = () => (
-    <div className="code-block-actions">
-      <div style={{ display: "flex", alignItems: "center" }}>
-        <span className="language-tag">{language}</span>
-        {filename && (
-          <Tooltip content={filename}>
-            <span className="filename-tag">{filename}</span>
-          </Tooltip>
-        )}
-      </div>
-      <div className="action-buttons">
-        <Tooltip content={showPreview ? "显示代码" : "显示预览"}>
-          <button
-            onClick={() => setShowPreview(!showPreview)}
-            className={`action-button ${showPreview ? "active" : ""}`}
-          >
-            {showPreview ? <CodeIcon size={16} /> : <EyeIcon size={16} />}
-          </button>
-        </Tooltip>
-        <Tooltip content={isCopied ? "已复制!" : "复制代码"}>
-          <button onClick={handleCopy} className="action-button">
-            {isCopied ? <CheckIcon size={16} /> : <CopyIcon size={16} />}
-          </button>
-        </Tooltip>
-        <Tooltip content={isCollapsed ? "展开代码" : "折叠代码"}>
-          <button
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className={`action-button ${isCollapsed ? "active" : ""}`}
-          >
-            {isCollapsed ? (
-              <ChevronUpIcon size={16} />
-            ) : (
-              <ChevronDownIcon size={16} />
-            )}
-          </button>
-        </Tooltip>
-        <Tooltip content={showRightPreview ? "关闭右侧预览" : "打开右侧预览"}>
-          <button
-            onClick={() => setShowRightPreview(!showRightPreview)}
-            className={`action-button ${showRightPreview ? "active" : ""}`}
-          >
-            <ScreenFullIcon size={16} />
-          </button>
-        </Tooltip>
-      </div>
+  const elementId = useMemo(
+    () => element.id || `code-${Math.random().toString(36).slice(2, 11)}`,
+    [element.id]
+  );
+
+  const renderPlaceholder = () => (
+    <div className="preview-content preview-placeholder">
+      <EyeIcon size={16} />
+      <span>代码生成中，请稍候…</span>
     </div>
   );
 
-  const elementId = useMemo(
-    () => element.id || `code-${Math.random().toString(36).substr(2, 9)}`,
-    [element.id]
-  );
+  const renderPreview = ({
+    previewMode = showPreview,
+    collapsed = isCollapsed,
+    fullscreen = false,
+  }: {
+    previewMode?: boolean;
+    collapsed?: boolean;
+    fullscreen?: boolean;
+  } = {}) => {
+    const wrapperClass = `preview-content${
+      fullscreen ? " preview-content-fullscreen" : ""
+    }`;
+
+    if (isStreaming) {
+      return renderPlaceholder();
+    }
+
+    if (language === "json" && previewMode && content && !collapsed) {
+      return (
+        <div className={wrapperClass}>
+          <JsonBlock rawCode={content} showPreview={previewMode} />
+        </div>
+      );
+    }
+
+    if (language === "mermaid") {
+      return (
+        <div className={wrapperClass}>
+          <MermaidContent
+            elementId={elementId}
+            content={content}
+            showPreview={previewMode}
+            isCollapsed={collapsed}
+            children={children}
+            theme={theme}
+          />
+        </div>
+      );
+    }
+
+    if (
+      (language === "jsx" || language === "tsx") &&
+      previewMode &&
+      !collapsed
+    ) {
+      return (
+        <div className={wrapperClass}>
+          <ReactLiveBlock
+            rawCode={content}
+            language={language}
+            showPreview={previewMode}
+            liveScope={liveScope}
+            className={fullscreen ? "fullscreen-live" : undefined}
+          />
+        </div>
+      );
+    }
+
+    if (!collapsed) {
+      return (
+        <pre className={`code-content language-${language || "plaintext"}`}>
+          <code>{children}</code>
+        </pre>
+      );
+    }
+    return null;
+  };
+
+  const handleCopy = () => {
+    copyToClipboard(content, {
+      onSuccess: () => {
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2000);
+      },
+      onError: (err) => console.error("Failed to copy:", err),
+    });
+  };
 
   return (
     <>
       <style href="code-block" precedence="medium">
         {styles}
       </style>
-      <div {...attributes} className="code-block-wrapper">
-        <CodeBlockActions />
 
-        {language === "json" && showPreview && content && !isCollapsed ? (
-          <div className="preview-content">
-            <JsonBlock rawCode={content} showPreview={showPreview} />
+      <div {...attributes} className="code-block-wrapper">
+        <div className="code-block-actions">
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <span className="language-tag">{language || "text"}</span>
+            {filename && (
+              <Tooltip content={filename}>
+                <span className="filename-tag">{filename}</span>
+              </Tooltip>
+            )}
           </div>
-        ) : language === "mermaid" ? (
-          <div className="preview-content">
-            <MermaidContent
-              elementId={elementId}
-              content={content}
-              showPreview={showPreview}
-              isCollapsed={isCollapsed}
-              children={children}
-              theme={theme}
-            />
+          <div className="action-buttons">
+            <Tooltip
+              content={
+                isStreaming
+                  ? "生成中，预览稍后可用"
+                  : showPreview
+                    ? "显示代码"
+                    : "显示预览"
+              }
+            >
+              <button
+                onClick={() => !isStreaming && setShowPreview(!showPreview)}
+                className={`action-button ${showPreview ? "active" : ""}`}
+                disabled={isStreaming}
+              >
+                {showPreview ? <CodeIcon size={16} /> : <EyeIcon size={16} />}
+              </button>
+            </Tooltip>
+            <Tooltip content={isCopied ? "已复制!" : "复制代码"}>
+              <button onClick={handleCopy} className="action-button">
+                {isCopied ? <CheckIcon size={16} /> : <CopyIcon size={16} />}
+              </button>
+            </Tooltip>
+            <Tooltip content={isCollapsed ? "展开代码" : "折叠代码"}>
+              <button
+                onClick={() => setIsCollapsed(!isCollapsed)}
+                className={`action-button ${isCollapsed ? "active" : ""}`}
+              >
+                {isCollapsed ? (
+                  <ChevronUpIcon size={16} />
+                ) : (
+                  <ChevronDownIcon size={16} />
+                )}
+              </button>
+            </Tooltip>
+            <Tooltip content="全屏预览">
+              <button
+                onClick={() => setIsFullscreenOpen(true)}
+                className="action-button"
+                disabled={isStreaming}
+              >
+                <ScreenFullIcon size={16} />
+              </button>
+            </Tooltip>
           </div>
-        ) : (language === "jsx" || language === "tsx") &&
-          showPreview &&
-          !isCollapsed ? (
-          <div className="preview-content">
-            <ReactLiveBlock
-              rawCode={content}
-              language={language}
-              theme={theme}
-              showPreview={showPreview}
-              liveScope={liveScope}
-            />
-          </div>
-        ) : !isCollapsed ? (
-          <pre className={`code-content language-${language || "plaintext"}`}>
-            <code>{children}</code>
-          </pre>
-        ) : null}
+        </div>
+        {renderPreview()}
       </div>
+
+      <BaseModal
+        isOpen={isFullscreenOpen}
+        onClose={() => setIsFullscreenOpen(false)}
+        variant="fullscreen"
+        closeOnBackdrop
+        preventBodyScroll
+        className="code-block-fullscreen-modal"
+        zIndex={1200}
+      >
+        <div className="fullscreen-preview-shell">
+          <div className="fullscreen-preview-header">
+            <div>
+              <span style={{ fontWeight: 500 }}>{language || "Preview"}</span>
+              {filename && (
+                <span style={{ marginLeft: 12, color: "var(--textSecondary)" }}>
+                  {filename}
+                </span>
+              )}
+            </div>
+            <button
+              className="fullscreen-close-button"
+              onClick={() => setIsFullscreenOpen(false)}
+            >
+              退出全屏
+            </button>
+          </div>
+          <div className="fullscreen-preview-body">
+            {renderPreview({
+              previewMode: true,
+              collapsed: false,
+              fullscreen: true,
+            })}
+          </div>
+        </div>
+      </BaseModal>
     </>
   );
 };

@@ -1,18 +1,25 @@
+// createRoutes.tsx
+import { lazy, Suspense } from "react";
 import { CreateRoutePaths } from "./routePaths";
 
-import AgentForm from "ai/llm/web/AgentForm";
-import CreateCustomCybot from "ai/llm/web/CreateCustomCybot";
-import { PlusIcon, SyncIcon } from "@primer/octicons-react";
+const AgentForm = lazy(() => import("ai/llm/web/AgentForm"));
+const CreateCustomCybot = lazy(() => import("ai/llm/web/CreateCustomCybot"));
 
 export const createRoutes = [
   {
     path: CreateRoutePaths.CREATE_CYBOT,
     element: (
-      <AgentForm mode="create" CreateIcon={PlusIcon} EditIcon={SyncIcon} />
+      <Suspense fallback={null}>
+        <AgentForm mode="create" />
+      </Suspense>
     ),
   },
   {
     path: CreateRoutePaths.CREATE_CUSTOM_CYBOT,
-    element: <CreateCustomCybot />,
+    element: (
+      <Suspense fallback={null}>
+        <CreateCustomCybot />
+      </Suspense>
+    ),
   },
 ];

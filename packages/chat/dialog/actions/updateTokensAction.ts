@@ -14,6 +14,7 @@ import {
   ModelStats,
 } from "ai/token/saveTokenRecord";
 import { pino } from "pino";
+import { deductBalance } from "auth/authSlice"; // <--- 1. 导入新的 deductBalance action
 
 const logger = pino({ name: "token-usage", level: "info" });
 
@@ -142,9 +143,8 @@ export const updateTokensAction = async (
   thunkApi
 ) => {
   const { currentUser } = thunkApi.getState().auth;
+  // 假设 normalizeUsage 是一个将不同格式的 usage 统一化的函数
   const usage = normalizeUsage(usageRaw);
-  console.log("usageRaw", usageRaw);
-  console.log("usage", usage);
   const timestamp = Date.now();
 
   const result = calculatePrice({
@@ -157,6 +157,16 @@ export const updateTokensAction = async (
       creatorId: extractUserId(cybotConfig.id),
     },
   });
+
+  // ==================================================================
+  // ▼▼▼ 在计算成本后，立即 dispatch action 来实现前端临时扣款 ▼▼▼
+  // ==================================================================
+  if (result.cost > 0) {
+    thunkApi.dispatch(deductBalance(result.cost));
+  }
+  // ==================================================================
+  // ▲▲▲ 更新余额逻辑结束 ▲▲▲
+  // ==================================================================
 
   const tokenData: TokenUsageData = {
     ...usage,
@@ -180,6 +190,7 @@ export const updateTokensAction = async (
     outputPrice: cybotConfig.outputPrice,
   });
 
+  // 异步将消费记录写入数据库
   await saveTokenRecord(tokenData, record, thunkApi);
   await saveTokenUsage(tokenData, thunkApi);
 

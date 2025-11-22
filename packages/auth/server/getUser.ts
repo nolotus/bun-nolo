@@ -26,7 +26,7 @@ function canViewUserProfile(
   return requestUserId === targetUserId || requestUserId === nolotusId;
 }
 
-async function getUser(userId: string): Promise<User | null> {
+export async function getUser(userId: string): Promise<User | null> {
   const key = `${DB_PREFIX.USER}${userId}`;
 
   try {

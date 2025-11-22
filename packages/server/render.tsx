@@ -1,7 +1,6 @@
 // server/handleRender.js
 import React from "react";
 import { renderToReadableStream } from "react-dom/server";
-
 import { createAppStore } from "app/store";
 import { renderReactApp } from "./html/renderReactApp";
 import { serializeState } from "./html/serializeState";
@@ -13,11 +12,9 @@ import { detectSite, loadRoutes } from "app/web/siteRoutes";
 let cachedAssets = null;
 let lastCheckTime = 0;
 const CACHE_DURATION = 60_000;
-
 const getLatestAssets = async () => {
   const now = Date.now();
   if (cachedAssets && now - lastCheckTime < CACHE_DURATION) return cachedAssets;
-
   try {
     const assetsData = await Bun.file("public/latest-assets.json").text();
     cachedAssets = JSON.parse(assetsData);
@@ -30,20 +27,24 @@ const getLatestAssets = async () => {
   }
 };
 
+// 可切换：是否演示“动态改变数据”的流式片段（保留但默认关闭）
+const ENABLE_DYNAMIC_DEMO = false;
+
 export const handleRender = async (req) => {
   const hostname = req.headers.get("host");
   const url = new URL(req.url);
+  const enc = new TextEncoder();
+  const W = (writer, s) => writer.write(enc.encode(s));
 
-  const startTime = performance.now();
-  const assets = await getLatestAssets();
-  const bootstrapJs = assets.js || "";
-  const bootstrapCss = assets.css || "";
   let didError = false;
-
-  const acceptLanguage = req.headers.get("accept-language");
-  const lng = acceptLanguage?.split(",")[0] || "zh-CN";
+  const start = performance.now();
 
   try {
+    const assets = await getLatestAssets();
+    const bootstrapJs = assets.js || "";
+    const bootstrapCss = assets.css || "";
+
+    const lng = (req.headers.get("accept-language") || "zh-CN").split(",")[0];
     const t = await i18nServer.cloneInstance({ lng }).init();
     const seoData = {
       lang: lng,
@@ -51,103 +52,90 @@ export const handleRender = async (req) => {
       description: t("seo.description", { ns: "common" }),
     };
 
-    // 统一：SSR 首屏使用与客户端相同的站点与路由加载逻辑
+    // 与客户端一致：按站点加载路由
     const siteId = detectSite(hostname);
     const initialRoutes = await loadRoutes(siteId, undefined);
 
+    // 创建 store 并开始 SSR
     const store = createAppStore();
-    const renderStartTime = performance.now();
-    const stream = await renderToReadableStream(
+    const reactStream = await renderToReadableStream(
       renderReactApp(store, url, hostname, lng, initialRoutes),
       {
         bootstrapModules: bootstrapJs ? [bootstrapJs] : [],
-        onError(error) {
+        onError(err) {
           didError = true;
-          console.error("React 渲染错误:", error);
+          console.error("React 渲染错误:", err);
         },
       }
     );
-    console.log(
-      `Render to stream time: ${performance.now() - renderStartTime}ms`
-    );
 
-    const [, copyReactStream] = stream.tee();
+    // tee 出一份，便于边写头/状态、边输出 React 内容
+    const [, copyReactStream] = reactStream.tee();
     const { readable, writable } = new TransformStream();
     const writer = writable.getWriter();
 
+    // 控制并发结束
     let doneReact = false;
     let doneLocal = false;
-    const tryCloseStream = () => {
+    const tryClose = () => {
       if (doneReact && doneLocal) {
-        writer.write(new TextEncoder().encode(htmlEnd));
+        W(writer, htmlEnd);
         writer.close();
-        console.log(`Total time: ${performance.now() - startTime}ms`);
+        console.log(`SSR total: ${Math.round(performance.now() - start)}ms`);
       }
     };
 
-    // 写 head 与样式
-    writer.write(new TextEncoder().encode(htmlStart(seoData, bootstrapCss)));
+    // 写入 <head> 与样式/预加载
+    W(writer, htmlStart(seoData, bootstrapCss));
 
-    // 保留：writeToStreamAsync（注释段原样）+ 注入 siteId 给客户端
-    async function writeToStreamAsync() {
-      const dispatchStartTime = performance.now();
-
-      // for future dynamic change data
-      // const iterations = 30;
-      // for (let i = 0; i <= iterations; i++) {
-      //   await new Promise((resolve) =>
-      //     setTimeout(resolve, Math.round(Math.random() * 100)),
-      //   );
-      //   let content = `<div id="ST-${i}">Iteration ${i}</div>`;
-      //   if (i > 0) {
-      //     content += `<script id="SR-${i}">$U("ST-${
-      //       i - 1
-      //     }","ST-${i}")</script>`;
-      //   }
-      //   if (i === iterations) {
-      //     content += `<script id="SR-${i}">$U("SR-${i}","SR-${i}")</script>`;
-      //   }
-      //   writer.write(new TextEncoder().encode(content));
-      // }
-      // maybe need delete api relate
-
-      // 1) 注入 Redux 初始状态
+    // 异步写入：Redux 初始状态 + 站点脚本 +（可选）动态片段
+    (async () => {
       const preloadedState = store.getState();
-      writer.write(new TextEncoder().encode(serializeState(preloadedState)));
+      W(writer, serializeState(preloadedState));
+      W(
+        writer,
+        `<script>window.__SITE_ID__=${JSON.stringify(siteId)};</script>`
+      );
 
-      // 2) 注入站点标识，供客户端在 hydrate 前加载相同路由
-      const siteScript = `<script>window.__SITE_ID__=${JSON.stringify(siteId)};</script>`;
-      writer.write(new TextEncoder().encode(siteScript));
-
-      console.log(`Dispatch time: ${performance.now() - dispatchStartTime}ms`);
+      // 保留动态改变数据：按需开启演示（不写入 #root，避免影响 hydrate）
+      if (ENABLE_DYNAMIC_DEMO) {
+        const iterations = 8;
+        for (let i = 0; i <= iterations; i++) {
+          await new Promise((r) =>
+            setTimeout(r, 60 + Math.round(Math.random() * 120))
+          );
+          let content = `<div id="ST-${i}" style="display:none">Chunk ${i}</div>`;
+          if (i > 0)
+            content += `<script id="SR-${i}">$U("ST-${i - 1}","ST-${i}")</script>`;
+          if (i === iterations)
+            content += `<script id="SR-${i}">$U("SR-${i}","SR-${i}")</script>`;
+          W(writer, content);
+        }
+      }
 
       doneLocal = true;
-      tryCloseStream();
-    }
-    writeToStreamAsync();
+      tryClose();
+    })();
 
-    // 把 React 流写入 body
+    // 把 React 可读流写入 body
     const reader = copyReactStream.getReader();
     (async () => {
-      writer.write(new TextEncoder().encode('<div id="root">'));
-      let finish = false;
-      while (!finish) {
+      W(writer, '<div id="root">');
+      while (true) {
         try {
           const { done, value } = await reader.read();
           if (done) {
-            finish = true;
             doneReact = true;
-            writer.write(new TextEncoder().encode("</div>"));
-            tryCloseStream();
+            W(writer, "</div>");
+            tryClose();
             break;
           }
-          writer.write(value);
-        } catch (error) {
-          console.error("读取 React 流时发生错误:", error);
-          finish = true;
+          await writer.write(value);
+        } catch (err) {
+          console.error("读取 React 流错误:", err);
           doneReact = true;
-          writer.write(new TextEncoder().encode("</div>"));
-          tryCloseStream();
+          W(writer, "</div>");
+          tryClose();
           break;
         }
       }
@@ -161,12 +149,11 @@ export const handleRender = async (req) => {
       },
     });
   } catch (error) {
-    console.error("渲染过程中发生错误:", error);
+    console.error("渲染错误:", error);
     return new Response(
-      `
-      <!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8" /><title>服务器错误</title></head>
-      <body><pre>${String(error)}</pre></body></html>
-      `,
+      `<!doctype html><html lang="zh-CN"><meta charset="utf-8"/><title>服务器错误</title><body><pre>${String(
+        error
+      )}</pre></body></html>`,
       {
         status: 500,
         headers: {

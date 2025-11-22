@@ -1,11 +1,8 @@
-// /ai/cybot/cybotSlice.ts
-
 import { asyncThunkCreator, buildCreateSlice } from "@reduxjs/toolkit";
 import { RootState } from "app/store";
 import { read } from "database/dbSlice";
 import { generateRequestBody } from "ai/llm/generateRequestBody";
 import { fetchReferenceContents } from "ai/context/buildReferenceContext";
-// <--- 改动 1: 导入 PendingFile 类型和 selectPendingFiles 选择器
 import {
   selectCurrentDialogConfig,
   selectPendingFiles,
@@ -21,8 +18,12 @@ import { Agent } from "app/types";
 import { _executeModel } from "ai/agent/_executeModel";
 import { isResponseAPIModel } from "ai/llm/isResponseAPIModel";
 
+import { selectCurrentUserBalance, selectUserId } from "auth/authSlice";
+import { getModelPricing, getPrices, getFinalPrice } from "ai/llm/getPricing";
+
 import { sendOpenAICompletionsRequest } from "../chat/sendOpenAICompletionsRequest";
 import { sendOpenAIResponseRequest } from "../chat/sendOpenAIResponseRequest";
+
 const createSliceWithThunks = buildCreateSlice({
   creators: { asyncThunk: asyncThunkCreator },
 });
@@ -43,11 +44,13 @@ const initialState: CybotState = {
   },
 };
 
+const joinMapValues = (map: Map<string, string>) =>
+  Array.from(map.values()).join("");
+
 export const cybotSlice = createSliceWithThunks({
   name: "cybot",
   initialState,
   reducers: (create) => ({
-    // ... 其他 thunks 保持不变
     runLlm: create.asyncThunk(
       (args: { cybotId?: string; content: any }, thunkApi) =>
         _executeModel(
@@ -60,6 +63,7 @@ export const cybotSlice = createSliceWithThunks({
           thunkApi
         )
     ),
+
     streamLlm: create.asyncThunk(
       (
         args: { cybotId?: string; content: any; parentMessageId?: string },
@@ -75,6 +79,7 @@ export const cybotSlice = createSliceWithThunks({
           thunkApi
         )
     ),
+
     runAgent: create.asyncThunk(
       (args: { cybotId: string; content: any }, thunkApi) =>
         _executeModel(
@@ -87,6 +92,7 @@ export const cybotSlice = createSliceWithThunks({
           thunkApi
         )
     ),
+
     streamAgent: create.asyncThunk(
       (
         args: { cybotId: string; content: any; parentMessageId?: string },
@@ -98,6 +104,7 @@ export const cybotSlice = createSliceWithThunks({
           thunkApi
         )
     ),
+
     streamAgentChatTurn: create.asyncThunk(
       async (
         args: {
@@ -113,6 +120,52 @@ export const cybotSlice = createSliceWithThunks({
         try {
           const { cybotId, userInput, parentMessageId } = args;
           const agentConfig = await dispatch(read(cybotId)).unwrap();
+          if (!agentConfig) {
+            return rejectWithValue(`Agent config not found for ID: ${cybotId}`);
+          }
+
+          // ==================================================================
+          // ▼▼▼ 权限和余额检查 ▼▼▼
+          // ==================================================================
+          const userBalance = selectCurrentUserBalance(state);
+          const currentUserId = selectUserId(state);
+
+          if (typeof userBalance !== "number") {
+            return rejectWithValue("正在获取用户余额，请稍候...");
+          }
+
+          const isOwner = currentUserId && agentConfig.userId === currentUserId;
+          if (!isOwner) {
+            const hasWhitelist =
+              Array.isArray(agentConfig.whitelist) &&
+              agentConfig.whitelist.length > 0;
+            if (hasWhitelist) {
+              const isUserInWhitelist =
+                !!currentUserId &&
+                agentConfig.whitelist.includes(currentUserId);
+              if (!isUserInWhitelist) {
+                return rejectWithValue("您不在该应用的白名单中，无法使用。");
+              }
+            }
+          }
+
+          if (agentConfig.provider !== "Custom") {
+            const serverPrices = getModelPricing(
+              agentConfig.provider,
+              agentConfig.model
+            );
+            if (!serverPrices) {
+              return rejectWithValue("无法获取模型定价信息，请稍后重试。");
+            }
+            const prices = getPrices(agentConfig, serverPrices);
+            const maxPrice = getFinalPrice(prices);
+            if (userBalance < maxPrice) {
+              return rejectWithValue("余额不足，请充值后再试。");
+            }
+          }
+          // ==================================================================
+          // ▲▲▲ 检查结束 ▲▲▲
+          // ==================================================================
 
           const keySets = await getFullChatContextKeys(
             state,
@@ -124,40 +177,37 @@ export const cybotSlice = createSliceWithThunks({
 
           const [
             botInstructionsMap,
-            currentUserMap,
+            currentInputMap,
             smartReadMap,
             historyMap,
             botKnowledgeMap,
           ] = await Promise.all([
             fetchReferenceContents(finalKeys.botInstructionsContext, dispatch),
-            fetchReferenceContents(finalKeys.currentUserContext, dispatch),
+            fetchReferenceContents(finalKeys.currentInputContext, dispatch),
             fetchReferenceContents(finalKeys.smartReadContext, dispatch),
             fetchReferenceContents(finalKeys.historyContext, dispatch),
             fetchReferenceContents(finalKeys.botKnowledgeContext, dispatch),
           ]);
 
-          // <--- 核心改动开始 ---
-
-          // 1. 获取当前待处理的文件附件
           const pendingFiles = selectPendingFiles(state);
-          let formattedCurrentUserContext = "";
+          let formattedCurrentInputContext = "";
 
-          // 2. 仅当存在待处理文件且内容已获取时，才进行分组处理
-          if (pendingFiles.length > 0 && currentUserMap.size > 0) {
+          if (pendingFiles.length > 0 && currentInputMap.size > 0) {
+            // Group pending files by groupId (or fallback to id)
             const filesByGroup = new Map<string, PendingFile[]>();
-
-            // 筛选出那些内容确实被加载了的 pendingFiles
             const relevantPendingFiles = pendingFiles.filter((file) =>
-              currentUserMap.has(file.pageKey)
+              currentInputMap.has(file.pageKey)
             );
 
-            relevantPendingFiles.forEach((file) => {
-              const key = file.groupId || file.id;
-              if (!filesByGroup.has(key)) {
-                filesByGroup.set(key, []);
+            for (const file of relevantPendingFiles) {
+              const groupKey = file.groupId || file.id;
+              const group = filesByGroup.get(groupKey);
+              if (group) {
+                group.push(file);
+              } else {
+                filesByGroup.set(groupKey, [file]);
               }
-              filesByGroup.get(key)!.push(file);
-            });
+            }
 
             let sourceCounter = 1;
             filesByGroup.forEach((filesInGroup) => {
@@ -166,72 +216,67 @@ export const cybotSlice = createSliceWithThunks({
                 ? filesInGroup[0].name.split(" (")[0]
                 : filesInGroup[0].name;
 
-              formattedCurrentUserContext += `--- Source ${sourceCounter}: "${sourceName}" ---\n`;
+              formattedCurrentInputContext += `--- Source ${sourceCounter}: "${sourceName}" ---\n`;
 
               filesInGroup.forEach((file) => {
-                const content = currentUserMap.get(file.pageKey);
-                if (content) {
-                  // 如果是分组的，添加 Document 标题，否则直接附加内容
-                  if (isGroup) {
-                    formattedCurrentUserContext += `### Document: "${file.name}"\n${content}\n`;
-                  } else {
-                    formattedCurrentUserContext += `${content}\n`;
-                  }
+                const content = currentInputMap.get(file.pageKey);
+                if (!content) return;
+                if (isGroup) {
+                  formattedCurrentInputContext += `### Document: "${file.name}"\n${content}\n`;
+                } else {
+                  formattedCurrentInputContext += `${content}\n`;
                 }
               });
 
-              formattedCurrentUserContext += `--- End of Source ${sourceCounter} ---\n\n`;
+              formattedCurrentInputContext += `--- End of Source ${sourceCounter} ---\n\n`;
               sourceCounter++;
             });
           } else {
-            // 如果没有待处理文件，则维持原有行为，简单拼接所有内容
-            formattedCurrentUserContext = Array.from(
-              currentUserMap.values()
-            ).join("");
+            formattedCurrentInputContext = joinMapValues(currentInputMap);
           }
 
-          // 3. 将其他上下文的 Map 转换回字符串以保持对下游的兼容性
-          const botInstructionsContext = Array.from(
-            botInstructionsMap.values()
-          ).join("");
-          const smartReadContext = Array.from(smartReadMap.values()).join("");
-          const historyContext = Array.from(historyMap.values()).join("");
-          const botKnowledgeContext = Array.from(botKnowledgeMap.values()).join(
-            ""
-          );
-
-          // <--- 核心改动结束 ---
+          const botInstructionsContext = joinMapValues(botInstructionsMap);
+          const smartReadContext = joinMapValues(smartReadMap);
+          const historyContext = joinMapValues(historyMap);
+          const botKnowledgeContext = joinMapValues(botKnowledgeMap);
 
           const messages = filterAndCleanMessages(selectAllMsgs(state));
+
           const bodyData = generateRequestBody({
             agentConfig,
             messages,
             userInput,
             contexts: {
               botInstructionsContext,
-              currentUserContext: formattedCurrentUserContext.trim() || null, // 使用新变量, 并确保空字符串转为null
+              currentInputContext: formattedCurrentInputContext.trim() || null,
               smartReadContext,
               historyContext,
               botKnowledgeContext,
             },
           });
 
+          const currentDialog = selectCurrentDialogConfig(state);
+          const dialogKey = currentDialog?.dbKey;
+
+          if (!dialogKey) {
+            return rejectWithValue("当前对话不存在，无法发送消息。");
+          }
+
           if (isResponseAPIModel(agentConfig)) {
             const logsText = await sendOpenAIResponseRequest({
               bodyData,
               agentConfig,
               thunkApi,
-              dialogKey: selectCurrentDialogConfig(state)?.dbKey,
+              dialogKey,
               parentMessageId,
             });
-
             console.log("=== 全量日志 ===\n", logsText);
           } else {
             await sendOpenAICompletionsRequest({
               bodyData,
               cybotConfig: agentConfig,
               thunkApi,
-              dialogKey: selectCurrentDialogConfig(state)?.dbKey,
+              dialogKey,
               parentMessageId,
             });
           }
@@ -240,7 +285,10 @@ export const cybotSlice = createSliceWithThunks({
             `Error in streamAgentChatTurn for [${args.cybotId}]:`,
             error
           );
-          return rejectWithValue(error.message);
+          return rejectWithValue(
+            error.message ||
+              "An unexpected error occurred in streamAgentChatTurn."
+          );
         }
       }
     ),

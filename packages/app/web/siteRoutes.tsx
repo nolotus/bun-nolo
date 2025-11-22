@@ -3,14 +3,14 @@ import type { RouteObject } from "react-router-dom";
 
 export type SiteId = "date" | "selfr" | "default";
 
-const selfrUrl = "selfr.nolo.chat";
-const dateUrl = "date.nolo.chat";
+const hostToSite: Record<string, SiteId> = {
+  "nolotus.local": "date",
+  "date.nolo.chat": "date",
+  "selfr.nolo.chat": "selfr",
+};
 
-export function detectSite(hostname: string): SiteId {
-  if (hostname === "nolotus.local" || hostname === dateUrl) return "date";
-  if (hostname === selfrUrl) return "selfr";
-  return "default";
-}
+export const detectSite = (hostname: string): SiteId =>
+  hostToSite[hostname] ?? "default";
 
 export async function loadRoutes(
   site: SiteId,
@@ -23,10 +23,10 @@ export async function loadRoutes(
 
   if (site === "selfr") {
     const [
-      { default: NavbarComponent },
+      { default: Navbar },
       { default: Moment },
       { default: Article },
-      modRoutes,
+      appRoutes,
       { Outlet },
     ] = await Promise.all([
       import("lab/s-station/Navbar"),
@@ -38,7 +38,7 @@ export async function loadRoutes(
 
     const Layout = () => (
       <div>
-        <NavbarComponent />
+        <Navbar />
         <Outlet />
       </div>
     );
@@ -50,13 +50,12 @@ export async function loadRoutes(
         children: [
           { index: true, element: <Moment /> },
           { path: "article", element: <Article /> },
-          ...modRoutes.routes(user),
+          ...appRoutes.routes(user),
         ],
       },
     ];
   }
 
-  // default
-  const mod = await import("app/web/routes");
-  return mod.routes(user);
+  const appRoutes = await import("app/web/routes");
+  return appRoutes.routes(user);
 }

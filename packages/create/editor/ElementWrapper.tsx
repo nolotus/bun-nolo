@@ -1,13 +1,7 @@
-import React from "react";
-import { useSlateStatic, ReactEditor } from "slate-react"; // <--- 引入 ReactEditor
-
-// 您的类型定义导入
+import React, { Suspense, lazy } from "react";
+import { useSlateStatic, ReactEditor } from "slate-react";
 import { CodeBlockType, CodeLineType } from "./types";
-
-// 您的 UI 组件导入
 import { Table, TableRow, TableCell } from "render/web/ui/Table";
-
-import CodeBlock from "render/web/elements/CodeBlock";
 import { ImageElement } from "render/web/elements/ImageElement";
 import { List, ListItem } from "render/web/elements/List";
 import {
@@ -27,14 +21,22 @@ const TEXT_BLOCK_TYPES = [
   "thematic-break",
 ];
 
-export const ElementWrapper: React.FC<any> = (props) => {
-  // 核心修正：不再从 props 解构 path，因为它不存在
-  const { attributes, children, element } = props;
+const LazyCodeBlock = lazy(() => import("render/web/elements/CodeBlock"));
+
+interface ElementWrapperProps {
+  attributes: any;
+  children: any;
+  element: any;
+  isStreaming?: boolean;
+}
+
+export const ElementWrapper: React.FC<ElementWrapperProps> = (props) => {
+  const { attributes, children, element, isStreaming = false } = props;
   const editor = useSlateStatic();
 
-  const getStyle = (additionalStyle: React.CSSProperties = {}) => ({
+  const getStyle = (style: React.CSSProperties = {}) => ({
     ...(element.align ? { textAlign: element.align } : {}),
-    ...additionalStyle,
+    ...style,
   });
 
   if (TEXT_BLOCK_TYPES.includes(element.type)) {
@@ -47,9 +49,15 @@ export const ElementWrapper: React.FC<any> = (props) => {
 
   if (element.type === CodeBlockType) {
     return (
-      <CodeBlock attributes={attributes} element={element}>
-        {children}
-      </CodeBlock>
+      <Suspense fallback={<pre className="code-loading">代码块加载中...</pre>}>
+        <LazyCodeBlock
+          attributes={attributes}
+          element={element}
+          isStreaming={isStreaming}
+        >
+          {children}
+        </LazyCodeBlock>
+      </Suspense>
     );
   }
 
@@ -67,7 +75,7 @@ export const ElementWrapper: React.FC<any> = (props) => {
         <code
           {...attributes}
           style={getStyle({
-            backgroundColor: "var(--backgroundSecondary)",
+            background: "var(--backgroundSecondary)",
             color: "var(--primary)",
             padding: "var(--space-1) var(--space-2)",
             borderRadius: "var(--space-1)",
@@ -103,9 +111,7 @@ export const ElementWrapper: React.FC<any> = (props) => {
       return (
         <ImageElement
           {...props}
-          style={getStyle({
-            margin: "var(--space-4) 0",
-          })}
+          style={getStyle({ margin: "var(--space-4) 0" })}
         />
       );
 
@@ -123,19 +129,18 @@ export const ElementWrapper: React.FC<any> = (props) => {
         </ListItem>
       );
 
-    // --- vvvv 以下是核心修正 vvvv ---
-    case "table":
-      // 核心修正：在这里按需查找 path
+    case "table": {
       const tablePath = ReactEditor.findPath(editor, element);
       return (
         <Table
           {...props}
-          path={tablePath} // 传递查找到的 path
+          path={tablePath}
           style={getStyle({ margin: "var(--space-4) 0" })}
         >
           {children}
         </Table>
       );
+    }
 
     case "table-row":
       return (
@@ -144,15 +149,14 @@ export const ElementWrapper: React.FC<any> = (props) => {
         </TableRow>
       );
 
-    case "table-cell":
-      // 核心修正：在这里按需查找 path
+    case "table-cell": {
       const cellPath = ReactEditor.findPath(editor, element);
       const isFirstRow = cellPath[cellPath.length - 2] === 0;
       return (
         <TableCell
           {...props}
-          path={cellPath} // 传递查找到的 path
-          isFirstRow={isFirstRow} // 传递计算出的 isFirstRow
+          path={cellPath}
+          isFirstRow={isFirstRow}
           style={getStyle({
             padding: "var(--space-2) var(--space-3)",
             lineHeight: 1.4,
@@ -161,7 +165,7 @@ export const ElementWrapper: React.FC<any> = (props) => {
           {children}
         </TableCell>
       );
-    // --- ^^^^ 以上是核心修正 ^^^^ ---
+    }
 
     case "html-inline":
       return (
@@ -181,7 +185,7 @@ export const ElementWrapper: React.FC<any> = (props) => {
         />
       );
 
-    default:
+    default: {
       const Tag = editor.isInline(element) ? "span" : "div";
       return (
         <Tag
@@ -193,5 +197,6 @@ export const ElementWrapper: React.FC<any> = (props) => {
           {children}
         </Tag>
       );
+    }
   }
 };

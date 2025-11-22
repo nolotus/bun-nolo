@@ -1,5 +1,3 @@
-// create/editor/syntaxHighlighting.tsx
-
 import React, { useCallback, useMemo } from "react";
 import {
   Editor,
@@ -13,21 +11,29 @@ import { useSlate, ReactEditor } from "slate-react";
 import { History } from "slate-history";
 import Prism from "prismjs";
 
+// 常用语言静态引入，确保立即可用
+import "prismjs/components/prism-javascript";
+import "prismjs/components/prism-jsx";
+import "prismjs/components/prism-typescript";
+import "prismjs/components/prism-tsx";
+import "prismjs/components/prism-json";
+import "prismjs/components/prism-yaml";
+import "prismjs/components/prism-python";
+import "prismjs/components/prism-php";
+import "prismjs/components/prism-sql";
+import "prismjs/components/prism-java";
+import "prismjs/components/prism-markdown";
+import "prismjs/components/prism-diff";
+import "prismjs/components/prism-mermaid";
+
 import { CodeBlockType, CodeLineType } from "./types";
 import { normalizeTokens } from "./utils/normalize-tokens";
 
-// 注意: 此类型也用于 Editor.tsx。
-// 为了更好的可维护性，建议将其移动到共享的 types.ts 文件中。
 type CustomEditor = ReactEditor &
   History & {
     nodeToDecorations?: Map<SlateElement, Range[]>;
   };
 
-/**
- * 将多个 Map 合并成一个。如果 key 冲突，后一个 map 的值会覆盖前一个。
- * @param maps - 需要合并的 Map 对象数组
- * @returns 一个包含所有键值对的新 Map
- */
 const mergeMaps = <K, V>(...maps: Map<K, V>[]): Map<K, V> => {
   const merged = new Map<K, V>();
   for (const m of maps) {
@@ -38,42 +44,30 @@ const mergeMaps = <K, V>(...maps: Map<K, V>[]): Map<K, V> => {
   return merged;
 };
 
-/**
- * 使用 Prism.js 为单个代码块节点生成装饰器范围 (Ranges)。
- * @param entry - 代码块的节点条目 [node, path]。
- * @returns 一个 Map，其键是子级的 code-line 元素，值是它们计算出的装饰器 Range 数组。
- */
-const getChildNodeToDecorations = ([block, blockPath]: NodeEntry): Map<
-  SlateElement,
-  Range[]
-> => {
+const getChildNodeToDecorations = (
+  [block, blockPath]: NodeEntry,
+  prismLib: typeof Prism
+): Map<SlateElement, Range[]> => {
   const nodeToDecorations = new Map<SlateElement, Range[]>();
   if (
     !SlateElement.isElement(block) ||
     block.type !== CodeBlockType ||
-    !Array.isArray(block.children)
+    !Array.isArray(block.children) ||
+    (block as any).preview === "true"
   ) {
     return nodeToDecorations;
   }
 
-  // 过滤出有效的 code-line 子节点
   const codeLines = block.children.filter(
     (child): child is SlateElement =>
       SlateElement.isElement(child) && child.type === CodeLineType
   );
-  if (codeLines.length === 0) {
-    return nodeToDecorations;
-  }
+  if (codeLines.length === 0) return nodeToDecorations;
 
-  // 确定语言并获取 Prism 的语法规则
-  const language = (block as any).language || "plain";
-  const grammar = Prism.languages[language] || Prism.languages.plain;
-  if (!grammar && language !== "plain") {
-    // 优雅地处理缺失的语法规则
-    console.warn(`Prism grammar not found for language: ${language}`);
-  }
+  const language = ((block as any).language || "plain").toLowerCase();
+  const grammar =
+    prismLib.languages[language] || prismLib.languages.plain || {};
 
-  // 拼接所有代码行的文本以进行整体分析
   let text = "";
   try {
     text = codeLines.map((line) => Node.string(line)).join("\n");
@@ -82,16 +76,14 @@ const getChildNodeToDecorations = ([block, blockPath]: NodeEntry): Map<
     return nodeToDecorations;
   }
 
-  // 使用 Prism 对整个代码块的文本进行词法分析
   let tokens;
   try {
-    tokens = Prism.tokenize(text, grammar);
+    tokens = prismLib.tokenize(text, grammar);
   } catch (e) {
     console.error(`Prism 在处理 ${language} 时出错:`, e);
     return nodeToDecorations;
   }
 
-  // 将令牌（tokens）规范化为逐行结构，并创建 Slate Ranges
   const normalized = normalizeTokens(tokens);
   normalized.forEach((lineTokens, lineIndex) => {
     if (lineIndex >= codeLines.length) return;
@@ -110,11 +102,10 @@ const getChildNodeToDecorations = ([block, blockPath]: NodeEntry): Map<
       const path: Path = [...blockPath, lineIndex, 0];
       const types = (token.types || []).filter((t) => t !== "text");
 
-      // 创建一个 Slate Range，并将 token 类型作为布尔标志，便于样式化
       const range: Range & Record<string, boolean> = {
         anchor: { path, offset: start },
         focus: { path, offset: end },
-        token: true, // 一个适用于所有 token 的通用标志
+        token: true,
         ...Object.fromEntries(types.map((t) => [t, true])),
       };
 
@@ -126,52 +117,53 @@ const getChildNodeToDecorations = ([block, blockPath]: NodeEntry): Map<
   return nodeToDecorations;
 };
 
-/**
- * 一个 React hook，返回一个 memoized 的 Slate `decorate` 函数。
- * 此函数从 editor 实例中读取预先计算好的装饰器数据。
- * @param editor - 自定义 editor 实例
- * @returns 一个 Slate `decorate` 函数
- */
 export const useDecorate = (editor: CustomEditor) => {
   return useCallback(
     ([node]: NodeEntry): Range[] => {
-      // 仅对那些已经有预计算装饰信息的 code-line 元素进行装饰
+      const decorations = editor.nodeToDecorations;
       if (
         SlateElement.isElement(node) &&
         node.type === CodeLineType &&
-        editor.nodeToDecorations?.has(node)
+        decorations?.has(node)
       ) {
-        return editor.nodeToDecorations.get(node)!;
+        return decorations.get(node)!;
       }
       return [];
     },
-    [editor.nodeToDecorations] // 仅当装饰器 map 变更时才重新创建函数
+    [editor]
   );
 };
 
-/**
- * 一个“无头”的 React 组件，负责预计算并缓存编辑器中所有代码块的语法高亮装饰器。
- * 它将结果附加到 `editor.nodeToDecorations` 上，以供 `useDecorate` 消费。
- */
-export const SetNodeToDecorations: React.FC = () => {
+interface SetNodeToDecorationsProps {
+  highlightEnabled: boolean;
+  docVersion: number;
+}
+
+export const SetNodeToDecorations: React.FC<SetNodeToDecorationsProps> = ({
+  highlightEnabled,
+  docVersion,
+}) => {
   const editor = useSlate<CustomEditor>();
 
-  // Memoize 整个装饰器计算过程。
-  // 仅当编辑器的 children (文档内容) 改变时才重新运行。
   const nodeToDecorations = useMemo(() => {
+    if (!highlightEnabled) {
+      return new Map<SlateElement, Range[]>();
+    }
     const codeBlockEntries = Array.from(
       Editor.nodes(editor, {
         at: [],
-        match: (n) => SlateElement.isElement(n) && n.type === CodeBlockType,
+        match: (n) =>
+          SlateElement.isElement(n) &&
+          n.type === CodeBlockType &&
+          (n as any).preview !== "true",
       })
     );
-    const decorationMaps = codeBlockEntries.map(getChildNodeToDecorations);
+    const decorationMaps = codeBlockEntries.map((entry) =>
+      getChildNodeToDecorations(entry, Prism)
+    );
     return mergeMaps(...decorationMaps);
-  }, [editor.children]);
+  }, [editor, docVersion, highlightEnabled]);
 
-  // 将计算出的装饰器附加到 editor 实例上，以便全局访问。
   editor.nodeToDecorations = nodeToDecorations;
-
-  // 此组件不渲染任何内容。
   return null;
 };

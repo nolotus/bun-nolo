@@ -7,7 +7,6 @@ import {
   createSelector,
 } from "@reduxjs/toolkit";
 import type { RootState } from "app/store";
-import { nanoid } from "nanoid";
 import { Descendant } from "slate";
 import { createPage } from "render/page/pageSlice";
 import {
@@ -24,7 +23,7 @@ import { streamAgentChatTurn } from "ai/cybot/cybotSlice";
 import { DialogConfig } from "app/types";
 import { clearPlan } from "ai/llm/planSlice";
 
-// 外部 Actions (保持不变)
+// 外部 Actions
 import { createDialogAction } from "./actions/createDialogAction";
 import { updateDialogTitleAction } from "./actions/updateDialogTitleAction";
 import { updateTokensAction } from "./actions/updateTokensAction";
@@ -50,7 +49,7 @@ export interface PendingFile {
   name: string;
   pageKey: string;
   type: "excel" | "docx" | "pdf" | "page" | "txt";
-  groupId?: string; // <--- 改动 1: 增加可选的 groupId
+  groupId?: string;
 }
 
 export interface CreatePagePayload {
@@ -58,9 +57,9 @@ export interface CreatePagePayload {
   jsonData?: Record<string, any>[];
   title: string;
   type: "excel" | "docx" | "pdf" | "txt";
-  fileId: string; // 从 fileProcessor 传入，用于保持 ID 一致性
-  size: number; // 从 fileProcessor 传入
-  groupId?: string; // <--- 改动 2: 允许 payload 携带 groupId
+  fileId: string;
+  size: number;
+  groupId?: string;
 }
 
 export interface PendingRawData {
@@ -103,24 +102,21 @@ const dialogSlice = createSliceWithThunks({
     // --- Thunks ---
     createPageAndAddReference: create.asyncThunk(
       async (payload: CreatePagePayload, { dispatch, rejectWithValue }) => {
-        // <--- 改动 3: 从 payload 中解构出 fileId 和 groupId
         const { slateData, jsonData, title, type, fileId, groupId } = payload;
         try {
-          // 持久化部分只关心富文本内容和标题
           const pageKey = await dispatch(
             createPage({ slateData, title })
           ).unwrap();
 
           const newReference: PendingFile = {
-            id: fileId, // 使用从 fileProcessor 传来的 fileId
+            id: fileId,
             name: title,
             pageKey,
             type,
-            groupId, // <--- 改动 4: 将 groupId 存入 newReference 对象
+            groupId,
           };
           const newRawData = jsonData ? { pageKey, jsonData } : null;
 
-          // 将引用和原始数据一并返回
           return { reference: newReference, rawData: newRawData };
         } catch (error) {
           console.error("创建页面或引用失败:", error);
@@ -197,12 +193,15 @@ const dialogSlice = createSliceWithThunks({
       ) => {
         const state = getState() as RootState;
         try {
+          // 获取当前对话配置
           const dialogConfig = selectCurrentDialogConfig(state);
-          if (!dialogConfig)
+          if (!dialogConfig) {
             throw new Error(
               "handleSendMessage: Current dialog configuration is missing."
             );
+          }
 
+          // 步骤 1: 准备并持久化用户的消息
           await dispatch(
             prepareAndPersistUserMessage({
               userInput: args.userInput,
@@ -210,6 +209,8 @@ const dialogSlice = createSliceWithThunks({
             })
           ).unwrap();
 
+          // 步骤 2: 如果对话绑定了 Agent，则触发 Agent 的回合
+          // 注意: 真正的权限/余额检查发生在 streamAgentChatTurn 内部
           if (dialogConfig.cybots && dialogConfig.cybots.length > 0) {
             await dispatch(
               streamAgentChatTurn({

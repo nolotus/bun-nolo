@@ -1,12 +1,10 @@
 // ai/llm/providers.ts
 import { anthropicModels } from "integrations/anthropic/anthropicModels";
-import { deepinfraModels } from "integrations/deepinfra/models";
 import { deepSeekModels } from "integrations/deepseek/models";
 import { googleModels } from "integrations/google/models";
 import { mistralModels } from "integrations/mistral/models";
-import { openAIModels } from "integrations/openai/models";
+// import { openAIModels } from "integrations/openai/models";
 import { ollamaModels } from "integrations/ollama/models";
-import { sambanovaModels } from "integrations/sambanova/models";
 import { openrouterModels } from "integrations/openrouter/models";
 import { xaiModels } from "integrations/xai/models";
 
@@ -18,13 +16,11 @@ import type { Agent } from "app/types";
  * ────────────────────────────────────────── */
 const allModels: Model[] = [
   ...anthropicModels,
-  ...deepinfraModels,
   ...deepSeekModels,
   ...googleModels,
   ...mistralModels,
-  ...openAIModels,
+  // ...openAIModels,
   ...ollamaModels,
-  ...sambanovaModels,
   ...openrouterModels,
   ...xaiModels,
 ];
@@ -39,12 +35,10 @@ export const supportedReasoningModels = allModels
 const MODEL_MAP = {
   anthropic: anthropicModels,
   ollama: ollamaModels,
-  deepinfra: deepinfraModels,
   deepseek: deepSeekModels,
   mistral: mistralModels,
   google: googleModels,
-  sambanova: sambanovaModels,
-  openai: openAIModels,
+  // openai: openAIModels,
   openrouter: openrouterModels,
   xai: xaiModels,
 } as const;
@@ -66,10 +60,6 @@ const API_ENDPOINTS: Record<string, ProviderEndpointMap> = {
     completions: "https://api.openai.com/v1/chat/completions",
     responses: "https://api.openai.com/v1/responses",
   },
-  deepinfra: {
-    default: "https://api.deepinfra.com/v1/openai/chat/completions",
-  },
-
   xai: {
     default: "https://api.x.ai/v1/chat/completions",
   },
@@ -86,9 +76,7 @@ const API_ENDPOINTS: Record<string, ProviderEndpointMap> = {
   ollama: {
     default: "http://localhost:11434/v1/chat/completions",
   },
-  sambanova: {
-    default: "https://api.sambanova.ai/v1/chat/completions",
-  },
+
   openrouter: {
     default: "https://openrouter.ai/api/v1/chat/completions",
   },

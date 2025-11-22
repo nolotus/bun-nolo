@@ -13,13 +13,10 @@ const logger = pino({ name: "server:request" });
 const res = createResponse();
 
 // 注意：这个函数现在只处理没有被 `routes` 匹配到的请求
-export const handleRequest = async (request: Request, server) => {
+export const handleRequest = async (request: Request, server: any) => {
   const upgraded = server.upgrade(request, {
-    data: {
-      createdAt: Date.now(),
-    },
+    data: { createdAt: Date.now() },
   });
-
   if (upgraded) return undefined;
 
   const url = new URL(request.url);
@@ -36,7 +33,7 @@ export const handleRequest = async (request: Request, server) => {
   // 以下是原有API处理逻辑
   if (url.pathname.startsWith(API_VERSION)) {
     const contentType = request.headers.get("content-type") || "";
-    let body;
+    let body: any;
     if (contentType.includes("application/json") && request.body) {
       try {
         body = await request.json();
@@ -45,13 +42,25 @@ export const handleRequest = async (request: Request, server) => {
         logger.warn({ error }, "Failed to parse JSON body");
       }
     }
-    let req = {
-      url,
-      body,
+
+    // 仅使用 Bun 提供的 IP
+    const ipInfo =
+      typeof server.requestIP === "function" ? server.requestIP(request) : null;
+    const ipFromServer = ipInfo?.address || null;
+
+    // 下游 req 对象（仅注入必要字段）
+    const req: any = {
+      url, // URL 实例
+      body: body || {},
       query: Object.fromEntries(new URLSearchParams(url.search)),
       params: {},
       headers: request.headers,
       method: request.method,
+
+      // 只注入 ip（来自 Bun）
+      ip: ipFromServer,
+      // 可选：给下游做更详细的调试
+      ipDebug: { ipFromServer, ipInfo },
     };
 
     if (url.pathname.startsWith(API_ENDPOINTS.USERS)) {
@@ -69,7 +78,7 @@ export const handleRequest = async (request: Request, server) => {
   }
 
   try {
-    // 这个函数现在是所有未匹配路由的最终处理器，通常用于渲染前端应用 (SPA)
+    // 未匹配路由：渲染前端应用
     return await handleRender(request);
   } catch (error) {
     logger.error({ error }, "Render failed");
