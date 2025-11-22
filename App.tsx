@@ -1,7 +1,6 @@
-// 文件路径: MacOSApp.tsx
-
-import React from "react";
+import React, { useCallback } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Provider } from "react-redux";
 import SimpleNavigator, {
   useSimpleNavigation,
@@ -9,8 +8,6 @@ import SimpleNavigator, {
   PAGES,
   PageType,
 } from "rn/SimpleNavigator";
-
-// 【核心修改】 1. 导入 createAppStore 工厂函数，而不是旧的 store 实例
 import { createAppStore } from "rn/redux/store";
 import { AppStateProvider, useAppState } from "rn/context/AppStateContext";
 import EnhancedSidebarLayout from "rn/components/EnhancedSidebarLayout";
@@ -18,20 +15,16 @@ import ResponsiveHeader from "rn/components/shared/ResponsiveHeader";
 import UserMenu from "rn/components/shared/UserMenu";
 import { SidebarContentConfig } from "rn/components/shared/SidebarContentProvider";
 import { useResponsiveLayout } from "rn/hooks/useResponsiveLayout";
-
-// 【核心修改】 2. 导入您的 React Native 原生依赖
-// 请将 '...' 替换为你的依赖项的实际文件路径
 import Level from "@nolotus/react-native-leveldb";
 import { rnTokenManager } from "auth/rn/tokenManager";
+
 const nativeDb = new Level("nolo", { valueEncoding: "json" });
 
-// 【核心修改】 3. 使用工厂函数创建 store 实例，并注入原生依赖
 const appStore = createAppStore({
   dbInstance: nativeDb,
   tokenManager: rnTokenManager,
 });
 
-// PageContent 组件保持不变，它通过 hooks 消费 state，无需修改
 const PageContent: React.FC = () => {
   const { navigate } = useSimpleNavigation();
   const {
@@ -45,13 +38,19 @@ const PageContent: React.FC = () => {
   const { appState } = useAppState();
   const currentPage = appState.currentPage as PageType;
 
-  const toggleSidebar = () => {
+  const toggleSidebar = useCallback(() => {
     if (isLargeScreen) {
       setIsDesktopDrawerCollapsed(!isDesktopDrawerCollapsed);
     } else {
       setIsDrawerOpen(!isDrawerOpen);
     }
-  };
+  }, [
+    isLargeScreen,
+    isDesktopDrawerCollapsed,
+    isDrawerOpen,
+    setIsDesktopDrawerCollapsed,
+    setIsDrawerOpen,
+  ]);
 
   return (
     <View style={styles.pageContent}>
@@ -83,7 +82,6 @@ const PageContent: React.FC = () => {
   );
 };
 
-// InnerApp 组件保持不变，它通过 context 和 hooks 消费 state，无需修改
 const InnerApp: React.FC = () => {
   const layout = useResponsiveLayout();
   const { appState, setCurrentPage, setSelectedSpace } = useAppState();
@@ -98,6 +96,20 @@ const InnerApp: React.FC = () => {
     },
   };
 
+  const handleToggleSidebar = useCallback(() => {
+    if (layout.isLargeScreen) {
+      layout.setIsDesktopDrawerCollapsed(!layout.isDesktopDrawerCollapsed);
+    } else {
+      layout.setIsDrawerOpen(!layout.isDrawerOpen);
+    }
+  }, [
+    layout.isLargeScreen,
+    layout.isDesktopDrawerCollapsed,
+    layout.isDrawerOpen,
+    layout.setIsDesktopDrawerCollapsed,
+    layout.setIsDrawerOpen,
+  ]);
+
   const userInfo = { name: "用户001", email: "user001@example.com" };
 
   return (
@@ -111,18 +123,9 @@ const InnerApp: React.FC = () => {
           isLargeScreen={layout.isLargeScreen}
           isDesktopDrawerCollapsed={layout.isDesktopDrawerCollapsed}
           isDrawerOpen={layout.isDrawerOpen}
-          onToggleSidebar={() => {
-            if (layout.isLargeScreen) {
-              layout.setIsDesktopDrawerCollapsed(
-                !layout.isDesktopDrawerCollapsed
-              );
-            } else {
-              layout.setIsDrawerOpen(!layout.isDrawerOpen);
-            }
-          }}
+          onToggleSidebar={handleToggleSidebar}
           rightActions={<UserMenu userInfo={userInfo} />}
         />
-
         <PageContent />
       </View>
     </EnhancedSidebarLayout>
@@ -130,17 +133,17 @@ const InnerApp: React.FC = () => {
 };
 
 const MacOSApp: React.FC = () => (
-  // 【核心修改】 4. 将新创建的 appStore 实例传入 Provider
-  <Provider store={appStore}>
-    <AppStateProvider>
-      <SimpleNavigator>
-        <InnerApp />
-      </SimpleNavigator>
-    </AppStateProvider>
-  </Provider>
+  <GestureHandlerRootView style={{ flex: 1 }}>
+    <Provider store={appStore}>
+      <AppStateProvider>
+        <SimpleNavigator>
+          <InnerApp />
+        </SimpleNavigator>
+      </AppStateProvider>
+    </Provider>
+  </GestureHandlerRootView>
 );
 
-// styles 保持不变
 const styles = StyleSheet.create({
   container: {
     flex: 1,
