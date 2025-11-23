@@ -7,18 +7,18 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		33DA410A2DC3FE09A42544BB /* libPods-nolo-macOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E9D5213D76A9E2BD2FA23F03 /* libPods-nolo-macOS.a */; };
+		3A2006B6E1493FA1E2C3EF1D /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 4F5CD22D6A6E4C12AE24777A /* PrivacyInfo.xcprivacy */; };
 		5142014D2437B4B30078DB4F /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 5142014C2437B4B30078DB4F /* AppDelegate.mm */; };
 		514201522437B4B40078DB4F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 514201512437B4B40078DB4F /* Assets.xcassets */; };
 		514201552437B4B40078DB4F /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 514201532437B4B40078DB4F /* Main.storyboard */; };
 		514201582437B4B40078DB4F /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 514201572437B4B40078DB4F /* main.m */; };
-		62C89FBAB5745741CA23EE13 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 4C243C7A64561BDBF0387E10 /* PrivacyInfo.xcprivacy */; };
-		EDD5C0528F0A98F7CDEA6932 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 4C243C7A64561BDBF0387E10 /* PrivacyInfo.xcprivacy */; };
+		601B4FFDEDE86CEA1F64F28E /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 4F5CD22D6A6E4C12AE24777A /* PrivacyInfo.xcprivacy */; };
+		7254F3955BC014C1ADB1F1C4 /* libPods-nolo-macOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = FCEA4663469D3E15324C30D7 /* libPods-nolo-macOS.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		13B07F961A680F5B00A75B9A /* nolo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = nolo.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		4C243C7A64561BDBF0387E10 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		4F5CD22D6A6E4C12AE24777A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		514201492437B4B30078DB4F /* nolo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = nolo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5142014B2437B4B30078DB4F /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		5142014C2437B4B30078DB4F /* AppDelegate.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = AppDelegate.mm; sourceTree = "<group>"; };
@@ -27,10 +27,10 @@
 		514201562437B4B40078DB4F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		514201572437B4B40078DB4F /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		514201592437B4B40078DB4F /* nolo.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = nolo.entitlements; sourceTree = "<group>"; };
-		D7D8FDD52631331EF5595253 /* Pods-nolo-macOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-nolo-macOS.debug.xcconfig"; path = "Target Support Files/Pods-nolo-macOS/Pods-nolo-macOS.debug.xcconfig"; sourceTree = "<group>"; };
-		E9D5213D76A9E2BD2FA23F03 /* libPods-nolo-macOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-nolo-macOS.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		C437430C4200AAF84537BBDF /* Pods-nolo-macOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-nolo-macOS.release.xcconfig"; path = "Target Support Files/Pods-nolo-macOS/Pods-nolo-macOS.release.xcconfig"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
-		FA75AF5DC362B503DF19FC14 /* Pods-nolo-macOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-nolo-macOS.release.xcconfig"; path = "Target Support Files/Pods-nolo-macOS/Pods-nolo-macOS.release.xcconfig"; sourceTree = "<group>"; };
+		F9B66DA8566E51AA1DEA6CDB /* Pods-nolo-macOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-nolo-macOS.debug.xcconfig"; path = "Target Support Files/Pods-nolo-macOS/Pods-nolo-macOS.debug.xcconfig"; sourceTree = "<group>"; };
+		FCEA4663469D3E15324C30D7 /* libPods-nolo-macOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-nolo-macOS.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -45,7 +45,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				33DA410A2DC3FE09A42544BB /* libPods-nolo-macOS.a in Frameworks */,
+				7254F3955BC014C1ADB1F1C4 /* libPods-nolo-macOS.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -56,9 +56,19 @@
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				E9D5213D76A9E2BD2FA23F03 /* libPods-nolo-macOS.a */,
+				FCEA4663469D3E15324C30D7 /* libPods-nolo-macOS.a */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		4967F0FAD1795906298133F6 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				F9B66DA8566E51AA1DEA6CDB /* Pods-nolo-macOS.debug.xcconfig */,
+				C437430C4200AAF84537BBDF /* Pods-nolo-macOS.release.xcconfig */,
+			);
+			name = Pods;
+			path = Pods;
 			sourceTree = "<group>";
 		};
 		5142014A2437B4B30078DB4F /* nolo-macOS */ = {
@@ -89,8 +99,8 @@
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
-				4C243C7A64561BDBF0387E10 /* PrivacyInfo.xcprivacy */,
-				9E46AF7301374C7C2E0F25FB /* Pods */,
+				4F5CD22D6A6E4C12AE24777A /* PrivacyInfo.xcprivacy */,
+				4967F0FAD1795906298133F6 /* Pods */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -104,16 +114,6 @@
 				514201492437B4B30078DB4F /* nolo.app */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		9E46AF7301374C7C2E0F25FB /* Pods */ = {
-			isa = PBXGroup;
-			children = (
-				D7D8FDD52631331EF5595253 /* Pods-nolo-macOS.debug.xcconfig */,
-				FA75AF5DC362B503DF19FC14 /* Pods-nolo-macOS.release.xcconfig */,
-			);
-			name = Pods;
-			path = Pods;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -146,7 +146,7 @@
 				514201462437B4B30078DB4F /* Frameworks */,
 				514201472437B4B30078DB4F /* Resources */,
 				381D8A6E24576A4E00465D17 /* Bundle React Native code and images */,
-				CCD8BC862ABFABFF6F5B92F3 /* [CP] Copy Pods Resources */,
+				91F879630A32438CEC17C31E /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -198,7 +198,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EDD5C0528F0A98F7CDEA6932 /* PrivacyInfo.xcprivacy in Resources */,
+				601B4FFDEDE86CEA1F64F28E /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -208,7 +208,7 @@
 			files = (
 				514201522437B4B40078DB4F /* Assets.xcassets in Resources */,
 				514201552437B4B40078DB4F /* Main.storyboard in Resources */,
-				62C89FBAB5745741CA23EE13 /* PrivacyInfo.xcprivacy in Resources */,
+				3A2006B6E1493FA1E2C3EF1D /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -269,7 +269,7 @@
 			shellPath = /bin/sh;
 			shellScript = "export NODE_BINARY=node\n../node_modules/react-native-macos/scripts/react-native-xcode.sh\n";
 		};
-		CCD8BC862ABFABFF6F5B92F3 /* [CP] Copy Pods Resources */ = {
+		91F879630A32438CEC17C31E /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -374,7 +374,7 @@
 		};
 		5142015B2437B4B40078DB4F /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = D7D8FDD52631331EF5595253 /* Pods-nolo-macOS.debug.xcconfig */;
+			baseConfigurationReference = F9B66DA8566E51AA1DEA6CDB /* Pods-nolo-macOS.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
@@ -398,7 +398,7 @@
 		};
 		5142015C2437B4B40078DB4F /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = FA75AF5DC362B503DF19FC14 /* Pods-nolo-macOS.release.xcconfig */;
+			baseConfigurationReference = C437430C4200AAF84537BBDF /* Pods-nolo-macOS.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
