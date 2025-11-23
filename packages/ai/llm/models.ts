@@ -8,7 +8,7 @@ import { googleModels } from "integrations/google/models";
 import { mistralModels } from "integrations/mistral/models";
 // import { openAIModels } from "integrations/openai/models";
 import { openrouterModels } from "integrations/openrouter/models";
-import { xaiModels } from "integrations/xai/models";
+// import { xaiModels } from "integrations/xai/models";
 
 /**
  * @interface ModelWithProvider
@@ -27,7 +27,6 @@ export const ALL_MODELS: ModelWithProvider[] = [
   ...googleModels.map((m) => ({ ...m, provider: "google" })),
   // ...openAIModels.map((m) => ({ ...m, provider: "openai" })),
   ...openrouterModels.map((m) => ({ ...m, provider: "openrouter" })),
-  ...xaiModels.map((m) => ({ ...m, provider: "xai" })),
   ...deepSeekModels.map((m) => ({ ...m, provider: "deepseek" })),
   ...mistralModels.map((m) => ({ ...m, provider: "mistral" })),
 ];

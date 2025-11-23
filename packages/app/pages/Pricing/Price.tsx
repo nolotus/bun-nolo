@@ -5,7 +5,7 @@ import { mistralModels } from "integrations/mistral/models";
 import { googleModels } from "integrations/google/models";
 import { deepSeekModels } from "integrations/deepseek/models";
 import { openrouterModels } from "integrations/openrouter/models";
-import { xaiModels } from "integrations/xai/models";
+// import { xaiModels } from "integrations/xai/models";
 import UsageRules from "./UsageRules";
 import {
   LuArrowUp,
@@ -106,7 +106,7 @@ const ModelComparison: React.FC = () => {
       [googleModels, "Google"],
       [deepSeekModels, "Deepseek"],
       [openrouterModels, "OpenRouter"],
-      [xaiModels, "XAI"],
+      // [xaiModels, "XAI"],
     ] as const;
 
     return providers.flatMap(([models, name]) =>

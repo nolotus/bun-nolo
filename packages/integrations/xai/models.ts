@@ -10,13 +10,4 @@ export const xaiModels: Model[] = [
     fnCall: true,
     jsonOutput: true,
   },
-  {
-    name: "grok-4-fast-reasoning",
-    displayName: "Grok4 Fast Reasoning",
-    hasVision: true, // ✅ 支持图片识别
-    contextWindow: 2000000, // ✅ 200万上下文
-    price: { input: 0.2 * 10, output: 0.5 * 10 }, // ✅ 乘以10 → 2分 / 5分
-    fnCall: true,
-    jsonOutput: true,
-  },
 ];

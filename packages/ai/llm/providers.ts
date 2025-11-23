@@ -6,7 +6,7 @@ import { mistralModels } from "integrations/mistral/models";
 // import { openAIModels } from "integrations/openai/models";
 import { ollamaModels } from "integrations/ollama/models";
 import { openrouterModels } from "integrations/openrouter/models";
-import { xaiModels } from "integrations/xai/models";
+// import { xaiModels } from "integrations/xai/models";
 
 import type { Model } from "./types";
 import type { Agent } from "app/types";
@@ -22,7 +22,6 @@ const allModels: Model[] = [
   // ...openAIModels,
   ...ollamaModels,
   ...openrouterModels,
-  ...xaiModels,
 ];
 
 export const supportedReasoningModels = allModels
@@ -40,7 +39,6 @@ const MODEL_MAP = {
   google: googleModels,
   // openai: openAIModels,
   openrouter: openrouterModels,
-  xai: xaiModels,
 } as const;
 
 /* 自动推断 Provider 字面量类型 */
