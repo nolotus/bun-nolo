@@ -75,19 +75,6 @@ const AllModelsSelector: React.FC<AllModelsSelectorProps> = ({
           text-overflow: ellipsis;
         }
 
-        .provider-badge {
-          font-size: 0.7rem;
-          font-weight: 500;
-          color: var(--textTertiary);
-          background: var(--backgroundTertiary);
-          padding: 2px 6px;
-          border-radius: var(--space-1);
-          white-space: nowrap;
-          text-transform: uppercase;
-          flex-shrink: 0;
-          transition: all 0.2s ease;
-        }
-        
         .vision-icon {
           color: var(--primary);
           flex-shrink: 0;
@@ -116,11 +103,6 @@ const AllModelsSelector: React.FC<AllModelsSelectorProps> = ({
 
         .model-option:hover .model-name {
           color: var(--primary);
-        }
-
-        .model-option:hover .provider-badge {
-          background: var(--backgroundSelected);
-          color: var(--textSecondary);
         }
         
         .model-option:hover .vision-icon {
@@ -161,7 +143,6 @@ const AllModelsSelector: React.FC<AllModelsSelectorProps> = ({
             <div className="model-option">
               <div className="model-details">
                 <span className="model-name">{item.name}</span>
-                <span className="provider-badge">{item.provider}</span>
                 {/* [更新] 使用 LuImage 并微调大小 */}
                 {item.hasVision && (
                   <LuImage size={15} className="vision-icon" />
