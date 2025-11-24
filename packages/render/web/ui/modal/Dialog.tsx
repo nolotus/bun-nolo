@@ -1,4 +1,3 @@
-// render/web/ui/Dialog.tsx
 import { XIcon } from "@primer/octicons-react";
 import React, { useEffect, useState } from "react";
 import { BaseModal } from "./BaseModal";
@@ -9,7 +8,7 @@ interface DialogProps {
   title: string;
   children: React.ReactNode;
   className?: string;
-  fullScreenOnMobile?: boolean; // 控制移动端是全屏还是底部抽屉
+  fullScreenOnMobile?: boolean;
   size?: "small" | "medium" | "large" | "xlarge";
   showDivider?: boolean;
 }
@@ -33,9 +32,6 @@ export const Dialog: React.FC<DialogProps> = ({
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // 决定传给 BaseModal 的变体
-  // PC: default (居中)
-  // Mobile: 如果 fullScreenOnMobile 为真则 fullscreen，否则 slideUp (底部抽屉)
   const modalVariant = isMobile
     ? fullScreenOnMobile
       ? "fullscreen"
@@ -46,16 +42,21 @@ export const Dialog: React.FC<DialogProps> = ({
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
-      variant={modalVariant} // 动态变体
+      variant={modalVariant}
       preventBodyScroll={true}
-      className={`dialog-root ${className}`} // 根类名
+      className={`c-dialogRoot ${className}`}
     >
-      <div className={`dialog-container size-${size}`}>
+      <div className={`c-dialog c-dialog--size-${size}`}>
         {/* Header */}
-        <div className={`dialog-header ${showDivider ? "with-divider" : ""}`}>
-          <h2 className="dialog-title">{title}</h2>
+        <div
+          className={
+            "c-dialog__header" +
+            (showDivider ? " c-dialog__header--with-divider" : "")
+          }
+        >
+          <h2 className="c-dialog__title">{title}</h2>
           <button
-            className="dialog-close"
+            className="c-dialog__close"
             onClick={onClose}
             aria-label="关闭对话框"
             type="button"
@@ -65,74 +66,62 @@ export const Dialog: React.FC<DialogProps> = ({
         </div>
 
         {/* Content */}
-        <div className="dialog-content">{children}</div>
+        <div className="c-dialog__body">{children}</div>
       </div>
 
       <style href="dialog" precedence="medium">{`
-        /* 
-         * 1. 容器重置 & 布局 
-         * BaseModal 已经负责了定位（居中/底部/全屏），
-         * 这里主要负责 Dialog 内部的尺寸和视觉风格。
+        /*
+         * 1. Root 容器：由 BaseModal 挂载
          */
-        :global(.dialog-root) {
-           /* 确保 BaseModal 的内容容器背景透明，由 dialog-container 接管背景 */
-           background: transparent !important;
-           box-shadow: none !important;
-           padding: 0 !important;
-           border: none !important;
-           /* 适配 BaseModal 的布局 */
-           display: flex;
-           justify-content: center; 
+        :global(.c-dialogRoot) {
+          background: transparent !important;
+          box-shadow: none !important;
+          padding: 0 !important;
+          border: none !important;
+          display: flex;
+          justify-content: center;
         }
 
-        /* 
-         * 2. Dialog 主体容器
+        /*
+         * 2. Dialog 主体
          */
-        .dialog-container {
+        .c-dialog {
           display: flex;
           flex-direction: column;
           background-color: var(--background);
           width: 100%;
-          
-          /* 默认圆角与边框 (PC端) */
           border-radius: var(--space-4);
           border: 1px solid var(--border);
           box-shadow: var(--shadowHeavy);
-          
-          /* 限制高度，内容过多可滚动 */
           max-height: 85vh;
           overflow: hidden;
-          
-          /* 确保在 flex 容器中不被过度压缩 */
-          flex-shrink: 0; 
+          flex-shrink: 0;
         }
 
-        /* 
-         * 3. 尺寸控制 (PC)
-         */
-        .size-small { width: 400px; }
-        .size-medium { width: 600px; }
-        .size-large { width: 850px; }
-        .size-xlarge { width: 1100px; }
+        /* 尺寸修饰符（PC） */
+        .c-dialog--size-small { width: 400px; }
+        .c-dialog--size-medium { width: 600px; }
+        .c-dialog--size-large { width: 850px; }
+        .c-dialog--size-xlarge { width: 1100px; }
 
-        /* 
-         * 4. Header 区域
+        /*
+         * 3. Header
          */
-        .dialog-header {
+        .c-dialog__header {
           display: flex;
           align-items: center;
           justify-content: space-between;
           padding: var(--space-4) var(--space-6);
           min-height: 64px;
-          background-color: var(--background); /* 确保 header 不透明 */
+          background-color: var(--background);
           z-index: 10;
         }
 
-        .dialog-header.with-divider {
+        .c-dialog__header--with-divider {
           border-bottom: 1px solid var(--border);
         }
 
-        .dialog-title {
+        .c-dialog__title {
           font-size: 18px;
           font-weight: 600;
           color: var(--text);
@@ -141,11 +130,11 @@ export const Dialog: React.FC<DialogProps> = ({
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
-          flex: 1; /* 占据剩余空间 */
+          flex: 1;
           margin-right: var(--space-4);
         }
 
-        .dialog-close {
+        .c-dialog__close {
           display: flex;
           align-items: center;
           justify-content: center;
@@ -161,47 +150,45 @@ export const Dialog: React.FC<DialogProps> = ({
           flex-shrink: 0;
         }
 
-        .dialog-close:hover {
+        .c-dialog__close:hover {
           background-color: var(--backgroundHover);
           color: var(--text);
         }
-        
-        .dialog-close:active {
-           background-color: var(--backgroundSelected);
+
+        .c-dialog__close:active {
+          background-color: var(--backgroundSelected);
         }
 
-        /* 
-         * 5. Content 区域
+        /*
+         * 4. Body / Content
          */
-        .dialog-content {
+        .c-dialog__body {
           flex: 1;
           overflow-y: auto;
           overflow-x: hidden;
           padding: var(--space-5) var(--space-6);
           color: var(--textSecondary);
-          
-          /* 滚动条美化 (Chrome/Safari) */
           scrollbar-width: thin;
           scrollbar-color: var(--border) transparent;
         }
-        
-        .dialog-content::-webkit-scrollbar {
+
+        .c-dialog__body::-webkit-scrollbar {
           width: 6px;
         }
-        .dialog-content::-webkit-scrollbar-thumb {
+        .c-dialog__body::-webkit-scrollbar-thumb {
           background-color: var(--border);
           border-radius: 3px;
         }
-        .dialog-content::-webkit-scrollbar-track {
+        .c-dialog__body::-webkit-scrollbar-track {
           background: transparent;
         }
 
-        /* 
-         * 6. 移动端/全屏适配
-         * 当 BaseModal 处于 fullscreen 或 slideUp 模式时，Dialog 需铺满
+        /*
+         * 5. 全屏 & 底部抽屉模式适配
+         * BaseModal 会在 root 上加 .fullscreen / .slideUp
          */
-        :global(.dialog-root.fullscreen) .dialog-container,
-        :global(.dialog-root.slideUp) .dialog-container {
+        :global(.c-dialogRoot.fullscreen) .c-dialog,
+        :global(.c-dialogRoot.slideUp) .c-dialog {
           width: 100vw !important;
           max-width: none !important;
           height: 100% !important;
@@ -211,34 +198,39 @@ export const Dialog: React.FC<DialogProps> = ({
           box-shadow: none;
         }
 
-        :global(.dialog-root.slideUp) .dialog-container {
-           /* 如果是底部抽屉模式，顶部保留圆角 */
-           border-radius: var(--space-4) var(--space-4) 0 0;
-           height: auto !important;
-           max-height: 90vh !important;
+        :global(.c-dialogRoot.slideUp) .c-dialog {
+          border-radius: var(--space-4) var(--space-4) 0 0;
+          height: auto !important;
+          max-height: 90vh !important;
         }
-        
+
+        /*
+         * 6. 移动端适配
+         */
         @media (max-width: 640px) {
-          .size-small, .size-medium, .size-large, .size-xlarge {
-             width: 100%; /* 兜底 */
+          .c-dialog--size-small,
+          .c-dialog--size-medium,
+          .c-dialog--size-large,
+          .c-dialog--size-xlarge {
+            width: 100%;
           }
 
-          .dialog-header {
+          .c-dialog__header {
             padding: var(--space-3) var(--space-4);
             min-height: 56px;
           }
-          
-          .dialog-content {
-             padding: var(--space-4);
+
+          .c-dialog__body {
+            padding: var(--space-4);
           }
-          
-          .dialog-title {
-             font-size: 16px;
+
+          .c-dialog__title {
+            font-size: 16px;
           }
         }
-        
+
         @media print {
-          .dialog-root { display: none; }
+          .c-dialogRoot { display: none; }
         }
       `}</style>
     </BaseModal>
