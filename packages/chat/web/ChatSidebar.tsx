@@ -502,7 +502,7 @@ const ChatSidebar: React.FC = () => {
           flex: 1;
           overflow-y: auto;
           overflow-x: hidden;
-          padding: var(--space-1) var(--space-2);
+          padding: var(--space-1);
           scrollbar-width: thin;
           scrollbar-color: var(--textLight) transparent;
           overscroll-behavior: contain;
