@@ -295,10 +295,11 @@ const CodeBlock = ({
     [element.id]
   );
 
+  // 占位图：用于“预览模式 + 程序仍在流式生成”时的提示
   const renderPlaceholder = () => (
     <div className="preview-content preview-placeholder">
       <EyeIcon size={16} />
-      <span>代码生成中，请稍候…</span>
+      <span>程序生成中，请稍候…</span>
     </div>
   );
 
@@ -315,7 +316,8 @@ const CodeBlock = ({
       fullscreen ? " preview-content-fullscreen" : ""
     }`;
 
-    if (isStreaming) {
+    // 仅当“预览开启 + 程序还在生成”时显示占位提示
+    if (previewMode && isStreaming) {
       return renderPlaceholder();
     }
 
