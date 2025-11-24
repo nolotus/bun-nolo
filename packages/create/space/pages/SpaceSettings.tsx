@@ -9,7 +9,7 @@ import { useTranslation } from "react-i18next";
 
 //web
 import Button from "render/web/ui/Button";
-import { ConfirmModal } from "render/web/ui/ConfirmModal";
+import { ConfirmModal } from "render/web/ui/modal/ConfirmModal";
 import toast from "react-hot-toast";
 
 import { Input, TextArea } from "render/web/form/Input";

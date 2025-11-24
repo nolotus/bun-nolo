@@ -21,7 +21,7 @@ import {
 } from "create/space/spaceSlice";
 import Button from "render/web/ui/Button";
 import ModeToggle from "render/web/ui/ModeToggle";
-import { ConfirmModal } from "render/web/ui/ConfirmModal";
+import { ConfirmModal } from "render/web/ui/modal/ConfirmModal";
 
 const PageMenu = () => {
   const { t } = useTranslation();

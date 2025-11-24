@@ -14,7 +14,7 @@ import { useEnableUser } from "auth/hooks/useEnableUser";
 import Button from "render/web/ui/Button";
 import Pagination from "render/web/ui/Pagination";
 import { Table, TableRow, TableCell } from "render/web/ui/Table";
-import { ConfirmModal } from "render/web/ui/ConfirmModal";
+import { ConfirmModal } from "render/web/ui/modal/ConfirmModal";
 import { RechargeModal } from "life/web/RechargeModal";
 import SearchInput from "render/web/ui/SearchInput";
 

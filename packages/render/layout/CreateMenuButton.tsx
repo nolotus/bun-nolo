@@ -18,7 +18,7 @@ import {
   LuFolderPlus,
   LuMessageSquare,
 } from "react-icons/lu";
-import { Dialog } from "render/web/ui/Dialog";
+import { Dialog } from "render/web/ui/modal/Dialog";
 import { CreateSpaceForm } from "create/space/CreateSpaceForm";
 import { selectCurrentDialogConfig } from "chat/dialog/dialogSlice";
 import { noloAgentId } from "core/init";

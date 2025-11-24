@@ -1,7 +1,7 @@
 // CategoryHeader.tsx
 import React, { useState, useCallback, useMemo } from "react";
 import { useAppDispatch, useAppSelector } from "app/store";
-import { ConfirmModal } from "render/web/ui/ConfirmModal";
+import { ConfirmModal } from "render/web/ui/modal/ConfirmModal";
 import {
   PencilIcon,
   TrashIcon,

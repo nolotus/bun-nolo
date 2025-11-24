@@ -7,10 +7,11 @@ interface BaseModalProps {
   onClose: () => void;
   children: React.ReactNode;
   className?: string;
-  variant?: "default" | "fullscreen" | "slideUp"; // 新增变体支持
-  preventBodyScroll?: boolean; // 新增防止滚动穿透
-  closeOnBackdrop?: boolean; // 新增控制背景点击关闭
-  zIndex?: number; // 新增自定义层级
+  // 新增 "center" 变体，用于图片预览或强制居中的对话框
+  variant?: "default" | "fullscreen" | "slideUp" | "center";
+  preventBodyScroll?: boolean;
+  closeOnBackdrop?: boolean;
+  zIndex?: number;
 }
 
 export const BaseModal: React.FC<BaseModalProps> = ({
@@ -26,24 +27,20 @@ export const BaseModal: React.FC<BaseModalProps> = ({
   const [isClosing, setIsClosing] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
-  // 检测移动设备
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth <= 640);
     };
-
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // 处理滚动穿透
   useEffect(() => {
-    if (isOpen && preventBodyScroll && (isMobile || variant === "fullscreen")) {
+    if (isOpen && preventBodyScroll) {
+      // 简化逻辑，只要打开且允许防抖动就执行
       const originalOverflow = document.body.style.overflow;
       const originalPaddingRight = document.body.style.paddingRight;
-
-      // 获取滚动条宽度
       const scrollbarWidth =
         window.innerWidth - document.documentElement.clientWidth;
 
@@ -57,7 +54,7 @@ export const BaseModal: React.FC<BaseModalProps> = ({
         document.body.style.paddingRight = originalPaddingRight;
       };
     }
-  }, [isOpen, preventBodyScroll, isMobile, variant]);
+  }, [isOpen, preventBodyScroll]);
 
   const handleEsc = useCallback((e: KeyboardEvent) => {
     if (e.key === "Escape") handleClose();
@@ -72,13 +69,15 @@ export const BaseModal: React.FC<BaseModalProps> = ({
 
   const handleClose = useCallback(() => {
     setIsClosing(true);
-    const duration = variant === "slideUp" ? 200 : 150;
+    // slideUp 动画稍长一点，其他变体保持轻快
+    const duration =
+      variant === "slideUp" || (isMobile && variant === "default") ? 200 : 150;
 
     setTimeout(() => {
       setIsClosing(false);
       onClose();
     }, duration);
-  }, [onClose, variant]);
+  }, [onClose, variant, isMobile]);
 
   const handleBackdropClick = useCallback(
     (e: React.MouseEvent) => {
@@ -90,13 +89,14 @@ export const BaseModal: React.FC<BaseModalProps> = ({
   );
 
   const handleContentClick = useCallback((e: React.MouseEvent) => {
+    // 注意：对于图片预览，可能允许点击内容关闭，这里保持默认阻止冒泡
+    // 如果需要点击图片关闭，可以在外部组件处理
     e.stopPropagation();
-    e.nativeEvent.stopImmediatePropagation();
   }, []);
 
   if (!isOpen) return null;
 
-  // 根据变体确定实际的变体类型
+  // 核心逻辑修改：只有 default 会在移动端转 slideUp，center 保持不变
   const actualVariant = isMobile && variant === "default" ? "slideUp" : variant;
 
   return ReactDOM.createPortal(
@@ -119,114 +119,114 @@ export const BaseModal: React.FC<BaseModalProps> = ({
           left: 0;
           right: 0;
           bottom: 0;
-          background: rgba(0, 0, 0, 0.1);
+          background: rgba(0, 0, 0, 0.4); /*稍微加深一点背景，提升沉浸感*/
           -webkit-backdrop-filter: blur(4px);
-          backdrop-filter: blur(0);
+          backdrop-filter: blur(4px);
           display: flex;
           align-items: center;
           justify-content: center;
           opacity: 0;
-          transition-property: opacity, backdrop-filter;
-          transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-          transition-duration: 150ms;
+          transition: opacity 150ms cubic-bezier(0.4, 0, 0.2, 1);
+          /* 修复 Safari 移动端地址栏遮挡问题 */
+          height: 100vh; 
+          height: 100dvh; 
         }
 
         .modal-backdrop:not(.closing) {
           opacity: 1;
-          backdrop-filter: blur(4px);
+        }
+        
+        .modal-backdrop.closing {
+          opacity: 0;
+          pointer-events: none;
         }
 
-        /* 默认变体 */
+        /* === Default (PC居中, Mobile底部) === */
         .modal-content.default {
           opacity: 0;
           transform: scale(0.95);
-          transition-property: opacity, transform;
-          transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-          transition-duration: 150ms;
+          transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
         }
-
         .modal-content.default:not(.closing) {
           opacity: 1;
           transform: scale(1);
         }
 
-        /* 全屏变体 */
-        .modal-backdrop.fullscreen {
-          align-items: stretch;
-          justify-content: stretch;
+        /* === Center (强制居中，适用于图片预览/Alert) === */
+        .modal-backdrop.center {
+          align-items: center;
+          justify-content: center;
         }
-
-        .modal-content.fullscreen {
+        .modal-content.center {
           opacity: 0;
-          transform: scale(0.98);
-          transition-property: opacity, transform;
-          transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-          transition-duration: 150ms;
-          width: 100%;
-          height: 100%;
+          transform: scale(0.92); /* 初始更小一点，弹出的感觉更明显 */
+          transition: all 200ms cubic-bezier(0.34, 1.56, 0.64, 1); /* 更有弹性的贝塞尔曲线 */
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          max-width: 100vw;
+          max-height: 100dvh;
         }
-
-        .modal-content.fullscreen:not(.closing) {
+        .modal-content.center:not(.closing) {
           opacity: 1;
           transform: scale(1);
         }
 
-        /* 上滑变体（移动端） */
-        .modal-backdrop.slideUp {
-          align-items: flex-end;
+        /* === Fullscreen === */
+        .modal-backdrop.fullscreen {
+          align-items: stretch;
           justify-content: stretch;
+          background: #fff; /* 全屏通常需要实底 */
         }
-
-        .modal-content.slideUp {
-          opacity: 0;
-          transform: translateY(100%);
-          transition-property: opacity, transform;
-          transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-          transition-duration: 200ms;
+        .modal-content.fullscreen {
           width: 100%;
-          max-height: 95vh;
+          height: 100%;
+          opacity: 0;
+          transform: translateY(10px);
+          transition: all 200ms;
         }
-
-        .modal-content.slideUp:not(.closing) {
+        .modal-content.fullscreen:not(.closing) {
           opacity: 1;
           transform: translateY(0);
         }
 
-        /* 移动端优化 */
+        /* === SlideUp (底部抽屉) === */
+        .modal-backdrop.slideUp {
+          align-items: flex-end;
+          justify-content: center; /* 保持水平居中，避免宽屏下太宽 */
+        }
+        .modal-content.slideUp {
+          width: 100%;
+          max-width: 640px; /* 限制最大宽度，防止平板上太丑 */
+          opacity: 1;
+          transform: translateY(100%);
+          transition: transform 250ms cubic-bezier(0.32, 0.72, 0, 1);
+          border-radius: 16px 16px 0 0; /* 顶部圆角 */
+          overflow: hidden;
+        }
+        .modal-content.slideUp:not(.closing) {
+          transform: translateY(0);
+        }
+
+        /* === 移动端特定覆盖 === */
         @media (max-width: 640px) {
+          /* 这里只处理 default 变自动 slideUp 的情况，center 不受影响 */
           .modal-backdrop.default {
             align-items: flex-end;
-            justify-content: stretch;
           }
-
           .modal-content.default {
-            transform: translateY(100%);
             width: 100%;
-            max-height: 95vh;
-            transition-duration: 200ms;
+            border-radius: 16px 16px 0 0;
+            transform: translateY(100%);
+            transition: transform 250ms cubic-bezier(0.32, 0.72, 0, 1);
           }
-
           .modal-content.default:not(.closing) {
             transform: translateY(0);
           }
         }
 
-        /* 无障碍支持 */
         @media (prefers-reduced-motion: reduce) {
-          .modal-backdrop,
-          .modal-content {
-            transition: none;
-          }
-        }
-
-        /* 安全区域支持 */
-        @supports (padding: env(safe-area-inset-bottom)) {
-          .modal-content.slideUp,
-          @media (max-width: 640px) {
-            .modal-content.default {
-              padding-bottom: env(safe-area-inset-bottom);
-            }
-          }
+          .modal-backdrop, .modal-content { transition: none !important; animation: none !important; }
         }
       `}</style>
     </div>,

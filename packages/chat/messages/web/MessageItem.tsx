@@ -8,7 +8,7 @@ import { markdownToSlate } from "create/editor/transforms/markdownToSlate";
 import { useFetchData } from "app/hooks";
 import Editor from "create/editor/Editor";
 import DocxPreviewDialog from "render/web/DocxPreviewDialog";
-import { BaseModal } from "render/web/ui/BaseModal";
+import { BaseModal } from "render/web/ui/modal/BaseModal";
 import { MessageActions } from "./MessageActions";
 import { FileItem } from "./FileItem";
 import { useMessageInteraction } from "../../hooks/useMessageInteraction";

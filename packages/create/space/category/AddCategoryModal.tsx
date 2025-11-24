@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BaseActionModal } from "render/web/ui/BaseActionModal";
+import { BaseActionModal } from "render/web/ui/modal/BaseActionModal";
 
 import Button from "render/web/ui/Button";
 import { useTheme } from "app/theme";

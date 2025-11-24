@@ -1,7 +1,7 @@
 // life/web/RechargeModal.tsx
 import React, { useState } from "react";
 import Button from "render/web/ui/Button";
-import { BaseActionModal } from "render/web/ui/BaseActionModal";
+import { BaseActionModal } from "render/web/ui/modal/BaseActionModal";
 
 import { CreditCardIcon } from "@primer/octicons-react";
 import { useTheme } from "app/theme";

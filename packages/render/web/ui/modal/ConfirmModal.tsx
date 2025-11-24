@@ -1,8 +1,9 @@
-// render/web/ui/ConfirmModal.tsx
+// render/web/ui/modal/ConfirmModal.tsx
 
 import React from "react";
 import Button from "render/web/ui/Button";
-import { BaseActionModal } from "render/web/ui/BaseActionModal";
+import { BaseActionModal } from "render/web/ui/modal/BaseActionModal";
+
 import {
   LuCircleX,
   LuTriangleAlert,

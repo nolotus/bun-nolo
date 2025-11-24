@@ -1,7 +1,7 @@
 // render/web/ui/LinkModal.tsx
 import React, { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { Dialog } from "render/web/ui/Dialog";
+import { Dialog } from "render/web/ui/modal/Dialog";
 import Button from "render/web/ui/Button";
 // 假设你有一个标准化的 Input 组件，如果没有，可以使用下面的样式化 input
 // import Input from "render/web/ui/Input";

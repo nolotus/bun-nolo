@@ -1,7 +1,7 @@
 import React, { useCallback, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "app/theme";
-import { Dialog } from "render/web/ui/Dialog";
+import { Dialog } from "render/web/ui/modal/Dialog";
 import {
   SyncIcon,
   PlusIcon,

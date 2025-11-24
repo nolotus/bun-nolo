@@ -1,7 +1,7 @@
 // web/DocxPreviewDialog.tsx
 import React, { useEffect, useMemo } from "react";
 import { useAppDispatch, useAppSelector } from "app/store";
-import { Dialog } from "render/web/ui/Dialog";
+import { Dialog } from "render/web/ui/modal/Dialog";
 import { useTranslation } from "react-i18next";
 import {
   initPage,

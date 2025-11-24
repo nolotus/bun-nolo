@@ -5,7 +5,7 @@ import { Tooltip } from "render/web/ui/Tooltip";
 import ReactLiveBlock, { createLiveScope } from "./ReactLiveBlock";
 import JsonBlock from "./JsonBlock";
 import MermaidContent from "./MermaidContent";
-import { BaseModal } from "render/web/ui/BaseModal";
+import { BaseModal } from "render/web/ui/modal/BaseModal";
 import {
   CheckIcon,
   CodeIcon,

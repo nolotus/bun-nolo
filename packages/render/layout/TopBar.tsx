@@ -1,5 +1,3 @@
-// File: TopBar.jsx
-
 import React, { useState, useEffect, Suspense, lazy, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
@@ -13,7 +11,6 @@ import { zIndex } from "render/styles/zIndex";
 import { AppRoutePaths } from "app/constants/routePaths";
 import { Tooltip } from "render/web/ui/Tooltip";
 
-// 懒加载
 const DialogMenu = lazy(() => import("./DialogMenu"));
 const PageMenu = lazy(() => import("./PageMenu"));
 const CreateMenuButton = lazy(() => import("./CreateMenuButton"));
@@ -24,34 +21,28 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
   const { t } = useTranslation();
   const { isLoggedIn, user } = useAuth();
   const { pageKey } = useParams();
+  const [isScrolled, setIsScrolled] = useState(false);
 
   const currentDialog = useAppSelector(selectCurrentDialogConfig);
   const page = useAppSelector(selectPageData);
 
-  const [isScrolled, setIsScrolled] = useState(false);
-
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 0);
     window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // 是否显示页面编辑菜单（与原逻辑一致）
   const showEdit = useMemo(() => {
-    const isPage = !!pageKey && pageKey.startsWith("page");
-    if (!isPage || !page?.isInitialized) return false;
+    if (!pageKey?.startsWith("page") || !page?.isInitialized) return false;
     const creator = extractUserId(pageKey);
-    const isCreator = creator === user?.userId;
-    return isCreator || !page?.creator;
-  }, [pageKey, page?.isInitialized, page?.creator, user?.userId]);
+    return creator === user?.userId || !page?.creator;
+  }, [pageKey, page, user]);
 
-  // 动态快捷键提示
   const isMac =
-    typeof window !== "undefined" &&
-    /Mac|iPod|iPhone|iPad/.test(window.navigator.platform);
+    typeof window !== "undefined" && /Mac/.test(window.navigator.platform);
 
-  const sidebarToggleTooltipContent = (
+  // 提示内容样式内联，避免污染全局 CSS
+  const tooltipContent = (
     <div
       style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}
     >
@@ -63,43 +54,44 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
           padding: "2px 6px",
           borderRadius: "4px",
           fontSize: "11px",
+          fontFamily: "monospace",
           color: "var(--textTertiary)",
-          fontFamily: "sans-serif",
           lineHeight: 1,
         }}
       >
-        {isMac ? "⌘" : "Ctrl"} + B
+        {isMac ? "⌘B" : "Ctrl+B"}
       </kbd>
     </div>
   );
 
   return (
     <>
-      <div className={`topbar ${isScrolled ? "topbar--scrolled" : ""}`}>
+      <header className={`topbar ${isScrolled ? "topbar--scrolled" : ""}`}>
+        {/* 左侧 */}
         <div className="topbar__section topbar__section--left">
           {!isLoggedIn && (
             <Suspense fallback={null}>
               <NavListItem
                 label={t("home")}
-                icon={<LuHouse size={16} />}
+                icon={<LuHouse size={18} />}
                 path="/"
               />
             </Suspense>
           )}
-
           {toggleSidebar && (
-            <Tooltip content={sidebarToggleTooltipContent} placement="bottom">
+            <Tooltip content={tooltipContent} placement="bottom">
               <button
-                className="topbar__button"
+                className="topbar__icon-btn"
                 onClick={toggleSidebar}
                 aria-label={t("toggleSidebar")}
               >
-                <LuMenu size={16} />
+                <LuMenu size={18} />
               </button>
             </Tooltip>
           )}
         </div>
 
+        {/* 中间：核心修复区域 */}
         <div className="topbar__center">
           <Suspense fallback={null}>
             {showEdit ? (
@@ -110,6 +102,7 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
           </Suspense>
         </div>
 
+        {/* 右侧 */}
         <div className="topbar__section topbar__section--right">
           {isLoggedIn ? (
             <Suspense fallback={<div style={{ width: 24 }} />}>
@@ -123,19 +116,20 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
               <Suspense fallback={null}>
                 <NavListItem
                   label={t("login")}
-                  icon={<LuLogIn size={16} />}
+                  icon={<LuLogIn size={18} />}
                   path={AppRoutePaths.LOGIN}
                 />
               </Suspense>
             </>
           )}
         </div>
-      </div>
+      </header>
 
       <style href="topbar-styles" precedence="default">{`
         .topbar {
           display: grid;
-          grid-template-columns: 1fr auto 1fr;
+          /* 核心修复：使用 minmax(0, 1fr) 防止 Grid 侧边被无限挤压 */
+          grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
           align-items: center;
           background: var(--background);
           position: sticky;
@@ -144,8 +138,8 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
           z-index: ${zIndex.topbar};
           height: var(--headerHeight);
           border-bottom: 1px solid transparent;
-          transition: border-color 0.2s ease-in-out;
-          gap: var(--space-4);
+          transition: border-color 0.2s ease;
+          gap: var(--space-2);
         }
         .topbar--scrolled { border-bottom-color: var(--border); }
 
@@ -156,21 +150,13 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
         .topbar__center {
           display: flex;
           align-items: center;
-          gap: var(--space-4);
-          min-width: 0; /* 防止长标题挤压布局 */
+          justify-content: center;
+          width: 100%;
+          /* 核心修复：限制最大宽度，强制触发内部文本截断 */
+          max-width: 50vw; 
         }
 
-        .topbar__title {
-          margin: 0;
-          font-size: 16px;
-          font-weight: 500;
-          color: var(--text);
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-
-        .topbar__button {
+        .topbar__icon-btn {
           display: flex;
           align-items: center;
           justify-content: center;
@@ -178,46 +164,23 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
           border: none;
           cursor: pointer;
           color: var(--textSecondary);
-          width: var(--space-8);
-          height: var(--space-8);
+          width: 32px;
+          height: 32px;
           border-radius: 6px;
-          transition: all .15s ease;
-          flex-shrink: 0;
+          transition: all 0.15s ease;
         }
-        .topbar__button:hover { background: var(--backgroundHover); color: var(--text); }
-        .topbar__button:disabled { opacity: .5; cursor: not-allowed; }
-        .topbar__button--delete:hover { background: var(--primaryGhost); color: var(--error); }
-
-        /* 桌面/移动 操作区切换（供 PageMenu 内部使用） */
-        .topbar__actions {
-          display: flex;
-          align-items: center;
-          gap: var(--space-3);
-        }
-        .topbar__mobile-menu {
-          position: relative;
-          display: none; /* 默认隐藏移动版 */
-        }
+        .topbar__icon-btn:hover { background: var(--backgroundHover); color: var(--text); }
 
         @media (max-width: 768px) {
           .topbar {
-            grid-template-columns: auto 1fr auto;
+            grid-template-columns: auto 1fr auto; /* 移动端中间自适应 */
             padding: 0 var(--space-2);
-            gap: var(--space-2);
           }
-          .topbar__center { justify-content: center; }
-          .topbar__title { font-size: 15px; max-width: calc(100vw - 200px); }
-
-          .topbar__actions { display: none !important; }   /* 移动端隐藏桌面版操作区 */
-          .topbar__mobile-menu {
-            display: flex;                                  /* 移动端显示移动版操作区 */
-            align-items: center;
-            gap: var(--space-2);
+          .topbar__center {
+            justify-content: flex-start; /* 移动端靠左 */
+            max-width: 100%; /* 取消宽度限制 */
+            overflow: hidden;
           }
-        }
-
-        @media (max-width: 480px) {
-          .topbar__title { font-size: 14px; }
         }
       `}</style>
     </>
