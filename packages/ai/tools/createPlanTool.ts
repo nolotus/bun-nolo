@@ -1,3 +1,4 @@
+// File: ai/tools/createPlanTool.ts
 // 这是一个完整的、可直接使用的文件
 // 它包含了 createPlan 工具的定义，以及支持并行执行和多种AI调用的 plan 逻辑
 
@@ -12,7 +13,13 @@ import {
   type ToolCall,
 } from "ai/llm/planSlice";
 import { runLlm, streamLlm, runAgent, streamAgent } from "ai/cybot/cybotSlice";
-import { toolExecutors } from "ai/tools/toolRegistry";
+import { toolExecutors, toolDefinitionsByName } from "ai/tools/toolRegistry";
+import {
+  toolRunStarted,
+  toolRunSucceeded,
+  toolRunFailed,
+  createToolRunId,
+} from "ai/tools/toolRunSlice";
 import type { RootState } from "app/store";
 import { selectCurrentDialogConfig } from "chat/dialog/dialogSlice";
 import { messageStreamEnd, messageStreaming } from "chat/messages/messageSlice";
@@ -86,13 +93,6 @@ export const createPlanFunctionSchema = {
 
 // --- 辅助函数 ---
 
-/**
- * 解析参数中的占位符，将其替换为先前步骤的实际执行结果。
- * 支持递归解析对象和数组中的占位符。
- * @param params - 需要解析的参数，可以是任何类型。
- * @param allSteps - 所有步骤的当前状态数组。
- * @returns 解析后的参数。
- */
 const resolveParameters = (params: any, allSteps: Step[]): any => {
   if (typeof params !== "string") {
     if (Array.isArray(params)) {
@@ -109,7 +109,6 @@ const resolveParameters = (params: any, allSteps: Step[]): any => {
     return params;
   }
 
-  // 正则表达式匹配 {{steps.step_id.result}} 或 {{steps.step_id.result[index]}}
   return params.replace(
     /\{\{steps\.([^}]+)\.result(\[\d+\])?\}\}/g,
     (match, stepId, indexPart) => {
@@ -138,7 +137,6 @@ const resolveParameters = (params: any, allSteps: Step[]): any => {
         }
       }
 
-      // 如果结果是对象或数组，序列化为字符串，否则直接转换为字符串
       if (typeof result === "object") {
         return JSON.stringify(result);
       }
@@ -147,11 +145,6 @@ const resolveParameters = (params: any, allSteps: Step[]): any => {
   );
 };
 
-/**
- * 将参数对象格式化为易于阅读的Markdown字符串。
- * @param params - 参数对象。
- * @returns 格式化后的字符串。
- */
 function formatParameters(params: Record<string, any>): string {
   if (!params || Object.keys(params).length === 0) return "无";
   return Object.entries(params)
@@ -165,11 +158,6 @@ interface RunPlanArgs {
   dialogKey: string;
 }
 
-/**
- * 核心的计划执行Thunk。
- * 遍历计划中的每个步骤，并行执行该步骤内的所有工具调用，
- * 处理依赖关系、状态更新和用户界面消息。
- */
 export const runPlanSteps = createAsyncThunk(
   "plan/runPlanSteps",
   async ({ dialogKey }: RunPlanArgs, thunkApi) => {
@@ -208,19 +196,19 @@ export const runPlanSteps = createAsyncThunk(
         const currentSteps = selectSteps(currentState);
 
         const callPromises = step.calls.map(async (call: ToolCall) => {
-          // 解析参数，替换依赖项
           const resolvedParameters = resolveParameters(
             call.parameters,
             currentSteps
           );
-          const { task, assistant_id } = resolvedParameters;
 
+          const { task, assistant_id } = resolvedParameters;
           const isAiCall = [
             "ask_llm",
             "stream_llm",
             "ask_agent",
             "stream_agent",
           ].includes(call.tool_name);
+
           let cybotIdToUse = assistant_id;
           if (isAiCall && !cybotIdToUse) {
             cybotIdToUse = selectCurrentDialogConfig(currentState)?.cybots?.[0];
@@ -230,58 +218,108 @@ export const runPlanSteps = createAsyncThunk(
               );
           }
 
+          // === ToolRun: 开始 ===
+          const toolRunId = createToolRunId();
+          const def = toolDefinitionsByName[call.tool_name];
+          const behavior = def?.behavior;
+          const inputSummary = JSON.stringify(resolvedParameters).slice(0, 400);
+
+          dispatch(
+            toolRunStarted({
+              id: toolRunId,
+              messageId: stepMessageId,
+              toolName: call.tool_name,
+              behavior,
+              inputSummary,
+            })
+          );
+          // === ToolRun: 开始（结束） ===
+
           let result: { rawData: any; displayData: string };
 
-          // 根据 tool_name 分派任务
-          switch (call.tool_name) {
-            case "ask_llm":
-              const llmResult = await dispatch(
-                runLlm({ content: task, cybotId: cybotIdToUse })
-              ).unwrap();
-              result = {
-                rawData: llmResult,
-                displayData: `**ask_llm**: ${llmResult}`,
-              };
-              break;
-            case "stream_llm":
-              await dispatch(
-                streamLlm({ content: task, cybotId: cybotIdToUse })
-              );
-              result = {
-                rawData: `[Streaming LLM task started]`,
-                displayData: `**stream_llm**: 任务已开始，结果将作为独立消息展示。`,
-              };
-              break;
-            case "ask_agent":
-              const agentResult = await dispatch(
-                runAgent({ content: task, cybotId: cybotIdToUse })
-              ).unwrap();
-              result = {
-                rawData: agentResult,
-                displayData: `**ask_agent**: ${agentResult}`,
-              };
-              break;
-            case "stream_agent":
-              await dispatch(
-                streamAgent({ content: task, cybotId: cybotIdToUse })
-              );
-              result = {
-                rawData: `[Streaming Agent task started]`,
-                displayData: `**stream_agent**: 任务已开始，结果将作为独立消息展示。`,
-              };
-              break;
-            default:
-              const executor = toolExecutors[call.tool_name];
-              if (!executor) throw new Error(`未知工具: ${call.tool_name}`);
-              const toolResult = await executor(resolvedParameters, thunkApi, {
-                parentMessageId: stepMessageId,
-              });
-              result = {
-                ...toolResult,
-                displayData: `**${call.tool_name}**: ${toolResult.displayData || "执行成功"}`,
-              };
+          try {
+            // 根据 tool_name 分派任务
+            switch (call.tool_name) {
+              case "ask_llm": {
+                const llmResult = await dispatch(
+                  runLlm({ content: task, cybotId: cybotIdToUse })
+                ).unwrap();
+                result = {
+                  rawData: llmResult,
+                  displayData: `**ask_llm**: ${llmResult}`,
+                };
+                break;
+              }
+              case "stream_llm": {
+                await dispatch(
+                  streamLlm({ content: task, cybotId: cybotIdToUse })
+                );
+                result = {
+                  rawData: `[Streaming LLM task started]`,
+                  displayData:
+                    "**stream_llm**: 任务已开始，结果将作为独立消息展示。",
+                };
+                break;
+              }
+              case "ask_agent": {
+                const agentResult = await dispatch(
+                  runAgent({ content: task, cybotId: cybotIdToUse })
+                ).unwrap();
+                result = {
+                  rawData: agentResult,
+                  displayData: `**ask_agent**: ${agentResult}`,
+                };
+                break;
+              }
+              case "stream_agent": {
+                await dispatch(
+                  streamAgent({ content: task, cybotId: cybotIdToUse })
+                );
+                result = {
+                  rawData: `[Streaming Agent task started]`,
+                  displayData:
+                    "**stream_agent**: 任务已开始，结果将作为独立消息展示。",
+                };
+                break;
+              }
+              default: {
+                const executor = toolExecutors[call.tool_name];
+                if (!executor) throw new Error(`未知工具: ${call.tool_name}`);
+                const toolResult = await executor(
+                  resolvedParameters,
+                  thunkApi,
+                  {
+                    parentMessageId: stepMessageId,
+                  }
+                );
+                result = {
+                  ...toolResult,
+                  displayData: `**${call.tool_name}**: ${
+                    toolResult.displayData || "执行成功"
+                  }`,
+                };
+              }
+            }
+
+            // ToolRun 成功
+            dispatch(
+              toolRunSucceeded({
+                id: toolRunId,
+                outputSummary: result.displayData,
+              })
+            );
+
+            return result;
+          } catch (e: any) {
+            // ToolRun 失败
+            dispatch(
+              toolRunFailed({
+                id: toolRunId,
+                error: e?.message || String(e),
+              })
+            );
+            throw e;
           }
-          return result;
         });
 
         const toolResults = await Promise.all(callPromises);
@@ -298,7 +336,9 @@ export const runPlanSteps = createAsyncThunk(
         );
 
         // 5. 在UI中更新消息，显示步骤完成
-        const finalContent = `✅ **${step.title} 完成**\n\n${toolResults.map((r) => r.displayData).join("\n")}`;
+        const finalContent = `✅ **${step.title} 完成**\n\n${toolResults
+          .map((r) => r.displayData)
+          .join("\n")}`;
         await dispatch(
           messageStreamEnd({
             finalContentBuffer: [{ type: "text", text: finalContent }],
@@ -337,7 +377,6 @@ export const runPlanSteps = createAsyncThunk(
             reasoningBuffer: "",
           })
         );
-        // 如果有任何一步失败，则中断整个计划的执行
         break;
       }
     }
@@ -349,14 +388,6 @@ export const runPlanSteps = createAsyncThunk(
 
 // --- 工具主函数 ---
 
-/**
- * createPlan 工具的执行器。
- * 当AI调用此工具时，本函数被触发。
- * 它负责解析AI生成的计划，将其存入Redux状态，然后启动 `runPlanSteps` Thunk 来异步执行该计划。
- * @param args - AI提供的符合 `createPlanFunctionSchema` 的参数。
- * @param thunkApi - Redux Thunk API。
- * @returns 一个包含Markdown格式化计划的对象，用于在UI中展示。
- */
 export async function createPlanAndOrchestrateFunc(
   args: any,
   thunkApi: any
@@ -375,7 +406,6 @@ export async function createPlanAndOrchestrateFunc(
     );
   }
 
-  // 1. 将AI生成的蓝图转换为内部状态格式
   const processedSteps: Step[] = stepBlueprints.map((blueprint: any) => ({
     id: blueprint.id,
     title: blueprint.title,
@@ -384,13 +414,11 @@ export async function createPlanAndOrchestrateFunc(
     result: [],
   }));
 
-  // 2. 在Redux中设置计划和步骤
   dispatch(setPlan({ planDetails: strategy, currentProgress: 0 }));
   dispatch(setSteps(processedSteps));
 
-  // 3. 异步启动计划执行
   const state = getState() as RootState;
-  const dialogKey = state.dialog.currentDialogKey;
+  const dialogKey = (state as any).dialog.currentDialogKey;
   if (dialogKey) {
     dispatch(runPlanSteps({ dialogKey }));
   } else {
@@ -399,7 +427,6 @@ export async function createPlanAndOrchestrateFunc(
     return { rawData: errorMarkdown, displayData: errorMarkdown };
   }
 
-  // 4. 立即返回格式化的计划描述给用户界面
   const markdownResult = `
 ### 计划已创建: ${planTitle}
 

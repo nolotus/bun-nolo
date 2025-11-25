@@ -10,6 +10,9 @@ import dialogReducer from "chat/dialog/dialogSlice";
 import messageReducer from "chat/messages/messageSlice";
 import planSlice from "ai/llm/planSlice";
 
+// 新增：工具调用 trace
+import toolRunReducer from "ai/tools/toolRunSlice";
+
 export const reducer = {
   dialog: dialogReducer,
   plan: planSlice,
@@ -20,4 +23,7 @@ export const reducer = {
   settings: settingReducer,
   space: spaceRecer,
   cybot: cybotReducer,
+
+  // 新增：ToolRun 状态
+  toolRun: toolRunReducer,
 };

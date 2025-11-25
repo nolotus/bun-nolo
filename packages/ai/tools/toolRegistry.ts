@@ -7,7 +7,8 @@
  *  2. 在该文件中，导出函数的 schema 和 executor 函数。
  *  3. 在下面的 `toolDefinitions` 数组中，添加一个新的对象来定义你的工具。
  *
- *  此文件会自动生成 toolRegistry, toolExecutors, 和 toolDescriptions。
+ *  此文件会自动生成 toolRegistry, toolExecutors, toolDescriptions,
+ *  以及 toolDefinitionsByName。
  *
  * ================================================================== */
 
@@ -74,6 +75,9 @@ import {
 // import { joinRowsFunctionSchema, joinRowsFunc } from "./joinRowsTool";
 
 // ---------- 2. 定义工具规范接口 ----------
+
+export type ToolBehavior = "orchestrator" | "data" | "action" | "answer";
+
 interface ToolDefinition {
   id: string; // 唯一ID (camelCase)
   schema: any; // 提供给 LLM 的函数 Schema
@@ -87,11 +91,100 @@ interface ToolDefinition {
     description: string;
     category: string;
   };
+  behavior?: ToolBehavior; // 工具在系统中的角色
+}
+
+/* ==================================================================
+ *  2.1 toolquery 工具：帮助模型发现可用工具
+ * ================================================================== */
+
+export const toolQueryFunctionSchema = {
+  name: "toolquery",
+  description:
+    "根据当前任务描述，列出系统中可能有用的工具。适合在不确定可用工具时先调用本函数。",
+  parameters: {
+    type: "object",
+    properties: {
+      task: {
+        type: "string",
+        description: "用户当前的任务或需求描述。",
+      },
+      top_k: {
+        type: "number",
+        description: "最多返回多少个候选工具（默认 5）。",
+        default: 5,
+      },
+    },
+    required: ["task"],
+  },
+};
+
+export async function toolQueryFunc(args: any): Promise<{
+  rawData: any;
+  displayData: string;
+}> {
+  const { task, top_k } = args || {};
+  const query = String(task || "").trim();
+  const topK = typeof top_k === "number" && top_k > 0 && top_k < 50 ? top_k : 5;
+
+  if (!query) {
+    const msg = "toolquery 需要提供 task 描述，比如：'分析数据库相关的工具'。";
+    return { rawData: [], displayData: msg };
+  }
+
+  const lowered = query.toLowerCase();
+
+  // 这里直接使用下方定义的 toolDefinitions。
+  // 运行时调用时，toolDefinitions 已经初始化完成。
+  const candidates = toolDefinitions
+    // 自己不推荐自己
+    .filter((tool) => tool.id !== "toolquery")
+    .map((tool) => {
+      const { description, behavior } = tool;
+      const haystack =
+        `${description.name} ${description.description} ${description.category} ${behavior || ""}`.toLowerCase();
+      const score = haystack.includes(lowered) ? 1 : 0;
+      return { tool, score };
+    })
+    .filter((item) => item.score > 0)
+    .slice(0, topK);
+
+  const rawData = candidates.map(({ tool }) => ({
+    name: tool.schema.name,
+    id: tool.id,
+    description: tool.description.description,
+    category: tool.description.category,
+    behavior: tool.behavior ?? null,
+  }));
+
+  let displayData: string;
+
+  if (rawData.length === 0) {
+    displayData =
+      `根据当前描述暂时没有找到明显匹配的工具。\n` +
+      `你可以尝试：\n` +
+      `- 换一种更具体的说法描述任务\n` +
+      `- 直接选择你认为合适的工具调用`;
+  } else {
+    displayData =
+      `根据你的任务描述，我找到了 ${rawData.length} 个可能有用的工具：\n\n` +
+      rawData
+        .map((t: any, idx: number) => {
+          const behaviorLabel = t.behavior ? `，类型：${t.behavior}` : "";
+          return `${idx + 1}. \`${t.name}\`（${t.category}${behaviorLabel}）\n   - ${
+            t.description
+          }`;
+        })
+        .join("\n");
+  }
+
+  return { rawData, displayData };
 }
 
 /* ==================================================================
  *  3. [核心] 单一事实来源：在此处定义所有工具
  * ================================================================== */
+
 const toolDefinitions: ToolDefinition[] = [
   // --- 计划与编排 ---
   {
@@ -103,6 +196,7 @@ const toolDefinitions: ToolDefinition[] = [
       description: "为复杂任务制定一个多步骤的执行计划",
       category: "计划与编排",
     },
+    behavior: "orchestrator",
   },
   {
     id: "runStreamingAgent",
@@ -113,6 +207,18 @@ const toolDefinitions: ToolDefinition[] = [
       description: "调用指定的 Agent (智能代理) 来处理特定任务",
       category: "计划与编排",
     },
+    behavior: "orchestrator",
+  },
+  {
+    id: "toolquery",
+    schema: toolQueryFunctionSchema,
+    executor: toolQueryFunc,
+    description: {
+      name: "toolquery",
+      description: "根据任务描述列出可能有用的工具，帮助你选择合适的工具链。",
+      category: "计划与编排",
+    },
+    behavior: "answer", // 本身就返回对人类/模型都可读的说明，不需要再自动总结
   },
 
   // --- 内容管理 ---
@@ -125,6 +231,7 @@ const toolDefinitions: ToolDefinition[] = [
       description: "在当前空间中创建新页面",
       category: "内容管理",
     },
+    behavior: "action",
   },
   {
     id: "createCategory",
@@ -135,6 +242,7 @@ const toolDefinitions: ToolDefinition[] = [
       description: "在当前空间中创建新分类",
       category: "内容管理",
     },
+    behavior: "action",
   },
   {
     id: "updateContentCategory",
@@ -145,6 +253,7 @@ const toolDefinitions: ToolDefinition[] = [
       description: "更新内容的分类",
       category: "内容管理",
     },
+    behavior: "action",
   },
   {
     id: "queryContentsByCategory",
@@ -155,17 +264,8 @@ const toolDefinitions: ToolDefinition[] = [
       description: "查询分类下的所有内容",
       category: "内容管理",
     },
+    behavior: "data",
   },
-  // {
-  //   id: "updateContentTitle",
-  //   schema: updateContentTitleFunctionSchema,
-  //   executor: updateContentTitleFunc,
-  //   description: {
-  //     name: "updateContentTitle",
-  //     description: "更新内容的标题",
-  //     category: "内容管理",
-  //   },
-  // },
 
   // --- 数据操作 ---
   {
@@ -177,17 +277,8 @@ const toolDefinitions: ToolDefinition[] = [
       description: "将用户上传的文件数据导入数据库表",
       category: "数据操作",
     },
+    behavior: "data",
   },
-  // {
-  //   id: "generateTable",
-  //   schema: generateTableFunctionSchema,
-  //   executor: generateTableFunc,
-  //   description: {
-  //     name: "generateTable",
-  //     description: "根据 JSON 数据生成 Excel 表格",
-  //     category: "数据操作",
-  //   },
-  // },
   {
     id: "executeSql",
     schema: executeSqlFunctionSchema,
@@ -197,6 +288,7 @@ const toolDefinitions: ToolDefinition[] = [
       description: "直接执行 SQL 语句",
       category: "数据操作",
     },
+    behavior: "data",
   },
 
   // --- 网络与智能 ---
@@ -209,6 +301,7 @@ const toolDefinitions: ToolDefinition[] = [
       description: "访问网页并获取其内容",
       category: "网络与智能",
     },
+    behavior: "data",
   },
   {
     id: "browserOpenSession",
@@ -219,6 +312,7 @@ const toolDefinitions: ToolDefinition[] = [
       description: "打开一个新的浏览器会话并导航到 URL，返回会话ID",
       category: "网络与智能",
     },
+    behavior: "action",
   },
   {
     id: "browserSelectOption",
@@ -229,23 +323,15 @@ const toolDefinitions: ToolDefinition[] = [
       description: "在浏览器会话中选择一个下拉框选项",
       category: "网络与智能",
     },
+    behavior: "action",
   },
 
   // --- 多媒体生成 ---
-  // {
-  //   id: "generateImage",
-  //   schema: generateImageFunctionSchema,
-  //   executor: generateImageFunc,
-  //   description: {
-  //     name: "generateImage",
-  //     description: "根据文本提示生成图片",
-  //     category: "多媒体生成",
-  //   },
-  // },
+  // 将来可以在这里继续追加 generateImage 等工具，按需设置 behavior
 ];
 
 /* ==================================================================
- *  4. 程序化生成所需的各个对象 (无需修改)
+ *  4. 程序化生成所需的各个对象 (无需修改调用方)
  * ================================================================== */
 
 // 4.1 生成给 LLM 的工具注册表
@@ -277,8 +363,18 @@ export const toolDescriptions: Record<string, ToolDefinition["description"]> =
     {} as Record<string, ToolDefinition["description"]>
   );
 
+// 4.4 生成按工具名称索引的完整定义（含 behavior 等元信息）
+export const toolDefinitionsByName: Record<string, ToolDefinition> =
+  toolDefinitions.reduce(
+    (acc, tool) => {
+      acc[tool.schema.name] = tool;
+      return acc;
+    },
+    {} as Record<string, ToolDefinition>
+  );
+
 /* ==================================================================
- *  5. 健壮的工具查找辅助函数 (无需修改)
+ *  5. 健壮的工具查找辅助函数 (无需修改现有调用)
  * ================================================================== */
 const normalizeToolName = (name: string): string =>
   name.replace(/[-_]/g, "").toLowerCase();

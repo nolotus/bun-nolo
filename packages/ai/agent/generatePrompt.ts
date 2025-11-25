@@ -16,6 +16,58 @@ const CONTEXT_USAGE_INSTRUCTIONS = `INSTRUCTIONS FOR USING THE REFERENCE MATERIA
 - If they do not contain the answer, state that and then use your general knowledge.
 - Point out any conflicting information you find within the materials.`;
 
+const TOOL_USAGE_INSTRUCTIONS = `--- TOOL USAGE GUIDELINES ---
+You may have access to a set of tools (functions) such as:
+- Orchestrator tools: \`createPlan\`, \`runStreamingAgent\`
+- Data tools: \`fetchWebpage\`, \`executeSql\`, \`importData\`, \`queryContentsByCategory\`
+- Discovery tools: \`toolquery\`
+- Other action/answer tools depending on the current agent configuration.
+
+General principles:
+- Only call tools when they are genuinely helpful for the user's goal.
+- After using tools, you are still responsible for giving a clear, human‑readable answer to the user.
+- Prefer a small number of well‑chosen tool calls over many noisy or redundant calls.
+
+About \`toolquery\` (tool discovery):
+- When you are not sure what tools exist, or which tools are most suitable for the current task, first call \`toolquery\` with a short description of the task.
+- Use the structured result from \`toolquery\` (name, description, behavior/category) to decide which tools to call next, either directly or inside a plan.
+- If \`toolquery\` says "no obvious matches", do NOT give up immediately:
+  - Re‑read the user's request and think about common operations (e.g. visiting a webpage, querying a database, reading documents).
+  - If a well‑known tool clearly fits (e.g. \`fetchWebpage\` for visiting a URL), you may still use it in a plan via \`createPlan\` even if it is not exposed as a direct top‑level tool in this turn.
+
+About \`createPlan\` (orchestrator):
+- When the user's request clearly requires multiple steps, multiple tools, or a longer workflow (for example: "visit this page, extract key points, then compare with another document and write a report"), you should first call \`createPlan\`.
+- \`createPlan\` is an orchestrator: it should break the task into ordered steps and coordinate tools (including other LLM/agent calls).
+- The runtime that executes the plan can map the \`tool_name\` values in the plan's steps to the actual tool implementations, as long as such tools exist in the system. This means:
+  - Inside \`createPlan.steps[*].calls[*].tool_name\` you can reference any known tool name (e.g. \`fetchWebpage\`, \`executeSql\`), not only those currently exposed as direct tools in this specific request.
+- Do NOT treat the raw output of \`createPlan\` as the final user answer. After the plan is executed, you should still summarise the outcome in natural language for the user.
+
+Typical pattern for "visit a webpage and summarise it":
+- If the user asks you to visit or summarise content from a URL/webpage, and you have access to \`createPlan\`:
+  1) Prefer to call \`createPlan\` to construct a plan with at least two steps:
+     - Step 1: a call with \`tool_name: "fetchWebpage"\` to fetch the page content for the given URL.
+     - Step 2: a call with \`tool_name: "ask_llm"\` or \`"ask_agent"\`, whose task parameter summarises the content from Step 1 (for example, using \`{{steps.fetch_page.result}}\` style references).
+  2) After the plan has been executed, provide the user with a concise, clear summary of the webpage in natural language.
+- If \`createPlan\` is not available but a direct data tool like \`fetchWebpage\` is, you may call the data tool directly and then summarise the result.
+
+About data tools (\`fetchWebpage\`, \`executeSql\`, \`importData\`, \`queryContentsByCategory\`, etc.):
+- These tools mainly return raw data (HTML, rows, records, JSON, etc.).
+- After calling data tools, you must interpret and summarise the results for the user in clear natural language, focusing on what they asked for.
+- Avoid dumping entire raw payloads unless the user explicitly asks for them or it is clearly necessary.
+
+About orchestrator tools (\`createPlan\`, \`runStreamingAgent\`):
+- These tools coordinate other tools or agents. They are not themselves the final answer.
+- When using them, aim to ultimately provide a concise, high‑quality answer that explains what was done and what the result means for the user.
+
+About action tools (e.g. \`createPage\`, \`updateContentCategory\`, browser actions, etc.):
+- These tools change state or perform side‑effects.
+- When you invoke an action tool, clearly tell the user what you are about to do or what has been done.
+- For potentially destructive operations, seek explicit confirmation from the user if the situation is ambiguous.
+
+Relationship with REFERENCE MATERIALS:
+- If the answer can be found directly in "REFERENCE MATERIALS", prefer using them first.
+- Use tools when you need to fetch external data, inspect user workspace content, run computations, or perform actions that go beyond the static reference materials.`;
+
 const isBrowser = typeof window !== "undefined";
 
 export const generatePrompt = (options: {
@@ -51,11 +103,10 @@ export const generatePrompt = (options: {
     • Use tables only when the user asks for a comparison or when the data is naturally tabular; otherwise prefer normal paragraphs or bullet lists.
     • Use images/diagrams/math mainly when the user explicitly asks, or when text alone is clearly hard to understand.`,
     "- Keep replies clear, simple, and concise; avoid unnecessary rambling.",
-    // === 代码块 / preview 相关规则（已按你需求调整） ===
     "- For any code output, default to normal fenced code blocks (without any 'preview' meta) so the user can easily read, learn from, and copy the code.",
     `- Use live-preview code blocks (with a 'preview' meta) ONLY in these situations:
   1) The user explicitly asks to SEE a rendered/visual demo (e.g. “show the page result here”, “give me a live preview”, “render a 3D scene/chart demo in this editor”, “在这里预览一下效果”).
-  2) OR you (the assistant) reasonably judge that a visual preview would SIGNIFICANTLY improve user understanding compared to code alone, such as:
+  2) OR you (the assistant) reasonably judge that a visual preview will SIGNIFICANTLY improve user understanding compared to code alone, such as:
      - Demonstrating a full webpage layout or interactive UI behavior.
      - Showing the visual result of a complex chart (e.g. multi-axis, multiple series, custom tooltip).
      - Showing a 3D scene, animation, or spatial structure that is hard to understand from code only.
@@ -97,6 +148,7 @@ export const generatePrompt = (options: {
     "- Adaptive wording: Match the user's language level and tone; use plain, easy-to-understand phrasing.",
     "- Jargon handling: When technical terms appear, add a one-sentence plain-language explanation.",
   ].join("\n");
+
   const baseInfo = [
     name ? `Your name is ${name}.` : "",
     dbKey ? `Your dbKey is ${dbKey}.` : "",
@@ -171,6 +223,7 @@ In addition to the general reply preferences, you may:
   return [
     baseInfo,
     responseGuidelines,
+    TOOL_USAGE_INSTRUCTIONS,
     corePersonaAndTask,
     referenceMaterialsBlock,
   ]

@@ -1,9 +1,7 @@
 /*
  * ==================================================================
- *  /chat/messages/messageSlice.ts (Corrected)
+ *  /chat/messages/messageSlice.ts
  * ==================================================================
- *  此版本修复了 messageStreamEnd thunk，确保在消息流结束后，
- *  Redux store 中的消息内容能够与数据库同步更新，从而实现实时UI刷新。
  */
 
 import { RootState, AppThunkApi } from "app/store";
@@ -26,9 +24,17 @@ import { SERVERS } from "database/requests";
 import { createDialogMessageKeyAndId } from "database/keys";
 import { extractCustomId } from "core/prefix";
 import { DialogConfig } from "app/types";
-import { findToolExecutor } from "ai/tools/toolRegistry";
+import { findToolExecutor, toolDefinitionsByName } from "ai/tools/toolRegistry";
 import { updateDialogTitle, updateTokens } from "chat/dialog/dialogSlice";
 import { streamAgentChatTurn } from "ai/cybot/cybotSlice";
+
+// ToolRun 打点
+import {
+  toolRunStarted,
+  toolRunSucceeded,
+  toolRunFailed,
+  createToolRunId,
+} from "ai/tools/toolRunSlice";
 
 const FALLBACK_SERVERS = [SERVERS.MAIN, SERVERS.US];
 const OLDER_LOAD_LIMIT = 30;
@@ -152,6 +158,7 @@ export const messageSlice = createSliceWithThunks({
       messagesAdapter.removeAll(state.msgs);
       Object.assign(state, initialState);
     }),
+
     // ================= [START] NEW GENERIC THUNK =================
     prepareAndPersistMessage: create.asyncThunk(
       async (
@@ -205,7 +212,6 @@ export const messageSlice = createSliceWithThunks({
         const { userInput, dialogConfig } = args;
         const { dispatch } = thunkApi;
 
-        // Delegate to the new generic thunk
         return dispatch(
           messageSlice.actions.prepareAndPersistMessage({
             message: {
@@ -218,6 +224,7 @@ export const messageSlice = createSliceWithThunks({
       }
     ),
     // ================= [END] ADJUSTED USER MESSAGE THUNK =================
+
     initMsgs: create.asyncThunk(
       async (
         { dialogId, limit },
@@ -268,6 +275,7 @@ export const messageSlice = createSliceWithThunks({
         rejected: rejectedHandler("isLoadingInitial"),
       }
     ),
+
     loadOlderMessages: create.asyncThunk(
       async (
         { dialogId, beforeKey, limit = OLDER_LOAD_LIMIT },
@@ -324,6 +332,8 @@ export const messageSlice = createSliceWithThunks({
         rejected: rejectedHandler("isLoadingOlder"),
       }
     ),
+
+    // ================= [START] processToolData with ToolRun =================
     processToolData: create.asyncThunk(
       async (args: ProcessToolDataPayload, thunkApi) => {
         const { toolCall, parentMessageId } = args;
@@ -339,18 +349,34 @@ export const messageSlice = createSliceWithThunks({
         const rawToolName = func.name;
         let toolArgs = func.arguments;
 
-        try {
-          const { executor: handler, canonicalName } =
-            findToolExecutor(rawToolName);
+        const { executor: handler, canonicalName } =
+          findToolExecutor(rawToolName);
 
-          if (typeof toolArgs === "string") {
-            try {
-              toolArgs = JSON.parse(toolArgs);
-            } catch (e) {
-              throw new Error(`Failed to parse tool arguments JSON: ${e}`);
-            }
+        if (typeof toolArgs === "string") {
+          try {
+            toolArgs = JSON.parse(toolArgs);
+          } catch (e) {
+            throw new Error(`Failed to parse tool arguments JSON: ${e}`);
           }
+        }
 
+        // ToolRun: start
+        const toolRunId = createToolRunId();
+        const def = toolDefinitionsByName[canonicalName];
+        const behavior = def?.behavior;
+        const inputSummary = JSON.stringify(toolArgs).slice(0, 400);
+
+        dispatch(
+          toolRunStarted({
+            id: toolRunId,
+            messageId: parentMessageId,
+            toolName: canonicalName,
+            behavior,
+            inputSummary,
+          })
+        );
+
+        try {
           if (canonicalName === "runStreamingAgent") {
             try {
               await dispatch(
@@ -360,12 +386,29 @@ export const messageSlice = createSliceWithThunks({
                   parentMessageId: parentMessageId,
                 })
               ).unwrap();
+
+              dispatch(
+                toolRunSucceeded({
+                  id: toolRunId,
+                  outputSummary:
+                    "[runStreamingAgent handed off to another agent]",
+                })
+              );
+
               return { hasHandedOff: true };
             } catch (e: any) {
               const errorContent = {
                 type: "text",
                 text: `\n[Agent Failed to Start] ${e.message}\n`,
               };
+
+              dispatch(
+                toolRunFailed({
+                  id: toolRunId,
+                  error: e.message || "Unknown error in runStreamingAgent",
+                })
+              );
+
               return rejectWithValue({ displayContent: errorContent });
             }
           }
@@ -393,6 +436,13 @@ export const messageSlice = createSliceWithThunks({
             };
           }
 
+          dispatch(
+            toolRunSucceeded({
+              id: toolRunId,
+              outputSummary: displayData || "",
+            })
+          );
+
           return {
             displayContent,
             rawResult: toolResult.rawData,
@@ -404,6 +454,14 @@ export const messageSlice = createSliceWithThunks({
             type: "text",
             text: `\n[Tool Execution Error: ${rawToolName}] ${errorMessage}\n`,
           };
+
+          dispatch(
+            toolRunFailed({
+              id: toolRunId,
+              error: errorMessage,
+            })
+          );
+
           return rejectWithValue({
             displayContent: errorContent,
             rawResult: { error: errorMessage },
@@ -411,6 +469,8 @@ export const messageSlice = createSliceWithThunks({
         }
       }
     ),
+    // ================= [END] processToolData =================
+
     handleToolCalls: create.asyncThunk(
       async (args: HandleToolCallsPayload, thunkApi) => {
         const {
@@ -514,8 +574,6 @@ export const messageSlice = createSliceWithThunks({
           dispatch(updateDialogTitle({ dialogKey, cybotConfig }));
         }
 
-        // [FIX] Return the complete final message data, not just the ID.
-        // This allows the reducer to update the Redux state with the final content.
         return {
           id: messageId,
           content: finalMessage.content,
@@ -526,8 +584,6 @@ export const messageSlice = createSliceWithThunks({
       },
       {
         fulfilled: (state, action) => {
-          // [FIX] Use all the data from the payload to update the message in Redux.
-          // This ensures the UI updates in real-time without needing a refresh.
           messagesAdapter.updateOne(state.msgs, {
             id: action.payload.id,
             changes: {
@@ -624,7 +680,7 @@ export const {
   addUserMessage,
   messageStreaming,
   resetMsgs,
-  prepareAndPersistMessage, // Export new thunk
+  prepareAndPersistMessage,
   prepareAndPersistUserMessage,
   initMsgs,
   loadOlderMessages,
