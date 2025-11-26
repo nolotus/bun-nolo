@@ -90,7 +90,13 @@ export const generatePrompt = (options: {
 
   const { name, prompt: mainPrompt, dbKey } = agentConfig;
   const mappedLanguage = mapLanguage(safeLanguage);
-  const currentTime = new Date().toLocaleString("en-US", { timeZone: "UTC" });
+
+  // 时间精度调整为小时级别，保持与缓存兼容
+  // 生成格式如 "6/9/2025, 18:00 UTC"（不显示分钟和秒，减少prompt变化频率）
+  const now = new Date();
+  const dateStr = now.toLocaleDateString("en-US", { timeZone: "UTC" });
+  const hour = now.getUTCHours();
+  const currentTime = `${dateStr}, ${hour}:00 UTC`;
 
   const replyPreferences = [
     "Reply Preferences:",
