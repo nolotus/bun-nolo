@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback, memo } from "react";
-import { useAppSelector } from "app/store";
+import { useAppSelector, useAppDispatch } from "app/store";
 import { selectUserId } from "auth/authSlice";
 import { selectShowThinking } from "app/settings/settingSlice";
 import { ChevronDownIcon, ChevronRightIcon } from "@primer/octicons-react";
@@ -13,6 +13,8 @@ import { MessageActions } from "./MessageActions";
 import { FileItem } from "./FileItem";
 import { useMessageInteraction } from "../../hooks/useMessageInteraction";
 import { useThinkingVisibility } from "../../hooks/useThinkingVisibility";
+
+import { MessageToolConfirmBar } from "./MessageToolConfirmBar";
 
 const StreamingIndicator = memo(() => (
   <div className="streaming-indicator">
@@ -108,8 +110,8 @@ const ImagePreview = memo(({ src, alt, onPreview }) => {
 const MessageContent = memo(
   ({ content, thinkContent, role, isStreaming = false }) => {
     const showThinking = useAppSelector(selectShowThinking);
-    const [filePreview, setFilePreview] = useState(null);
-    const [imgPreview, setImgPreview] = useState(null);
+    const [filePreview, setFilePreview] = useState<any | null>(null);
+    const [imgPreview, setImgPreview] = useState<string | null>(null);
     const [isThinkingExpanded, toggleThinking] = useThinkingVisibility(
       showThinking,
       content,
@@ -123,8 +125,9 @@ const MessageContent = memo(
 
     const segments = useMemo(() => {
       if (!Array.isArray(content)) return [];
-      const segs = [];
-      let cur = null;
+      const segs: any[] = [];
+      let cur: any = null;
+
       content.forEach((it) => {
         const isImg = it.type === "image_url" && it.image_url?.url;
         if (isImg) {
@@ -143,6 +146,7 @@ const MessageContent = memo(
           }
         }
       });
+
       return segs;
     }, [content]);
 
@@ -157,6 +161,7 @@ const MessageContent = memo(
           />
         );
       }
+
       return segments.map((seg, i) => {
         if (seg.type === "images") {
           if (seg.items.length > 1) {
@@ -183,6 +188,7 @@ const MessageContent = memo(
             />
           );
         }
+
         return seg.items.map((it, idx) => {
           if (it.type === "text" && it.text) {
             return (
@@ -241,6 +247,7 @@ const MessageContent = memo(
 );
 
 export const MessageItem = memo(({ message }) => {
+  const dispatch = useAppDispatch();
   const currentUserId = useAppSelector(selectUserId);
   const [collapsed, setCollapsed] = useState(false);
 
@@ -253,12 +260,26 @@ export const MessageItem = memo(({ message }) => {
     isStreaming = false,
   } = message || {};
 
+  // ====== 新增: 支持 role === "tool" ======
+  const isTool = role === "tool";
   const isSelf = role === "user" && (currentUserId === userId || !cybotKey);
-  const isRobot = role !== "user";
+  const isRobot = role !== "user"; // assistant / tool / system 都算“机器人侧”
   const type = isSelf ? "self" : isRobot ? "robot" : "other";
 
+  // optional: 从 message 中读 toolName（如果有）
+  const toolName: string | undefined = (message as any)?.toolName;
+
   const { data: robotData } =
-    cybotKey && isRobot ? useFetchData(cybotKey) : { data: null };
+    cybotKey && !isTool && isRobot ? useFetchData(cybotKey) : { data: null };
+
+  const displayName =
+    isTool && toolName
+      ? toolName
+      : isTool
+        ? "Tool"
+        : isRobot
+          ? robotData?.name || "Robot"
+          : "User";
 
   const toggleCollapse = useCallback(() => setCollapsed((v) => !v), []);
 
@@ -278,23 +299,27 @@ export const MessageItem = memo(({ message }) => {
   return (
     <>
       <div
-        className={`msg ${type} ${collapsed ? "collapsed" : ""} ${showActions ? "actions-visible" : ""}`}
+        className={`msg ${type} ${collapsed ? "collapsed" : ""} ${
+          showActions ? "actions-visible" : ""
+        }`}
         data-message-id={message?.id}
         onClick={handleClick}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
+        {/* 桌面端 */}
         {!isTouch && (
           <div className="msg-inner desktop">
             <div className="avatar-area">
               <div className="avatar-wrapper">
                 <Avatar
-                  name={isRobot ? robotData?.name || "Robot" : "User"}
+                  name={displayName}
                   type={isRobot ? "robot" : "user"}
                   size="medium"
                 />
-                {isRobot && isStreaming && <StreamingIndicator />}
+                {/* 工具消息一般不会流式，这里只给非 tool 的机器人显示 streaming */}
+                {!isTool && isRobot && isStreaming && <StreamingIndicator />}
               </div>
               <MessageActions
                 isRobot={isRobot}
@@ -307,8 +332,10 @@ export const MessageItem = memo(({ message }) => {
               />
             </div>
             <div className="content-area">
-              {isRobot && robotData?.name && (
-                <div className="robot-name">{robotData.name}</div>
+              {isRobot && displayName && (
+                <div className={`robot-name ${isTool ? "tool" : ""}`}>
+                  {displayName}
+                </div>
               )}
               <div className={`msg-body ${type}`}>
                 <MessageContent
@@ -317,24 +344,33 @@ export const MessageItem = memo(({ message }) => {
                   role={isSelf ? "self" : "other"}
                   isStreaming={isStreaming}
                 />
+
+                {/* 通用确认条：对 interaction === "confirm" 的 ToolRun 显示按钮 */}
+                <MessageToolConfirmBar
+                  messageId={message?.id}
+                  isRobot={isRobot}
+                />
               </div>
             </div>
           </div>
         )}
 
+        {/* 移动端 */}
         {isTouch && (
           <div className="msg-inner mobile">
             <div className="msg-header">
               <div className="avatar-wrapper">
                 <Avatar
-                  name={isRobot ? robotData?.name || "Robot" : "User"}
+                  name={displayName}
                   type={isRobot ? "robot" : "user"}
                   size="small"
                 />
-                {isRobot && isStreaming && <StreamingIndicator />}
+                {!isTool && isRobot && isStreaming && <StreamingIndicator />}
               </div>
-              {isRobot && robotData?.name && (
-                <div className="robot-name mobile">{robotData.name}</div>
+              {isRobot && displayName && (
+                <div className={`robot-name mobile ${isTool ? "tool" : ""}`}>
+                  {displayName}
+                </div>
               )}
             </div>
 
@@ -345,6 +381,11 @@ export const MessageItem = memo(({ message }) => {
                   thinkContent={thinkContent || ""}
                   role={isSelf ? "self" : "other"}
                   isStreaming={isStreaming}
+                />
+
+                <MessageToolConfirmBar
+                  messageId={message?.id}
+                  isRobot={isRobot}
                 />
               </div>
             </div>
@@ -365,7 +406,8 @@ export const MessageItem = memo(({ message }) => {
       </div>
 
       <style href="message-item" precedence="high">{`
-/* [保持所有原有样式不变] */
+/* === 下面样式基本与你原来的相同，只新增了 .robot-name.tool === */
+
 /* --- StreamingIndicator --- */
 .streaming-indicator {
   position: absolute;
@@ -543,57 +585,63 @@ export const MessageItem = memo(({ message }) => {
   letter-spacing: 0.5px;
 }
 
+/* tool 名称稍微弱一点 */
+.robot-name.tool {
+  color: var(--textTertiary);
+  font-style: italic;
+}
+
 /* 桌面端悬停效果 */
 @media (hover: hover) and (pointer: fine) {
   .msg:hover {
     background-color: var(--backgroundGhost);
   }
-  
+
   .msg:hover .actions {
     opacity: 0.8;
     visibility: visible;
   }
 }
 
-/* --- 移动端全新布局 --- */
+/* --- 移动端布局 --- */
 @media (hover: none) and (pointer: coarse) {
   .msg {
     padding: var(--space-3) var(--space-2);
     margin-bottom: var(--space-2);
     overflow: visible;
   }
-  
+
   .msg.actions-visible {
     background-color: var(--primaryGhost);
     transform: scale(0.995);
     transition: all 0.2s ease;
   }
-  
+
   .msg-inner.mobile {
     display: flex;
     flex-direction: column;
     width: 100%;
     gap: var(--space-2);
   }
-  
+
   .msg-header {
     display: flex;
     align-items: center;
     gap: var(--space-2);
     margin-bottom: var(--space-1);
   }
-  
+
   .msg.self .msg-header {
     flex-direction: row-reverse;
     justify-content: flex-start;
   }
-  
+
   .msg-header .avatar-wrapper {
     width: 28px;
     height: 28px;
     flex-shrink: 0;
   }
-  
+
   .robot-name.mobile {
     font-size: 12px;
     font-weight: 600;
@@ -601,17 +649,22 @@ export const MessageItem = memo(({ message }) => {
     margin: 0;
     flex-shrink: 0;
   }
-  
+
+  .robot-name.mobile.tool {
+    color: var(--textTertiary);
+    font-style: italic;
+  }
+
   .content-area.mobile {
     width: 100%;
     flex: none;
   }
-  
+
   .msg-body.mobile {
     width: 100%;
     margin: 0;
   }
-  
+
   .msg-body.self.mobile {
     background: var(--primaryBg);
     border-radius: 16px 16px 4px 16px;
@@ -620,7 +673,7 @@ export const MessageItem = memo(({ message }) => {
     margin-left: auto;
     max-width: 85%;
   }
-  
+
   .msg-body.other.mobile {
     background: var(--backgroundSecondary);
     border-radius: 16px 16px 16px 4px;
@@ -628,20 +681,20 @@ export const MessageItem = memo(({ message }) => {
     border: 1px solid var(--border);
     max-width: 85%;
   }
-  
+
   .msg-body.robot.mobile {
     background: transparent;
     padding: 0;
     width: 100%;
     max-width: none;
   }
-  
+
   .msg-header .streaming-indicator {
     bottom: 0;
     right: -6px;
     padding: 2px 4px;
   }
-  
+
   .msg-header .streaming-indicator .dot {
     width: 3px;
     height: 3px;
@@ -749,25 +802,71 @@ export const MessageItem = memo(({ message }) => {
     padding: var(--space-2) var(--space-1);
     margin-bottom: var(--space-2);
   }
-  
+
   .msg-header .avatar-wrapper {
     width: 24px;
     height: 24px;
   }
-  
+
   .robot-name.mobile {
     font-size: 11px;
   }
-  
+
   .msg-body.self.mobile,
   .msg-body.other.mobile {
     padding: var(--space-2);
     font-size: 14px;
     max-width: 90%;
   }
-  
+
   .msg-image { 
     max-height: 250px; 
+  }
+}
+
+/* --- 确认按钮样式 --- */
+.tool-confirm-row {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.tool-confirm-button {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #e11d48;
+  background: #fee2e2;
+  color: #b91c1c;
+  cursor: pointer;
+}
+
+.tool-confirm-button:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.tool-confirm-button:hover:not(:disabled) {
+  background: #fecaca;
+}
+
+.tool-confirm-status {
+  font-size: 12px;
+}
+
+.tool-confirm-status.success {
+  color: #16a34a;
+}
+
+.tool-confirm-status.failed {
+  color: #b91c1c;
+}
+
+@media (max-width: 480px) {
+  .tool-confirm-row {
+    align-items: flex-start;
   }
 }
       `}</style>

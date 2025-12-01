@@ -44,7 +44,6 @@ import {
 
 // 数据操作
 import { importDataFunctionSchema, importDataFunc } from "./importDataTool";
-// import { generateTableFunctionSchema, generateTableFunc } from "./generateTableTool";
 import { executeSqlFunctionSchema, executeSqlFunc } from "./executeSqlTool";
 
 // 网络与智能
@@ -61,22 +60,15 @@ import {
   browser_selectOption_Func,
 } from "./browserTools/selectOption";
 
-// 多媒体生成
-// import { generateImageFunctionSchema, generateImageFunc } from "./generateImageTool";
-
-// 数据库 工具占位（如需使用请在对应文件中导出）
-// import { createTableFunctionSchema, createTableFunc } from "database/tools/createTableTool";
-// import { listTablesFunctionSchema, listTablesFunc } from "database/tools/listTablesTool";
-// import { describeTableFunctionSchema, describeTableFunc } from "./describeTableTool";
-// import { selectRowsFunctionSchema, selectRowsFunc } from "./selectRowsTool";
-// import { groupAggregateFunctionSchema, groupAggregateFunc } from "./groupAggregateTool";
-// import { joinTablesFunctionSchema, joinTablesFunc } from "./joinTablesTool";
-// import { transformRowsFunctionSchema, transformRowsFunc } from "./transformRowsTool";
-// import { joinRowsFunctionSchema, joinRowsFunc } from "./joinRowsTool";
+// ✅ 新增：applyDiff 工具
+import { applyDiffFunctionSchema, applyDiffFunc } from "./applyDiffTool";
 
 // ---------- 2. 定义工具规范接口 ----------
 
 export type ToolBehavior = "orchestrator" | "data" | "action" | "answer";
+
+// [新增] 交互模式：目前只需要 auto / confirm 两种
+export type ToolInteraction = "auto" | "confirm";
 
 interface ToolDefinition {
   id: string; // 唯一ID (camelCase)
@@ -92,6 +84,9 @@ interface ToolDefinition {
     category: string;
   };
   behavior?: ToolBehavior; // 工具在系统中的角色
+
+  // [新增] 工具需要的交互模式，不写时默认视为 "auto"
+  interaction?: ToolInteraction;
 }
 
 /* ==================================================================
@@ -134,10 +129,7 @@ export async function toolQueryFunc(args: any): Promise<{
 
   const lowered = query.toLowerCase();
 
-  // 这里直接使用下方定义的 toolDefinitions。
-  // 运行时调用时，toolDefinitions 已经初始化完成。
   const candidates = toolDefinitions
-    // 自己不推荐自己
     .filter((tool) => tool.id !== "toolquery")
     .map((tool) => {
       const { description, behavior } = tool;
@@ -218,7 +210,7 @@ const toolDefinitions: ToolDefinition[] = [
       description: "根据任务描述列出可能有用的工具，帮助你选择合适的工具链。",
       category: "计划与编排",
     },
-    behavior: "answer", // 本身就返回对人类/模型都可读的说明，不需要再自动总结
+    behavior: "answer",
   },
 
   // --- 内容管理 ---
@@ -326,15 +318,29 @@ const toolDefinitions: ToolDefinition[] = [
     behavior: "action",
   },
 
+  // ✅ applyDiff：高危工具 → 行为=action + 交互=confirm
+  {
+    id: "applyDiff",
+    schema: applyDiffFunctionSchema,
+    executor: applyDiffFunc,
+    description: {
+      name: "applyDiff",
+      description:
+        "将给定的 unified/git diff 补丁应用到指定的项目文件，用于在代码库中执行精确修改。",
+      category: "网络与智能", // 也可以换成 "代码编辑"
+    },
+    behavior: "action",
+    interaction: "confirm", // [新增] 标记为需要确认
+  },
+
   // --- 多媒体生成 ---
-  // 将来可以在这里继续追加 generateImage 等工具，按需设置 behavior
+  // 后续可以继续追加其他工具
 ];
 
 /* ==================================================================
- *  4. 程序化生成所需的各个对象 (无需修改调用方)
+ *  4. 程序化生成所需的各个对象
  * ================================================================== */
 
-// 4.1 生成给 LLM 的工具注册表
 export const toolRegistry: Record<string, any> = toolDefinitions.reduce(
   (acc, tool) => {
     acc[tool.schema.name] = { type: "function", function: tool.schema };
@@ -343,7 +349,6 @@ export const toolRegistry: Record<string, any> = toolDefinitions.reduce(
   {} as Record<string, any>
 );
 
-// 4.2 生成工具执行器映射
 export const toolExecutors: Record<string, ToolDefinition["executor"]> =
   toolDefinitions.reduce(
     (acc, tool) => {
@@ -353,7 +358,6 @@ export const toolExecutors: Record<string, ToolDefinition["executor"]> =
     {} as Record<string, ToolDefinition["executor"]>
   );
 
-// 4.3 生成给前端 UI 的工具描述
 export const toolDescriptions: Record<string, ToolDefinition["description"]> =
   toolDefinitions.reduce(
     (acc, tool) => {
@@ -363,7 +367,6 @@ export const toolDescriptions: Record<string, ToolDefinition["description"]> =
     {} as Record<string, ToolDefinition["description"]>
   );
 
-// 4.4 生成按工具名称索引的完整定义（含 behavior 等元信息）
 export const toolDefinitionsByName: Record<string, ToolDefinition> =
   toolDefinitions.reduce(
     (acc, tool) => {
@@ -374,7 +377,7 @@ export const toolDefinitionsByName: Record<string, ToolDefinition> =
   );
 
 /* ==================================================================
- *  5. 健壮的工具查找辅助函数 (无需修改现有调用)
+ *  5. 工具查找辅助函数
  * ================================================================== */
 const normalizeToolName = (name: string): string =>
   name.replace(/[-_]/g, "").toLowerCase();

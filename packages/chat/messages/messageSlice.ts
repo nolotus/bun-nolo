@@ -34,31 +34,38 @@ import {
   toolRunSucceeded,
   toolRunFailed,
   createToolRunId,
+  toolRunSetPending, // 用于预览后标记为 pending
 } from "ai/tools/toolRunSlice";
 
 const FALLBACK_SERVERS = [SERVERS.MAIN, SERVERS.US];
 const OLDER_LOAD_LIMIT = 30;
+
 const isValidMessage = (msg: any): msg is Message =>
   msg && typeof msg === "object" && typeof msg.id === "string";
 
 function separateThinkContent(contentBuffer: any[]) {
   let thinkContent = "";
   let normalContent = "";
+
   const combinedText = contentBuffer
     .filter((c) => c.type === "text" && c.text)
     .map((c) => c.text)
     .join("");
+
   const thinkMatches = combinedText.match(/<think\b[^>]*>(.*?)<\/think>/gis);
+
   if (thinkMatches) {
     thinkContent = thinkMatches
       .map((m) => m.replace(/<think\b[^>]*>|<\/think>/gi, ""))
       .join("\n\n");
+
     normalContent = combinedText
       .replace(/<think\b[^>]*>.*?<\/think>/gis, "")
       .trim();
   } else {
     normalContent = combinedText;
   }
+
   return { thinkContent, normalContent };
 }
 
@@ -142,6 +149,7 @@ export const messageSlice = createSliceWithThunks({
         isStreaming: false,
       });
     }),
+
     messageStreaming: create.reducer<Partial<Message> & { id: string }>(
       (state, action) => {
         messagesAdapter.upsertOne(state.msgs, {
@@ -154,12 +162,40 @@ export const messageSlice = createSliceWithThunks({
         state.lastStreamTimestamp = Date.now();
       }
     ),
+
     resetMsgs: create.reducer((state) => {
       messagesAdapter.removeAll(state.msgs);
       Object.assign(state, initialState);
     }),
 
-    // ================= [START] NEW GENERIC THUNK =================
+    // 为所有工具统一创建 role: "tool" 的消息（只存在于前端内存）
+    addToolMessage: create.reducer<{
+      parentMessageId: string;
+      toolName: string;
+      content: any[]; // 和 messageStreaming 的 content 结构一致
+    }>((state, action) => {
+      const { parentMessageId, toolName, content } = action.payload;
+      const parentMsg = state.msgs.entities[parentMessageId];
+
+      const id = `${parentMessageId}_tool_${Date.now().toString(36)}`;
+
+      const toolMsg: any = {
+        id,
+        dbKey: id,
+        role: "tool",
+        content,
+        thinkContent: "",
+        cybotKey: parentMsg?.cybotKey,
+        isStreaming: false,
+      };
+
+      toolMsg.toolName = toolName;
+      toolMsg.parentMessageId = parentMessageId;
+
+      messagesAdapter.addOne(state.msgs, toolMsg);
+    }),
+
+    // ================= [START] prepareAndPersistMessage =================
     prepareAndPersistMessage: create.asyncThunk(
       async (
         args: {
@@ -179,6 +215,7 @@ export const messageSlice = createSliceWithThunks({
         const dialogKey = dialogConfig.dbKey || dialogConfig.id;
         const dialogId = extractCustomId(dialogKey);
         const userId = selectUserId(state);
+
         const { key: messageDbKey, messageId } =
           createDialogMessageKeyAndId(dialogId);
 
@@ -198,12 +235,12 @@ export const messageSlice = createSliceWithThunks({
             customKey: fullMessage.dbKey,
           })
         );
+
         return fullMessage;
       }
     ),
-    // ================= [END] NEW GENERIC THUNK =================
+    // ================= [END] prepareAndPersistMessage =================
 
-    // ================= [START] ADJUSTED USER MESSAGE THUNK =================
     prepareAndPersistUserMessage: create.asyncThunk(
       async (
         args: { userInput: string; dialogConfig: DialogConfig },
@@ -223,7 +260,6 @@ export const messageSlice = createSliceWithThunks({
         ).unwrap();
       }
     ),
-    // ================= [END] ADJUSTED USER MESSAGE THUNK =================
 
     initMsgs: create.asyncThunk(
       async (
@@ -232,35 +268,44 @@ export const messageSlice = createSliceWithThunks({
       ): Promise<Message[]> => {
         const { db } = thunkApi.extra;
         const { getState } = thunkApi;
+
         const state = getState() as RootState;
         const server = selectCurrentServer(state);
         const token = selectCurrentToken(state);
+
         const fetchLocalPromise = fetchLocalMessages(db, dialogId, {
           limit,
           throwOnError: false,
         }).catch(() => []);
+
         const fetchRemotePromise = (async () => {
           if (!server || !token) return [];
           const uniqueServers = Array.from(
             new Set([server, ...FALLBACK_SERVERS])
           ).filter(Boolean) as string[];
+
           if (uniqueServers.length === 0) return [];
+
           const results = await Promise.all(
             uniqueServers.map((srv) =>
               fetchConvMsgs(srv, token, { dialogId, limit }).catch(() => [])
             )
           );
+
           return results.flat();
         })();
+
         const [localMessages, remoteMessages] = await Promise.all([
           fetchLocalPromise,
           fetchRemotePromise,
         ]);
+
         const allMessages = [...localMessages, ...remoteMessages].filter(
           isValidMessage
         );
         const uniqueMessagesMap = new Map<string, Message>();
         allMessages.forEach((msg) => uniqueMessagesMap.set(msg.id, msg));
+
         return Array.from(uniqueMessagesMap.values());
       },
       {
@@ -283,20 +328,25 @@ export const messageSlice = createSliceWithThunks({
       ): Promise<{ messages: Message[]; limit: number }> => {
         const { getState, extra } = thunkApi;
         const { db } = extra;
+
         const state = getState() as RootState;
         const server = selectCurrentServer(state);
         const token = selectCurrentToken(state);
+
         const fetchLocalPromise = fetchLocalMessages(db, dialogId, {
           limit,
           beforeKey,
           throwOnError: false,
         }).catch(() => []);
+
         const fetchRemotePromise = (async () => {
           if (!server || !token) return [];
           const uniqueServers = Array.from(
             new Set([server, ...FALLBACK_SERVERS])
           ).filter(Boolean) as string[];
+
           if (uniqueServers.length === 0) return [];
+
           const results = await Promise.all(
             uniqueServers.map((srv) =>
               fetchConvMsgs(srv, token, { dialogId, limit, beforeKey }).catch(
@@ -304,17 +354,21 @@ export const messageSlice = createSliceWithThunks({
               )
             )
           );
+
           return results.flat();
         })();
+
         const [localMessages, remoteMessages] = await Promise.all([
           fetchLocalPromise,
           fetchRemotePromise,
         ]);
+
         const allMessages = [...localMessages, ...remoteMessages].filter(
           isValidMessage
         );
         const uniqueMessagesMap = new Map<string, Message>();
         allMessages.forEach((msg) => uniqueMessagesMap.set(msg.id, msg));
+
         return { messages: Array.from(uniqueMessagesMap.values()), limit };
       },
       {
@@ -322,6 +376,7 @@ export const messageSlice = createSliceWithThunks({
         fulfilled: (state, action) => {
           state.isLoadingOlder = false;
           const { messages, limit } = action.payload;
+
           if (messages.length > 0) {
             messagesAdapter.upsertMany(state.msgs, messages);
           }
@@ -360,10 +415,10 @@ export const messageSlice = createSliceWithThunks({
           }
         }
 
-        // ToolRun: start
         const toolRunId = createToolRunId();
         const def = toolDefinitionsByName[canonicalName];
         const behavior = def?.behavior;
+        const interaction = def?.interaction ?? "auto";
         const inputSummary = JSON.stringify(toolArgs).slice(0, 400);
 
         dispatch(
@@ -373,17 +428,94 @@ export const messageSlice = createSliceWithThunks({
             toolName: canonicalName,
             behavior,
             inputSummary,
+            interaction,
+            input: toolArgs,
           })
         );
 
+        // ===== applyDiff 的安全预览分支（特殊逻辑，但依然返回通用字段） =====
+        if (canonicalName === "applyDiff") {
+          try {
+            const filePath = toolArgs?.filePath || "(未提供文件路径)";
+            const diffText =
+              typeof toolArgs?.diff === "string" ? toolArgs.diff : "";
+            const maxLen = 400;
+            const preview =
+              diffText.length > maxLen
+                ? diffText.slice(0, maxLen) +
+                  "\n...（已截断，仅展示前部分补丁内容）"
+                : diffText;
+
+            const textLines = [
+              `你请求对文件 \`${filePath}\` 应用以下 diff：`,
+              "",
+              "```diff",
+              preview,
+              "```",
+              "",
+              "当前处于安全预览模式，本次不会真正应用补丁。",
+              '请检查上面的 diff 是否正确，稍后可以点击 "应用这个补丁" 来真正执行。',
+            ];
+            const text = textLines.join("\n");
+
+            const displayContent = {
+              type: "text",
+              text: `\n[applyDiff 预览]\n${text}\n`,
+            };
+
+            // 预览阶段：标记为 pending，等待用户确认执行
+            dispatch(
+              toolRunSetPending({
+                id: toolRunId,
+              })
+            );
+
+            return {
+              displayContent,
+              rawResult: {
+                previewOnly: true,
+                filePath,
+                diffPreview: preview,
+                toolRunId,
+              },
+              hasHandedOff: false,
+              toolName: canonicalName,
+              toolRunId,
+            };
+          } catch (e: any) {
+            const errorMessage =
+              e.message || "Unknown error in applyDiff preview";
+            const errorContent = {
+              type: "text",
+              text: `\n[Tool Execution Error: ${rawToolName} (preview)] ${errorMessage}\n`,
+            };
+
+            dispatch(
+              toolRunFailed({
+                id: toolRunId,
+                error: errorMessage,
+              })
+            );
+
+            return rejectWithValue({
+              displayContent: errorContent,
+              rawResult: { error: errorMessage },
+              toolName: canonicalName,
+              toolRunId,
+            });
+          }
+        }
+        // ================= [END] applyDiff 分支 =================
+
         try {
+          // runStreamingAgent：交给子 Agent，当前对话停止继续输出
           if (canonicalName === "runStreamingAgent") {
             try {
               await dispatch(
                 streamAgentChatTurn({
                   cybotId: toolArgs.agentKey,
                   userInput: toolArgs.userInput,
-                  parentMessageId: parentMessageId,
+                  parentMessageId,
                 })
               ).unwrap();
 
@@ -395,7 +527,7 @@ export const messageSlice = createSliceWithThunks({
                 })
               );
 
-              return { hasHandedOff: true };
+              return { hasHandedOff: true, toolName: canonicalName, toolRunId };
             } catch (e: any) {
               const errorContent = {
                 type: "text",
@@ -409,7 +541,11 @@ export const messageSlice = createSliceWithThunks({
                 })
               );
 
-              return rejectWithValue({ displayContent: errorContent });
+              return rejectWithValue({
+                displayContent: errorContent,
+                toolName: canonicalName,
+                toolRunId,
+              });
             }
           }
 
@@ -447,6 +583,8 @@ export const messageSlice = createSliceWithThunks({
             displayContent,
             rawResult: toolResult.rawData,
             hasHandedOff: false,
+            toolName: canonicalName,
+            toolRunId,
           };
         } catch (e: any) {
           const errorMessage = e.message || "Unknown error";
@@ -465,6 +603,8 @@ export const messageSlice = createSliceWithThunks({
           return rejectWithValue({
             displayContent: errorContent,
             rawResult: { error: errorMessage },
+            toolName: canonicalName,
+            toolRunId,
           });
         }
       }
@@ -499,8 +639,21 @@ export const messageSlice = createSliceWithThunks({
               hasHandedOff = true;
               break;
             }
+
             if (result.displayContent) {
+              // 1) 仍然把工具输出塞进当前 assistant 消息（兼容旧行为）
               updatedContentBuffer.push(result.displayContent);
+
+              // 2) 统一：为所有工具生成一条 role: "tool" 的消息
+              if (result.toolName) {
+                dispatch(
+                  messageSlice.actions.addToolMessage({
+                    parentMessageId: messageId,
+                    toolName: result.toolName,
+                    content: [result.displayContent],
+                  })
+                );
+              }
             }
           } catch (rejectedValue: any) {
             if (rejectedValue.displayContent) {
@@ -519,11 +672,11 @@ export const messageSlice = createSliceWithThunks({
             );
           }
         }
+
         return { finalContentBuffer: updatedContentBuffer, hasHandedOff };
       }
     ),
 
-    // ================= [START] CORRECTED THUNK =================
     messageStreamEnd: create.asyncThunk(
       async (payload: FinalizeStreamPayload, { dispatch }) => {
         const {
@@ -559,6 +712,7 @@ export const messageSlice = createSliceWithThunks({
         };
 
         const { controller, ...messageToWrite } = finalMessage;
+
         await dispatch(
           write({
             data: { ...messageToWrite, type: DataType.MSG },
@@ -613,7 +767,6 @@ export const messageSlice = createSliceWithThunks({
         },
       }
     ),
-    // ================= [END] CORRECTED THUNK =================
 
     deleteMessage: create.asyncThunk(
       async (dbKey: string, { dispatch, getState }) => {
@@ -621,7 +774,9 @@ export const messageSlice = createSliceWithThunks({
         const msgId = Object.values(state.message.msgs.entities).find(
           (msg) => msg?.dbKey === dbKey
         )?.id;
+
         await dispatch(remove(dbKey));
+
         return { id: msgId };
       },
       {
@@ -632,6 +787,7 @@ export const messageSlice = createSliceWithThunks({
         },
       }
     ),
+
     deleteDialogMsgs: create.asyncThunk(deleteDialogMsgsAction),
   }),
   selectors: {
@@ -648,6 +804,7 @@ export const messageSlice = createSliceWithThunks({
 const baseSelectors = messagesAdapter.getSelectors<RootState>(
   (state) => state.message.msgs
 );
+
 export const selectAllMsgs = baseSelectors.selectAll;
 export const selectMsgById = baseSelectors.selectById;
 export const selectTotalMsgs = baseSelectors.selectTotal;
@@ -689,6 +846,7 @@ export const {
   deleteDialogMsgs,
   handleToolCalls,
   processToolData,
+  addToolMessage,
 } = messageSlice.actions;
 
 export default messageSlice.reducer;
