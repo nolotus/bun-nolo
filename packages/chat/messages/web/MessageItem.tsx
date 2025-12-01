@@ -13,9 +13,9 @@ import { MessageActions } from "./MessageActions";
 import { FileItem } from "./FileItem";
 import { useMessageInteraction } from "../../hooks/useMessageInteraction";
 import { useThinkingVisibility } from "../../hooks/useThinkingVisibility";
-
 import { MessageToolConfirmBar } from "./MessageToolConfirmBar";
 
+// --- 子组件：流式传输指示器 ---
 const StreamingIndicator = memo(() => (
   <div className="streaming-indicator">
     <span className="dot" />
@@ -24,7 +24,8 @@ const StreamingIndicator = memo(() => (
   </div>
 ));
 
-const ThinkingContent = memo(({ thinkContent, isExpanded, onToggle }) => {
+// --- 子组件：思考过程折叠区 ---
+const ThinkingContent = memo(({ thinkContent, isExpanded, onToggle }: any) => {
   const slate = useMemo(
     () => (thinkContent ? markdownToSlate(thinkContent) : []),
     [thinkContent]
@@ -61,7 +62,8 @@ const ThinkingContent = memo(({ thinkContent, isExpanded, onToggle }) => {
   );
 });
 
-const MessageText = memo(({ content, role, isStreaming = false }) => {
+// --- 子组件：文本/Markdown 渲染 ---
+const MessageText = memo(({ content, role, isStreaming = false }: any) => {
   const slateData = useMemo(
     () => (role === "self" ? [] : markdownToSlate(content)),
     [content, role]
@@ -83,7 +85,8 @@ const MessageText = memo(({ content, role, isStreaming = false }) => {
   );
 });
 
-const ImagePreview = memo(({ src, alt, onPreview }) => {
+// --- 子组件：图片预览 ---
+const ImagePreview = memo(({ src, alt, onPreview }: any) => {
   const handleClick = useCallback(() => onPreview(src), [src, onPreview]);
 
   return (
@@ -107,8 +110,9 @@ const ImagePreview = memo(({ src, alt, onPreview }) => {
   );
 });
 
+// --- 子组件：消息内容聚合（处理文本、图片、文件混排） ---
 const MessageContent = memo(
-  ({ content, thinkContent, role, isStreaming = false }) => {
+  ({ content, thinkContent, role, isStreaming = false }: any) => {
     const showThinking = useAppSelector(selectShowThinking);
     const [filePreview, setFilePreview] = useState<any | null>(null);
     const [imgPreview, setImgPreview] = useState<string | null>(null);
@@ -123,6 +127,7 @@ const MessageContent = memo(
     const closeFile = useCallback(() => setFilePreview(null), []);
     const closeImg = useCallback(() => setImgPreview(null), []);
 
+    // 将内容分段：文本、图片组、普通文本
     const segments = useMemo(() => {
       if (!Array.isArray(content)) return [];
       const segs: any[] = [];
@@ -146,12 +151,13 @@ const MessageContent = memo(
           }
         }
       });
-
       return segs;
     }, [content]);
 
     const renderContent = useMemo(() => {
       if (!content) return <div className="empty-content">思考中</div>;
+
+      // 纯字符串情况
       if (typeof content === "string") {
         return (
           <MessageText
@@ -162,8 +168,10 @@ const MessageContent = memo(
         );
       }
 
+      // 数组结构（多模态）
       return segments.map((seg, i) => {
         if (seg.type === "images") {
+          // 图片网格或单图
           if (seg.items.length > 1) {
             return (
               <div key={i} className="msg-images">
@@ -189,6 +197,7 @@ const MessageContent = memo(
           );
         }
 
+        // 普通文本或文件
         return seg.items.map((it, idx) => {
           if (it.type === "text" && it.text) {
             return (
@@ -246,7 +255,10 @@ const MessageContent = memo(
   }
 );
 
-export const MessageItem = memo(({ message }) => {
+export { MessageContent }; // 导出给 ToolMessageItem 复用
+
+// --- 主组件：MessageItem ---
+export const MessageItem = memo(({ message }: any) => {
   const dispatch = useAppDispatch();
   const currentUserId = useAppSelector(selectUserId);
   const [collapsed, setCollapsed] = useState(false);
@@ -260,26 +272,16 @@ export const MessageItem = memo(({ message }) => {
     isStreaming = false,
   } = message || {};
 
-  // ====== 新增: 支持 role === "tool" ======
-  const isTool = role === "tool";
+  // 角色判定
   const isSelf = role === "user" && (currentUserId === userId || !cybotKey);
-  const isRobot = role !== "user"; // assistant / tool / system 都算“机器人侧”
-  const type = isSelf ? "self" : isRobot ? "robot" : "other";
+  const isRobot = role !== "user";
+  const type = isSelf ? "self" : "robot";
 
-  // optional: 从 message 中读 toolName（如果有）
-  const toolName: string | undefined = (message as any)?.toolName;
-
+  // 获取机器人数据
   const { data: robotData } =
-    cybotKey && !isTool && isRobot ? useFetchData(cybotKey) : { data: null };
+    cybotKey && isRobot ? useFetchData(cybotKey) : { data: null };
 
-  const displayName =
-    isTool && toolName
-      ? toolName
-      : isTool
-        ? "Tool"
-        : isRobot
-          ? robotData?.name || "Robot"
-          : "User";
+  const displayName = isRobot ? robotData?.name || "Robot" : "User";
 
   const toggleCollapse = useCallback(() => setCollapsed((v) => !v), []);
 
@@ -308,7 +310,7 @@ export const MessageItem = memo(({ message }) => {
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        {/* 桌面端 */}
+        {/* --- 桌面端布局 --- */}
         {!isTouch && (
           <div className="msg-inner desktop">
             <div className="avatar-area">
@@ -318,8 +320,7 @@ export const MessageItem = memo(({ message }) => {
                   type={isRobot ? "robot" : "user"}
                   size="medium"
                 />
-                {/* 工具消息一般不会流式，这里只给非 tool 的机器人显示 streaming */}
-                {!isTool && isRobot && isStreaming && <StreamingIndicator />}
+                {isRobot && isStreaming && <StreamingIndicator />}
               </div>
               <MessageActions
                 isRobot={isRobot}
@@ -331,11 +332,10 @@ export const MessageItem = memo(({ message }) => {
                 isTouch={isTouch}
               />
             </div>
+
             <div className="content-area">
               {isRobot && displayName && (
-                <div className={`robot-name ${isTool ? "tool" : ""}`}>
-                  {displayName}
-                </div>
+                <div className="robot-name">{displayName}</div>
               )}
               <div className={`msg-body ${type}`}>
                 <MessageContent
@@ -345,17 +345,19 @@ export const MessageItem = memo(({ message }) => {
                   isStreaming={isStreaming}
                 />
 
-                {/* 通用确认条：对 interaction === "confirm" 的 ToolRun 显示按钮 */}
-                <MessageToolConfirmBar
-                  messageId={message?.id}
-                  isRobot={isRobot}
-                />
+                {/* 助手侧的工具调用确认条 (在助手发起调用请求时显示) */}
+                {isRobot && (
+                  <MessageToolConfirmBar
+                    messageId={message?.id}
+                    isRobot={isRobot}
+                  />
+                )}
               </div>
             </div>
           </div>
         )}
 
-        {/* 移动端 */}
+        {/* --- 移动端布局 --- */}
         {isTouch && (
           <div className="msg-inner mobile">
             <div className="msg-header">
@@ -365,12 +367,10 @@ export const MessageItem = memo(({ message }) => {
                   type={isRobot ? "robot" : "user"}
                   size="small"
                 />
-                {!isTool && isRobot && isStreaming && <StreamingIndicator />}
+                {isRobot && isStreaming && <StreamingIndicator />}
               </div>
               {isRobot && displayName && (
-                <div className={`robot-name mobile ${isTool ? "tool" : ""}`}>
-                  {displayName}
-                </div>
+                <div className="robot-name mobile">{displayName}</div>
               )}
             </div>
 
@@ -383,15 +383,18 @@ export const MessageItem = memo(({ message }) => {
                   isStreaming={isStreaming}
                 />
 
-                <MessageToolConfirmBar
-                  messageId={message?.id}
-                  isRobot={isRobot}
-                />
+                {isRobot && (
+                  <MessageToolConfirmBar
+                    messageId={message?.id}
+                    isRobot={isRobot}
+                  />
+                )}
               </div>
             </div>
           </div>
         )}
 
+        {/* 移动端 Actions 悬浮层 */}
         {isTouch && (
           <MessageActions
             isRobot={isRobot}
@@ -406,8 +409,6 @@ export const MessageItem = memo(({ message }) => {
       </div>
 
       <style href="message-item" precedence="high">{`
-/* === 下面样式基本与你原来的相同，只新增了 .robot-name.tool === */
-
 /* --- StreamingIndicator --- */
 .streaming-indicator {
   position: absolute;
@@ -434,14 +435,8 @@ export const MessageItem = memo(({ message }) => {
 .streaming-indicator .dot:nth-child(2) { animation-delay: 0.2s; }
 .streaming-indicator .dot:nth-child(3) { animation-delay: 0.4s; }
 @keyframes streaming-bounce {
-  0%, 80%, 100% {
-    transform: scale(0.6);
-    opacity: 0.3;
-  }
-  40% {
-    transform: scale(1);
-    opacity: 1;
-  }
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.3; }
+  40% { transform: scale(1); opacity: 1; }
 }
 
 /* --- ThinkingContent --- */
@@ -536,9 +531,7 @@ export const MessageItem = memo(({ message }) => {
   z-index: 1;
 }
 
-.msg.actions-visible {
-  z-index: 50;
-}
+.msg.actions-visible { z-index: 50; }
 
 /* --- 桌面端布局 --- */
 .msg-inner.desktop {
@@ -556,7 +549,6 @@ export const MessageItem = memo(({ message }) => {
   margin-right: 0;
 }
 
-.msg.other .msg-inner.desktop { max-width: 75%; }
 .msg.robot .msg-inner.desktop { max-width: 95%; }
 
 .avatar-area {
@@ -585,18 +577,11 @@ export const MessageItem = memo(({ message }) => {
   letter-spacing: 0.5px;
 }
 
-/* tool 名称稍微弱一点 */
-.robot-name.tool {
-  color: var(--textTertiary);
-  font-style: italic;
-}
-
 /* 桌面端悬停效果 */
 @media (hover: hover) and (pointer: fine) {
   .msg:hover {
     background-color: var(--backgroundGhost);
   }
-
   .msg:hover .actions {
     opacity: 0.8;
     visibility: visible;
@@ -650,11 +635,6 @@ export const MessageItem = memo(({ message }) => {
     flex-shrink: 0;
   }
 
-  .robot-name.mobile.tool {
-    color: var(--textTertiary);
-    font-style: italic;
-  }
-
   .content-area.mobile {
     width: 100%;
     flex: none;
@@ -674,14 +654,6 @@ export const MessageItem = memo(({ message }) => {
     max-width: 85%;
   }
 
-  .msg-body.other.mobile {
-    background: var(--backgroundSecondary);
-    border-radius: 16px 16px 16px 4px;
-    padding: var(--space-3);
-    border: 1px solid var(--border);
-    max-width: 85%;
-  }
-
   .msg-body.robot.mobile {
     background: transparent;
     padding: 0;
@@ -694,7 +666,6 @@ export const MessageItem = memo(({ message }) => {
     right: -6px;
     padding: 2px 4px;
   }
-
   .msg-header .streaming-indicator .dot {
     width: 3px;
     height: 3px;
@@ -715,13 +686,6 @@ export const MessageItem = memo(({ message }) => {
   border: 1px solid var(--primaryHover);
 }
 
-.msg-body.other {
-  background: var(--backgroundSecondary);
-  border-radius: 16px 16px 16px 4px;
-  padding: var(--space-4);
-  border: 1px solid var(--border);
-}
-
 .msg-body.robot {
   background: transparent;
   padding: var(--space-2) 0;
@@ -739,7 +703,7 @@ export const MessageItem = memo(({ message }) => {
 }
 
 .message-text {
-  line-height: 1.65;
+  line-height: 1.5;
 }
 
 .simple-text {
@@ -767,9 +731,7 @@ export const MessageItem = memo(({ message }) => {
   gap: var(--space-2);
   margin-top: var(--space-2);
 }
-.msg-images .msg-image {
-  max-height: 200px;
-}
+.msg-images .msg-image { max-height: 200px; }
 
 .modal-image {
   max-width: 90vw;
@@ -802,72 +764,18 @@ export const MessageItem = memo(({ message }) => {
     padding: var(--space-2) var(--space-1);
     margin-bottom: var(--space-2);
   }
-
   .msg-header .avatar-wrapper {
     width: 24px;
     height: 24px;
   }
-
-  .robot-name.mobile {
-    font-size: 11px;
-  }
-
+  .robot-name.mobile { font-size: 11px; }
   .msg-body.self.mobile,
-  .msg-body.other.mobile {
+  .msg-body.robot.mobile {
     padding: var(--space-2);
     font-size: 14px;
     max-width: 90%;
   }
-
-  .msg-image { 
-    max-height: 250px; 
-  }
-}
-
-/* --- 确认按钮样式 --- */
-.tool-confirm-row {
-  margin-top: 8px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 4px;
-}
-
-.tool-confirm-button {
-  font-size: 12px;
-  padding: 4px 8px;
-  border-radius: 4px;
-  border: 1px solid #e11d48;
-  background: #fee2e2;
-  color: #b91c1c;
-  cursor: pointer;
-}
-
-.tool-confirm-button:disabled {
-  opacity: 0.7;
-  cursor: default;
-}
-
-.tool-confirm-button:hover:not(:disabled) {
-  background: #fecaca;
-}
-
-.tool-confirm-status {
-  font-size: 12px;
-}
-
-.tool-confirm-status.success {
-  color: #16a34a;
-}
-
-.tool-confirm-status.failed {
-  color: #b91c1c;
-}
-
-@media (max-width: 480px) {
-  .tool-confirm-row {
-    align-items: flex-start;
-  }
+  .msg-image { max-height: 250px; }
 }
       `}</style>
     </>

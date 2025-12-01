@@ -125,7 +125,7 @@ async function autoFollowupIfNeeded(params: {
   const followupUserMessage = {
     role: "user",
     content:
-      "上面是你刚刚通过工具获得的原始数据（包括 [Tool Result] 等中间输出）。" +
+      "上面是你刚刚通过工具获得的原始数据（包括中间输出）。" +
       "请在此基础上完整回答我最初的请求，直接给出对用户有帮助的总结和结论。" +
       "回答时可以省略工具执行过程，只保留对用户有价值的内容。\n\n" +
       toolText,
@@ -271,6 +271,7 @@ export const sendOpenAICompletionsRequest = async ({
               currentContentBuffer: contentBuffer,
               cybotConfig,
               messageId,
+              dialogId, // ✅ 新增：传入 dialogId，便于持久化 tool 消息
             })
           ).unwrap();
 
@@ -308,7 +309,9 @@ export const sendOpenAICompletionsRequest = async ({
           }
 
           if (data.error) {
-            const errorMsg = `Error: ${data.error.message || JSON.stringify(data.error)}`;
+            const errorMsg = `Error: ${
+              data.error.message || JSON.stringify(data.error)
+            }`;
             contentBuffer = appendTextChunk(
               contentBuffer,
               `\n[API Error] ${errorMsg}`
@@ -356,6 +359,7 @@ export const sendOpenAICompletionsRequest = async ({
                   currentContentBuffer: contentBuffer,
                   cybotConfig,
                   messageId,
+                  dialogId, // ✅ 同样这里也要传 dialogId
                 })
               ).unwrap();
 

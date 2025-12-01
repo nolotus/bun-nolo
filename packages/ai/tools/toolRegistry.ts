@@ -63,6 +63,12 @@ import {
 // ✅ 新增：applyDiff 工具
 import { applyDiffFunctionSchema, applyDiffFunc } from "./applyDiffTool";
 
+// ✅ 新增：generateDocx 工具（前端生成并下载 DOCX）
+import {
+  generateDocxFunctionSchema,
+  generateDocxFunc,
+} from "./generateDocxTool";
+
 // ---------- 2. 定义工具规范接口 ----------
 
 export type ToolBehavior = "orchestrator" | "data" | "action" | "answer";
@@ -333,8 +339,19 @@ const toolDefinitions: ToolDefinition[] = [
     interaction: "confirm", // [新增] 标记为需要确认
   },
 
-  // --- 多媒体生成 ---
-  // 后续可以继续追加其他工具
+  // --- 多媒体生成 / 文档生成 ---
+  {
+    id: "generateDocx",
+    schema: generateDocxFunctionSchema,
+    executor: generateDocxFunc,
+    description: {
+      name: "generateDocx",
+      description:
+        "在浏览器端根据指定 DOCX 模板 URL 和变量生成文档，并触发下载。",
+      category: "文档生成",
+    },
+    behavior: "action",
+  },
 ];
 
 /* ==================================================================

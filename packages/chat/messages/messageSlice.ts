@@ -34,7 +34,7 @@ import {
   toolRunSucceeded,
   toolRunFailed,
   createToolRunId,
-  toolRunSetPending, // 用于预览后标记为 pending
+  toolRunSetPending,
 } from "ai/tools/toolRunSlice";
 
 const FALLBACK_SERVERS = [SERVERS.MAIN, SERVERS.US];
@@ -116,11 +116,13 @@ const rejectedHandler =
     console.error(`${action.type} failed:`, action.error);
   };
 
+// 注意：这里我多加了 dialogId
 interface HandleToolCallsPayload {
   accumulatedCalls: any[];
   currentContentBuffer: any[];
   cybotConfig: any;
   messageId: string;
+  dialogId: string;
 }
 
 interface ProcessToolDataPayload {
@@ -168,31 +170,9 @@ export const messageSlice = createSliceWithThunks({
       Object.assign(state, initialState);
     }),
 
-    // 为所有工具统一创建 role: "tool" 的消息（只存在于前端内存）
-    addToolMessage: create.reducer<{
-      parentMessageId: string;
-      toolName: string;
-      content: any[]; // 和 messageStreaming 的 content 结构一致
-    }>((state, action) => {
-      const { parentMessageId, toolName, content } = action.payload;
-      const parentMsg = state.msgs.entities[parentMessageId];
-
-      const id = `${parentMessageId}_tool_${Date.now().toString(36)}`;
-
-      const toolMsg: any = {
-        id,
-        dbKey: id,
-        role: "tool",
-        content,
-        thinkContent: "",
-        cybotKey: parentMsg?.cybotKey,
-        isStreaming: false,
-      };
-
-      toolMsg.toolName = toolName;
-      toolMsg.parentMessageId = parentMessageId;
-
-      messagesAdapter.addOne(state.msgs, toolMsg);
+    // Tool 消息也用 Message 全量结构，方便持久化
+    addToolMessage: create.reducer<Message>((state, action) => {
+      messagesAdapter.addOne(state.msgs, action.payload);
     }),
 
     // ================= [START] prepareAndPersistMessage =================
@@ -433,7 +413,7 @@ export const messageSlice = createSliceWithThunks({
           })
         );
 
-        // ===== applyDiff 的安全预览分支（特殊逻辑，但依然返回通用字段） =====
+        // ===== applyDiff：只做预览 + pending，不真正执行 =====
         if (canonicalName === "applyDiff") {
           try {
             const filePath = toolArgs?.filePath || "(未提供文件路径)";
@@ -463,7 +443,6 @@ export const messageSlice = createSliceWithThunks({
               text: `\n[applyDiff 预览]\n${text}\n`,
             };
 
-            // 预览阶段：标记为 pending，等待用户确认执行
             dispatch(
               toolRunSetPending({
                 id: toolRunId,
@@ -508,7 +487,7 @@ export const messageSlice = createSliceWithThunks({
         // ================= [END] applyDiff 分支 =================
 
         try {
-          // runStreamingAgent：交给子 Agent，当前对话停止继续输出
+          // runStreamingAgent：把对话交给子 Agent，不在当前消息继续输出
           if (canonicalName === "runStreamingAgent") {
             try {
               await dispatch(
@@ -618,10 +597,12 @@ export const messageSlice = createSliceWithThunks({
           currentContentBuffer,
           cybotConfig,
           messageId,
+          dialogId,
         } = args;
         const { dispatch } = thunkApi;
 
-        let updatedContentBuffer = [...currentContentBuffer];
+        // 现在不再把 tool 输出塞回 assistant 文本，避免重复。
+        const updatedContentBuffer = [...currentContentBuffer];
         let hasHandedOff = false;
 
         for (const toolCall of accumulatedCalls) {
@@ -640,37 +621,67 @@ export const messageSlice = createSliceWithThunks({
               break;
             }
 
-            if (result.displayContent) {
-              // 1) 仍然把工具输出塞进当前 assistant 消息（兼容旧行为）
-              updatedContentBuffer.push(result.displayContent);
+            if (result.displayContent && result.toolName) {
+              const { key: toolDbKey, messageId: toolMessageId } =
+                createDialogMessageKeyAndId(dialogId);
 
-              // 2) 统一：为所有工具生成一条 role: "tool" 的消息
-              if (result.toolName) {
-                dispatch(
-                  messageSlice.actions.addToolMessage({
-                    parentMessageId: messageId,
-                    toolName: result.toolName,
-                    content: [result.displayContent],
-                  })
-                );
-              }
+              const toolMessage: Message = {
+                id: toolMessageId,
+                dbKey: toolDbKey,
+                role: "tool",
+                content: [result.displayContent],
+                thinkContent: "",
+                cybotKey: cybotConfig.dbKey,
+                isStreaming: false,
+              };
+
+              (toolMessage as any).toolName = result.toolName;
+              (toolMessage as any).parentMessageId = messageId;
+
+              // 1) 先更新 Redux 内存
+              dispatch(messageSlice.actions.addToolMessage(toolMessage));
+
+              // 2) 再持久化到 DB（方式与助手消息一致）
+              const { controller, ...messageToWrite } = toolMessage;
+              await dispatch(
+                write({
+                  data: { ...messageToWrite, type: DataType.MSG },
+                  customKey: toolDbKey,
+                })
+              );
             }
           } catch (rejectedValue: any) {
-            if (rejectedValue.displayContent) {
-              updatedContentBuffer.push(rejectedValue.displayContent);
+            if (rejectedValue.displayContent && rejectedValue.toolName) {
+              const { key: toolDbKey, messageId: toolMessageId } =
+                createDialogMessageKeyAndId(dialogId);
+
+              const toolMessage: Message = {
+                id: toolMessageId,
+                dbKey: toolDbKey,
+                role: "tool",
+                content: [rejectedValue.displayContent],
+                thinkContent: "",
+                cybotKey: cybotConfig.dbKey,
+                isStreaming: false,
+              };
+
+              (toolMessage as any).toolName = rejectedValue.toolName;
+              (toolMessage as any).parentMessageId = messageId;
+
+              dispatch(messageSlice.actions.addToolMessage(toolMessage));
+
+              const { controller, ...messageToWrite } = toolMessage;
+              await dispatch(
+                write({
+                  data: { ...messageToWrite, type: DataType.MSG },
+                  customKey: toolDbKey,
+                })
+              );
             }
           }
 
-          if (!hasHandedOff) {
-            dispatch(
-              messageSlice.actions.messageStreaming({
-                id: messageId,
-                content: updatedContentBuffer,
-                role: "assistant",
-                cybotKey: cybotConfig.dbKey,
-              })
-            );
-          }
+          // 不再调用 messageStreaming 更新 assistant 文本；
+          // assistant 内容只来自模型自然语言回复。
         }
 
         return { finalContentBuffer: updatedContentBuffer, hasHandedOff };

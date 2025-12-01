@@ -1,4 +1,4 @@
-// /chat/messages/web/MessageList.tsx (完整修复版)
+// /chat/messages/web/MessageList.tsx
 
 import React, {
   useRef,
@@ -16,6 +16,7 @@ import {
   selectLastStreamTimestamp,
 } from "chat/messages/messageSlice";
 import MessageItem from "./MessageItem";
+import { ToolMessageItem } from "./ToolMessageItem"; // [新增] 引入 Tool 组件
 import TopLoadingIndicator from "./TopLoadingIndicator";
 import { ScrollToBottomButton } from "chat/web/ScrollToBottomButton";
 
@@ -44,28 +45,25 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
     isLoadingOlder: false,
     hasMoreOlder: true,
     scrollContainer: null as HTMLDivElement | null,
-    isNearBottom: true, // [新增] 跟踪用户是否在底部
+    isNearBottom: true,
   });
   stateRef.current.isLoadingOlder = isLoadingOlder;
   stateRef.current.hasMoreOlder = hasMoreOlder;
 
-  // [核心修复] 优化滚动逻辑
+  // [核心修复] 优化滚动逻辑 (保持你原有的优秀逻辑)
   useLayoutEffect(() => {
     const scroller = listRef.current?.closest(
       ".MainLayout__pageContent"
     ) as HTMLDivElement;
     if (!scroller) return;
 
-    // 初次加载，直接滚动到底部
     if (stateRef.current.isInitialLoad && messages.length > 0) {
       scroller.scrollTop = scroller.scrollHeight;
       stateRef.current.isInitialLoad = false;
       return;
     }
 
-    // 当有新消息时 (通过比较消息长度)
     if (messages.length > stateRef.current.prevMessagesLength) {
-      // 只有当用户已经在底部区域时，才自动滚动
       if (stateRef.current.isNearBottom) {
         scroller.scrollTo({ top: scroller.scrollHeight, behavior: "smooth" });
       }
@@ -110,12 +108,10 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
     const scroller = stateRef.current.scrollContainer;
     if (!scroller) return;
 
-    // 检查是否滚动到顶部以加载更多
     if (scroller.scrollTop < LOAD_THRESHOLD) {
       handleLoadOlder();
     }
 
-    // [核心修复] 更新 isNearBottom 状态，并放宽按钮显示阈值
     const isAtBottomNow =
       scroller.scrollHeight - scroller.clientHeight <= scroller.scrollTop + 150;
     stateRef.current.isNearBottom = isAtBottomNow;
@@ -174,7 +170,6 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
       }
     }
 
-    /* [核心修复] 优化大屏幕和超大屏的宽度，使其更舒适 */
     @media (min-width: 1440px) {
       .chat-messages__list {
         max-width: 1080px;
@@ -186,6 +181,11 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
       }
     }
     
+    /* 
+      动画 wrapper:
+      Tool 和 MessageItem 共用此动画容器，
+      保证它们进入列表时的效果一致。
+    */
     .chat-messages__item-wrapper {
       opacity: 0;
       transform: translateY(15px);
@@ -218,15 +218,25 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
             <TopLoadingIndicator />
           </div>
         )}
-        {messages.map((msg, idx) => (
-          <div
-            key={msg.id}
-            className="chat-messages__item-wrapper"
-            style={{ animationDelay: `${Math.min(idx * 0.03, 0.5)}s` }}
-          >
-            <MessageItem message={msg} />
-          </div>
-        ))}
+
+        {messages.map((msg, idx) => {
+          // [修改] 判断消息角色，分发不同的组件
+          const isTool = msg.role === "tool";
+
+          return (
+            <div
+              key={msg.id}
+              className="chat-messages__item-wrapper"
+              style={{ animationDelay: `${Math.min(idx * 0.03, 0.5)}s` }}
+            >
+              {isTool ? (
+                <ToolMessageItem message={msg} />
+              ) : (
+                <MessageItem message={msg} />
+              )}
+            </div>
+          );
+        })}
       </div>
       <ScrollToBottomButton
         isVisible={showScrollToBottom}
