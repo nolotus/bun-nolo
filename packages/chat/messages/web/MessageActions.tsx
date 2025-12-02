@@ -62,7 +62,6 @@ export const MessageActions = ({
   showActions,
   showThinking = false,
   isTouch = false,
-  variant = "default", // "default" | "tool" | "mini"
 }) => {
   const { user } = useAuth();
   const dispatch = useAppDispatch();
@@ -92,7 +91,7 @@ export const MessageActions = ({
     });
   };
 
-  // 2. 保存功能（已恢复完整逻辑）
+  // 2. 保存功能
   const handleSave = async (e) => {
     e?.stopPropagation?.();
     if (!user?.userId) return toast.error(t("userNotAuthenticated"));
@@ -111,7 +110,9 @@ export const MessageActions = ({
         (await dispatch(
           runAgent({ cybotId: titleAgentId, content: str.substring(0, 2000) })
         ).unwrap()) || key;
-    } catch {}
+    } catch {
+      // 忽略标题生成失败，继续用 key
+    }
 
     // 写入数据库
     try {
@@ -170,94 +171,36 @@ export const MessageActions = ({
     }
   };
 
-  // 针对 Tool 消息，只保留复制和折叠等
-  const isTool = variant === "tool";
-
   const actions = [
     {
       icon: copied ? CheckIcon : CopyIcon,
       handler: handleCopy,
       tooltip: t("copyContent"),
-      label: "复制",
+      label: t("copyContent"),
       active: copied,
     },
-    !isSelf &&
-      !isTool && {
-        icon: BookmarkIcon,
-        handler: handleSave,
-        tooltip: t("saveContent"),
-        label: "保存",
-      },
-    type !== "other" &&
-      !isTool && {
-        icon: TrashIcon,
-        handler: handleDelete,
-        tooltip: t("deleteMessage"),
-        danger: true,
-        label: "删除",
-      },
-    // Tool 模式下如果不希望在这里折叠（假设 Header 有了），可在这里过滤
-    !isTool && {
+    !isSelf && {
+      icon: BookmarkIcon,
+      handler: handleSave,
+      tooltip: t("saveContent"),
+      label: t("saveContent"),
+    },
+    type !== "other" && {
+      icon: TrashIcon,
+      handler: handleDelete,
+      tooltip: t("deleteMessage"),
+      danger: true,
+      label: t("deleteMessage"),
+    },
+    {
       icon: isCollapsed ? ChevronRightIcon : ChevronDownIcon,
       handler: handleToggleCollapse,
       tooltip: isCollapsed ? t("expandMessage") : t("collapseMessage"),
-      label: isCollapsed ? "展开" : "收起",
+      label: isCollapsed ? t("expandMessage") : t("collapseMessage"),
     },
   ].filter(Boolean);
 
-  // --- 渲染分支 1: Tool / Mini 模式 (横向，极简) ---
-  if (variant === "tool" || variant === "mini") {
-    return (
-      <>
-        <div className="actions-mini" onClick={(e) => e.stopPropagation()}>
-          {actions.map(({ icon: Icon, handler, tooltip, active }, i) => (
-            <Tooltip key={i} content={tooltip} placement="top">
-              <button
-                className={`mini-btn ${active ? "active" : ""}`}
-                onClick={handler}
-              >
-                <Icon size={14} />
-              </button>
-            </Tooltip>
-          ))}
-        </div>
-        <style href="actions-mini" precedence="high">{`
-          .actions-mini {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            background: var(--background);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 2px;
-            box-shadow: 0 2px 4px var(--shadowLight);
-          }
-          .mini-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 24px;
-            height: 24px;
-            border: none;
-            background: transparent;
-            color: var(--textTertiary);
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.2s;
-          }
-          .mini-btn:hover {
-            background: var(--backgroundHover);
-            color: var(--text);
-          }
-          .mini-btn.active {
-            color: var(--success, #10B981);
-          }
-        `}</style>
-      </>
-    );
-  }
-
-  // --- 渲染分支 2: 桌面端 (侧边栏悬浮) ---
+  // --- 桌面端 (侧边栏悬浮) ---
   if (!isTouch) {
     return (
       <>
@@ -342,13 +285,12 @@ export const MessageActions = ({
     );
   }
 
-  // --- 渲染分支 3: 移动端 (底部覆盖面板) - 已恢复完整代码 ---
+  // --- 移动端 (底部覆盖面板) ---
   return (
     <>
       {showActions && (
         <div className="actions-overlay mobile">
-          <div className="overlay-backdrop" onClick={handleToggleCollapse} />{" "}
-          {/* 点击背景关闭 */}
+          <div className="overlay-backdrop" onClick={handleToggleCollapse} />
           <div className="actions-panel">
             <div className="panel-header">
               <div className="panel-indicator" />
@@ -358,11 +300,11 @@ export const MessageActions = ({
                 ({ icon: Icon, handler, label, danger, active }, i) => (
                   <button
                     key={i}
-                    className={`action-item ${danger ? "danger" : ""} ${active ? "active" : ""}`}
+                    className={`action-item ${danger ? "danger" : ""} ${
+                      active ? "active" : ""
+                    }`}
                     onClick={(e) => {
                       handler(e);
-                      // 移动端点击后通常希望面板关闭，具体视交互需求而定
-                      // 这里暂不强制关闭，保持原版逻辑
                     }}
                   >
                     <div className="action-icon">
@@ -379,7 +321,7 @@ export const MessageActions = ({
       <style href="message-actions-mobile" precedence="high">{`
         /* 移动端覆盖式操作面板 */
         .actions-overlay.mobile {
-          position: fixed; /* 改为 fixed 确保覆盖全屏 */
+          position: fixed;
           top: 0;
           left: 0;
           right: 0;
@@ -408,7 +350,7 @@ export const MessageActions = ({
           box-shadow: 0 -8px 32px var(--shadowHeavy);
           border: 1px solid var(--border);
           border-bottom: none;
-          padding-bottom: env(safe-area-inset-bottom); /* 适配全面屏底部 */
+          padding-bottom: env(safe-area-inset-bottom);
           animation: panelSlideUp 0.25s ease-out;
         }
 

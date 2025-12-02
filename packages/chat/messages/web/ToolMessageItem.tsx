@@ -1,30 +1,83 @@
-// ToolMessageItem.tsx
-
 import React, { useState, memo } from "react";
 import {
   ChevronDownIcon,
   ChevronRightIcon,
   CheckCircleIcon,
   SyncIcon,
+  CopyIcon,
+  CheckIcon,
 } from "@primer/octicons-react";
-import { MessageActions } from "./MessageActions";
 import { MessageContent } from "./MessageItem";
+import { Tooltip } from "render/web/ui/Tooltip";
+import copyToClipboard from "utils/clipboard";
+import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 interface ToolMessageProps {
   message: any;
 }
 
+// 简化版：把 tool message 的内容转成纯文本，用于复制
+const getContentString = (content: any): string => {
+  if (!content) return "";
+
+  if (typeof content === "string") return content;
+
+  if (Array.isArray(content)) {
+    return content
+      .map((item: any) => {
+        if (typeof item === "string") return item;
+        if (item?.type === "text") return item.text;
+        if (item?.type === "image_url")
+          return `[Image: ${item.image_url?.url}]`;
+        if (item?.pageKey) return `[File: ${item.name || "未知文件"}]`;
+        return "";
+      })
+      .filter(Boolean)
+      .join("\n");
+  }
+
+  // 兜底：JSON pretty print
+  try {
+    return JSON.stringify(content, null, 2);
+  } catch {
+    return String(content);
+  }
+};
+
 export const ToolMessageItem = memo(({ message }: ToolMessageProps) => {
-  const [collapsed, setCollapsed] = useState(true); // Tool 默认折叠通常体验更好，你可以改为 false
+  const [collapsed, setCollapsed] = useState(true); // Tool 默认折叠
   const [isHovered, setIsHovered] = useState(false);
+  const [copied, setCopied] = useState(false);
 
-  const { content, toolName, id, isStreaming = false } = message || {};
+  const { t } = useTranslation("chat");
 
+  const { content, toolName, isStreaming = false } = message || {};
   const displayName = toolName || "System Tool";
 
   const toggleCollapse = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setCollapsed(!collapsed);
+    setCollapsed((prev) => !prev);
+  };
+
+  const handleCopy = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const text = getContentString(content);
+    if (!text) {
+      toast.error(t("copyFailed"));
+      return;
+    }
+
+    copyToClipboard(text, {
+      onSuccess: () => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+        toast.success(t("copySuccess"));
+      },
+      onError: () => {
+        toast.error(t("copyFailed"));
+      },
+    });
   };
 
   return (
@@ -39,7 +92,9 @@ export const ToolMessageItem = memo(({ message }: ToolMessageProps) => {
           <div className="tool-header" onClick={toggleCollapse}>
             <div className="tool-header-left">
               <span
-                className={`tool-status-icon ${isStreaming ? "spinning" : "success"}`}
+                className={`tool-status-icon ${
+                  isStreaming ? "spinning" : "success"
+                }`}
               >
                 {isStreaming ? (
                   <SyncIcon size={14} />
@@ -52,23 +107,29 @@ export const ToolMessageItem = memo(({ message }: ToolMessageProps) => {
             </div>
 
             <div className="tool-header-right">
-              {/* 
-                   Action Bar: 
-                   1. 只有当不流式传输且鼠标悬停(或展开)时才显示复制按钮，保持界面极简。
-                   2. 或者一直显示，看偏好。这里设为 hover 显示复制，一直显示折叠。
-                */}
+              {/* 内联的极简操作栏：目前只保留复制 */}
               <div
-                className={`tool-actions ${isHovered || !collapsed ? "visible" : ""}`}
+                className={`tool-actions ${
+                  isHovered || !collapsed ? "visible" : ""
+                }`}
               >
-                <MessageActions
-                  message={message}
-                  isRobot={true}
-                  isSelf={false}
-                  isCollapsed={collapsed}
-                  handleToggleCollapse={() => {}} // Tool 自带 Header 点击折叠，这里不需要传
-                  showActions={true}
-                  variant="tool" // 使用新的 mini 模式
-                />
+                <div
+                  className="actions-mini"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Tooltip content={t("copyContent")} placement="top">
+                    <button
+                      className={`mini-btn ${copied ? "active" : ""}`}
+                      onClick={handleCopy}
+                    >
+                      {copied ? (
+                        <CheckIcon size={14} />
+                      ) : (
+                        <CopyIcon size={14} />
+                      )}
+                    </button>
+                  </Tooltip>
+                </div>
               </div>
 
               <button className="collapse-btn">
@@ -93,7 +154,6 @@ export const ToolMessageItem = memo(({ message }: ToolMessageProps) => {
       </div>
 
       <style href="tool-message-item" precedence="high">{`
-        /* ... (保留之前的布局样式: margin-left, width 等) ... */
         .tool-msg-wrapper {
           position: relative;
           margin-bottom: var(--space-2);
@@ -178,6 +238,38 @@ export const ToolMessageItem = memo(({ message }: ToolMessageProps) => {
         }
         .tool-msg-wrapper.collapsed .tool-msg-inner {
             border-bottom-color: var(--border);
+        }
+
+        /* 极简工具栏样式，直接搬运自 MessageActions 的 mini 样式 */
+        .actions-mini {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          background: var(--background);
+          border: 1px solid var(--border);
+          border-radius: 6px;
+          padding: 2px;
+          box-shadow: 0 2px 4px var(--shadowLight);
+        }
+        .mini-btn {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 24px;
+          height: 24px;
+          border: none;
+          background: transparent;
+          color: var(--textTertiary);
+          border-radius: 4px;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+        .mini-btn:hover {
+          background: var(--backgroundHover);
+          color: var(--text);
+        }
+        .mini-btn.active {
+          color: var(--success, #10B981);
         }
 
         @keyframes spin { 100% { transform: rotate(360deg); } }
