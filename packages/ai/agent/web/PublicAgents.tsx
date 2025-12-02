@@ -15,39 +15,38 @@ interface PublicAgentsProps {
 const LoadingState = memo(() => {
   return (
     <div className="loading-container">
-      <div className="loading-spinner">
-        <SyncIcon size={32} />
+      <div className="loading-content">
+        <SyncIcon className="loading-spinner" size={32} />
+        <span className="loading-text">正在加载广场...</span>
       </div>
       <style href="public-agents-loading" precedence="default">{`
         .loading-container {
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: var(--space-20) var(--space-6);
+          padding: 60px 20px;
+          width: 100%;
           min-height: 300px;
         }
-        .loading-spinner {
-          position: relative;
-          display: flex;
-          align-items: center;
-          justify-content: center;
+        .loading-content {
+           display: flex;
+           flex-direction: column;
+           align-items: center;
+           gap: 16px;
+           color: var(--textSecondary);
         }
-        .loading-spinner svg {
+        .loading-spinner {
           color: var(--primary);
-          opacity: 0.8;
           animation: spin 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
         }
-        .loading-spinner::before {
-          content: '';
-          position: absolute;
-          width: 56px;
-          height: 56px;
-          border-radius: 50%;
-          background: var(--primaryGhost);
-          animation: pulse 1.5s ease-in-out infinite;
+        .loading-text {
+            font-size: 0.9rem;
+            font-weight: 500;
+            opacity: 0.8;
+            animation: pulse 2s ease-in-out infinite;
         }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.3; } 50% { transform: scale(1.4); opacity: 0; } }
+        @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
       `}</style>
     </div>
   );
@@ -65,11 +64,15 @@ const PublicAgents = memo(({ limit = 20 }: PublicAgentsProps) => {
     return () => clearTimeout(handler);
   }, [searchTerm]);
 
-  const { loading, error, data } = usePublicAgents({
+  const { loading, error, data, reload } = usePublicAgents({
     limit,
     sortBy,
     searchName: debouncedSearchTerm,
   });
+
+  const handleReload = async () => {
+    await reload();
+  };
 
   const handlePriceSortClick = () => {
     setSortBy((prev) =>
@@ -78,15 +81,15 @@ const PublicAgents = memo(({ limit = 20 }: PublicAgentsProps) => {
   };
 
   if (error) {
-    toast.error("加载AI列表失败,请稍后重试");
+    toast.error("加载列表失败");
     return null;
   }
 
   return (
     <div className="agents-container">
-      {/* 控制栏 */}
-      <div className="agents-controls">
-        <div className="search-wrapper">
+      {/* 顶部控制栏 */}
+      <div className="agents-controls-bar">
+        <div className="search-area">
           <SearchInput
             value={searchTerm}
             onChange={setSearchTerm}
@@ -95,102 +98,149 @@ const PublicAgents = memo(({ limit = 20 }: PublicAgentsProps) => {
               setSearchTerm("");
               setDebouncedSearchTerm("");
             }}
-            placeholder="按名称搜索 AI 助手..."
+            placeholder="搜索 AI 助手..."
+            className="custom-search"
           />
         </div>
 
-        <div className="sort-buttons">
+        <div className="sort-group">
+          <span className="sort-label">排序:</span>
           <button
-            className={`sort-button ${sortBy === "newest" ? "active" : ""}`}
+            className={`sort-pill ${sortBy === "newest" ? "active" : ""}`}
             onClick={() => setSortBy("newest")}
-            title="按发布时间排序"
           >
-            发布时间
+            最新发布
           </button>
           <button
-            className={`sort-button ${sortBy?.includes("Price") ? "active" : ""}`}
+            className={`sort-pill ${sortBy?.includes("Price") ? "active" : ""}`}
             onClick={handlePriceSortClick}
-            title="按价格排序"
           >
-            价格
-            {sortBy === "outputPriceAsc" && <ArrowUpIcon size={16} />}
-            {sortBy === "outputPriceDesc" && <ArrowDownIcon size={16} />}
+            <span>价格</span>
+            <span className="sort-icon">
+              {sortBy === "outputPriceAsc" && <ArrowUpIcon size={14} />}
+              {sortBy === "outputPriceDesc" && <ArrowDownIcon size={14} />}
+              {!sortBy?.includes("Price") && (
+                <ArrowUpIcon size={14} style={{ opacity: 0.3 }} />
+              )}
+            </span>
           </button>
         </div>
       </div>
 
       {/* 内容区域 */}
-      <div className="agents-content">
-        {loading && !data.length && <LoadingState />}
-
-        {data.length > 0 && (
+      <div className="agents-grid-wrapper">
+        {loading && !data.length ? (
+          <LoadingState />
+        ) : data.length > 0 ? (
           <div className="agents-grid">
             {data.map((item) => (
-              <AgentBlock key={item.id} item={item} />
+              <AgentBlock key={item.id} item={item} reload={handleReload} />
             ))}
           </div>
+        ) : (
+          <div className="empty-state">暂无相关助手，换个关键词试试？</div>
         )}
 
         {loading && data.length > 0 && (
-          <div className="loading-more">
-            <SyncIcon className="loading-more-icon" size={16} />
+          <div className="loading-more-bar">
+            <SyncIcon className="animate-spin" size={16} />
+            <span>加载更多...</span>
           </div>
         )}
       </div>
 
       <style href="public-agents-styles" precedence="default">{`
+        :root {
+           --control-height: 40px;
+        }
+
         .agents-container {
           width: 100%;
           display: flex;
           flex-direction: column;
-          gap: var(--space-6);
+          gap: 24px;
         }
-        .agents-controls {
-          display: grid;
-          grid-template-columns: 1fr auto;
-          gap: var(--space-4);
+
+        .agents-controls-bar {
+          display: flex;
+          justify-content: space-between;
           align-items: center;
-          padding: var(--space-4) var(--space-4);
+          gap: 16px;
+          padding-bottom: 4px;
+        }
+
+        .search-area {
+          flex: 1;
+          max-width: 400px;
+        }
+        
+        /* 适配新版 SearchInput */
+        :global(.custom-search .search-input) {
+             height: var(--control-height);
+             border-radius: 20px;
+        }
+
+        .sort-group {
+          display: flex;
+          align-items: center;
+          gap: 8px;
           background: var(--backgroundSecondary);
-          border-radius: 12px;
-          border: 1px solid var(--borderLight);
+          padding: 4px;
+          border-radius: 9999px;
+          height: var(--control-height);
         }
-        .search-wrapper { min-width: 0; }
-        .sort-buttons { display: flex; gap: var(--space-2); flex-shrink: 0; }
-        .sort-button {
-          display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
-          padding: var(--space-2) var(--space-4); height: 36px; border: 1px solid var(--border);
-          background: var(--background); color: var(--textSecondary); border-radius: 8px;
-          font-size: 0.9rem; font-weight: 450; cursor: pointer; transition: all 0.2s ease; white-space: nowrap;
+        
+        .sort-label {
+            font-size: 0.85rem;
+            color: var(--textTertiary);
+            margin-left: 12px;
+            margin-right: 4px;
+            font-weight: 500;
         }
-        .sort-button:hover { background: var(--backgroundHover); border-color: var(--borderHover); color: var(--text); }
-        .sort-button.active { background: var(--primaryGhost); color: var(--primary); border-color: var(--primary); font-weight: 500; }
-        .sort-button > svg { color: currentColor; }
-        .agents-content { min-height: 200px; }
-        .agents-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-          gap: var(--space-5);
+
+        .sort-pill {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          height: 100%;
+          padding: 0 16px;
+          border-radius: 9999px;
+          border: none;
+          background: transparent;
+          color: var(--textSecondary);
+          font-size: 0.85rem;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+          white-space: nowrap;
         }
-        .loading-more {
-          display: flex; align-items: center; justify-content: center;
-          padding: var(--space-8) var(--space-4);
-          margin-top: var(--space-4);
-          border-top: 1px solid var(--borderLight);
+
+        .sort-pill:hover:not(.active) {
+          color: var(--text);
+          background: rgba(0,0,0,0.03);
         }
-        :global(.loading-more-icon) { animation: spin 1s linear infinite; color: var(--primary); opacity: 0.7; }
-        @media (max-width: 900px) {
-          .agents-controls { grid-template-columns: 1fr; gap: var(--space-3); }
-          .sort-buttons { width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
-          .agents-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--space-4); }
+
+        .sort-pill.active {
+          background: var(--background);
+          color: var(--primary);
+          box-shadow: 0 2px 6px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+          font-weight: 600;
         }
-        @media (max-width: 520px) {
-          .agents-container { gap: var(--space-4); }
-          .agents-controls { padding: var(--space-3); border-radius: 8px; }
-          .agents-grid { grid-template-columns: 1fr; gap: var(--space-3); }
-          .sort-button { padding: var(--space-2) var(--space-3); font-size: 0.875rem; }
+
+        .sort-icon { display: flex; align-items: center; height: 14px; }
+        .agents-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; }
+        .empty-state { text-align: center; padding: 40px; color: var(--textTertiary); font-size: 0.95rem; }
+        .loading-more-bar { display: flex; justify-content: center; align-items: center; gap: 8px; padding: 24px 0; color: var(--textTertiary); font-size: 0.9rem; }
+        .animate-spin { animation: spin 1s linear infinite; }
+
+        @media (max-width: 768px) {
+          .agents-controls-bar { flex-direction: column; align-items: stretch; gap: 12px; }
+          .search-area { max-width: 100%; }
+          .sort-group { justify-content: space-between; width: 100%; }
+          .sort-label { display: none; }
+          .sort-pill { flex: 1; justify-content: center; }
+          .agents-grid { grid-template-columns: 1fr; gap: 16px; }
         }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
       `}</style>
     </div>
   );
