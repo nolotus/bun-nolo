@@ -24,18 +24,7 @@ import { SERVERS } from "database/requests";
 import { createDialogMessageKeyAndId } from "database/keys";
 import { extractCustomId } from "core/prefix";
 import { DialogConfig } from "app/types";
-import { findToolExecutor, toolDefinitionsByName } from "ai/tools/toolRegistry";
 import { updateDialogTitle, updateTokens } from "chat/dialog/dialogSlice";
-import { streamAgentChatTurn } from "ai/cybot/cybotSlice";
-
-// ToolRun 打点
-import {
-  toolRunStarted,
-  toolRunSucceeded,
-  toolRunFailed,
-  createToolRunId,
-  toolRunSetPending,
-} from "ai/tools/toolRunSlice";
 
 const FALLBACK_SERVERS = [SERVERS.MAIN, SERVERS.US];
 const OLDER_LOAD_LIMIT = 30;
@@ -115,31 +104,6 @@ const rejectedHandler =
         : new Error(String(action.error));
     console.error(`${action.type} failed:`, action.error);
   };
-
-// 注意：这里我多加了 dialogId
-interface HandleToolCallsPayload {
-  accumulatedCalls: any[];
-  currentContentBuffer: any[];
-  cybotConfig: any;
-  messageId: string;
-  dialogId: string;
-}
-
-interface ProcessToolDataPayload {
-  toolCall: any;
-  parentMessageId: string;
-}
-
-interface FinalizeStreamPayload {
-  finalContentBuffer: any[];
-  totalUsage: any;
-  msgKey: string;
-  cybotConfig: any;
-  dialogId: string;
-  dialogKey: string;
-  messageId: string;
-  reasoningBuffer: string;
-}
 
 export const messageSlice = createSliceWithThunks({
   name: "message",
@@ -368,328 +332,8 @@ export const messageSlice = createSliceWithThunks({
       }
     ),
 
-    // ================= [START] processToolData with ToolRun =================
-    processToolData: create.asyncThunk(
-      async (args: ProcessToolDataPayload, thunkApi) => {
-        const { toolCall, parentMessageId } = args;
-        const { dispatch, rejectWithValue } = thunkApi;
-
-        const func = toolCall.function;
-        if (!func || !func.name) {
-          throw new Error(
-            "Invalid tool call data: missing function or function.name"
-          );
-        }
-
-        const rawToolName = func.name;
-        let toolArgs = func.arguments;
-
-        const { executor: handler, canonicalName } =
-          findToolExecutor(rawToolName);
-
-        if (typeof toolArgs === "string") {
-          try {
-            toolArgs = JSON.parse(toolArgs);
-          } catch (e) {
-            throw new Error(`Failed to parse tool arguments JSON: ${e}`);
-          }
-        }
-
-        const toolRunId = createToolRunId();
-        const def = toolDefinitionsByName[canonicalName];
-        const behavior = def?.behavior;
-        const interaction = def?.interaction ?? "auto";
-        const inputSummary = JSON.stringify(toolArgs).slice(0, 400);
-
-        dispatch(
-          toolRunStarted({
-            id: toolRunId,
-            messageId: parentMessageId,
-            toolName: canonicalName,
-            behavior,
-            inputSummary,
-            interaction,
-            input: toolArgs,
-          })
-        );
-
-        // ===== applyDiff：只做预览 + pending，不真正执行 =====
-        if (canonicalName === "applyDiff") {
-          try {
-            const filePath = toolArgs?.filePath || "(未提供文件路径)";
-            const diffText =
-              typeof toolArgs?.diff === "string" ? toolArgs.diff : "";
-            const maxLen = 400;
-            const preview =
-              diffText.length > maxLen
-                ? diffText.slice(0, maxLen) +
-                  "\n...（已截断，仅展示前部分补丁内容）"
-                : diffText;
-
-            const textLines = [
-              `你请求对文件 \`${filePath}\` 应用以下 diff：`,
-              "",
-              "```diff",
-              preview,
-              "```",
-              "",
-              "当前处于安全预览模式，本次不会真正应用补丁。",
-              '请检查上面的 diff 是否正确，稍后可以点击 "应用这个补丁" 来真正执行。',
-            ];
-            const text = textLines.join("\n");
-
-            const displayContent = {
-              type: "text",
-              text: `\n[applyDiff 预览]\n${text}\n`,
-            };
-
-            dispatch(
-              toolRunSetPending({
-                id: toolRunId,
-              })
-            );
-
-            return {
-              displayContent,
-              rawResult: {
-                previewOnly: true,
-                filePath,
-                diffPreview: preview,
-                toolRunId,
-              },
-              hasHandedOff: false,
-              toolName: canonicalName,
-              toolRunId,
-            };
-          } catch (e: any) {
-            const errorMessage =
-              e.message || "Unknown error in applyDiff preview";
-            const errorContent = {
-              type: "text",
-              text: `\n[Tool Execution Error: ${rawToolName} (preview)] ${errorMessage}\n`,
-            };
-
-            dispatch(
-              toolRunFailed({
-                id: toolRunId,
-                error: errorMessage,
-              })
-            );
-
-            return rejectWithValue({
-              displayContent: errorContent,
-              rawResult: { error: errorMessage },
-              toolName: canonicalName,
-              toolRunId,
-            });
-          }
-        }
-        // ================= [END] applyDiff 分支 =================
-
-        try {
-          // runStreamingAgent：把对话交给子 Agent，不在当前消息继续输出
-          if (canonicalName === "runStreamingAgent") {
-            try {
-              await dispatch(
-                streamAgentChatTurn({
-                  cybotId: toolArgs.agentKey,
-                  userInput: toolArgs.userInput,
-                  parentMessageId,
-                })
-              ).unwrap();
-
-              dispatch(
-                toolRunSucceeded({
-                  id: toolRunId,
-                  outputSummary:
-                    "[runStreamingAgent handed off to another agent]",
-                })
-              );
-
-              return { hasHandedOff: true, toolName: canonicalName, toolRunId };
-            } catch (e: any) {
-              const errorContent = {
-                type: "text",
-                text: `\n[Agent Failed to Start] ${e.message}\n`,
-              };
-
-              dispatch(
-                toolRunFailed({
-                  id: toolRunId,
-                  error: e.message || "Unknown error in runStreamingAgent",
-                })
-              );
-
-              return rejectWithValue({
-                displayContent: errorContent,
-                toolName: canonicalName,
-                toolRunId,
-              });
-            }
-          }
-
-          const toolResult = await handler(toolArgs, thunkApi, {
-            parentMessageId,
-          });
-
-          let displayContent;
-          const displayData = toolResult?.displayData;
-
-          if (canonicalName === "createPlan") {
-            displayContent = {
-              type: "text",
-              text:
-                displayData || "[Plan executed, but no report was generated.]",
-            };
-          } else {
-            const text =
-              displayData ||
-              `${canonicalName.replace(/_/g, " ")} executed successfully.`;
-            displayContent = {
-              type: "text",
-              text: `\n[Tool Result: ${text}]\n`,
-            };
-          }
-
-          dispatch(
-            toolRunSucceeded({
-              id: toolRunId,
-              outputSummary: displayData || "",
-            })
-          );
-
-          return {
-            displayContent,
-            rawResult: toolResult.rawData,
-            hasHandedOff: false,
-            toolName: canonicalName,
-            toolRunId,
-          };
-        } catch (e: any) {
-          const errorMessage = e.message || "Unknown error";
-          const errorContent = {
-            type: "text",
-            text: `\n[Tool Execution Error: ${rawToolName}] ${errorMessage}\n`,
-          };
-
-          dispatch(
-            toolRunFailed({
-              id: toolRunId,
-              error: errorMessage,
-            })
-          );
-
-          return rejectWithValue({
-            displayContent: errorContent,
-            rawResult: { error: errorMessage },
-            toolName: canonicalName,
-            toolRunId,
-          });
-        }
-      }
-    ),
-    // ================= [END] processToolData =================
-
-    handleToolCalls: create.asyncThunk(
-      async (args: HandleToolCallsPayload, thunkApi) => {
-        const {
-          accumulatedCalls,
-          currentContentBuffer,
-          cybotConfig,
-          messageId,
-          dialogId,
-        } = args;
-        const { dispatch } = thunkApi;
-
-        // 现在不再把 tool 输出塞回 assistant 文本，避免重复。
-        const updatedContentBuffer = [...currentContentBuffer];
-        let hasHandedOff = false;
-
-        for (const toolCall of accumulatedCalls) {
-          if (!toolCall.function?.name) continue;
-
-          try {
-            const result = await dispatch(
-              messageSlice.actions.processToolData({
-                toolCall,
-                parentMessageId: messageId,
-              })
-            ).unwrap();
-
-            if (result.hasHandedOff) {
-              hasHandedOff = true;
-              break;
-            }
-
-            if (result.displayContent && result.toolName) {
-              const { key: toolDbKey, messageId: toolMessageId } =
-                createDialogMessageKeyAndId(dialogId);
-
-              const toolMessage: Message = {
-                id: toolMessageId,
-                dbKey: toolDbKey,
-                role: "tool",
-                content: [result.displayContent],
-                thinkContent: "",
-                cybotKey: cybotConfig.dbKey,
-                isStreaming: false,
-              };
-
-              (toolMessage as any).toolName = result.toolName;
-              (toolMessage as any).parentMessageId = messageId;
-
-              // 1) 先更新 Redux 内存
-              dispatch(messageSlice.actions.addToolMessage(toolMessage));
-
-              // 2) 再持久化到 DB（方式与助手消息一致）
-              const { controller, ...messageToWrite } = toolMessage;
-              await dispatch(
-                write({
-                  data: { ...messageToWrite, type: DataType.MSG },
-                  customKey: toolDbKey,
-                })
-              );
-            }
-          } catch (rejectedValue: any) {
-            if (rejectedValue.displayContent && rejectedValue.toolName) {
-              const { key: toolDbKey, messageId: toolMessageId } =
-                createDialogMessageKeyAndId(dialogId);
-
-              const toolMessage: Message = {
-                id: toolMessageId,
-                dbKey: toolDbKey,
-                role: "tool",
-                content: [rejectedValue.displayContent],
-                thinkContent: "",
-                cybotKey: cybotConfig.dbKey,
-                isStreaming: false,
-              };
-
-              (toolMessage as any).toolName = rejectedValue.toolName;
-              (toolMessage as any).parentMessageId = messageId;
-
-              dispatch(messageSlice.actions.addToolMessage(toolMessage));
-
-              const { controller, ...messageToWrite } = toolMessage;
-              await dispatch(
-                write({
-                  data: { ...messageToWrite, type: DataType.MSG },
-                  customKey: toolDbKey,
-                })
-              );
-            }
-          }
-
-          // 不再调用 messageStreaming 更新 assistant 文本；
-          // assistant 内容只来自模型自然语言回复。
-        }
-
-        return { finalContentBuffer: updatedContentBuffer, hasHandedOff };
-      }
-    ),
-
     messageStreamEnd: create.asyncThunk(
-      async (payload: FinalizeStreamPayload, { dispatch }) => {
+      async (payload: any, { dispatch }) => {
         const {
           finalContentBuffer,
           totalUsage,
@@ -762,8 +406,11 @@ export const messageSlice = createSliceWithThunks({
         },
         rejected: (state, action) => {
           console.error("messageStreamEnd failed:", action.error);
-          const messageId = (action.meta?.arg as FinalizeStreamPayload)
-            ?.messageId;
+          const messageId = (
+            action.meta?.arg as {
+              messageId: string;
+            }
+          )?.messageId;
           if (messageId) {
             messagesAdapter.updateOne(state.msgs, {
               id: messageId,
@@ -855,9 +502,10 @@ export const {
   messageStreamEnd,
   deleteMessage,
   deleteDialogMsgs,
-  handleToolCalls,
-  processToolData,
   addToolMessage,
 } = messageSlice.actions;
+
+// Tool 相关 thunk 从独立文件导出，保持原有对外 API 不变
+export { handleToolCalls, processToolData } from "./toolThunks";
 
 export default messageSlice.reducer;
