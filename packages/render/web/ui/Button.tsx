@@ -1,8 +1,8 @@
 // render/web/ui/Button.tsx
 
 import React from "react";
-import { useTheme } from "app/theme";
-import { Link, LinkProps } from "react-router-dom";
+// 移除 unused import: useTheme
+import { Link } from "react-router-dom";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "secondary" | "ghost" | "danger";
@@ -11,21 +11,16 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   loading?: boolean;
   block?: boolean;
   type?: "button" | "submit" | "reset";
-  as?: React.ElementType | typeof Link;
+  as?: React.ElementType; // 简化 as 类型
   to?: string;
 }
 
-type PolymorphicComponentProps<E extends React.ElementType> =
-  React.ComponentPropsWithoutRef<E> & {
-    as?: E;
-  };
-
-type ButtonComponent = <E extends React.ElementType = "button">(
-  props: PolymorphicComponentProps<E> & ButtonProps
-) => React.ReactElement | null;
-
-const Button: ButtonComponent = React.forwardRef(
-  <E extends React.ElementType = "button">(
+// 修正多态组件的类型定义
+const Button = React.forwardRef<
+  HTMLButtonElement | HTMLAnchorElement,
+  ButtonProps
+>(
+  (
     {
       variant = "primary",
       size = "medium",
@@ -40,23 +35,26 @@ const Button: ButtonComponent = React.forwardRef(
       as: Component = "button",
       to,
       ...rest
-    }: PolymorphicComponentProps<E> & ButtonProps,
-    ref: React.Ref<any>
+    },
+    ref
   ) => {
-    const theme = useTheme();
     const isDisabled = disabled || loading;
 
-    const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-      if (isDisabled) return;
-      onClick?.(e);
+    const handleClick = (e: React.MouseEvent<any>) => {
+      if (isDisabled) {
+        e.preventDefault();
+        return;
+      }
+      onClick?.(e as any);
     };
 
     const commonProps = {
       className:
         `btn btn-${variant} btn-${size} ${block ? "btn-block" : ""} ${isDisabled ? "btn-disabled" : ""} ${className}`.trim(),
-      disabled: isDisabled,
+      // 如果 Component 是 Link，disabled 属性可能不被支持，主要靠样式和 onClick 拦截
+      disabled: Component === "button" ? isDisabled : undefined,
       onClick: handleClick,
-      ref,
+      ref: ref as any,
       ...rest,
     };
 
@@ -73,13 +71,14 @@ const Button: ButtonComponent = React.forwardRef(
       </span>
     );
 
+    // 特殊处理 React Router Link
     if (Component === Link) {
       return (
         <>
           <Component
-            {...commonProps}
-            to={to || "#"}
-            style={{ textDecoration: "none", display: "inline-flex" }}
+            {...(commonProps as any)}
+            to={to || "#"} // 防止 Link 缺少 to 报错
+            style={{ textDecoration: "none" }}
           >
             {renderContent()}
           </Component>
@@ -92,6 +91,7 @@ const Button: ButtonComponent = React.forwardRef(
       <>
         <Component
           {...commonProps}
+          // 只有 button 元素才有 type 属性
           type={Component === "button" ? type : undefined}
         >
           {renderContent()}
@@ -100,366 +100,186 @@ const Button: ButtonComponent = React.forwardRef(
       </>
     );
   }
-) as ButtonComponent;
+);
 
 const ButtonStyles = () => {
   return (
     <style href="button" precedence="medium">{`
+      :root {
+        --btn-radius: 10px;
+        --btn-transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+        --btn-font-weight: 500;
+      }
+
       .btn {
         position: relative;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
-        font-weight: 550;
-        line-height: 1.2;
-        text-align: center;
+        font-family: inherit;
+        font-weight: var(--btn-font-weight);
+        line-height: 1;
+        white-space: nowrap;
         vertical-align: middle;
         user-select: none;
-        border-radius: var(--space-3);
-        border: none;
+        border-radius: var(--btn-radius);
+        border: 1px solid transparent;
         cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        transition: var(--btn-transition);
         text-decoration: none;
         outline: none;
-        background-clip: padding-box;
-        letter-spacing: -0.01em;
-        box-shadow:
-          0 2px 6px var(--shadow1),
-          inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        letter-spacing: 0.01em;
+        -webkit-font-smoothing: antialiased;
       }
 
-      /* 尺寸系统 */
-      .btn-small {
-        min-height: 32px;
-        padding: var(--space-2) var(--space-3);
-        font-size: 0.875rem;
-        gap: var(--space-1);
-        border-radius: var(--space-2);
-      }
+      .btn-small { height: 32px; padding: 0 12px; font-size: 0.8125rem; gap: 6px; }
+      .btn-medium { height: 40px; padding: 0 16px; font-size: 0.875rem; gap: 8px; }
+      .btn-large { height: 48px; padding: 0 24px; font-size: 1rem; gap: 10px; border-radius: 12px; }
+      .btn-block { width: 100%; display: flex; }
+      .btn-content { display: flex; align-items: center; justify-content: center; gap: inherit; z-index: 2; transform: translateY(-0.5px); }
+      .btn-icon { display: flex; align-items: center; }
 
-      .btn-medium {
-        min-height: 40px;
-        padding: var(--space-2) var(--space-4);
-        font-size: 0.925rem;
-        gap: var(--space-2);
-      }
-
-      .btn-large {
-        min-height: 48px;
-        padding: var(--space-3) var(--space-5);
-        font-size: 1rem;
-        gap: var(--space-2);
-        border-radius: var(--space-4);
-      }
-
-      .btn-block {
-        width: 100%;
-      }
-
-      .btn-content {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: inherit;
-        position: relative;
-        z-index: 1;
-      }
-
-      .btn-icon {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        line-height: 1;
-        flex-shrink: 0;
-      }
-
-      .btn-text {
-        line-height: 1.4;
-        white-space: normal;
-        text-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
-      }
-
-      /* Primary 样式 - 现代新拟物 */
+      /* Primary - 使用 color-mix 解决 hex 变量的透明度问题 */
       .btn-primary {
-        background: linear-gradient(135deg, var(--primary) 0%, var(--primaryDark) 100%);
-        color: white;
-        box-shadow:
-          0 2px 8px var(--primaryGhost),
-          0 1px 3px var(--shadow1),
-          inset 0 1px 0 rgba(255, 255, 255, 0.2);
-      }
-
-      .btn-primary::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 50%);
-        border-radius: inherit;
-        opacity: 0;
-        transition: opacity 0.3s ease;
-        pointer-events: none;
+        background: var(--primary);
+        background-image: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(0,0,0,0.05) 100%);
+        color: #fff;
+        border: 1px solid color-mix(in srgb, var(--text) 5%, transparent);
+        box-shadow: 
+          inset 0 1px 0 rgba(255, 255, 255, 0.2), 
+          inset 0 -1px 0 rgba(0, 0, 0, 0.1),
+          0 2px 4px color-mix(in srgb, var(--primary) 25%, transparent);
       }
 
       .btn-primary:hover:not(.btn-disabled) {
-        transform: translateY(-2px);
-        box-shadow:
-          0 8px 20px var(--primaryHover),
-          0 2px 8px var(--shadow2),
-          inset 0 1px 0 rgba(255, 255, 255, 0.25);
-      }
-
-      .btn-primary:hover:not(.btn-disabled)::before {
-        opacity: 1;
+        transform: translateY(-1px);
+        box-shadow: 
+          inset 0 1px 0 rgba(255, 255, 255, 0.25), 
+          0 4px 12px color-mix(in srgb, var(--primary) 35%, transparent);
+        filter: brightness(1.05);
       }
 
       .btn-primary:active:not(.btn-disabled) {
-        transform: translateY(0);
-        transition-duration: 0.1s;
-        box-shadow:
-          0 2px 6px var(--primaryHover),
-          inset 0 2px 4px rgba(0, 0, 0, 0.1),
-          inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        transform: translateY(1px) scale(0.97);
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.15);
+        background-image: none;
       }
 
-      /* Secondary 样式 */
+      /* Secondary */
       .btn-secondary {
-        background: var(--backgroundSecondary);
-        color: var(--text);
-        border: 1px solid var(--border);
-        box-shadow:
-          0 1px 3px var(--shadow1),
-          inset 0 1px 0 rgba(255, 255, 255, 0.1);
-      }
-
-      .btn-secondary::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(135deg, var(--primaryGhost) 0%, transparent 50%);
-        border-radius: inherit;
-        opacity: 0;
-        transition: opacity 0.3s ease;
-        pointer-events: none;
-      }
-
-      .btn-secondary:hover:not(.btn-disabled) {
         background: var(--background);
-        border-color: var(--primaryHover);
-        color: var(--primary);
+        color: var(--text);
+        border-color: var(--border);
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      }
+      .btn-secondary:hover:not(.btn-disabled) {
+        background: var(--backgroundHover);
+        border-color: var(--borderHover);
+        color: var(--text);
         transform: translateY(-1px);
-        box-shadow:
-          0 4px 12px var(--shadow1),
-          0 0 0 1px var(--primaryHover),
-          inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        box-shadow: 0 3px 8px rgba(0,0,0,0.08);
       }
-
-      .btn-secondary:hover:not(.btn-disabled)::before {
-        opacity: 1;
-      }
-
       .btn-secondary:active:not(.btn-disabled) {
-        transform: translateY(0);
-        transition-duration: 0.1s;
-        box-shadow:
-          0 1px 3px var(--shadow1),
-          inset 0 2px 4px rgba(0, 0, 0, 0.05);
-      }
-
-      /* Ghost 样式 */
-      .btn-ghost {
-        background: transparent;
-        color: var(--textSecondary);
-        border: 1px solid var(--borderLight);
+        transform: translateY(1px) scale(0.97);
+        background: var(--backgroundTertiary);
         box-shadow: none;
       }
 
+      /* Ghost */
+      .btn-ghost {
+        background: transparent;
+        color: var(--textSecondary);
+        border-color: transparent;
+        box-shadow: none;
+      }
       .btn-ghost:hover:not(.btn-disabled) {
         background: var(--backgroundHover);
         color: var(--text);
-        border-color: var(--border);
-        box-shadow: 0 2px 8px var(--shadow1);
       }
-
       .btn-ghost:active:not(.btn-disabled) {
-        background: var(--backgroundSelected, var(--backgroundHover));
-        box-shadow: inset 0 1px 3px var(--shadow1);
+        background: var(--backgroundSecondary);
+        transform: scale(0.97);
       }
 
-      /* Danger 样式 */
+      /* Danger */
       .btn-danger {
-        background: linear-gradient(135deg, var(--error) 0%, var(--error) 100%);
+        background: var(--error);
+        background-image: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0.05) 100%);
         color: white;
-        box-shadow:
-          0 2px 8px rgba(var(--error-rgb), 0.3),
-          0 1px 3px var(--shadow1),
-          inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(0,0,0,0.05);
+        box-shadow: 
+          inset 0 1px 0 rgba(255, 255, 255, 0.2),
+          inset 0 -1px 0 rgba(0, 0, 0, 0.1),
+          0 2px 4px color-mix(in srgb, var(--error) 25%, transparent);
       }
-
-      .btn-danger::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 50%);
-        border-radius: inherit;
-        opacity: 0;
-        transition: opacity 0.3s ease;
-        pointer-events: none;
-      }
-
       .btn-danger:hover:not(.btn-disabled) {
-        transform: translateY(-2px);
-        box-shadow:
-          0 8px 20px rgba(var(--error-rgb), 0.4),
-          0 2px 8px var(--shadow2),
-          inset 0 1px 0 rgba(255, 255, 255, 0.25);
+        transform: translateY(-1px);
+        box-shadow: 
+          inset 0 1px 0 rgba(255, 255, 255, 0.25),
+          0 4px 12px color-mix(in srgb, var(--error) 35%, transparent);
+        filter: brightness(1.05);
       }
-
-      .btn-danger:hover:not(.btn-disabled)::before {
-        opacity: 1;
-      }
-
       .btn-danger:active:not(.btn-disabled) {
-        transform: translateY(0);
-        transition-duration: 0.1s;
-        box-shadow:
-          0 2px 6px rgba(var(--error-rgb), 0.4),
-          inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        transform: translateY(1px) scale(0.97);
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.15);
       }
 
-      /* 禁用状态 */
       .btn-disabled {
-        opacity: 0.5;
+        opacity: 0.6;
         cursor: not-allowed;
+        box-shadow: none !important;
         transform: none !important;
-        filter: grayscale(0.3);
-        pointer-events: none;
+        filter: grayscale(0.2);
       }
 
-      .btn-disabled::before {
-        display: none;
+      .btn:focus-visible {
+        box-shadow: 0 0 0 2px var(--background), 0 0 0 4px color-mix(in srgb, var(--primary) 50%, transparent);
       }
 
-      /* 焦点状态 */
-      .btn:focus-visible:not(.btn-disabled) {
-        box-shadow:
-          0 0 0 2px var(--background),
-          0 0 0 4px var(--primary),
-          0 2px 8px var(--shadow1),
-          inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      .dark .btn-secondary {
+        background: rgba(255,255,255,0.05);
+        border-color: rgba(255,255,255,0.1);
       }
-
-      /* 加载状态特殊样式 */
-      .btn:has(.loading-spinner) {
-        pointer-events: none;
+      .dark .btn-secondary:hover:not(.btn-disabled) {
+        background: rgba(255,255,255,0.1);
       }
-
-      .btn:has(.loading-spinner) .btn-text {
-        opacity: 0.7;
-      }
-
-      /* 触摸设备优化 */
-      @media (hover: none) and (pointer: coarse) {
-        .btn:hover:not(.btn-disabled) {
-          transform: none;
-        }
-
-        .btn:active:not(.btn-disabled) {
-          transform: scale(0.95);
-          transition-duration: 0.1s;
-        }
-      }
-
-      /* 减少动画偏好 */
+      
       @media (prefers-reduced-motion: reduce) {
-        .btn {
-          transition: background-color 0.1s ease, border-color 0.1s ease;
-        }
-
-        .btn:hover:not(.btn-disabled),
-        .btn:active:not(.btn-disabled) {
-          transform: none;
-        }
-
-        .btn::before {
-          transition: none;
-        }
-      }
-
-      /* 高对比度模式 */
-      @media (prefers-contrast: high) {
-        .btn {
-          border-width: 2px;
-        }
-
-        .btn-ghost,
-        .btn-secondary {
-          border-width: 2px;
-        }
-      }
-
-      /* 加载动画 */
-      @keyframes spin {
-        to {
-          transform: rotate(360deg);
-        }
-      }
-
-      .loading-spinner {
-        animation: spin 0.8s linear infinite;
-      }
-
-      @media (prefers-reduced-motion: reduce) {
-        .loading-spinner {
-          animation: none;
-        }
-
-        .loading-spinner::after {
-          content: '...';
-        }
-      }
-
-      /* 响应式调整 */
-      @media (max-width: 480px) {
-        .btn-medium {
-          min-height: 44px;
-          padding: var(--space-3) var(--space-4);
-        }
-
-        .btn-small {
-          min-height: 36px;
-          padding: var(--space-2) var(--space-3);
-        }
+        .btn { transition: none; }
+        .btn:hover, .btn:active { transform: none; }
       }
     `}</style>
   );
 };
 
-// 优化的加载指示器
 const LoadingSpinner = () => (
   <svg
-    className="loading-spinner"
+    className="animate-spin"
     width="16"
     height="16"
-    viewBox="0 0 16 16"
+    viewBox="0 0 24 24"
     fill="none"
-    aria-hidden="true"
+    xmlns="http://www.w3.org/2000/svg"
   >
     <circle
-      cx="8"
-      cy="8"
-      r="6"
+      cx="12"
+      cy="12"
+      r="10"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth="3"
       strokeLinecap="round"
       opacity="0.25"
     />
     <path
-      d="M14 8A6 6 0 012 8"
+      d="M4 12a8 8 0 018-8"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth="3"
       strokeLinecap="round"
     />
+    <style>{`
+      .animate-spin { animation: spin 1s linear infinite; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+    `}</style>
   </svg>
 );
 
