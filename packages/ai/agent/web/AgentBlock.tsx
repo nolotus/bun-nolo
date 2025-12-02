@@ -33,11 +33,9 @@ interface AgentBlockProps {
   reload: () => Promise<void>;
 }
 
-// 仅 AgentForm 懒加载（编辑相关）
-const loadAgentForm = () => import("ai/llm/web/AgentForm"); // 默认导出
+const loadAgentForm = () => import("ai/llm/web/AgentForm");
 const AgentFormLazy = lazy(loadAgentForm);
 
-// 预取编辑相关（这里只需预取 AgentForm）
 const preloadEditBundle = () => {
   loadAgentForm();
 };
@@ -85,7 +83,7 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
 
   const handleEdit = useCallback(() => {
     setShowActions(false);
-    preloadEditBundle(); // 点击前预取
+    preloadEditBundle();
     openEdit();
   }, [openEdit]);
 
@@ -107,13 +105,13 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
       e.stopPropagation();
       const next = !showActions;
       setShowActions(next);
-      if (next) preloadEditBundle(); // 展开菜单时预取
+      if (next) preloadEditBundle();
     },
     [showActions]
   );
 
   useEffect(() => {
-    if (showActions) preloadEditBundle(); // 兜底
+    if (showActions) preloadEditBundle();
   }, [showActions]);
 
   const handleViewDetails = (e: React.MouseEvent) => {
@@ -155,7 +153,6 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           }
         }}
       >
-        {/* 右上角操作按钮 */}
         <div className="agent__top-actions">
           <button
             className={`agent__favorite ${isFavorite ? "agent__favorite--active" : ""}`}
@@ -178,7 +175,6 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           )}
         </div>
 
-        {/* 操作菜单 - 悬浮显示 */}
         {showActions && allowEdit && (
           <div className="agent__actions-menu">
             <button
@@ -200,7 +196,6 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           </div>
         )}
 
-        {/* 删除确认栏 */}
         {confirmingDelete && (
           <div className="agent__delete-confirm">
             <div className="agent__delete-message">
@@ -230,7 +225,6 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           </div>
         )}
 
-        {/* Header */}
         <div className="agent__header">
           <div className="agent__avatar">
             <Avatar name={item.name} type="agent" size="large" />
@@ -277,12 +271,10 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           </div>
         </div>
 
-        {/* Description */}
         <div className="agent__desc clickable">
           {item.introduction || t("noDescription")}
         </div>
 
-        {/* Actions */}
         <div className="agent__actions">
           <Button
             icon={<LuMessageSquare size={16} />}
@@ -297,7 +289,6 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
         </div>
       </div>
 
-      {/* 编辑对话框（Dialog 同步加载；表单懒加载，Dialog 内展示占位） */}
       {editVisible && (
         <Dialog
           isOpen={editVisible}
@@ -329,8 +320,8 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           background: var(--background);
           border-radius: var(--space-3);
           padding: var(--space-5);
-          border: 1px solid var(--border);
-          transition: all 0.2s ease;
+          border: none;
+          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
           cursor: pointer;
           position: relative;
           display: flex;
@@ -338,17 +329,79 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           gap: var(--space-4);
           height: 100%;
           overflow: visible;
+          
+          /* 明亮模式：精致玻璃质感 + 适中阴影 */
+          box-shadow: 
+            0 0 0 0.5px rgba(0, 0, 0, 0.04),          /* 极细边缘定义 */
+            0 1px 2px 0 rgba(0, 0, 0, 0.05),           /* 近距细腻阴影 */
+            0 2px 8px -1px rgba(0, 0, 0, 0.06),        /* 中距柔和阴影 */
+            0 4px 16px -2px rgba(0, 0, 0, 0.04);       /* 远距环境阴影 */
+          
+          /* macOS Liquid Glass 效果 */
+          backdrop-filter: blur(8px) saturate(1.2);
+          -webkit-backdrop-filter: blur(8px) saturate(1.2);
+        }
+
+        /* 暗色模式增强 */
+        @media (prefers-color-scheme: dark) {
+          .agent {
+            box-shadow: 
+              0 0 0 0.5px rgba(255, 255, 255, 0.06),   /* 暗色边缘光晕 */
+              0 1px 2px 0 rgba(0, 0, 0, 0.3),          /* 近距深阴影 */
+              0 2px 8px -1px rgba(0, 0, 0, 0.4),       /* 中距加强阴影 */
+              0 4px 16px -2px rgba(0, 0, 0, 0.3),      /* 远距环境阴影 */
+              inset 0 0.5px 0 0 rgba(255, 255, 255, 0.04); /* 顶部微光 */
+            
+            backdrop-filter: blur(12px) saturate(1.4);
+            -webkit-backdrop-filter: blur(12px) saturate(1.4);
+          }
         }
 
         .agent:hover {
-          transform: translateY(-1px);
-          border-color: var(--primary);
-          box-shadow: 0 4px 12px var(--shadowLight);
+          transform: translateY(-3px);
+          
+          /* Hover 明亮模式：浮起 + 主题色光晕 */
+          box-shadow: 
+            0 0 0 1px var(--primaryGhost),
+            0 2px 4px 0 rgba(0, 0, 0, 0.06),
+            0 8px 20px -2px rgba(0, 0, 0, 0.1),
+            0 16px 40px -4px rgba(0, 0, 0, 0.08),
+            0 4px 24px -2px var(--primaryGhost);       /* 主题色光晕 */
+        }
+
+        @media (prefers-color-scheme: dark) {
+          .agent:hover {
+            box-shadow: 
+              0 0 0 1px var(--primary),
+              0 2px 4px 0 rgba(0, 0, 0, 0.4),
+              0 8px 20px -2px rgba(0, 0, 0, 0.6),
+              0 16px 40px -4px rgba(0, 0, 0, 0.5),
+              0 4px 32px -2px var(--primaryGhost),     /* 加强主题色光晕 */
+              inset 0 1px 0 0 rgba(255, 255, 255, 0.08); /* 增强顶部高光 */
+          }
         }
 
         .agent:has(.agent__delete-confirm) {
-          border-color: var(--error);
-          background: rgba(239, 68, 68, 0.02);
+          background: rgba(239, 68, 68, 0.04);
+          
+          /* 删除警示：红色光晕系统 */
+          box-shadow: 
+            0 0 0 1px rgba(239, 68, 68, 0.3),
+            0 2px 4px 0 rgba(239, 68, 68, 0.15),
+            0 4px 16px -1px rgba(239, 68, 68, 0.2),
+            0 8px 32px -2px rgba(239, 68, 68, 0.15);
+        }
+
+        @media (prefers-color-scheme: dark) {
+          .agent:has(.agent__delete-confirm) {
+            background: rgba(239, 68, 68, 0.08);
+            box-shadow: 
+              0 0 0 1px rgba(239, 68, 68, 0.4),
+              0 2px 4px 0 rgba(239, 68, 68, 0.25),
+              0 4px 16px -1px rgba(239, 68, 68, 0.3),
+              0 8px 32px -2px rgba(239, 68, 68, 0.25),
+              inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+          }
         }
 
         .agent__top-actions {
@@ -362,7 +415,7 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
 
         .agent__favorite,
         .agent__more {
-          background: none;
+          background: rgba(255, 255, 255, 0.5);
           border: none;
           color: var(--textTertiary);
           padding: var(--space-2);
@@ -374,28 +427,58 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           justify-content: center;
           width: 36px;
           height: 36px;
-          opacity: 0.6;
+          opacity: 0.7;
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+        }
+
+        @media (prefers-color-scheme: dark) {
+          .agent__favorite,
+          .agent__more {
+            background: rgba(255, 255, 255, 0.08);
+          }
         }
 
         .agent__favorite:hover {
           color: var(--warning);
-          background: var(--backgroundHover);
+          background: rgba(255, 255, 255, 0.7);
           opacity: 1;
           transform: scale(1.1);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        @media (prefers-color-scheme: dark) {
+          .agent__favorite:hover {
+            background: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+          }
         }
 
         .agent__more:hover,
         .agent__more--active {
           color: var(--textSecondary);
-          background: var(--backgroundHover);
+          background: rgba(255, 255, 255, 0.7);
           opacity: 1;
           transform: scale(1.1);
         }
 
+        @media (prefers-color-scheme: dark) {
+          .agent__more:hover,
+          .agent__more--active {
+            background: rgba(255, 255, 255, 0.12);
+          }
+        }
+
         .agent__favorite--active {
           color: var(--warning);
-          background: var(--backgroundHover);
+          background: rgba(255, 255, 255, 0.7);
           opacity: 1;
+        }
+
+        @media (prefers-color-scheme: dark) {
+          .agent__favorite--active {
+            background: rgba(255, 255, 255, 0.12);
+          }
         }
 
         .agent__favorite--active svg {
@@ -407,13 +490,34 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           top: var(--space-16);
           right: var(--space-4);
           background: var(--background);
-          border: 1px solid var(--border);
-          border-radius: var(--space-2);
-          box-shadow: 0 4px 12px var(--shadowMedium);
+          border: none;
+          border-radius: var(--space-3);
           z-index: 20;
           overflow: hidden;
           min-width: 120px;
           animation: slideDown 0.15s ease-out;
+          
+          /* 菜单 Liquid Glass 效果 */
+          backdrop-filter: blur(20px) saturate(1.4);
+          -webkit-backdrop-filter: blur(20px) saturate(1.4);
+          
+          box-shadow: 
+            0 0 0 0.5px rgba(0, 0, 0, 0.08),
+            0 4px 8px 0 rgba(0, 0, 0, 0.1),
+            0 12px 32px -4px rgba(0, 0, 0, 0.15),
+            0 24px 64px -8px rgba(0, 0, 0, 0.12);
+        }
+
+        @media (prefers-color-scheme: dark) {
+          .agent__actions-menu {
+            background: rgba(255, 255, 255, 0.05);
+            box-shadow: 
+              0 0 0 0.5px rgba(255, 255, 255, 0.1),
+              0 4px 8px 0 rgba(0, 0, 0, 0.4),
+              0 12px 32px -4px rgba(0, 0, 0, 0.6),
+              0 24px 64px -8px rgba(0, 0, 0, 0.5),
+              inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+          }
         }
 
         @keyframes slideDown {
@@ -439,7 +543,7 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
         .agent__action-item--edit:hover { color: var(--primary); }
         .agent__action-item--delete:hover {
           color: var(--error);
-          background: rgba(239, 68, 68, 0.05);
+          background: rgba(239, 68, 68, 0.08);
         }
 
         .agent__delete-confirm {
@@ -616,7 +720,6 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           transition: all 0.25s ease;
         }
 
-        /* Dialog 内部的懒加载占位 */
         .agent__dialog-body-fallback {
           display: flex;
           align-items: center;
