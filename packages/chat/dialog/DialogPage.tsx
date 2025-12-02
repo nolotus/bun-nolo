@@ -173,7 +173,7 @@ const DialogPage = ({ pageKey }: { pageKey: string }) => {
     // 依赖 user 是否存在，但不在数组中直接使用 user 对象
     if (pageKey && user && dialogId) {
       dispatch(initDialog(pageKey));
-      dispatch(initMsgs({ dialogId, limit: 10 }));
+      dispatch(initMsgs({ dialogId, limit: 20 }));
     }
     // [核心修复] 将依赖从整个 user 对象改为稳定的 user.userId。
     // 这样，只有当用户切换或对话页面切换时，才会重新初始化，
