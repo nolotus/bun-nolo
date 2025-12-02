@@ -19,13 +19,11 @@ import {
   selectSpaceLoading,
 } from "create/space/spaceSlice";
 import { createSpaceKey } from "create/space/spaceKeys";
-// 注意：SpaceItem 改为懒加载
-// import { SpaceItem } from "create/space/components/SpaceItem";
 import { useClickOutside } from "app/hooks/useClickOutside";
-import { LuHouse, LuChevronDown } from "react-icons/lu";
+import { LuHouse, LuChevronDown, LuLoader } from "react-icons/lu";
 import { zIndex } from "../styles/zIndex";
 
-// 懒加载 SpaceItem（将命名导出映射为默认导出）
+// 懒加载 SpaceItem
 const loadSpaceItem = () =>
   import("create/space/components/SpaceItem").then((m) => ({
     default: m.SpaceItem,
@@ -49,9 +47,7 @@ export const SidebarTop: React.FC = () => {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setIsDropdownOpen(false);
-      }
+      if (e.key === "Escape") setIsDropdownOpen(false);
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
@@ -67,7 +63,6 @@ export const SidebarTop: React.FC = () => {
     [dispatch, navigate]
   );
 
-  // 悬停/聚焦时预取 SpaceItem 代码块，减少点击时等待
   const warmupDropdown = useCallback(() => {
     loadSpaceItem();
   }, []);
@@ -75,18 +70,20 @@ export const SidebarTop: React.FC = () => {
   return (
     <>
       <div className="SidebarTop">
+        {/* Home 按钮：设计为圆形，更灵动 */}
         <NavLink
           to="/"
           className="SidebarTop__homeButton"
+          title={t("home")}
           aria-label={t("home")}
         >
-          <LuHouse size={16} />
+          <LuHouse size={18} />
         </NavLink>
 
-        <div className="SidebarTop__dropdown" ref={dropdownRef}>
+        <div className="SidebarTop__dropdownWrapper" ref={dropdownRef}>
           <button
             type="button"
-            className="SidebarTop__trigger"
+            className={`SidebarTop__trigger ${isDropdownOpen ? "active" : ""}`}
             onPointerEnter={warmupDropdown}
             onFocus={warmupDropdown}
             onClick={() => !loading && setIsDropdownOpen((v) => !v)}
@@ -95,10 +92,14 @@ export const SidebarTop: React.FC = () => {
             aria-expanded={isDropdownOpen}
             aria-controls={isDropdownOpen ? menuId : undefined}
           >
-            <span className="SidebarTop__label" title={space?.name}>
+            <span className="SidebarTop__label">
               {loading ? t("loading") : space?.name || t("select_space")}
             </span>
-            <LuChevronDown size={16} className="SidebarTop__chevron" />
+            {loading ? (
+              <LuLoader className="SidebarTop__spinner" size={14} />
+            ) : (
+              <LuChevronDown size={16} className="SidebarTop__chevron" />
+            )}
           </button>
 
           {isDropdownOpen && (
@@ -106,8 +107,9 @@ export const SidebarTop: React.FC = () => {
               <div className="SidebarTop__content">
                 <Suspense
                   fallback={
-                    <div className="SidebarTop__item SidebarTop__item--empty">
-                      {t("loading")}
+                    <div className="SidebarTop__loadingItem">
+                      <LuLoader className="SidebarTop__spinner" />
+                      <span>{t("loading")}</span>
                     </div>
                   }
                 >
@@ -129,7 +131,7 @@ export const SidebarTop: React.FC = () => {
                       />
                     ))
                   ) : (
-                    <div className="SidebarTop__item SidebarTop__item--empty">
+                    <div className="SidebarTop__emptyItem">
                       {t("no_spaces_yet")}
                     </div>
                   )}
@@ -141,78 +143,92 @@ export const SidebarTop: React.FC = () => {
       </div>
 
       <style href="SidebarTop-styles" precedence="component">{`
-        @keyframes SidebarTop-slideIn {
-          from { opacity: 0; transform: translateY(calc(var(--space-1) * -1)) scale(0.98); }
-          to { opacity: 1; transform: translateY(0) scale(1); }
+        :root {
+           --headerHeight: 60px; /* 稍微增高一点，更舒展 */
+           --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .SidebarTop {
           display: flex;
           align-items: center;
-          gap: var(--space-2);
-          padding: var(--space-2);
+          gap: 12px;
+          padding: 0 16px;
           height: var(--headerHeight);
           flex-shrink: 0;
-          box-sizing: border-box;
-
-          /* 左上角柔和光源效果 */
-          background-color: var(--background);
-          background-image: radial-gradient(
-            ellipse 80% 150% at 0% 0%,
-            var(--focus) 0%,
-            transparent 70%
-          );
-          background-repeat: no-repeat;
+          background: transparent; /* 依赖 Sidebar 背景 */
         }
 
+        /* === Home Button === */
         .SidebarTop__homeButton {
           display: flex;
           align-items: center;
           justify-content: center;
-          width: 32px;
-          height: 32px;
+          width: 36px;
+          height: 36px;
           flex-shrink: 0;
-          border-radius: 6px;
+          border-radius: 50%; /* 圆形 */
           color: var(--textTertiary);
           background: transparent;
-          border: none;
+          border: 1px solid transparent;
           cursor: pointer;
-          text-decoration: none;
-          transition: background-color 0.2s ease, color 0.2s ease;
+          transition: all 0.2s var(--ease-spring);
         }
-        .SidebarTop__homeButton:hover { color: var(--text); background-color: var(--backgroundHover); }
-        .SidebarTop__homeButton.active { background-color: var(--primaryGhost); color: var(--primary); }
 
-        .SidebarTop__dropdown { flex: 1; position: relative; min-width: 0; }
+        .SidebarTop__homeButton:hover {
+          color: var(--text);
+          background: var(--backgroundSecondary);
+          transform: scale(1.05);
+        }
+
+        .SidebarTop__homeButton.active {
+          color: var(--primary);
+          background: var(--primaryGhost);
+          box-shadow: 0 2px 8px rgba(var(--primary-rgb), 0.15);
+        }
+
+        /* === Dropdown Trigger === */
+        .SidebarTop__dropdownWrapper {
+          flex: 1;
+          position: relative;
+          min-width: 0;
+        }
 
         .SidebarTop__trigger {
           display: flex;
           align-items: center;
           width: 100%;
-          height: 32px;
-          padding: 0 var(--space-2) 0 var(--space-3);
-          border-radius: 6px;
-          border: 1px solid var(--border);
-          background-color: var(--background);
+          height: 36px;
+          padding: 0 12px;
+          border-radius: 10px; /* 柔和圆角 */
+          /* 40% 拟物：去边框，使用极淡背景和内阴影 */
+          background-color: var(--backgroundSecondary);
+          border: 1px solid transparent; 
+          box-shadow: inset 0 1px 2px rgba(0,0,0,0.03); 
+          
+          color: var(--text);
           cursor: pointer;
           font-family: inherit;
-          transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+          transition: all 0.2s ease;
         }
-        .SidebarTop__trigger:hover:not(:disabled):not([aria-expanded="true"]) {
+
+        .SidebarTop__trigger:hover:not(:disabled) {
           background-color: var(--backgroundHover);
-          border-color: var(--borderHover);
+          color: var(--text);
         }
-        .SidebarTop__trigger[aria-expanded="true"] {
-          border-color: var(--primary);
-          box-shadow: 0 0 0 3px var(--focus);
+        
+        .SidebarTop__trigger.active {
+           background-color: var(--background);
+           border-color: var(--primary-alpha-20);
+           box-shadow: 0 0 0 3px var(--primary-alpha-10), 0 2px 8px rgba(0,0,0,0.05);
+           color: var(--primary);
         }
+
         .SidebarTop__trigger:disabled { opacity: 0.6; cursor: not-allowed; }
 
         .SidebarTop__label {
           flex: 1;
-          font-size: 0.875rem;
+          font-size: 0.9rem;
           font-weight: 500;
-          color: var(--text);
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -221,65 +237,83 @@ export const SidebarTop: React.FC = () => {
 
         .SidebarTop__chevron {
           color: var(--textTertiary);
-          transition: transform 0.25s ease, color 0.25s ease;
+          transition: transform 0.3s var(--ease-spring);
           flex-shrink: 0;
-          margin-left: var(--space-1);
+          margin-left: 8px;
         }
-        .SidebarTop__trigger[aria-expanded="true"] .SidebarTop__chevron {
+        
+        .SidebarTop__trigger.active .SidebarTop__chevron {
           transform: rotate(180deg);
           color: var(--primary);
         }
+        
+        .SidebarTop__spinner {
+            animation: spin 1s linear infinite;
+            color: var(--textTertiary);
+        }
 
+        /* === Dropdown Menu === */
         .SidebarTop__menu {
           position: absolute;
-          top: calc(100% + var(--space-2));
+          top: calc(100% + 6px);
           left: 0;
           right: 0;
-          background-color: var(--backgroundGhost, var(--background));
-          border-radius: var(--space-2);
-          border: 1px solid var(--border);
-          box-shadow: 0 8px 24px var(--shadowMedium), 0 2px 6px var(--shadowLight);
+          
+          /* 玻璃拟态风格 */
+          background-color: var(--background);
+          /* 如果支持 backdrop-filter，可以稍微透明一点 */
+          @supports (backdrop-filter: blur(10px)) {
+             background-color: rgba(255, 255, 255, 0.9);
+             backdrop-filter: blur(12px);
+          }
+          
+          border-radius: 12px;
+          /* 极细边框 + 深邃阴影 */
+          border: 1px solid rgba(0,0,0,0.06);
+          box-shadow: 
+            0 4px 6px -1px rgba(0, 0, 0, 0.05), 
+            0 10px 15px -3px rgba(0, 0, 0, 0.05),
+            0 0 0 1px rgba(0,0,0,0.02);
+            
           z-index: ${zIndex.dropdown};
-          animation: SidebarTop-slideIn 0.15s cubic-bezier(0.1, 0, 0, 1);
-          transform-origin: top;
-          backdrop-filter: blur(12px);
+          animation: slideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+          transform-origin: top center;
           min-width: 200px;
+          overflow: hidden;
+        }
+        
+        .dark .SidebarTop__menu {
+            background-color: rgba(30, 30, 30, 0.9);
+            border-color: rgba(255,255,255,0.08);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
 
         .SidebarTop__content {
-          max-height: 40vh;
+          max-height: 300px;
           overflow-y: auto;
-          padding: var(--space-1);
+          padding: 6px;
         }
+        
+        /* 滚动条美化 */
+        .SidebarTop__content::-webkit-scrollbar { width: 4px; }
+        .SidebarTop__content::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 2px; }
 
-        .SidebarTop__item {
+        .SidebarTop__loadingItem,
+        .SidebarTop__emptyItem {
+          padding: 12px;
           display: flex;
           align-items: center;
-          width: 100%;
-          gap: var(--space-2);
-          padding: var(--space-2) var(--space-3);
-          border-radius: 6px;
-          font-size: 0.875rem;
-          text-align: left;
-          cursor: pointer;
-          border: none;
-          background-color: transparent;
-          color: var(--text);
-          font-family: inherit;
-          transition: background-color 0.2s ease, color 0.2s ease;
-        }
-        .SidebarTop__item:hover { background-color: var(--backgroundHover); }
-
-        .SidebarTop__item--empty {
-          color: var(--textTertiary);
           justify-content: center;
-          cursor: default;
-          font-style: italic;
-          font-size: 0.8rem;
+          gap: 8px;
+          color: var(--textTertiary);
+          font-size: 0.85rem;
         }
-        .SidebarTop__item--empty:hover { background-color: transparent; }
 
-        .SidebarTop__item svg { flex-shrink: 0; }
+        @keyframes slideDown {
+          from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
       `}</style>
     </>
   );
