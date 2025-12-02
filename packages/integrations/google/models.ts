@@ -14,10 +14,10 @@ export const googleModels: Model[] = [
     maxOutputTokens: 65536,
     supportsReasoningEffort: true,
     price: {
-      input: 1.25 * 10,
-      output: 10 * 10,
-      cachingWrite: 0.2 * 10,
-      cachingRead: 0.2 * 10,
+      input: 1.25 * 9,
+      output: 10 * 9,
+      cachingWrite: 0.2 * 9,
+      cachingRead: 0.2 * 9,
     },
   },
   {
@@ -31,10 +31,10 @@ export const googleModels: Model[] = [
     maxOutputTokens: 8192,
     supportsReasoningEffort: true,
     price: {
-      input: 0.3 * 10,
-      output: 2.5 * 10,
-      cachingWrite: 0.2 * 10,
-      cachingRead: 0.2 * 10,
+      input: 0.3 * 9,
+      output: 2.5 * 9,
+      cachingWrite: 0.2 * 9,
+      cachingRead: 0.2 * 9,
     },
   },
   {
@@ -48,10 +48,10 @@ export const googleModels: Model[] = [
     contextWindow: 1048576,
     maxOutputTokens: 4096,
     price: {
-      input: 0.1 * 10, // $0.10 per 1M tokens
-      output: 0.4 * 10, // $0.40 per 1M tokens
-      cachingWrite: 0.2 * 10,
-      cachingRead: 0.2 * 10,
+      input: 0.1 * 9, // $0.10 per 1M tokens
+      output: 0.4 * 9, // $0.40 per 1M tokens
+      cachingWrite: 0.2 * 9,
+      cachingRead: 0.2 * 9,
     },
   },
   {
@@ -67,10 +67,10 @@ export const googleModels: Model[] = [
     supportsReasoningEffort: true,
     // Base tier (Tier 1: ≤ 200k tokens)
     price: {
-      input: 2.0 * 10, // $2.00 per 1M
-      output: 12.0 * 10, // $12.00 per 1M
-      cachingWrite: 0.2 * 10, // $0.20 per 1M
-      cachingRead: 0.2 * 10, // $0.20 per 1M
+      input: 2.0 * 9, // $2.00 per 1M
+      output: 12.0 * 9, // $12.00 per 1M
+      cachingWrite: 0.2 * 9, // $0.20 per 1M
+      cachingRead: 0.2 * 9, // $0.20 per 1M
     },
     // Tier 2: > 200k tokens
     pricingStrategy: {
@@ -79,10 +79,10 @@ export const googleModels: Model[] = [
         {
           minContext: 200001, // Threshold > 200k
           price: {
-            input: 4.0 * 10, // $4.00 per 1M (2x)
-            output: 18.0 * 10, // $18.00 per 1M (1.5x)
-            cachingWrite: 0.4 * 10, // $0.40 per 1M (2x)
-            cachingRead: 0.4 * 10, // $0.40 per 1M (2x)
+            input: 4.0 * 9, // $4.00 per 1M (2x)
+            output: 18.0 * 9, // $18.00 per 1M (1.5x)
+            cachingWrite: 0.4 * 9, // $0.40 per 1M (2x)
+            cachingRead: 0.4 * 9, // $0.40 per 1M (2x)
           },
         },
       ],

@@ -169,6 +169,41 @@ export const openrouterModels = [
     contextWindow: 1050000,
     supportsTool: true,
   },
+  // =================================================================
+  // [NEW] Google: Gemini 3 Pro Preview (Released Nov 18, 2025)
+  // =================================================================
+  {
+    name: "google/gemini-3-pro-preview",
+    displayName: "Google: Gemini 3 Pro Preview",
+    hasVision: true,
+    maxOutputTokens: 65500,
+    contextWindow: 1048576,
+    supportsTool: true,
+
+    // Tier 1: Context ≤ 200K
+    price: {
+      input: 2 * 9, // ≤200K: $2/M
+      output: 12 * 9, // ≤200K: $12/M
+      cachingRead: 0.2 * 9, // ≤200K: $0.20/M
+      cachingWrite: 2.375 * 9, // ≤200K: $2.375/M
+    },
+
+    // Tier 2: Context > 200K
+    pricingStrategy: {
+      type: "tiered_context",
+      tiers: [
+        {
+          minContext: 200001,
+          price: {
+            input: 4 * 9, // >200K: $4/M
+            output: 18 * 9, // >200K: $18/M
+            cachingRead: 0.4 * 9, // >200K: $0.40/M
+            cachingWrite: 4.375 * 9, // >200K: $4.375/M
+          },
+        },
+      ],
+    },
+  },
 
   // --- MiniMax Models ---
   {

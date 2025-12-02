@@ -4,8 +4,8 @@ import type { Model } from "./types";
 
 // 导入所有提供商的模型数据
 import { deepSeekModels } from "integrations/deepseek/models";
-import { googleModels } from "integrations/google/models";
-import { mistralModels } from "integrations/mistral/models";
+// import { googleModels } from "integrations/google/models";
+// import { mistralModels } from "integrations/mistral/models";
 // import { openAIModels } from "integrations/openai/models";
 import { openrouterModels } from "integrations/openrouter/models";
 // import { xaiModels } from "integrations/xai/models";
@@ -24,9 +24,9 @@ export interface ModelWithProvider extends Model {
  * 这是整个应用中模型选择器的唯一数据源。
  */
 export const ALL_MODELS: ModelWithProvider[] = [
-  ...googleModels.map((m) => ({ ...m, provider: "google" })),
+  // ...googleModels.map((m) => ({ ...m, provider: "google" })),
   // ...openAIModels.map((m) => ({ ...m, provider: "openai" })),
   ...openrouterModels.map((m) => ({ ...m, provider: "openrouter" })),
   ...deepSeekModels.map((m) => ({ ...m, provider: "deepseek" })),
-  ...mistralModels.map((m) => ({ ...m, provider: "mistral" })),
+  // ...mistralModels.map((m) => ({ ...m, provider: "mistral" })),
 ];

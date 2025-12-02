@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from "react";
 import { Table, TableRow, TableCell } from "render/web/ui/Table";
 // import { openAIModels } from "integrations/openai/models";
-import { mistralModels } from "integrations/mistral/models";
-import { googleModels } from "integrations/google/models";
+// import { mistralModels } from "integrations/mistral/models";
+// import { googleModels } from "integrations/google/models";
 import { deepSeekModels } from "integrations/deepseek/models";
 import { openrouterModels } from "integrations/openrouter/models";
 // import { xaiModels } from "integrations/xai/models";
@@ -101,9 +101,9 @@ const ModelComparison: React.FC = () => {
 
   const allModels = useMemo(() => {
     const providers = [
-      [mistralModels, "Mistral"],
+      // [mistralModels, "Mistral"],
       // [openAIModels, "OpenAI"],
-      [googleModels, "Google"],
+      // [googleModels, "Google"],
       [deepSeekModels, "Deepseek"],
       [openrouterModels, "OpenRouter"],
       // [xaiModels, "XAI"],
