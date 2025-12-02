@@ -393,7 +393,7 @@ const SidebarItem = forwardRef<HTMLDivElement, SidebarItemProps>(
               grid-template-columns: auto 1fr auto;
               align-items: center;
               column-gap: var(--space-2);
-              padding: var(--space-1) var(--space-2);
+              padding: 0 var(--space-2);
               border-radius: 8px;
               color: var(--text);
               min-height: 36px;

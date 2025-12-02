@@ -169,16 +169,6 @@ const SendButton: React.FC<SendButtonProps> = ({ onClick, disabled }) => {
           animation: takeOff 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
         }
 
-        /* 脉冲动画 */
-        @keyframes pulse {
-          0%, 100% { transform: scale(1); opacity: 0.8; }
-          50% { transform: scale(1.03); opacity: 1; }
-        }
-
-        .send-button.stop-mode .stop-indicator {
-          animation: pulse 2.5s ease-in-out infinite;
-        }
-
         /* 光效 */
         .send-button::before {
           content: '';
@@ -218,7 +208,6 @@ const SendButton: React.FC<SendButtonProps> = ({ onClick, disabled }) => {
           .send-button, .send-icon, .stop-indicator { transition: none !important; }
           .send-button:hover { transform: none !important; }
           .send-icon.animating { animation: none !important; opacity: 0.6; }
-          .send-button.stop-mode .stop-indicator { animation: none !important; }
         }
 
         /* 高对比度 */

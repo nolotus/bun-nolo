@@ -254,7 +254,7 @@ export async function handleSignUp(req: any) {
     }
 
     // 7) 赠送余额（保持原逻辑）
-    const initialBalance = inviterId ? 6.6 : 2;
+    const initialBalance = inviterId ? 6 : 3;
     const reason = inviterId ? "invited_signup_bonus" : "new_user_bonus";
     const initialRechargeResult = await rechargeUserBalance(
       userId,

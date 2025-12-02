@@ -1,53 +1,17 @@
-import { memo, useState, useEffect, useMemo } from "react";
-import { SyncIcon, ArrowUpIcon, ArrowDownIcon } from "@primer/octicons-react";
+import { memo, useState, useEffect } from "react";
+import { ArrowUpIcon, ArrowDownIcon } from "@primer/octicons-react";
 import {
   usePublicAgents,
   UsePublicAgentsOptions,
 } from "ai/agent/hooks/usePublicAgents";
-import AgentBlock from "ai/agent/web/AgentBlock";
 import toast from "react-hot-toast";
 import SearchInput from "render/web/ui/SearchInput";
+
+import PublicAgentsList from "./PublicAgentsList"; // 新增：引入刚才抽出来的组件
 
 interface PublicAgentsProps {
   limit?: number;
 }
-
-const SKELETON_COUNT = 6;
-
-/**
- * 骨架屏列表
- */
-const PublicAgentsSkeleton = memo(() => {
-  const items = useMemo(() => Array.from({ length: SKELETON_COUNT }), []);
-
-  return (
-    <div className="public-agents__skeleton-list">
-      {items.map((_, index) => (
-        <div key={index} className="public-agents__skeleton-card">
-          <div className="public-agents__skeleton-header">
-            <div className="public-agents__skeleton-avatar" />
-            <div className="public-agents__skeleton-header-text">
-              <div className="public-agents__skeleton-line public-agents__skeleton-line--title" />
-              <div className="public-agents__skeleton-line public-agents__skeleton-line--subtitle" />
-            </div>
-          </div>
-
-          <div className="public-agents__skeleton-body">
-            <div className="public-agents__skeleton-line" />
-            <div className="public-agents__skeleton-line" />
-            <div className="public-agents__skeleton-line public-agents__skeleton-line--short" />
-          </div>
-
-          <div className="public-agents__skeleton-footer">
-            <div className="public-agents__skeleton-pill" />
-            <div className="public-agents__skeleton-pill public-agents__skeleton-pill--small" />
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-});
-PublicAgentsSkeleton.displayName = "PublicAgentsSkeleton";
 
 const PublicAgents = memo(({ limit = 20 }: PublicAgentsProps) => {
   const [sortBy, setSortBy] =
@@ -66,10 +30,6 @@ const PublicAgents = memo(({ limit = 20 }: PublicAgentsProps) => {
     searchName: debouncedSearchTerm,
   });
 
-  const handleReload = async () => {
-    await reload();
-  };
-
   const handlePriceSortClick = () => {
     setSortBy((prev) =>
       prev === "outputPriceAsc" ? "outputPriceDesc" : "outputPriceAsc"
@@ -80,8 +40,6 @@ const PublicAgents = memo(({ limit = 20 }: PublicAgentsProps) => {
     toast.error("加载列表失败");
     return null;
   }
-
-  const hasData = data && data.length > 0;
 
   return (
     <div className="public-agents">
@@ -133,32 +91,8 @@ const PublicAgents = memo(({ limit = 20 }: PublicAgentsProps) => {
         </div>
       </div>
 
-      {/* 内容区域 */}
-      <div className="public-agents__list-wrapper">
-        {loading && !hasData ? (
-          <PublicAgentsSkeleton />
-        ) : hasData ? (
-          <div className="public-agents__list">
-            {data.map((item) => (
-              <AgentBlock key={item.id} item={item} reload={handleReload} />
-            ))}
-          </div>
-        ) : (
-          <div className="public-agents__empty">
-            暂无相关助手，换个关键词试试？
-          </div>
-        )}
-
-        {loading && hasData && (
-          <div className="public-agents__loading-more">
-            <SyncIcon
-              className="public-agents__icon public-agents__icon--spin"
-              size={16}
-            />
-            <span>加载更多...</span>
-          </div>
-        )}
-      </div>
+      {/* 列表区域：已抽成独立组件 */}
+      <PublicAgentsList loading={loading} data={data} reload={reload} />
 
       <style href="public-agents-styles" precedence="default">{`
         :root {
@@ -248,163 +182,7 @@ const PublicAgents = memo(({ limit = 20 }: PublicAgentsProps) => {
           height: 14px;
         }
 
-        /* 列表区域（flex 布局） */
-        .public-agents__list-wrapper {
-          width: 100%;
-        }
-
-        .public-agents__list {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 24px;
-        }
-
-        .public-agents__list > * {
-          flex: 1 1 300px; /* 最小 300px，按行自动折行 */
-          max-width: 100%;
-        }
-
-        .public-agents__empty {
-          text-align: center;
-          padding: 40px;
-          color: var(--textTertiary);
-          font-size: 0.95rem;
-        }
-
-        .public-agents__loading-more {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          gap: 8px;
-          padding: 24px 0;
-          color: var(--textTertiary);
-          font-size: 0.9rem;
-        }
-
-        .public-agents__icon--spin {
-          animation: public-agents-spin 1s linear infinite;
-        }
-
-        @keyframes public-agents-spin {
-          from {
-            transform: rotate(0deg);
-          }
-          to {
-            transform: rotate(360deg);
-          }
-        }
-
-        /* 骨架屏 */
-        .public-agents__skeleton-list {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 24px;
-        }
-
-        .public-agents__skeleton-card {
-          flex: 1 1 300px;
-          max-width: 100%;
-          padding: 16px;
-          border-radius: 16px;
-          background: var(--public-agents-skeleton-bg);
-          overflow: hidden;
-        }
-
-        .public-agents__skeleton-header {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          margin-bottom: 16px;
-        }
-
-        .public-agents__skeleton-avatar {
-          width: 40px;
-          height: 40px;
-          border-radius: 9999px;
-          background: linear-gradient(
-            90deg,
-            rgba(255, 255, 255, 0.08),
-            rgba(255, 255, 255, 0.18),
-            rgba(255, 255, 255, 0.08)
-          );
-          background-size: 200% 100%;
-          animation: public-agents-skeleton-shimmer 1.4s linear infinite;
-        }
-
-        .public-agents__skeleton-header-text {
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-        }
-
-        .public-agents__skeleton-body {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-          margin-bottom: 16px;
-        }
-
-        .public-agents__skeleton-footer {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-
-        .public-agents__skeleton-line {
-          height: 10px;
-          border-radius: 9999px;
-          background: linear-gradient(
-            90deg,
-            rgba(255, 255, 255, 0.06),
-            rgba(255, 255, 255, 0.18),
-            rgba(255, 255, 255, 0.06)
-          );
-          background-size: 200% 100%;
-          animation: public-agents-skeleton-shimmer 1.4s linear infinite;
-        }
-
-        .public-agents__skeleton-line--title {
-          width: 60%;
-          height: 12px;
-        }
-
-        .public-agents__skeleton-line--subtitle {
-          width: 40%;
-        }
-
-        .public-agents__skeleton-line--short {
-          width: 50%;
-        }
-
-        .public-agents__skeleton-pill {
-          height: 22px;
-          width: 80px;
-          border-radius: 9999px;
-          background: linear-gradient(
-            90deg,
-            rgba(255, 255, 255, 0.06),
-            rgba(255, 255, 255, 0.2),
-            rgba(255, 255, 255, 0.06)
-          );
-          background-size: 200% 100%;
-          animation: public-agents-skeleton-shimmer 1.4s linear infinite;
-        }
-
-        .public-agents__skeleton-pill--small {
-          width: 60px;
-        }
-
-        @keyframes public-agents-skeleton-shimmer {
-          0% {
-            background-position: -200% 0;
-          }
-          100% {
-            background-position: 200% 0;
-          }
-        }
-
-        /* 响应式 */
+        /* 响应式（控制栏相关） */
         @media (max-width: 768px) {
           .public-agents__controls {
             flex-direction: column;
@@ -428,24 +206,6 @@ const PublicAgents = memo(({ limit = 20 }: PublicAgentsProps) => {
           .public-agents__sort-pill {
             flex: 1;
             justify-content: center;
-          }
-
-          .public-agents__list {
-            flex-direction: column;
-            gap: 16px;
-          }
-
-          .public-agents__list > * {
-            flex: 1 1 100%;
-          }
-
-          .public-agents__skeleton-list {
-            flex-direction: column;
-            gap: 16px;
-          }
-
-          .public-agents__skeleton-card {
-            flex: 1 1 100%;
           }
         }
       `}</style>
