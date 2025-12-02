@@ -1,6 +1,8 @@
 import { EyeClosedIcon, EyeIcon } from "@primer/octicons-react";
 import React, { forwardRef, useState, useEffect, useCallback } from "react";
 
+// --- Types ---
+
 export interface BaseInputProps {
   icon?: React.ReactNode;
   error?: boolean;
@@ -9,85 +11,219 @@ export interface BaseInputProps {
   size?: "small" | "medium" | "large";
   variant?: "default" | "filled" | "ghost";
 }
+
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement>,
     BaseInputProps {
   password?: boolean;
 }
+
 export interface NumberInputProps
   extends Omit<InputProps, "onChange" | "type" | "value"> {
   value?: number;
   onChange: (value: number) => void;
   decimal?: number;
 }
+
 export interface TextAreaProps
   extends React.TextareaHTMLAttributes<HTMLTextAreaElement>,
     BaseInputProps {
   autoResize?: boolean;
 }
 
+// --- Styles (BEM & Design System) ---
+
 const CSS = `
-  .input-container { display: flex; flex-direction: column; gap: var(--space-1); width: 100%; }
-  .input-label { font-size: 0.875rem; font-weight: 550; color: var(--text); margin-bottom: var(--space-1); letter-spacing: -0.01em; line-height: 1.4; }
-  .input-label.error { color: var(--error); }
-  .input-wrapper, .textarea-wrapper { position: relative; width: 100%; display: flex; align-items: flex-start; }
-  .input-field, .textarea-field { width: 100%; border-radius: var(--space-3); border: 1px solid var(--border); font-size: 0.925rem; font-weight: 500; color: var(--text); background: var(--background); outline: none; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; letter-spacing: -0.01em; line-height: 1.4; box-shadow: 0 1px 3px var(--shadowLight), inset 0 1px 0 rgba(255, 255, 255, 0.1); }
-  .input-field.error, .textarea-field.error { border-color: var(--error); }
+  /* 基础变量与重置 (建议在全局定义，此处作为Fallback) */
+  .input {
+    --input-radius: var(--space-3, 6px);
+    --input-border: var(--border, #e2e8f0);
+    --input-bg: var(--background, #ffffff);
+    --input-text: var(--text, #1e293b);
+    --input-placeholder: var(--text-quaternary, #94a3b8);
+    --input-focus: var(--primary, #3b82f6);
+    --input-error: var(--error, #ef4444);
+    --input-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --input-shadow-inner: inset 0 2px 4px 0 rgba(0,0,0,0.02);
+    --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+
+  /* Label */
+  .input__label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--input-text);
+    line-height: 1.2;
+    margin-bottom: 2px;
+    transition: var(--transition-smooth);
+  }
+  .input__label--error { color: var(--input-error); }
+
+  /* Wrapper */
+  .input__wrapper {
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: center;
+  }
   
-  .input-field.size-small { height: 36px; border-radius: var(--space-2); font-size: 0.875rem; padding: 0 var(--space-3); }
-  .input-field.size-small.has-icon { padding-left: 40px; }
-  .input-field.size-small.has-password { padding-right: 40px; }
-  .input-field.size-medium { height: 42px; font-size: 0.925rem; padding: 0 var(--space-4); }
-  .input-field.size-medium.has-icon { padding-left: 44px; }
-  .input-field.size-medium.has-password { padding-right: 44px; }
-  .input-field.size-large { height: 48px; font-size: 1rem; border-radius: var(--space-4); padding: 0 var(--space-5); }
-  .input-field.size-large.has-icon { padding-left: 48px; }
-  .input-field.size-large.has-password { padding-right: 48px; }
+  /* Control (Input/Textarea) */
+  .input__control {
+    width: 100%;
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
+    border-radius: var(--input-radius);
+    color: var(--input-text);
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    transition: var(--transition-smooth);
+    outline: none;
+    box-shadow: var(--input-shadow-sm);
+    /* 拟物感：微弱的内部光泽 */
+    background-image: linear-gradient(to bottom, rgba(255,255,255,1), rgba(255,255,255,0.5)); 
+  }
 
-  .textarea-field { min-height: 100px; resize: vertical; padding: var(--space-3) var(--space-4); }
-  .textarea-field.size-small { min-height: 80px; padding: var(--space-2) var(--space-3); font-size: 0.875rem; border-radius: var(--space-2); }
-  .textarea-field.size-small.has-icon { padding-left: 40px; }
-  .textarea-field.size-medium.has-icon { padding-left: 44px; }
-  .textarea-field.size-large { min-height: 120px; padding: var(--space-4) var(--space-5); font-size: 1rem; border-radius: var(--space-4); }
-  .textarea-field.size-large.has-icon { padding-left: 48px; }
-  .textarea-field.auto-resize { resize: none; overflow-y: hidden; }
+  /* 尺寸修饰符 */
+  .input__control--small {
+    height: 32px;
+    font-size: 0.8125rem;
+    padding: 0 12px;
+    border-radius: 4px; /* 更纤细的圆角 */
+  }
+  .input__control--medium {
+    height: 40px;
+    font-size: 0.875rem;
+    padding: 0 14px;
+  }
+  .input__control--large {
+    height: 48px;
+    font-size: 1rem;
+    padding: 0 16px;
+  }
 
-  .variant-filled { background: var(--backgroundSecondary); border-color: var(--borderLight); }
-  .variant-ghost { background: transparent; border-color: var(--borderLight); box-shadow: none; }
+  /* Padding compensation for icons */
+  .input__control--has-icon.input__control--small { padding-left: 32px; }
+  .input__control--has-icon.input__control--medium { padding-left: 38px; }
+  .input__control--has-icon.input__control--large { padding-left: 44px; }
   
-  .input-field:hover:not(:disabled), .textarea-field:hover:not(:disabled) { border-color: var(--hover); box-shadow: 0 2px 6px var(--shadowLight), inset 0 1px 0 rgba(255, 255, 255, 0.15); }
-  .input-field:focus:not(:disabled), .textarea-field:focus:not(:disabled) { border-color: var(--primary); box-shadow: 0 0 0 3px var(--focus), 0 2px 8px var(--shadowMedium), inset 0 1px 0 rgba(255, 255, 255, 0.2); transform: translateY(-1px); }
-  .input-field.error:focus:not(:disabled), .textarea-field.error:focus:not(:disabled) { border-color: var(--error); box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2), 0 2px 8px rgba(239, 68, 68, 0.15); }
+  .input__control--has-toggle.input__control--small { padding-right: 32px; }
+  .input__control--has-toggle.input__control--medium { padding-right: 38px; }
+  .input__control--has-toggle.input__control--large { padding-right: 44px; }
+
+  /* Textarea Specific */
+  textarea.input__control {
+    min-height: 80px;
+    padding: 10px 14px;
+    resize: vertical;
+  }
+  textarea.input__control--auto-resize {
+    resize: none;
+    overflow-y: hidden;
+  }
+  textarea.input__control--has-icon { text-indent: 24px; } /* Icon alignment fix for textarea */
+
+  /* 状态交互 */
+  .input__control:hover:not(:disabled) {
+    border-color: var(--input-text); /* 提高对比度 */
+    background-color: #fcfcfc;
+  }
+
+  .input__control:focus:not(:disabled) {
+    border-color: var(--input-focus);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15), var(--input-shadow-inner); /* 扩散阴影 + 内阴影 */
+    transform: translateY(-0.5px); /* 微动效 */
+  }
+
+  .input__control--error {
+    border-color: var(--input-error);
+  }
+  .input__control--error:focus {
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+  }
+
+  .input__control:disabled {
+    background: #f1f5f9;
+    color: var(--input-placeholder);
+    cursor: not-allowed;
+    box-shadow: none;
+    border-color: transparent;
+  }
+
+  /* Icons */
+  .input__icon {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--input-placeholder);
+    pointer-events: none;
+    z-index: 2;
+    transition: var(--transition-smooth);
+    left: 12px;
+  }
+  .input__control:focus ~ .input__icon { color: var(--input-focus); }
+  .input__icon--error { color: var(--input-error); }
+
+  /* Password Toggle */
+  .input__toggle {
+    position: absolute;
+    right: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    color: var(--input-placeholder);
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 4px;
+    transition: var(--transition-smooth);
+  }
+  .input__toggle:hover {
+    color: var(--input-text);
+    background: rgba(0,0,0,0.04);
+  }
+
+  /* Helper Text */
+  .input__helper {
+    font-size: 0.75rem;
+    color: var(--input-placeholder);
+    margin-left: 1px;
+    line-height: 1.4;
+  }
+  .input__helper--error { color: var(--input-error); }
   
-  .input-field:focus:not(:disabled) ~ .input-icon, .textarea-field:focus:not(:disabled) ~ .textarea-icon { color: var(--primary); transform: translateY(-50%) scale(1.05); }
-  .input-field:focus:not(:disabled) ~ .password-toggle { color: var(--primary); }
-  .input-field:disabled, .textarea-field:disabled { background: var(--backgroundTertiary); color: var(--textQuaternary); cursor: not-allowed; opacity: 0.6; box-shadow: none; }
+  /* Variant: Filled */
+  .input__control--filled {
+    background-color: #f8fafc;
+    border-color: transparent;
+  }
+  .input__control--filled:hover:not(:disabled) {
+    background-color: #f1f5f9;
+  }
+  .input__control--filled:focus:not(:disabled) {
+    background-color: #fff;
+    border-color: var(--input-focus);
+  }
 
-  .input-icon, .textarea-icon { position: absolute; color: var(--textSecondary); display: flex; align-items: center; justify-content: center; pointer-events: none; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); z-index: 1; }
-  .input-icon { top: 50%; transform: translateY(-50%); }
-  .textarea-icon { top: var(--space-3); left: 50%; transform: translateX(-50%); }
-  .input-icon.size-small, .textarea-icon.size-small { left: var(--space-3); width: 16px; height: 16px; }
-  .input-icon.size-medium, .textarea-icon.size-medium { left: var(--space-4); width: 18px; height: 18px; }
-  .input-icon.size-large, .textarea-icon.size-large { left: var(--space-5); width: 20px; height: 20px; }
-  .input-icon.error, .textarea-icon.error { color: var(--error); }
-
-  .password-toggle { position: absolute; right: var(--space-2); top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--textSecondary); cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: var(--space-1); transition: all 0.3s; z-index: 2; }
-  .password-toggle:hover:not(:disabled) { color: var(--text); background: var(--backgroundHover); }
-  .password-toggle.size-small { width: 28px; height: 28px; }
-  .password-toggle.size-medium { width: 32px; height: 32px; }
-  .password-toggle.size-large { width: 36px; height: 36px; }
-
-  .input-helper { font-size: 0.8125rem; line-height: 1.4; margin-top: var(--space-1); letter-spacing: -0.01em; }
-  .input-helper.error { color: var(--error); }
-  .input-helper.normal { color: var(--textTertiary); }
-  .input-field::placeholder, .textarea-field::placeholder { color: var(--placeholder); transition: opacity 0.3s; }
-  .input-field:focus::placeholder, .textarea-field:focus::placeholder { opacity: 0.6; }
-
-  @media (max-width: 768px) {
-    .input-field.size-medium { height: 44px; font-size: 1rem; }
-    .password-toggle { min-width: 44px; min-height: 44px; }
+  /* Variant: Ghost */
+  .input__control--ghost {
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+  }
+  .input__control--ghost:hover:not(:disabled) {
+    background: rgba(0,0,0,0.03);
   }
 `;
+
+// --- Components ---
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
   (
@@ -107,95 +243,130 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     },
     ref
   ) => {
-    const [show, setShow] = useState(false);
-    const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`;
-    const helperId = helperText ? `${inputId}-helper` : undefined;
+    const [showPassword, setShowPassword] = useState(false);
+    const uniqueId = id || `input-${Math.random().toString(36).slice(2, 9)}`;
+    const helperId = helperText ? `${uniqueId}-helper` : undefined;
+
+    // Class Construction using BEM
+    const block = "input";
+    const controlClasses = [
+      `${block}__control`,
+      `${block}__control--${size}`,
+      `${block}__control--${variant}`,
+      error ? `${block}__control--error` : "",
+      icon ? `${block}__control--has-icon` : "",
+      password ? `${block}__control--has-toggle` : "",
+    ]
+      .filter(Boolean)
+      .join(" ");
 
     return (
-      <div className={`input-container ${className}`} style={style}>
-        <style href="ui-input" precedence="medium">
+      <div className={`${block} ${className}`} style={style}>
+        <style href="ui-input-styles" precedence="medium">
           {CSS}
         </style>
+
         {label && (
           <label
-            htmlFor={inputId}
-            className={`input-label ${error ? "error" : ""}`}
+            htmlFor={uniqueId}
+            className={`${block}__label ${error ? `${block}__label--error` : ""}`}
           >
             {label}
           </label>
         )}
-        <div className="input-wrapper">
+
+        <div className={`${block}__wrapper`}>
           {icon && (
-            <div className={`input-icon size-${size} ${error ? "error" : ""}`}>
+            <span
+              className={`${block}__icon ${error ? `${block}__icon--error` : ""}`}
+            >
               {icon}
-            </div>
+            </span>
           )}
+
           <input
             ref={ref}
-            id={inputId}
-            type={password ? (show ? "text" : "password") : propType}
-            className={`input-field size-${size} variant-${variant} ${error ? "error" : ""} ${icon ? "has-icon" : ""} ${password ? "has-password" : ""}`}
+            id={uniqueId}
+            type={password ? (showPassword ? "text" : "password") : propType}
+            className={controlClasses}
             aria-invalid={error}
             aria-describedby={helperId}
+            placeholder={props.placeholder}
             {...props}
           />
+
           {password && (
             <button
               type="button"
-              onClick={() => setShow(!show)}
-              className={`password-toggle size-${size} ${error ? "error" : ""}`}
+              onClick={() => setShowPassword(!showPassword)}
+              className={`${block}__toggle`}
+              tabIndex={-1}
+              aria-label={showPassword ? "Hide password" : "Show password"}
               disabled={props.disabled}
             >
-              {show ? (
-                <EyeClosedIcon
-                  size={size === "small" ? 14 : size === "large" ? 18 : 16}
-                />
+              {showPassword ? (
+                <EyeIcon size={16} />
               ) : (
-                <EyeIcon
-                  size={size === "small" ? 14 : size === "large" ? 18 : 16}
-                />
+                <EyeClosedIcon size={16} />
               )}
             </button>
           )}
         </div>
+
         {helperText && (
-          <div
+          <span
             id={helperId}
-            className={`input-helper ${error ? "error" : "normal"}`}
+            className={`${block}__helper ${error ? `${block}__helper--error` : ""}`}
             role={error ? "alert" : "note"}
           >
             {helperText}
-          </div>
+          </span>
         )}
       </div>
     );
   }
 );
+Input.displayName = "Input";
 
 export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
   ({ value, onChange, decimal = 0, placeholder = "", ...props }, ref) => {
+    // 状态与显示值解耦，处理浮点数输入体验
     const [display, setDisplay] = useState("");
+
     useEffect(() => {
-      setDisplay(
-        value === undefined || value === 0
-          ? ""
-          : decimal > 0
-            ? value.toFixed(decimal).replace(/\.?0+$/, "")
-            : value.toString()
-      );
+      if (value === undefined || value === null) {
+        setDisplay("");
+        return;
+      }
+      // 仅在非输入中状态时同步外部值，防止光标跳动问题（简化版逻辑）
+      // 实际生产中可能需要更复杂的焦点判断，这里保持“简洁性”原则
+      const formatted =
+        decimal > 0
+          ? value.toFixed(decimal).replace(/\.?0+$/, "")
+          : value.toString();
+      // 简单判断：只有当解析后的值不一致时才重置display，允许用户输入 "1."
+      if (parseFloat(display) !== value && display !== formatted + ".") {
+        setDisplay(formatted === "0" && !value ? "" : formatted);
+      }
     }, [value, decimal]);
 
     const handleChange = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
         const raw = e.target.value;
-        if (
-          raw === "" ||
-          new RegExp(
-            `^${raw.startsWith("-") ? "-?" : ""}\\d*(\\.\\d{0,${decimal}})?$`
-          ).test(raw)
-        ) {
+        // 正则允许输入负号、数字和小数点
+        const regex = new RegExp(
+          `^${raw.startsWith("-") ? "-?" : ""}\\d*(\\.\\d{0,${decimal}})?$`
+        );
+
+        if (raw === "" || regex.test(raw)) {
           setDisplay(raw);
-          onChange(parseFloat(raw) || 0);
+          const parsed = parseFloat(raw);
+          if (!isNaN(parsed)) {
+            onChange(parsed);
+          } else if (raw === "") {
+            // 处理空值情况，根据业务需求可能需要传 null 或 0，此处保持原有逻辑
+            onChange(0);
+          }
         }
       },
       [onChange, decimal]
@@ -206,14 +377,15 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
         {...props}
         ref={ref}
         type="text"
+        inputMode={decimal > 0 ? "decimal" : "numeric"}
         value={display}
         onChange={handleChange}
-        placeholder={!value ? placeholder : ""}
-        inputMode={decimal > 0 ? "decimal" : "numeric"}
+        placeholder={placeholder}
       />
     );
   }
 );
+NumberInput.displayName = "NumberInput";
 
 export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
   (
@@ -228,85 +400,100 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
       className = "",
       style,
       id,
-      rows = 4,
+      rows = 3,
       ...props
     },
     ref
   ) => {
-    const [internalRef, setInternalRef] = useState<HTMLTextAreaElement | null>(
-      null
-    );
+    const uniqueId = id || `textarea-${Math.random().toString(36).slice(2, 9)}`;
+    const innerRef = React.useRef<HTMLTextAreaElement | null>(null);
+
+    // 组合 Ref
     const setRef = useCallback(
-      (n: HTMLTextAreaElement) => {
-        setInternalRef(n);
-        if (typeof ref === "function") ref(n);
-        else if (ref) ref.current = n;
+      (node: HTMLTextAreaElement) => {
+        innerRef.current = node;
+        if (typeof ref === "function") ref(node);
+        else if (ref) ref.current = node;
       },
       [ref]
     );
-    const inputId = id || `textarea-${Math.random().toString(36).substr(2, 9)}`;
 
     useEffect(() => {
-      if (autoResize && internalRef) {
-        const adjust = () => {
-          internalRef.style.height = "auto";
-          internalRef.style.height = `${internalRef.scrollHeight}px`;
-        };
-        adjust();
-        internalRef.addEventListener("input", adjust);
-        return () => internalRef.removeEventListener("input", adjust);
-      }
-    }, [autoResize, internalRef, props.value]);
+      if (!autoResize || !innerRef.current) return;
+      const el = innerRef.current;
+      const adjustHeight = () => {
+        el.style.height = "auto";
+        el.style.height = `${el.scrollHeight + 2}px`; // +2 for border compensation
+      };
+
+      el.addEventListener("input", adjustHeight);
+      // 初始化调整
+      if (props.value) adjustHeight();
+
+      return () => el.removeEventListener("input", adjustHeight);
+    }, [autoResize, props.value]);
+
+    // BEM Class Construction
+    const block = "input";
+    const controlClasses = [
+      `${block}__control`,
+      `${block}__control--${size}`,
+      `${block}__control--${variant}`,
+      error ? `${block}__control--error` : "",
+      icon ? `${block}__control--has-icon` : "",
+      autoResize ? `${block}__control--auto-resize` : "",
+    ]
+      .filter(Boolean)
+      .join(" ");
 
     return (
-      <div className={`input-container ${className}`} style={style}>
-        <style href="ui-input" precedence="medium">
+      <div className={`${block} ${className}`} style={style}>
+        <style href="ui-input-styles" precedence="medium">
           {CSS}
         </style>
         {label && (
           <label
-            htmlFor={inputId}
-            className={`input-label ${error ? "error" : ""}`}
+            htmlFor={uniqueId}
+            className={`${block}__label ${error ? `${block}__label--error` : ""}`}
           >
             {label}
           </label>
         )}
-        <div className="textarea-wrapper">
+        <div className={`${block}__wrapper`}>
           {icon && (
-            <div
-              className={`textarea-icon size-${size} ${error ? "error" : ""}`}
+            <span
+              className={`${block}__icon ${error ? `${block}__icon--error` : ""}`}
+              style={{ top: "12px", transform: "none" }} // 特殊处理 Textarea icon 位置
             >
               {icon}
-            </div>
+            </span>
           )}
           <textarea
             ref={setRef}
-            id={inputId}
+            id={uniqueId}
             rows={rows}
-            className={`textarea-field size-${size} variant-${variant} ${error ? "error" : ""} ${icon ? "has-icon" : ""} ${autoResize ? "auto-resize" : ""}`}
+            className={controlClasses}
             aria-invalid={error}
-            aria-describedby={helperText ? `${inputId}-helper` : undefined}
+            aria-describedby={helperText ? `${uniqueId}-helper` : undefined}
             {...props}
           />
         </div>
         {helperText && (
-          <div
-            id={`${inputId}-helper`}
-            className={`input-helper ${error ? "error" : "normal"}`}
+          <span
+            id={`${uniqueId}-helper`}
+            className={`${block}__helper ${error ? `${block}__helper--error` : ""}`}
           >
             {helperText}
-          </div>
+          </span>
         )}
       </div>
     );
   }
 );
+TextArea.displayName = "TextArea";
 
 export const PasswordInput = forwardRef<
   HTMLInputElement,
   Omit<InputProps, "password">
 >((props, ref) => <Input {...props} password ref={ref} />);
-Input.displayName = "Input";
-NumberInput.displayName = "NumberInput";
-TextArea.displayName = "TextArea";
 PasswordInput.displayName = "PasswordInput";

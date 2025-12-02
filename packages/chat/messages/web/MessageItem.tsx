@@ -441,9 +441,6 @@ export const MessageItem = memo(({ message }: any) => {
 
 /* 桌面端悬停效果 */
 @media (hover: hover) and (pointer: fine) {
-  .msg:hover {
-    background-color: var(--backgroundGhost);
-  }
   .msg:hover .actions {
     opacity: 0.9;
     visibility: visible;

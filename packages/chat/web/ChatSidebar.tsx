@@ -523,7 +523,6 @@ const ChatSidebar: React.FC = () => {
           transform: translateY(0);
         }
         .ChatSidebar__section {
-          margin-bottom: var(--space-1);
           opacity: 0;
           transform: translateY(8px);
           transition: opacity 0.3s ease, transform 0.3s ease;

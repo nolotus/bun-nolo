@@ -459,11 +459,17 @@ const Home = () => {
         .view-all-link:hover { color: var(--primary); background: var(--backgroundSecondary); }
         
         .content-body { padding: 4px 0; /* 防止阴影被截断 */ }
-        
+
+        /* === Cybots List 使用 flex 布局 === */
         .cybots-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); /* 更宽的卡片 */
-            gap: 24px; /* 更多呼吸感 */
+            display: flex;
+            flex-wrap: wrap;        /* 允许换行 */
+            gap: 24px;              /* 卡片间距 */
+        }
+        
+        .cybots-grid > * {
+            flex: 1 1 300px;        /* 最小宽度 300px，剩余空间自适应 */
+            max-width: 100%;
         }
         
         .loading-card-container {
@@ -478,7 +484,12 @@ const Home = () => {
             width: 100%;
             height: 100%;
             border-radius: 12px; 
-            background: linear-gradient(90deg, var(--backgroundSecondary) 25%, var(--background) 50%, var(--backgroundSecondary) 75%);
+            background: linear-gradient(
+              90deg,
+              var(--backgroundSecondary) 25%,
+              var(--background) 50%,
+              var(--backgroundSecondary) 75%
+            );
             background-size: 200% 100%;
             animation: shimmer 1.5s infinite;
         }
@@ -517,7 +528,16 @@ const Home = () => {
           .action-grid { grid-template-columns: 1fr; gap: 12px; }
           .action-card { grid-column: span 1 !important; min-height: auto; padding: 20px; }
           .action-icon-wrapper { width: 36px; height: 36px; }
-          .cybots-grid { grid-template-columns: 1fr; gap: 16px; }
+
+          /* 移动端：Cybots 列表单列显示 */
+          .cybots-grid {
+            flex-direction: column;
+            gap: 16px;
+          }
+
+          .cybots-grid > * {
+            flex: 1 1 100%;
+          }
         }
         
         @media (prefers-reduced-motion: reduce) {
