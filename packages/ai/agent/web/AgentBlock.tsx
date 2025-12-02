@@ -1,11 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useState,
-  lazy,
-  Suspense,
-  useRef,
-} from "react";
+import { useCallback, useEffect, useState, lazy, Suspense } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
@@ -20,13 +13,12 @@ import Avatar from "render/web/ui/Avatar";
 import Button from "render/web/ui/Button";
 import { Dialog } from "render/web/ui/modal/Dialog";
 
-// 确认这些图标存在于 react-icons/lu
 import {
   LuArrowRight,
   LuCoins,
   LuEye,
   LuMessageSquare,
-  LuEllipsis, // 如果报错，尝试改为 LuMoreHorizontal
+  LuEllipsis,
   LuPencil,
   LuPlus,
   LuRefreshCw,
@@ -41,9 +33,11 @@ interface AgentBlockProps {
   reload: () => Promise<void>;
 }
 
-const loadAgentForm = () => import("ai/llm/web/AgentForm");
+// 仅 AgentForm 懒加载（编辑相关）
+const loadAgentForm = () => import("ai/llm/web/AgentForm"); // 默认导出
 const AgentFormLazy = lazy(loadAgentForm);
 
+// 预取编辑相关（这里只需预取 AgentForm）
 const preloadEditBundle = () => {
   loadAgentForm();
 };
@@ -52,8 +46,6 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
   const { t } = useTranslation("ai");
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  // 使用 ref 引用 DOM，替代 getElementById
-  const cardRef = useRef<HTMLDivElement>(null);
 
   const agentKey = item.dbKey || item.id;
   const { isLoading, createNewDialog } = useCreateDialog();
@@ -64,8 +56,7 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
   const [isFavorite, setIsFavorite] = useState(false);
   const allowEdit = useCouldEdit(agentKey);
 
-  const startDialog = async (e?: React.MouseEvent) => {
-    e?.stopPropagation();
+  const startDialog = async () => {
     if (isLoading) return;
     try {
       await createNewDialog({ agents: [agentKey] });
@@ -79,38 +70,24 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
     setDeleting(true);
 
     try {
-      // 使用 ref 添加退出动画类
-      if (cardRef.current) {
-        cardRef.current.classList.add("agent-exit");
-      }
-
-      // 等待动画
+      const element = document.getElementById(`agent-${item.id}`);
+      element?.classList.add("agent-exit");
       await new Promise((r) => setTimeout(r, 250));
-
       await dispatch(remove(agentKey));
       toast.success(t("deleteSuccess"));
       await reload();
-    } catch (err) {
-      console.error(err);
+    } catch {
       setDeleting(false);
       setConfirmingDelete(false);
-      // 移除动画类以恢复显示
-      if (cardRef.current) {
-        cardRef.current.classList.remove("agent-exit");
-      }
       toast.error(t("deleteError"));
     }
   }, [item.id, agentKey, deleting, dispatch, reload, t]);
 
-  const handleEdit = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation();
-      setShowActions(false);
-      preloadEditBundle();
-      openEdit();
-    },
-    [openEdit]
-  );
+  const handleEdit = useCallback(() => {
+    setShowActions(false);
+    preloadEditBundle(); // 点击前预取
+    openEdit();
+  }, [openEdit]);
 
   const handleToggleFavorite = useCallback(
     (e: React.MouseEvent) => {
@@ -130,61 +107,91 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
       e.stopPropagation();
       const next = !showActions;
       setShowActions(next);
-      if (next) preloadEditBundle();
+      if (next) preloadEditBundle(); // 展开菜单时预取
     },
     [showActions]
   );
 
-  // 点击卡片主体跳转
-  const handleCardClick = (e: React.MouseEvent) => {
-    // 只有当点击的目标不是按钮或链接时才跳转
-    const target = e.target as HTMLElement;
-    const isInteractive = target.closest("button") || target.closest("a");
+  useEffect(() => {
+    if (showActions) preloadEditBundle(); // 兜底
+  }, [showActions]);
 
-    if (!isInteractive && !confirmingDelete) {
-      navigate(`/${agentKey}`);
-    }
+  const handleViewDetails = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate(`/${agentKey}`);
   };
 
   const handleDeleteClick = (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
     setConfirmingDelete(true);
     setShowActions(false);
   };
 
+  const cancelDelete = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setConfirmingDelete(false);
+  };
+
+  const confirmDelete = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handleDelete();
+  };
+
   return (
     <>
-      <div ref={cardRef} className="agent" onClick={handleCardClick}>
-        {/* Top Actions */}
+      <div
+        id={`agent-${item.id}`}
+        className="agent"
+        onClick={(e) => {
+          if (
+            e.target === e.currentTarget ||
+            (e.target as Element).classList.contains("clickable")
+          ) {
+            handleViewDetails(e);
+          }
+        }}
+      >
+        {/* 右上角操作按钮 */}
         <div className="agent__top-actions">
           <button
-            className={`agent__icon-btn ${isFavorite ? "active" : ""}`}
+            className={`agent__favorite ${isFavorite ? "agent__favorite--active" : ""}`}
             onClick={handleToggleFavorite}
             title={isFavorite ? t("removeFromFavorites") : t("addToFavorites")}
           >
-            <LuStar size={16} className={isFavorite ? "fill-current" : ""} />
+            <LuStar size={18} />
           </button>
 
           {allowEdit && (
             <button
-              className={`agent__icon-btn ${showActions ? "active" : ""}`}
+              className={`agent__more ${showActions ? "agent__more--active" : ""}`}
               onPointerEnter={preloadEditBundle}
+              onFocus={preloadEditBundle}
               onClick={handleMoreClick}
+              title={t("moreActions")}
             >
-              <LuEllipsis size={16} />
+              <LuEllipsis size={18} />
             </button>
           )}
         </div>
 
-        {/* Menu */}
+        {/* 操作菜单 - 悬浮显示 */}
         {showActions && allowEdit && (
-          <div className="agent__menu">
-            <button className="agent__menu-item" onClick={handleEdit}>
+          <div className="agent__actions-menu">
+            <button
+              className="agent__action-item agent__action-item--edit"
+              onPointerEnter={preloadEditBundle}
+              onFocus={preloadEditBundle}
+              onClick={handleEdit}
+            >
               <LuPencil size={14} />
               <span>{t("edit")}</span>
             </button>
             <button
-              className="agent__menu-item delete"
+              className="agent__action-item agent__action-item--delete"
               onClick={handleDeleteClick}
             >
               <LuTrash2 size={14} />
@@ -193,27 +200,28 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           </div>
         )}
 
-        {/* Delete Overlay */}
+        {/* 删除确认栏 */}
         {confirmingDelete && (
-          <div
-            className="agent__confirm-overlay"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <span className="agent__confirm-text">{t("confirmDelete")}</span>
-            <div className="agent__confirm-actions">
+          <div className="agent__delete-confirm">
+            <div className="agent__delete-message">
+              <LuTrash2 size={16} />
+              <span>{t("confirmDelete")}</span>
+            </div>
+            <div className="agent__delete-actions">
               <button
-                className="agent__confirm-btn cancel"
-                onClick={() => setConfirmingDelete(false)}
+                className="agent__delete-cancel"
+                onClick={cancelDelete}
+                disabled={deleting}
               >
                 <LuX size={14} />
               </button>
               <button
-                className="agent__confirm-btn confirm"
-                onClick={handleDelete}
+                className="agent__delete-confirm-btn"
+                onClick={confirmDelete}
                 disabled={deleting}
               >
                 {deleting ? (
-                  <div className="spinner-sm" />
+                  <div className="agent__spinner" />
                 ) : (
                   <LuCheck size={14} />
                 )}
@@ -222,82 +230,86 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           </div>
         )}
 
-        {/* Content */}
-        <div className="agent__content">
-          <div className="agent__header">
-            <Avatar
-              name={item.name}
-              type="agent"
-              size="large"
-              className="agent__avatar-img"
-            />
-            <div className="agent__header-info">
-              <Link
-                to={`/${agentKey}`}
-                className="agent__title-group"
-                onClick={(e) => e.stopPropagation()}
-              >
+        {/* Header */}
+        <div className="agent__header">
+          <div className="agent__avatar">
+            <Avatar name={item.name} type="agent" size="large" />
+          </div>
+
+          <div className="agent__info">
+            <div className="agent__title-row">
+              <Link to={`/${agentKey}`} className="agent__title-link">
                 <h3 className="agent__title">{item.name || t("unnamed")}</h3>
-                <LuArrowRight className="agent__arrow" size={14} />
+                <span className="agent__title-arrow">
+                  <LuArrowRight size={14} />
+                </span>
               </Link>
-
-              <div className="agent__meta-row">
-                {item.outputPrice ? (
-                  <div className="agent__meta-item">
-                    <LuCoins size={12} />
-                    <span>{item.outputPrice.toFixed(2)}</span>
-                  </div>
-                ) : null}
-                {item.hasVision && (
-                  <div className="agent__meta-item highlight">
-                    <LuEye size={12} />
-                    <span>{t("vision")}</span>
-                  </div>
-                )}
-              </div>
             </div>
-          </div>
 
-          <div className="agent__desc">
-            {item.introduction || t("noDescription")}
-          </div>
+            {item.outputPrice && (
+              <div className="agent__price">
+                <LuCoins size={12} />
+                <span>{item.outputPrice.toFixed(2)}</span>
+                <span className="agent__price-unit">
+                  / {t("perMillionTokens")}
+                </span>
+              </div>
+            )}
 
-          <div className="agent__footer">
-            <div className="agent__tags-scroll">
-              {item.tags?.map((tag, i) => (
+            <div className="agent__tags">
+              {item.hasVision && (
+                <span className="agent__tag agent__vision">
+                  <LuEye size={11} />
+                  <span>{t("vision")}</span>
+                </span>
+              )}
+              {item.tags?.slice(0, 3).map((tag, i) => (
                 <span key={i} className="agent__tag">
                   {tag}
                 </span>
               ))}
-            </div>
-
-            <div className="agent__action-area">
-              <Button
-                icon={<LuMessageSquare size={16} />}
-                onClick={startDialog}
-                disabled={isLoading || confirmingDelete}
-                loading={isLoading}
-                size="medium"
-                className="agent__start-btn"
-              >
-                {isLoading ? t("starting") : t("startChat")}
-              </Button>
+              {item.tags && item.tags.length > 3 && (
+                <span className="agent__tag agent__tag--more">
+                  +{item.tags.length - 3}
+                </span>
+              )}
             </div>
           </div>
         </div>
+
+        {/* Description */}
+        <div className="agent__desc clickable">
+          {item.introduction || t("noDescription")}
+        </div>
+
+        {/* Actions */}
+        <div className="agent__actions">
+          <Button
+            icon={<LuMessageSquare size={16} />}
+            onClick={startDialog}
+            disabled={isLoading || confirmingDelete}
+            loading={isLoading}
+            size="medium"
+            className="agent__primary"
+          >
+            {isLoading ? t("starting") : t("startChat")}
+          </Button>
+        </div>
       </div>
 
+      {/* 编辑对话框（Dialog 同步加载；表单懒加载，Dialog 内展示占位） */}
       {editVisible && (
         <Dialog
           isOpen={editVisible}
           onClose={closeEdit}
-          title={`${t("edit")} ${item.name}`}
+          title={`${t("edit")} ${item.name || t("agent")}`}
           size="large"
         >
           <Suspense
             fallback={
-              <div className="p-8 text-center text-textSecondary">
-                {t("loading")}
+              <div className="agent__dialog-body-fallback">
+                <div className="agent__dialog-spinner" />
+                <div className="agent__dialog-text">{t("loading")}</div>
               </div>
             }
           >
@@ -312,320 +324,342 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
         </Dialog>
       )}
 
-      {/* 样式保持原样，省略以节省空间，直接使用之前提供的 style 块即可 */}
       <style href="agent-block" precedence="medium">{`
-        :root {
-           --agent-bg: var(--background);
-           --agent-border: rgba(0, 0, 0, 0.06);
-           --agent-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
-           --agent-shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.08), 0 0 0 1px var(--primary-alpha-10);
-           --agent-radius: 16px;
-           --transition-smooth: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-        }
-
-        .dark {
-           --agent-border: rgba(255, 255, 255, 0.08);
-           --agent-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-           --agent-shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px var(--primary-alpha-20);
-        }
-
         .agent {
+          background: var(--background);
+          border-radius: var(--space-3);
+          padding: var(--space-5);
+          border: 1px solid var(--border);
+          transition: all 0.2s ease;
+          cursor: pointer;
           position: relative;
-          background: var(--agent-bg);
-          border-radius: var(--agent-radius);
-          border: 1px solid var(--agent-border);
-          box-shadow: var(--agent-shadow);
-          padding: 20px;
           display: flex;
           flex-direction: column;
+          gap: var(--space-4);
           height: 100%;
-          transition: var(--transition-smooth);
-          cursor: default;
-          overflow: hidden;
+          overflow: visible;
         }
 
         .agent:hover {
-          transform: translateY(-4px);
-          box-shadow: var(--agent-shadow-hover);
-          border-color: transparent;
+          transform: translateY(-1px);
+          border-color: var(--primary);
+          box-shadow: 0 4px 12px var(--shadowLight);
         }
 
-        .agent-exit {
-          opacity: 0;
-          transform: scale(0.9);
-          transition: var(--transition-smooth);
+        .agent:has(.agent__delete-confirm) {
+          border-color: var(--error);
+          background: rgba(239, 68, 68, 0.02);
         }
 
         .agent__top-actions {
           position: absolute;
-          top: 12px;
-          right: 12px;
+          top: var(--space-4);
+          right: var(--space-4);
           display: flex;
-          gap: 4px;
+          gap: var(--space-1);
           z-index: 10;
-          opacity: 0;
-          transform: translateY(-4px);
-          transition: var(--transition-smooth);
         }
 
-        .agent:hover .agent__top-actions,
-        .agent__top-actions:has(.active) {
-          opacity: 1;
-          transform: translateY(0);
-        }
-
-        .agent__icon-btn {
-          width: 28px;
-          height: 28px;
+        .agent__favorite,
+        .agent__more {
+          background: none;
+          border: none;
+          color: var(--textTertiary);
+          padding: var(--space-2);
+          border-radius: var(--space-2);
+          transition: all 0.2s ease;
+          cursor: pointer;
           display: flex;
           align-items: center;
           justify-content: center;
-          border-radius: 8px;
-          border: none;
-          background: rgba(255,255,255,0.8);
-          backdrop-filter: blur(4px);
-          color: var(--textTertiary);
-          cursor: pointer;
-          transition: all 0.2s ease;
-          box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-        }
-        
-        .dark .agent__icon-btn { background: rgba(0,0,0,0.4); }
-
-        .agent__icon-btn:hover {
-          background: var(--background);
-          color: var(--text);
-          transform: scale(1.05);
+          width: 36px;
+          height: 36px;
+          opacity: 0.6;
         }
 
-        .agent__icon-btn.active {
+        .agent__favorite:hover {
           color: var(--warning);
+          background: var(--backgroundHover);
+          opacity: 1;
+          transform: scale(1.1);
         }
-        .fill-current { fill: currentColor; }
 
-        .agent__menu {
+        .agent__more:hover,
+        .agent__more--active {
+          color: var(--textSecondary);
+          background: var(--backgroundHover);
+          opacity: 1;
+          transform: scale(1.1);
+        }
+
+        .agent__favorite--active {
+          color: var(--warning);
+          background: var(--backgroundHover);
+          opacity: 1;
+        }
+
+        .agent__favorite--active svg {
+          fill: currentColor;
+        }
+
+        .agent__actions-menu {
           position: absolute;
-          top: 44px;
-          right: 12px;
+          top: var(--space-16);
+          right: var(--space-4);
           background: var(--background);
           border: 1px solid var(--border);
-          box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-          border-radius: 12px;
-          padding: 4px;
+          border-radius: var(--space-2);
+          box-shadow: 0 4px 12px var(--shadowMedium);
           z-index: 20;
-          min-width: 100px;
-          animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-          transform-origin: top right;
+          overflow: hidden;
+          min-width: 120px;
+          animation: slideDown 0.15s ease-out;
         }
 
-        @keyframes scaleIn {
-            from { opacity: 0; transform: scale(0.9); }
-            to { opacity: 1; transform: scale(1); }
+        @keyframes slideDown {
+          from { opacity: 0; transform: translateY(-8px); }
+          to { opacity: 1; transform: translateY(0); }
         }
 
-        .agent__menu-item {
+        .agent__action-item {
+          width: 100%;
+          padding: var(--space-3) var(--space-4);
+          border: none;
+          background: none;
           display: flex;
           align-items: center;
-          gap: 8px;
-          width: 100%;
-          padding: 8px 12px;
-          border: none;
-          background: transparent;
-          color: var(--textSecondary);
-          font-size: 0.85rem;
-          border-radius: 8px;
+          gap: var(--space-2);
+          font-size: 0.875rem;
           cursor: pointer;
-          transition: background 0.2s;
-          text-align: left;
+          transition: background-color 0.15s ease;
+          color: var(--textSecondary);
         }
 
-        .agent__menu-item:hover { background: var(--backgroundHover); color: var(--text); }
-        .agent__menu-item.delete:hover { background: var(--errorBg); color: var(--error); }
-
-        .agent__confirm-overlay {
-            position: absolute;
-            inset: 0;
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(2px);
-            z-index: 15;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            gap: 12px;
-            animation: fadeIn 0.2s ease;
-        }
-        .dark .agent__confirm-overlay { background: rgba(0,0,0,0.8); }
-
-        .agent__confirm-text { font-weight: 500; font-size: 0.9rem; color: var(--text); }
-        .agent__confirm-actions { display: flex; gap: 8px; }
-        .agent__confirm-btn {
-            width: 32px; height: 32px;
-            border-radius: 50%;
-            border: 1px solid var(--border);
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            background: var(--background);
-        }
-        .agent__confirm-btn.confirm { background: var(--error); color: white; border-color: var(--error); }
-        .agent__confirm-btn:hover { transform: scale(1.1); }
-        
-        .spinner-sm {
-            width: 12px; height: 12px;
-            border: 2px solid rgba(255,255,255,0.3); border-top-color: white;
-            border-radius: 50%; animation: spin 1s linear infinite;
+        .agent__action-item:hover { background: var(--backgroundHover); }
+        .agent__action-item--edit:hover { color: var(--primary); }
+        .agent__action-item--delete:hover {
+          color: var(--error);
+          background: rgba(239, 68, 68, 0.05);
         }
 
-        .agent__content {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            gap: 16px;
+        .agent__delete-confirm {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          background: var(--error);
+          color: white;
+          padding: var(--space-3) var(--space-4);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          border-radius: var(--space-3) var(--space-3) 0 0;
+          animation: slideDownRed 0.2s ease-out;
+          z-index: 15;
         }
 
-        .agent__header {
-            display: flex;
-            gap: 16px;
-            align-items: flex-start;
+        @keyframes slideDownRed {
+          from { opacity: 0; transform: translateY(-100%); }
+          to { opacity: 1; transform: translateY(0); }
         }
 
-        .agent__header-info {
-            flex: 1;
-            min-width: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            padding-top: 2px;
+        .agent__delete-message {
+          display: flex;
+          align-items: center;
+          gap: var(--space-2);
+          font-size: 0.875rem;
+          font-weight: 500;
         }
 
-        .agent__title-group {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            text-decoration: none;
-            color: var(--text);
-            width: fit-content;
-            cursor: pointer;
+        .agent__delete-actions { display: flex; gap: var(--space-2); }
+
+        .agent__delete-cancel,
+        .agent__delete-confirm-btn {
+          background: rgba(255, 255, 255, 0.2);
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          color: white;
+          width: 28px;
+          height: 28px;
+          border-radius: var(--space-1);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.15s ease;
         }
 
-        .agent__title {
-            margin: 0;
-            font-size: 1.05rem;
-            font-weight: 600;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 100%;
-            letter-spacing: -0.01em;
-        }
-        
-        .agent__arrow {
-            opacity: 0;
-            transform: translateX(-4px);
-            transition: all 0.2s ease;
-            color: var(--primary);
-        }
-        
-        .agent__title-group:hover .agent__title { color: var(--primary); }
-        .agent:hover .agent__arrow { opacity: 1; transform: translateX(0); }
+        .agent__delete-cancel:hover { background: rgba(255, 255, 255, 0.3); }
+        .agent__delete-confirm-btn:hover { background: rgba(255, 255, 255, 0.3); }
+        .agent__delete-confirm-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
-        .agent__meta-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 0.75rem;
-            color: var(--textQuaternary);
-        }
-
-        .agent__meta-item {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            background: var(--backgroundSecondary);
-            padding: 2px 6px;
-            border-radius: 4px;
-        }
-        
-        .agent__meta-item.highlight {
-            color: var(--primary);
-            background: var(--primaryGhost);
-        }
-
-        .agent__desc {
-            flex: 1;
-            font-size: 0.875rem;
-            line-height: 1.6;
-            color: var(--textSecondary);
-            background: transparent; 
-            padding: 0;
-            margin: 0;
-            overflow: hidden;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            cursor: pointer;
-            transition: color 0.2s;
-        }
-        
-        .agent__desc:hover { color: var(--text); }
-
-        .agent__footer {
-            margin-top: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .agent__tags-scroll {
-            display: flex;
-            gap: 6px;
-            overflow-x: auto;
-            padding-bottom: 4px;
-            scrollbar-width: none; 
-            -ms-overflow-style: none;
-            mask-image: linear-gradient(to right, black 90%, transparent 100%);
-        }
-        .agent__tags-scroll::-webkit-scrollbar { display: none; }
-
-        .agent__tag {
-            font-size: 0.75rem;
-            color: var(--textTertiary);
-            background: var(--backgroundSecondary);
-            padding: 3px 8px;
-            border-radius: 6px;
-            white-space: nowrap;
-            border: 1px solid transparent;
-            transition: all 0.2s;
-        }
-        
-        .agent:hover .agent__tag {
-            background: var(--backgroundTertiary);
-        }
-
-        .agent__start-btn {
-            width: 100%;
-            justify-content: center;
-            background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark-10, #2563eb) 100%);
-            box-shadow: 0 2px 4px rgba(var(--primary-rgb), 0.2);
-            border: none;
-            font-weight: 500;
-            letter-spacing: 0.02em;
-            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
-        }
-        
-        .agent__start-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(var(--primary-rgb), 0.3);
-        }
-        
-        .agent__start-btn:active {
-            transform: translateY(1px);
-            box-shadow: 0 1px 2px rgba(var(--primary-rgb), 0.2);
+        .agent__spinner {
+          width: 14px;
+          height: 14px;
+          border: 2px solid rgba(255, 255, 255, 0.3);
+          border-top: 2px solid white;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
         }
 
         @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .agent__header {
+          display: flex;
+          gap: var(--space-3);
+          align-items: flex-start;
+          padding-right: var(--space-12);
+          margin-top: var(--space-0);
+        }
+
+        .agent:has(.agent__delete-confirm) .agent__header { margin-top: var(--space-12); }
+
+        .agent__info {
+          flex: 1;
+          min-width: 0;
+          display: flex;
+          flex-direction: column;
+          gap: var(--space-2);
+        }
+
+        .agent__title-link {
+          display: flex;
+          align-items: center;
+          gap: var(--space-2);
+          text-decoration: none;
+          color: inherit;
+        }
+
+        .agent__title {
+          font-size: 1.1rem;
+          font-weight: 600;
+          margin: 0;
+          color: var(--text);
+          line-height: 1.3;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          transition: color 0.2s ease;
+        }
+
+        .agent:hover .agent__title { color: var(--primary); }
+
+        .agent__title-arrow {
+          color: var(--textTertiary);
+          opacity: 0;
+          transform: translateX(-4px);
+          transition: all 0.2s ease;
+        }
+
+        .agent:hover .agent__title-arrow {
+          opacity: 1;
+          transform: translateX(0);
+          color: var(--primary);
+        }
+
+        .agent__price {
+          font-size: 0.8rem;
+          color: var(--textTertiary);
+          display: flex;
+          align-items: center;
+          gap: var(--space-1);
+        }
+
+        .agent__price-unit {
+          color: var(--textQuaternary);
+          font-size: 0.75rem;
+        }
+
+        .agent__tags { display: flex; gap: var(--space-1); flex-wrap: wrap; }
+
+        .agent__tag {
+          font-size: 0.75rem;
+          padding: var(--space-1) var(--space-2);
+          background: var(--backgroundTertiary);
+          border-radius: var(--space-1);
+          color: var(--textTertiary);
+          font-weight: 500;
+          white-space: nowrap;
+        }
+
+        .agent__vision {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          color: var(--primary);
+          background: var(--primaryGhost);
+        }
+
+        .agent__tag--more { color: var(--primary); background: var(--primaryGhost); }
+
+        .agent__desc {
+          flex: 1;
+          font-size: 0.9rem;
+          line-height: 1.5;
+          color: var(--textSecondary);
+          white-space: pre-wrap;
+          overflow-y: auto;
+          max-height: 90px;
+          padding: var(--space-2) var(--space-3);
+          background: var(--backgroundSecondary);
+          border-radius: var(--space-2);
+        }
+
+        .agent__desc::-webkit-scrollbar { width: 4px; }
+        .agent__desc::-webkit-scrollbar-thumb { background-color: var(--border); border-radius: 4px; }
+
+        .agent__actions { display: flex; margin-top: auto; }
+        .agent__primary { flex: 1; }
+
+        .agent-exit {
+          opacity: 0;
+          transform: scale(0.95);
+          transition: all 0.25s ease;
+        }
+
+        /* Dialog 内部的懒加载占位 */
+        .agent__dialog-body-fallback {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 12px;
+          padding: 24px;
+          min-height: 160px;
+        }
+        .agent__dialog-spinner {
+          width: 24px;
+          height: 24px;
+          border: 3px solid rgba(0,0,0,0.1);
+          border-top: 3px solid var(--primary);
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+        }
+        .agent__dialog-text {
+          color: var(--textSecondary);
+          font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+          .agent { padding: var(--space-4); }
+          .agent__top-actions { top: var(--space-3); right: var(--space-3); }
+          .agent__header { padding-right: var(--space-10); }
+          .agent__favorite, .agent__more { width: 32px; height: 32px; }
+          .agent__title-arrow { opacity: 1; transform: none; }
+          .agent__favorite, .agent__more { opacity: 1; }
+          .agent__actions-menu { right: var(--space-3); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .agent,
+          .agent__title-arrow,
+          .agent__favorite,
+          .agent__more,
+          .agent__actions-menu,
+          .agent__delete-confirm {
+            transition: none;
+            animation: none;
+          }
+          .agent:hover { transform: none; }
+        }
       `}</style>
     </>
   );

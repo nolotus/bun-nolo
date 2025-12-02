@@ -1,8 +1,8 @@
 // 文件路径: render/layout/SidebarBottom.tsx
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch } from "react-redux"; // useDispatch 已存在
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
 import {
@@ -11,7 +11,6 @@ import {
   LuPlus,
   LuLogOut,
   LuChevronUp,
-  LuWallet,
 } from "react-icons/lu";
 
 import { useAuth } from "auth/hooks/useAuth";
@@ -23,40 +22,37 @@ import {
   changeUser,
   selectUserId,
   User,
-  fetchUserProfile,
-  selectCurrentUserBalance,
+  fetchUserProfile, // 2. 导入 fetchUserProfile action
+  selectCurrentUserBalance, // 2. 导入 balance selector
 } from "auth/authSlice";
 import DropdownMenu from "render/web/ui/DropDownMenu";
 import { Tooltip } from "render/web/ui/Tooltip";
 
-// 提取 MenuItem 为纯展示组件，增加 memo 优化
-const MenuItem = React.memo(
-  ({ icon: Icon, text, onClick, className = "", danger = false }: any) => (
-    <button
-      onClick={onClick}
-      className={`dd-item ${className} ${danger ? "danger" : ""}`}
-    >
-      <Icon size={15} className="dd-icon" />
-      <span className="dd-text">{text}</span>
-    </button>
-  )
+// MenuItem 子组件保持不变
+const MenuItem = ({ icon: Icon, text, onClick, className = "" }) => (
+  <button onClick={onClick} className={`dd-item ${className}`}>
+    <Icon size={14} />
+    <span>{text}</span>
+  </button>
 );
 
 const SidebarBottom: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-
   const { user: authUser } = useAuth();
   const users = useAppSelector(selectUsers);
   const currentUserId = useAppSelector(selectUserId);
+  // 3. 直接从 Redux store 获取余额
   const balance = useAppSelector(selectCurrentUserBalance);
-
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
+  // 5. 更新余额状态的判断逻辑
+  // 如果 balance 是数字类型，说明已加载；否则视为加载中或未获取
   const isLoading = typeof balance !== "number";
   const isLowBalance = !isLoading && balance < 10;
 
+  // 4. 当用户ID存在时，dispatch action 获取用户 Profile (包括余额)
   useEffect(() => {
     if (currentUserId) {
       dispatch(fetchUserProfile());
@@ -69,7 +65,9 @@ const SidebarBottom: React.FC = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const handleUserChange = (user: User) => dispatch(changeUser(user));
+  const handleUserChange = (user: User) => {
+    dispatch(changeUser(user));
+  };
 
   const handleLogout = () => {
     dispatch(signOut())
@@ -77,20 +75,22 @@ const SidebarBottom: React.FC = () => {
       .then(() => navigate("/"));
   };
 
+  const handleRecharge = () => {
+    navigate("/recharge");
+  };
+
   const handleInviteFriend = async () => {
     const inviteUrl = `${window.location.origin}/invite-signup?inviterId=${currentUserId}`;
     try {
       await navigator.clipboard.writeText(inviteUrl);
-      toast.success(t("linkCopied", "邀请链接已复制"));
+      toast.success("邀请链接已复制");
     } catch {
-      toast.error(t("copyFailed", "复制失败"));
+      toast.error("复制失败");
     }
   };
 
-  // Memoize users list
-  const otherUsers = useMemo(
-    () => users.filter((user) => user && user.userId !== currentUserId),
-    [users, currentUserId]
+  const otherUsers = users.filter(
+    (user) => user && user.userId !== currentUserId
   );
 
   if (!authUser) return null;
@@ -98,56 +98,40 @@ const SidebarBottom: React.FC = () => {
   return (
     <>
       <div className="SidebarBottom">
-        <div className="section-user">
-          <Tooltip
-            content={t("currentAccount", "当前账户")}
-            placement="top"
-            disabled={isMobile}
-          >
+        <div className="left-content">
+          <Tooltip content="当前登录账户" placement="top" disabled={isMobile}>
             <NavLink
               to="/life"
               className={({ isActive }) =>
-                `user-card ${isActive ? "active" : ""}`
+                `user-info-link ${isActive ? "active" : ""}`
               }
             >
-              <div className="avatar-placeholder">
-                <LuUser size={16} />
-              </div>
-              <div className="user-meta">
-                <span className="username">{authUser.username}</span>
-                <div className={`balance-tag ${isLowBalance ? "low" : ""}`}>
-                  <LuWallet size={10} className="balance-icon" />
-                  <span>{isLoading ? "..." : `¥${balance.toFixed(2)}`}</span>
-                </div>
-              </div>
+              <LuUser size={16} />
+              <span className="username">{authUser.username}</span>
             </NavLink>
           </Tooltip>
+          {/* 5. 更新余额显示逻辑 */}
+          <span className={`balance ${isLowBalance ? "low" : ""}`}>
+            {isLoading ? "..." : `¥${balance.toFixed(2)}`}
+          </span>
         </div>
 
-        <div className="section-actions">
-          <button
-            className="btn-recharge"
-            onClick={() => navigate("/recharge")}
-          >
+        <div className="right-content">
+          <button className="recharge-btn" onClick={handleRecharge}>
             {t("recharge", "充值")}
           </button>
-
           <DropdownMenu
             trigger={
-              <button className="btn-menu-trigger">
+              <button className="menu-trigger">
                 <LuChevronUp size={16} />
               </button>
             }
             direction="top"
             triggerType={isMobile ? "click" : "hover"}
-            width="200px" // 给定宽度，让菜单更稳重
           >
-            <div className="menu-list">
+            <div className="compact-dropdown">
               {otherUsers.length > 0 && (
                 <>
-                  <div className="menu-label">
-                    {t("switchAccount", "切换账户")}
-                  </div>
                   {otherUsers.map((user) => (
                     <MenuItem
                       key={`user-${user.userId}`}
@@ -156,246 +140,210 @@ const SidebarBottom: React.FC = () => {
                       onClick={() => handleUserChange(user)}
                     />
                   ))}
-                  <div className="menu-divider" />
+                  <div className="divider" />
                 </>
               )}
-
               <MenuItem
                 icon={LuPlus}
                 text={t("inviteFriend", "邀请朋友")}
                 onClick={handleInviteFriend}
-                className="highlight"
+                className="invite"
               />
               <MenuItem
                 icon={LuSettings}
                 text={t("settings.title", "设置")}
                 onClick={() => navigate(SettingRoutePaths.SETTING)}
               />
-              <div className="menu-divider" />
               <MenuItem
                 icon={LuLogOut}
-                text={t("logout", "退出登录")}
+                text={t("logout", "退出")}
                 onClick={handleLogout}
-                danger
+                className="logout"
               />
             </div>
           </DropdownMenu>
         </div>
       </div>
 
-      <style href="SidebarBottom-styles" precedence="medium">{`
+      {/* 样式部分保持不变 */}
+      <style href="SidebarBottom-compact" precedence="medium">{`
+        /* ... CSS styles ... */
         .SidebarBottom {
           display: flex;
           align-items: center;
           justify-content: space-between;
           padding: 0 var(--space-3);
-          height: 64px; /* 稍微增加高度，更显大气 */
-          flex-shrink: 0;
-          background: var(--backgroundSecondary); /* 稍微区分于主内容区的背景 */
           border-top: 1px solid var(--border);
+          background: var(--background);
+          height: 48px;
+          flex-shrink: 0;
           gap: var(--space-2);
-          user-select: none;
         }
 
-        .section-user {
+        .left-content, .right-content {
+          display: flex;
+          align-items: center;
+          gap: var(--space-3);
+        }
+
+        .left-content {
           flex: 1;
           min-width: 0;
-          display: flex;
         }
 
-        .section-actions {
-          display: flex;
-          align-items: center;
-          gap: var(--space-2);
+        .right-content {
           flex-shrink: 0;
         }
 
-        /* User Card Styling */
-        .user-card {
+        .user-info-link {
           display: flex;
           align-items: center;
           gap: var(--space-2);
-          padding: 6px 8px;
-          border-radius: 8px;
+          flex: 1;
+          min-width: 0;
+          padding: var(--space-1) var(--space-2);
           text-decoration: none;
           color: var(--text);
-          transition: background 0.2s ease;
-          width: 100%;
-          max-width: 180px;
+          border-radius: 4px;
+          transition: background 0.15s ease;
         }
 
-        .user-card:hover {
+        .user-info-link:hover {
           background: var(--backgroundHover);
         }
 
-        .user-card.active .avatar-placeholder {
-          background: var(--primary);
-          color: white;
-          border-color: var(--primary);
+        .user-info-link.active {
+          background: var(--backgroundSelected);
+          font-weight: 500;
         }
 
-        .avatar-placeholder {
-          width: 32px;
-          height: 32px;
-          border-radius: 50%;
-          background: var(--background);
-          border: 1px solid var(--border);
-          display: flex;
-          align-items: center;
-          justify-content: center;
+        .user-info-link svg {
           color: var(--textTertiary);
           flex-shrink: 0;
-          transition: all 0.2s ease;
-        }
-
-        .user-meta {
-          display: flex;
-          flex-direction: column;
-          gap: 2px;
-          min-width: 0;
         }
 
         .username {
           font-size: 13px;
-          font-weight: 500;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
-          line-height: 1.2;
         }
 
-        /* Balance Styling */
-        .balance-tag {
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          font-size: 11px;
-          color: var(--textTertiary);
-          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        .balance {
+          font-size: 12px;
+          font-weight: 600;
+          color: var(--primary);
+          white-space: nowrap;
+          font-feature-settings: 'tnum';
         }
 
-        .balance-tag.low {
-          color: var(--error);
-        }
-        
-        .balance-tag.low .balance-icon {
+        .balance.low {
           color: var(--error);
         }
 
-        /* Actions */
-        .btn-recharge {
-          height: 28px;
-          padding: 0 12px;
-          border-radius: 14px; /* 胶囊按钮 */
-          border: 1px solid var(--border);
-          background: transparent;
-          color: var(--textSecondary);
+        .recharge-btn {
+          background: var(--primaryGhost);
+          color: var(--primary);
+          border: 1px solid transparent;
+          border-radius: 4px;
+          padding: var(--space-1) var(--space-2);
           font-size: 12px;
           font-weight: 500;
           cursor: pointer;
-          transition: all 0.2s ease;
+          transition: all 0.15s ease;
+          white-space: nowrap;
         }
 
-        .btn-recharge:hover {
-          color: var(--primary);
-          border-color: var(--primaryLight);
-          background: var(--primaryGhost);
+        .recharge-btn:hover {
+          background: var(--primaryHover);
+          border-color: var(--primary);
         }
-        
-        .btn-menu-trigger {
-          width: 28px;
-          height: 28px;
+
+        .recharge-btn:active {
+          transform: scale(0.96);
+        }
+
+        .menu-trigger {
           display: flex;
           align-items: center;
           justify-content: center;
-          border-radius: 6px;
-          border: none;
           background: transparent;
-          color: var(--textTertiary);
+          border: none;
           cursor: pointer;
-          transition: all 0.2s;
+          padding: var(--space-1);
+          border-radius: 4px;
+          color: var(--textTertiary);
+          transition: all 0.15s ease;
         }
-
-        .btn-menu-trigger:hover, 
-        .btn-menu-trigger:active { // 也可以根据 Dropdown 状态添加 .active 类
+        
+        .menu-trigger:hover {
           background: var(--backgroundHover);
           color: var(--text);
         }
 
-        /* Dropdown Content */
-        .menu-list {
-          padding: 4px;
-        }
-        
-        .menu-label {
-          padding: 8px 10px 4px;
-          font-size: 11px;
-          color: var(--textQuaternary);
-          font-weight: 600;
-          text-transform: uppercase;
+        .menu-trigger:active {
+          transform: scale(0.92);
         }
 
-        .menu-divider {
-          height: 1px;
-          background: var(--borderLight);
-          margin: 4px 0;
+        .compact-dropdown {
+          background: var(--background);
+          border: 1px solid var(--border);
+          border-radius: 6px;
+          padding: var(--space-1);
+          min-width: 180px;
+          box-shadow: var(--shadowMedium);
+          margin-bottom: var(--space-1);
         }
 
         .dd-item {
           display: flex;
           align-items: center;
-          gap: 10px;
+          gap: var(--space-2);
           width: 100%;
-          padding: 8px 10px;
-          border: none;
+          padding: var(--space-2);
           background: transparent;
-          border-radius: 6px;
-          cursor: pointer;
-          transition: all 0.15s ease-out;
+          border: none;
+          border-radius: 4px;
+          font-size: 13px;
           color: var(--textSecondary);
+          cursor: pointer;
+          transition: background 0.15s ease, color 0.15s ease;
           text-align: left;
         }
-
+        
         .dd-item:hover {
           background: var(--backgroundHover);
           color: var(--text);
-          transform: translateX(2px); /* 细微的位移反馈 */
         }
 
-        .dd-icon {
-          opacity: 0.7;
-          transition: opacity 0.2s;
-        }
-        .dd-item:hover .dd-icon {
-          opacity: 1;
+        .dd-item svg {
+          color: var(--textQuaternary);
         }
 
-        .dd-text {
-          font-size: 13px;
-          flex: 1;
+        .dd-item:hover svg {
+          color: var(--textTertiary);
         }
         
-        .dd-item.highlight {
-          color: var(--primary);
-        }
-        .dd-item.highlight:hover {
-          background: var(--primaryGhost);
-        }
-        
-        .dd-item.danger {
+        .dd-item.invite { color: var(--primary); }
+        .dd-item.invite:hover { background: var(--primaryHover); }
+        .dd-item.invite svg { color: var(--primary); }
+
+        .dd-item.logout:hover {
+          background: color-mix(in srgb, var(--error) 10%, transparent);
           color: var(--error);
         }
-        .dd-item.danger:hover {
-          background: color-mix(in srgb, var(--error) 8%, transparent);
+        .dd-item.logout:hover svg { color: var(--error); }
+
+        .divider {
+          height: 1px;
+          background: var(--border);
+          margin: var(--space-1);
         }
 
         @media (max-width: 768px) {
-          .SidebarBottom { 
-            padding: 0 var(--space-2); 
-            height: 56px; 
-          }
-          .balance-tag { display: none; }
-          .username { max-width: 100px; }
+          .SidebarBottom { padding: 0 var(--space-2); gap: var(--space-1); }
+          .left-content, .right-content { gap: var(--space-2); }
+          .balance { display: none; }
         }
       `}</style>
     </>

@@ -1,5 +1,5 @@
 // file: src/pages/Home.tsx
-import React, { useState, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "app/store";
 import {
   selectIsLoggedIn,
@@ -9,6 +9,8 @@ import {
 import { selectCurrentSpaceId } from "create/space/spaceSlice";
 import { CreateRoutePaths } from "create/routePaths";
 import { createPage } from "render/page/pageSlice";
+import { DataType } from "create/types";
+import { useUserData } from "database/hooks/useUserData";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
 import { NavLink, useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
@@ -22,12 +24,66 @@ import {
   LuPencil,
   LuDollarSign,
   LuArrowDown,
-  LuSparkles,
 } from "react-icons/lu";
 import WelcomeSection from "./WelcomeSection";
+import AgentBlock from "ai/agent/web/AgentBlock";
 import Tabs, { TabItem } from "render/web/ui/Tabs";
 import PublicAgents from "ai/agent/web/PublicAgents";
-import CybotList from "./CybotList";
+
+const LoadingShimmer = () => (
+  <div className="cybots-grid">
+    {Array.from({ length: 6 }, (_, i) => (
+      <div key={i} className="loading-card" />
+    ))}
+  </div>
+);
+
+const EmptyPlaceholder = ({ message }: { message: string }) => (
+  <div className="empty-container">
+    <div className="empty-icon">
+      <LuBot size={48} />
+    </div>
+    <p className="empty-text">{message}</p>
+  </div>
+);
+
+const CybotList = ({
+  queryUserId,
+  limit = 9,
+}: {
+  queryUserId: string | null;
+  limit?: number;
+}) => {
+  const {
+    loading,
+    data: cybots = [],
+    error,
+    reload,
+    clearCache,
+  } = useUserData(DataType.CYBOT, queryUserId, limit);
+  const [items, setItems] = useState(cybots);
+
+  useEffect(() => setItems(cybots), [cybots]);
+  useEffect(() => {
+    if (error) toast.error("加载失败");
+  }, [error]);
+
+  const handleReload = useCallback(async () => {
+    clearCache();
+    await reload();
+  }, [clearCache, reload]);
+
+  if (loading && !items.length) return <LoadingShimmer />;
+  if (!items.length) return <EmptyPlaceholder message="还没有创建 AI 助手" />;
+
+  return (
+    <div className="cybots-grid">
+      {items.map((item) => (
+        <AgentBlock key={item.id} item={item} reload={handleReload} />
+      ))}
+    </div>
+  );
+};
 
 const Home = () => {
   const dispatch = useAppDispatch();
@@ -72,32 +128,31 @@ const Home = () => {
       id: "quick-chat",
       text: isChatLoading ? "正在启动..." : "立即聊天",
       icon: <LuMessagesSquare size={22} />,
-      desc: "与 AI 助手开始对话",
+      desc: "与AI助手开始对话",
       onClick: startQuickChat,
-      span: 2,
+      span: 2, // 占据两列
       primary: true,
-      bgIcon: <LuSparkles />,
     },
     {
       id: "create-ai",
-      text: "创建助手",
-      icon: <LuBot size={20} />,
-      desc: "定制专属 AI 伙伴",
+      text: "创建 AI 助手",
+      icon: <LuBot size={22} />,
+      desc: "定制专属AI工作伙伴",
       onClick: () => navigate(`/${CreateRoutePaths.CREATE_CYBOT}`),
       span: 1,
     },
     {
       id: "create-note",
       text: "创建笔记",
-      icon: <LuPencil size={20} />,
-      desc: "记录想法与知识",
+      icon: <LuPencil size={22} />,
+      desc: "记录想法，构建知识",
       onClick: createNewPage,
       span: 1,
     },
     {
       id: "pricing",
       text: "计费详情",
-      icon: <LuDollarSign size={20} />,
+      icon: <LuDollarSign size={22} />,
       desc: "查看价格规则",
       onClick: () => navigate("/pricing"),
       span: 1,
@@ -105,7 +160,7 @@ const Home = () => {
     {
       id: "guide",
       text: "使用指南",
-      icon: <LuBook size={20} />,
+      icon: <LuBook size={22} />,
       desc: "快速上手技巧",
       onClick: () =>
         navigate(
@@ -121,7 +176,7 @@ const Home = () => {
           {
             id: "myAI",
             label: "我的工作台",
-            icon: <LuBot size={18} />,
+            icon: <LuBot size={20} />,
             component: <CybotList queryUserId={currentUserId} limit={6} />,
           },
         ]
@@ -129,7 +184,7 @@ const Home = () => {
     {
       id: "communityAI",
       label: "AI 广场",
-      icon: <LuGlobe size={18} />,
+      icon: <LuGlobe size={20} />,
       component: <PublicAgents limit={9} />,
     },
   ];
@@ -158,19 +213,11 @@ const Home = () => {
                     onClick={action.onClick}
                     style={{ gridColumn: `span ${action.span}` }}
                   >
-                    {action.primary && action.bgIcon && (
-                      <div className="action-card-bg-icon">{action.bgIcon}</div>
-                    )}
-
-                    <div className="action-content">
-                      <div className="action-header">
-                        <div className="action-icon-wrapper">{action.icon}</div>
-                        <h3 className="action-title">{action.text}</h3>
-                      </div>
-                      <p className="action-desc">{action.desc}</p>
+                    <div className="action-header">
+                      <div className="action-icon">{action.icon}</div>
+                      <h3 className="action-title">{action.text}</h3>
                     </div>
-
-                    <div className="action-gloss" />
+                    <p className="action-desc">{action.desc}</p>
                   </div>
                 ))}
               </div>
@@ -183,7 +230,7 @@ const Home = () => {
                   className="explore-plaza-button"
                   onClick={handleScrollToPlaza}
                 >
-                  <LuArrowDown size={18} />
+                  <LuArrowDown size={20} />
                   <span>{t("explorePlaza")}</span>
                 </button>
               </div>
@@ -219,262 +266,49 @@ const Home = () => {
       </div>
 
       <style href="home-compact" precedence="high">{`
-        :root {
-          --ease-out-smooth: cubic-bezier(0.25, 0.8, 0.25, 1);
-          --card-shadow-sm: 0 2px 8px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02);
-          --card-shadow-hover: 0 12px 24px rgba(0,0,0,0.08), 0 4px 8px rgba(0,0,0,0.04);
-          --card-radius: 20px;
-        }
+        .home-layout { min-height: 100vh; background: var(--background); }
+        .home-main { max-width: min(1200px, calc(100vw - var(--space-8))); margin: 0 auto; padding: var(--space-8) var(--space-4) var(--space-12); }
+        
+        .explore-plaza-container { text-align: center; margin: calc(var(--space-2) * -1) 0 var(--space-10); opacity: 0; animation: fadeInUp 0.6s ease 1s forwards; }
+        .explore-plaza-button { display: inline-flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-6); background: var(--backgroundSecondary); color: var(--textSecondary); border: 1px solid var(--border); border-radius: 9999px; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: all 0.3s ease; animation: bounce 2s ease-in-out infinite; }
+        .explore-plaza-button:hover { color: var(--primary); border-color: var(--primary); background: var(--background); box-shadow: 0 8px 20px var(--primaryGhost); transform: translateY(-3px); animation-play-state: paused; }
+        @keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-8px); } 60% { transform: translateY(-4px); } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
 
-        .home-layout { 
-          min-height: 100vh; 
-          background: var(--background); 
-        }
+        .actions-section { margin-bottom: var(--space-10); opacity: 0; animation: fadeInUp 0.6s ease forwards; }
+        .action-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); }
+        .action-card { background: var(--background); border: 1px solid var(--border); border-radius: 18px; padding: var(--space-4); cursor: pointer; transition: all 0.3s ease; min-height: 90px; }
+        .action-card:hover { transform: translateY(-4px); border-color: var(--primary); box-shadow: 0 12px 24px var(--primaryGhost); }
+        .action-card.primary { background: linear-gradient(135deg, var(--primaryGhost) 0%, var(--background) 80%); border-color: var(--primaryGhost); }
+        .action-card.loading { opacity: 0.6; pointer-events: none; }
+        .action-header { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-2); }
+        .action-icon { width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, var(--primaryGhost), var(--background)); border: 1px solid var(--primaryGhost); color: var(--primary); display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; }
+        .action-card:hover .action-icon { background: var(--primary); color: var(--background); transform: scale(1.05); }
+        .action-title { font-size: 1.1rem; font-weight: 600; color: var(--text); margin: 0; }
+        .action-desc { font-size: 0.85rem; color: var(--textSecondary); margin: 0; line-height: 1.4; }
 
-        .home-main { 
-          max-width: 1120px; 
-          margin: 0 auto; 
-          padding: var(--space-8) var(--space-6) var(--space-16); 
-        }
-        
-        /* === Welcome / Explore Button === */
-        .explore-plaza-container { 
-          text-align: center; 
-          margin: -20px 0 var(--space-12); 
-          opacity: 0; 
-          animation: fadeInUp 0.8s var(--ease-out-smooth) 0.6s forwards; 
-        }
-        
-        .explore-plaza-button { 
-          display: inline-flex; 
-          align-items: center; 
-          gap: 8px; 
-          padding: 10px 24px; 
-          background: var(--background);
-          color: var(--textSecondary); 
-          border: 1px solid var(--border); 
-          border-radius: 9999px; 
-          font-size: 0.9rem; 
-          font-weight: 500; 
-          cursor: pointer; 
-          transition: all 0.3s var(--ease-out-smooth); 
-          box-shadow: var(--card-shadow-sm);
-        }
-        
-        .explore-plaza-button:hover { 
-          color: var(--primary); 
-          border-color: var(--primary-alpha-20); 
-          box-shadow: var(--card-shadow-hover); 
-          transform: translateY(-2px); 
-        }
-        
-        @keyframes fadeInUp { 
-          from { opacity: 0; transform: translateY(20px); } 
-          to { opacity: 1; transform: translateY(0); } 
-        }
-
-        /* === Action Grid === */
-        .actions-section { 
-          margin-bottom: var(--space-12); 
-          opacity: 0; 
-          animation: fadeInUp 0.6s var(--ease-out-smooth) forwards; 
-        }
-        
-        .action-grid { 
-          display: grid; 
-          grid-template-columns: repeat(3, 1fr); 
-          gap: 20px;
-        }
-        
-        .action-card { 
-          position: relative;
-          background: var(--background); 
-          border: 1px solid rgba(0,0,0,0.04); 
-          border-radius: var(--card-radius); 
-          padding: 20px;           /* 从 24px 略微减小 */
-          cursor: pointer; 
-          transition: all 0.3s var(--ease-out-smooth); 
-          min-height: 108px;       /* 从 120px 降低一点点 */
-          box-shadow: var(--card-shadow-sm);
-          overflow: hidden;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-        }
-        
-        .dark .action-card {
-          border-color: rgba(255,255,255,0.08);
-          background: rgba(255,255,255,0.02);
-        }
-
-        .action-card:hover { 
-          transform: translateY(-4px); 
-          box-shadow: var(--card-shadow-hover);
-        }
-        
-        /* Primary Card (Quick Chat) */
-        .action-card.primary { 
-          background: linear-gradient(135deg, var(--background) 0%, var(--primaryGhost) 100%);
-          border-color: transparent;
-        }
-
-        .action-card.primary::before {
-          content: ''; 
-          position: absolute; 
-          inset: 0; 
-          padding: 1px; 
-          border-radius: inherit; 
-          background: linear-gradient(135deg, rgba(255,255,255,0.4), transparent); 
-          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); 
-          mask-composite: exclude; 
-          pointer-events: none; 
-          opacity: 0.5;
-        }
-        
-        .action-card-bg-icon {
-          position: absolute;
-          right: -10px;
-          bottom: -20px;
-          font-size: 120px;
-          opacity: 0.05;
-          color: var(--primary);
-          pointer-events: none;
-          transform: rotate(-10deg);
-        }
-
-        .action-card.loading { 
-          opacity: 0.7; 
-          pointer-events: none; 
-          filter: grayscale(0.5); 
-        }
-
-        .action-content { 
-          position: relative; 
-          z-index: 1; 
-        }
-
-        .action-header { 
-          display: flex; 
-          align-items: center; 
-          gap: 10px;          /* 略微减小间距 */
-          margin-bottom: 6px; /* 从 8px 略微减小 */
-        }
-        
-        .action-icon-wrapper { 
-          width: 40px;        /* 从 44px 略微减小 */
-          height: 40px; 
-          border-radius: 14px;
-          background: var(--backgroundSecondary); 
-          color: var(--textSecondary); 
-          display: flex; 
-          align-items: center; 
-          justify-content: center; 
-          transition: all 0.3s var(--ease-out-smooth); 
-          box-shadow: inset 0 1px 1px rgba(255,255,255,0.5), 0 2px 4px rgba(0,0,0,0.03);
-        }
-        
-        .action-card:hover .action-icon-wrapper { 
-          background: var(--primary); 
-          color: white; 
-          transform: scale(1.05) rotate(-3deg);
-          box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.3);
-        }
-        
-        .primary .action-icon-wrapper {
-          background: var(--primary);
-          color: white;
-          box-shadow: 0 4px 10px rgba(var(--primary-rgb), 0.25);
-        }
-        
-        .primary:hover .action-icon-wrapper {
-          transform: scale(1.1);
-          box-shadow: 0 6px 16px rgba(var(--primary-rgb), 0.4);
-        }
-
-        .action-title { 
-          font-size: 1rem;      /* 轻微减小，增强紧凑感 */
-          font-weight: 600; 
-          color: var(--text); 
-          margin: 0; 
-          letter-spacing: -0.01em; 
-        }
-
-        .action-desc { 
-          font-size: 0.84rem;   /* 略微减小 */
-          color: var(--textTertiary); 
-          margin: 0; 
-          line-height: 1.5; 
-          font-weight: 400; 
-        }
-
-        .action-card:hover .action-desc { 
-          color: var(--textSecondary); 
-        }
-
-        /* === Content Section === */
-        .content-section { 
-          opacity: 0; 
-          animation: fadeInUp 0.6s var(--ease-out-smooth) 0.1s forwards; 
-        }
-        
-        .content-header { 
-          display: flex; 
-          justify-content: space-between; 
-          align-items: center; 
-          margin-bottom: 24px; 
-          flex-wrap: wrap; 
-          gap: 16px; 
-        }
-        
-        .view-all-link { 
-          display: flex; 
-          align-items: center; 
-          gap: 4px; 
-          color: var(--textTertiary); 
-          text-decoration: none; 
-          font-weight: 500; 
-          font-size: 0.85rem; 
-          padding: 6px 12px;
-          border-radius: 8px;
-          transition: all 0.2s; 
-        }
-
-        .view-all-link:hover { 
-          color: var(--primary); 
-          background: var(--backgroundSecondary); 
-        }
-        
-        .content-body { 
-          padding: 4px 0; 
-        }
+        .content-section { opacity: 0; animation: fadeInUp 0.6s ease 0.2s forwards; }
+        .content-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6); flex-wrap: wrap; gap: var(--space-4); }
+        .view-all-link { display: flex; align-items: center; gap: var(--space-2); color: var(--textSecondary); text-decoration: none; font-weight: 500; font-size: 0.875rem; padding: var(--space-2) var(--space-4); border-radius: 10px; border: 1px solid var(--borderLight); background: var(--backgroundSecondary); transition: all 0.2s ease; }
+        .view-all-link:hover { color: var(--primary); border-color: var(--primaryGhost); transform: translateX(2px); }
+        .content-body { padding: var(--space-6) 0; }
+        .cybots-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--space-5); }
+        .loading-card { background: var(--backgroundSecondary); border-radius: 16px; height: 280px; animation: pulse 1.5s ease-in-out infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 0.8; } }
+        .empty-container { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-4); min-height: 280px; color: var(--textTertiary); text-align: center; }
+        .empty-icon { width: 80px; height: 80px; border-radius: 20px; background: linear-gradient(135deg, var(--primary), var(--primaryLight)); color: var(--background); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px var(--primaryGhost); }
+        .empty-text { font-size: 1rem; font-weight: 500; margin: 0; }
 
         @media (max-width: 768px) {
-          .home-main { 
-            padding: var(--space-4); 
-          }
-
-          .action-grid { 
-            grid-template-columns: 1fr; 
-            gap: 12px; 
-          }
-
-          .action-card { 
-            grid-column: span 1 !important; 
-            min-height: auto; 
-            padding: 18px;   /* 移动端再略微紧凑一点 */
-          }
-
-          .action-icon-wrapper { 
-            width: 34px; 
-            height: 34px; 
-          }
+          .action-grid { grid-template-columns: 1fr; gap: var(--space-3); }
+          .action-card { grid-column: span 1 !important; }
+          .cybots-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
         }
         
-        @media (prefers-reduced-motion: reduce) {
-          * { 
-            animation-duration: 0.01ms !important; 
-            transition-duration: 0.01ms !important; 
-          }
+        @media (max-width: 480px) {
+          .home-main { padding: var(--space-4) var(--space-2) var(--space-6); }
+          .action-icon { width: 32px; height: 32px; }
+          .cybots-grid { grid-template-columns: 1fr; }
         }
       `}</style>
     </>
