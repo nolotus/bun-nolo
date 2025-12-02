@@ -26,10 +26,9 @@ import {
   LuArrowDown,
 } from "react-icons/lu";
 import WelcomeSection from "./WelcomeSection";
-import AgentBlock from "ai/agent/web/AgentBlock";
 import Tabs, { TabItem } from "render/web/ui/Tabs";
 import PublicAgents from "ai/agent/web/PublicAgents";
-
+import AgentListView from "ai/agent/web/AgentListView";
 const LoadingShimmer = () => (
   <div className="cybots-grid">
     {Array.from({ length: 6 }, (_, i) => (
@@ -61,9 +60,11 @@ const CybotList = ({
     reload,
     clearCache,
   } = useUserData(DataType.CYBOT, queryUserId, limit);
+
   const [items, setItems] = useState(cybots);
 
   useEffect(() => setItems(cybots), [cybots]);
+
   useEffect(() => {
     if (error) toast.error("加载失败");
   }, [error]);
@@ -73,16 +74,18 @@ const CybotList = ({
     await reload();
   }, [clearCache, reload]);
 
-  if (loading && !items.length) return <LoadingShimmer />;
-  if (!items.length) return <EmptyPlaceholder message="还没有创建 AI 助手" />;
+  // 1. 处理加载状态
+  if (loading && !items.length) {
+    return <LoadingShimmer />;
+  }
 
-  return (
-    <div className="cybots-grid">
-      {items.map((item) => (
-        <AgentBlock key={item.id} item={item} reload={handleReload} />
-      ))}
-    </div>
-  );
+  // 2. 处理空数据状态
+  if (!items.length) {
+    return <EmptyPlaceholder message="还没有创建 AI 助手" />;
+  }
+
+  // 3. 渲染纯列表视图
+  return <AgentListView items={items} onReload={handleReload} />;
 };
 
 const Home = () => {
