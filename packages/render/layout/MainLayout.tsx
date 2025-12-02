@@ -18,11 +18,12 @@ import { SidebarTop } from "./SidebarTop";
 import LifeSidebarContent from "life/LifeSidebarContent";
 import PageContentErrorBoundary from "./PageContentErrorBoundary";
 import SidebarBottom from "./SidebarBottom";
+import PageLoading from "../web/ui/PageLoading";
 
 const TopBar = lazy(() => import("./TopBar"));
 
 const MIN_WIDTH = 200;
-const MAX_WIDTH = 600;
+const MAX_WIDTH = 360;
 
 const MainLayout: React.FC = () => {
   const location = useLocation();
@@ -90,7 +91,6 @@ const MainLayout: React.FC = () => {
     };
   }, [isResizing, dispatch, resize]);
 
-  // 客户端：媒体查询 + 快捷键
   useEffect(() => {
     const mql = window.matchMedia("(max-width: 768px)");
     const setMobile = () => setIsMobile(mql.matches);
@@ -111,7 +111,6 @@ const MainLayout: React.FC = () => {
     };
   }, [toggleSidebar, hasSidebar]);
 
-  // 首次在移动端进入时自动收起
   useEffect(() => {
     if (isInitialMount.current) {
       if (isMobile && isOpen) dispatch(setSidebarWidth(0));
@@ -119,7 +118,6 @@ const MainLayout: React.FC = () => {
     }
   }, [isMobile, isOpen, dispatch]);
 
-  // 移动端侧边栏打开时锁定滚动
   useEffect(() => {
     document.body.style.overflow =
       isOpen && isMobile && hasSidebar ? "hidden" : "auto";
@@ -159,7 +157,7 @@ const MainLayout: React.FC = () => {
           </Suspense>
           <div className="MainLayout__pageContent">
             <PageContentErrorBoundary>
-              <Suspense fallback={<div>Loading...</div>}>
+              <Suspense fallback={<PageLoading></PageLoading>}>
                 <Outlet />
               </Suspense>
             </PageContentErrorBoundary>
@@ -187,7 +185,13 @@ const MainLayout: React.FC = () => {
           overflow: hidden;
           transition: width 0.28s cubic-bezier(0.16, 1, 0.3, 1);
           background: var(--background);
-          border-right: 1px solid var(--border);
+          border-right: none;
+          
+          /* 极致轻盈的阴影：如晨雾般的边界感 */
+          box-shadow: 
+            1px 0 0 0 rgba(0, 0, 0, 0.018),        /* 极细分隔线 */
+            3px 0 8px -1px rgba(0, 0, 0, 0.02),    /* 近距柔光 */
+            6px 0 16px -3px rgba(0, 0, 0, 0.015);  /* 远距环境光 */
         }
 
         .MainLayout__sidebarContent {
@@ -216,17 +220,30 @@ const MainLayout: React.FC = () => {
         .MainLayout__pageContent { flex: 1; overflow: auto; }
 
         .MainLayout__resizeHandle {
-          position: absolute; top: 0; right: -3px;
-          width: 6px; height: 100%;
-          cursor: col-resize; z-index: ${zIndex.sidebarResizeHandle};
-          display: flex; justify-content: center;
+          position: absolute;
+          top: 0;
+          right: -3px;
+          width: 6px;
+          height: 100%;
+          cursor: col-resize;
+          z-index: ${zIndex.sidebarResizeHandle};
+          display: flex;
+          justify-content: center;
         }
+
         .MainLayout__resizeHandle::after {
-          content: ''; width: 1px; height: 100%;
-          background: transparent; transition: background-color 0.2s ease;
+          content: '';
+          width: 100%;
+          height: 100%;
+          background: transparent;
+          transition: box-shadow 0.2s ease, background-color 0.2s ease;
         }
+
         .MainLayout__resizeHandle:hover::after,
-        .MainLayout.is-resizing .MainLayout__resizeHandle::after { background: var(--primary); }
+        .MainLayout.is-resizing .MainLayout__resizeHandle::after {
+          background: rgba(0, 0, 0, 0.015);
+          box-shadow: inset 0 0 0 1px var(--primaryAlpha);
+        }
 
         .MainLayout__backdrop {
           position: fixed; inset: 0;
@@ -241,7 +258,11 @@ const MainLayout: React.FC = () => {
             position: fixed;
             width: 85% !important;
             max-width: 320px;
-            box-shadow: var(--shadowHeavy);
+            /* 移动端保持稍明确的层级感 */
+            box-shadow: 
+              1px 0 0 0 rgba(0, 0, 0, 0.025),
+              6px 0 16px -2px rgba(0, 0, 0, 0.04),
+              12px 0 32px -6px rgba(0, 0, 0, 0.03);
             transform: translateX(-100%);
             border-right: none;
             transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);

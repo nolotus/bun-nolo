@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux"; // useDispatch 已存在
+import { useDispatch } from "react-redux";
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
 import {
@@ -22,13 +22,12 @@ import {
   changeUser,
   selectUserId,
   User,
-  fetchUserProfile, // 2. 导入 fetchUserProfile action
-  selectCurrentUserBalance, // 2. 导入 balance selector
+  fetchUserProfile,
+  selectCurrentUserBalance,
 } from "auth/authSlice";
 import DropdownMenu from "render/web/ui/DropDownMenu";
 import { Tooltip } from "render/web/ui/Tooltip";
 
-// MenuItem 子组件保持不变
 const MenuItem = ({ icon: Icon, text, onClick, className = "" }) => (
   <button onClick={onClick} className={`dd-item ${className}`}>
     <Icon size={14} />
@@ -43,16 +42,12 @@ const SidebarBottom: React.FC = () => {
   const { user: authUser } = useAuth();
   const users = useAppSelector(selectUsers);
   const currentUserId = useAppSelector(selectUserId);
-  // 3. 直接从 Redux store 获取余额
   const balance = useAppSelector(selectCurrentUserBalance);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
-  // 5. 更新余额状态的判断逻辑
-  // 如果 balance 是数字类型，说明已加载；否则视为加载中或未获取
   const isLoading = typeof balance !== "number";
   const isLowBalance = !isLoading && balance < 10;
 
-  // 4. 当用户ID存在时，dispatch action 获取用户 Profile (包括余额)
   useEffect(() => {
     if (currentUserId) {
       dispatch(fetchUserProfile());
@@ -110,7 +105,6 @@ const SidebarBottom: React.FC = () => {
               <span className="username">{authUser.username}</span>
             </NavLink>
           </Tooltip>
-          {/* 5. 更新余额显示逻辑 */}
           <span className={`balance ${isLowBalance ? "low" : ""}`}>
             {isLoading ? "..." : `¥${balance.toFixed(2)}`}
           </span>
@@ -165,19 +159,23 @@ const SidebarBottom: React.FC = () => {
         </div>
       </div>
 
-      {/* 样式部分保持不变 */}
       <style href="SidebarBottom-compact" precedence="medium">{`
-        /* ... CSS styles ... */
         .SidebarBottom {
           display: flex;
           align-items: center;
           justify-content: space-between;
           padding: 0 var(--space-3);
-          border-top: 1px solid var(--border);
           background: var(--background);
           height: 48px;
           flex-shrink: 0;
           gap: var(--space-2);
+          
+          /* 移除边框，使用向上的轻盈阴影 */
+          border-top: none;
+          box-shadow: 
+            0 -1px 0 0 rgba(0, 0, 0, 0.018),       /* 极细分隔线 */
+            0 -3px 8px -1px rgba(0, 0, 0, 0.02),   /* 近距柔光 */
+            0 -6px 16px -3px rgba(0, 0, 0, 0.015); /* 远距环境光 */
         }
 
         .left-content, .right-content {
