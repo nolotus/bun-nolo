@@ -9,8 +9,8 @@ export const deepSeekModels: Model[] = [
     maxOutputTokens: 8192, // 8k tokens
     price: {
       input: 2, // $0.07 per 1M tokens
-      inputCacheHit: 0.5, // $0.014 per 1M tokens (cache hit)
-      output: 8, // $1.10 per 1M tokens
+      inputCacheHit: 0.2, // $0.014 per 1M tokens (cache hit)
+      output: 3, // $1.10 per 1M tokens
     },
   },
   {
@@ -21,9 +21,9 @@ export const deepSeekModels: Model[] = [
     maxOutputTokens: 32768, // 32k tokens
     supportsReasoningEffort: true, // 支持推理功能
     price: {
-      input: 4, // 4元 per 1M tokens
-      inputCacheHit: 1, // 1元 per 1M tokens (cache hit)
-      output: 16, // 16元 per 1M tokens
+      input: 2, // 4元 per 1M tokens
+      inputCacheHit: 0.2, // 1元 per 1M tokens (cache hit)
+      output: 3, // 16元 per 1M tokens
     },
   },
 ];
