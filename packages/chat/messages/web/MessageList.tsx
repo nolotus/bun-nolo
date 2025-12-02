@@ -7,7 +7,6 @@ import React, {
   useState,
   useEffect,
 } from "react";
-import { useTheme } from "app/theme";
 import { useAppDispatch, useAppSelector } from "app/store";
 import {
   selectAllMsgs,
@@ -27,7 +26,6 @@ interface MessagesListProps {
 }
 
 const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
-  const theme = useTheme();
   const dispatch = useAppDispatch();
   const listRef = useRef<HTMLDivElement>(null);
 
