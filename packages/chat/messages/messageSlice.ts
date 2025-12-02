@@ -105,6 +105,18 @@ const rejectedHandler =
     console.error(`${action.type} failed:`, action.error);
   };
 
+// messageStreamEnd 的 payload 类型
+interface MessageStreamEndPayload {
+  finalContentBuffer: any[];
+  totalUsage: any;
+  msgKey: string;
+  cybotConfig: any;
+  dialogId: string;
+  dialogKey: string;
+  messageId: string;
+  reasoningBuffer: string;
+}
+
 export const messageSlice = createSliceWithThunks({
   name: "message",
   initialState,
@@ -170,8 +182,10 @@ export const messageSlice = createSliceWithThunks({
           userId,
         };
 
+        // 1) 先更新 Redux 内存
         dispatch(messageSlice.actions.addUserMessage(fullMessage));
 
+        // 2) 再写入 DB
         const { controller, ...messageToWrite } = fullMessage;
         dispatch(
           write({
@@ -333,7 +347,7 @@ export const messageSlice = createSliceWithThunks({
     ),
 
     messageStreamEnd: create.asyncThunk(
-      async (payload: any, { dispatch }) => {
+      async (payload: MessageStreamEndPayload, { dispatch }) => {
         const {
           finalContentBuffer,
           totalUsage,

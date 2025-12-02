@@ -2,16 +2,11 @@
 
 import { nanoid } from "nanoid";
 import { Descendant } from "slate";
-import * as XLSX from "xlsx";
 import toast from "react-hot-toast";
 import { TFunction } from "i18next";
 
 import { createPageAndAddReference } from "../dialog/dialogSlice";
-import { convertExcelToSlate } from "utils/excelToSlate";
-import { convertDocxToSlate } from "./docxToSlate";
-import { convertPdfToSlate } from "create/editor/utils/pdfToSlate";
-import { convertTxtToSlate } from "create/editor/utils/txtToSlate";
-import { AppDispatch } from "app/store"; // 假设你的 store 导出了 AppDispatch 类型
+import { AppDispatch } from "app/store";
 
 interface ProcessDocumentFileArgs {
   file: File;
@@ -23,6 +18,7 @@ interface ProcessDocumentFileArgs {
 /**
  * 处理单个文档文件（Excel, Docx, PDF, TXT）。
  * Excel 文件会为每个工作表创建一个单独的页面引用，并为它们附加一个共享的 groupId。
+ * 现在内部使用动态 import，对不同类型的文件按需加载各自的解析库。
  * @throws 如果文件类型不受支持或处理过程中发生错误，则会抛出错误。
  */
 export const processDocumentFile = async ({
@@ -43,6 +39,11 @@ export const processDocumentFile = async ({
     // --- 多工作表 Excel 处理 ---
     if (sheetExts.some((ext) => name.endsWith(ext))) {
       fileProcessed = true;
+
+      // ✅ 按需加载 xlsx 和 convertExcelToSlate
+      const XLSX = await import("xlsx");
+      const { convertExcelToSlate } = await import("utils/excelToSlate");
+
       const buf = await file.arrayBuffer();
       const wb = XLSX.read(buf, { type: "array" });
 
@@ -50,8 +51,7 @@ export const processDocumentFile = async ({
         throw new Error(t("excelNoSheets", "Excel 文件中没有找到工作表。"));
       }
 
-      // <--- 核心改动 1: 为整个工作簿创建一个共享的组ID ---
-      // 这个ID将用于关联所有来自此文件的工作表。
+      // 为整个工作簿创建一个共享的组ID，用于关联所有来自此文件的工作表
       const workbookGroupId = nanoid();
 
       // 为每个工作表创建一个页面引用
@@ -74,39 +74,50 @@ export const processDocumentFile = async ({
             type: "excel",
             fileId: sheetFileId,
             size: file.size,
-            // <--- 核心改动 2: 将共享的组ID传递给action ---
-            groupId: workbookGroupId,
+            groupId: workbookGroupId, // 共享 groupId
           })
         ).unwrap(); // unwrap 会在 thunk rejected 时抛出错误
       }
     }
-    // --- 其他单文件类型处理 ---
-    // (注意: 单个文件不需要 groupId，后续逻辑会用它们自己的id作为分组依据)
+    // --- 其他单文件类型处理 (DOCX / PDF / TXT) ---
     else {
       let slateData: Descendant[];
-      let fileType: "docx" | "pdf" | "txt";
+      let fileType: "docx" | "pdf" | "txt" | undefined;
 
       if (name.endsWith(".docx")) {
         fileType = "docx";
+
+        // ✅ 按需加载 DOCX 解析逻辑
+        const { convertDocxToSlate } = await import("./docxToSlate");
         slateData = await convertDocxToSlate(file);
         fileProcessed = true;
       } else if (name.endsWith(".pdf")) {
         fileType = "pdf";
+
+        // ✅ 按需加载 PDF 解析逻辑（内部再按需加载 pdfjs-dist 和 worker）
+        const { convertPdfToSlate } = await import(
+          "create/editor/utils/pdfToSlate"
+        );
         slateData = await convertPdfToSlate(file);
         fileProcessed = true;
       } else if (name.endsWith(".txt") || file.type === "text/plain") {
         fileType = "txt";
+
+        // ✅ 按需加载 TXT 解析逻辑
+        const { convertTxtToSlate } = await import(
+          "create/editor/utils/txtToSlate"
+        );
         slateData = await convertTxtToSlate(await file.text());
         fileProcessed = true;
       }
 
-      if (fileProcessed) {
+      if (fileProcessed && fileType) {
         await dispatch(
           createPageAndAddReference({
             slateData,
             title: file.name,
-            type: fileType!,
-            fileId: fileId,
+            type: fileType,
+            fileId,
             size: file.size,
           })
         ).unwrap();

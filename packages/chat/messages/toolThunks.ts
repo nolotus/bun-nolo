@@ -4,7 +4,6 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 import { DataType } from "create/types";
 import { write } from "database/dbSlice";
 import { createDialogMessageKeyAndId } from "database/keys";
-import { extractCustomId } from "core/prefix";
 import type { AppThunkApi } from "app/store";
 
 import { findToolExecutor, toolDefinitionsByName } from "ai/tools/toolRegistry";
@@ -20,7 +19,7 @@ import { streamAgentChatTurn } from "ai/cybot/cybotSlice";
 import type { Message } from "./types";
 import { addToolMessage } from "./messageSlice"; // 只导入 action，避免循环依赖过重
 
-// ========= 类型：与原文件保持一致 ===========
+// ========= 类型：与原实现保持一致 ===========
 
 export interface HandleToolCallsPayload {
   accumulatedCalls: any[];
@@ -77,7 +76,7 @@ export const processToolData = createAsyncThunk(
         behavior,
         inputSummary,
         interaction,
-        input,
+        input: toolArgs, // ✅ 修复：之前的 input 未定义，这里必须用 toolArgs
       })
     );
 

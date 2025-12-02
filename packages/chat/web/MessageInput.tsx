@@ -13,7 +13,6 @@ import {
   selectPendingFiles,
   type PendingFile,
 } from "../dialog/dialogSlice";
-import { processDocumentFile } from "./fileProcessor";
 import { selectCurrentUserBalance } from "auth/authSlice";
 
 import DocxPreviewDialog from "render/web/DocxPreviewDialog";
@@ -116,6 +115,19 @@ const STYLES = `
   @media (min-width: 1600px) { .message-input__wrapper { max-width: 1080px; } }
 `;
 
+// ---- 动态加载 fileProcessor（避免首屏加载 xlsx / pdfjs 等） ----
+let fileProcessorModulePromise: Promise<
+  typeof import("./fileProcessor")
+> | null = null;
+
+async function getProcessDocumentFile() {
+  if (!fileProcessorModulePromise) {
+    fileProcessorModulePromise = import("./fileProcessor");
+  }
+  const { processDocumentFile } = await fileProcessorModulePromise;
+  return processDocumentFile;
+}
+
 type MessagePart =
   | { type: "text"; text: string }
   | { type: "image_url"; image_url: { url: string } }
@@ -169,6 +181,7 @@ const MessageInput: React.FC = () => {
   const processFiles = useCallback(
     async (files: FileList | null) => {
       if (!files) return;
+
       const [imgs, docs] = Array.from(files).reduce(
         (acc, f) => {
           acc[f.type.startsWith("image/") ? 0 : 1].push(f);
@@ -177,11 +190,12 @@ const MessageInput: React.FC = () => {
         [[], []] as [File[], File[]]
       );
 
-      // Handle Images
+      // 处理图片（不依赖大库，直接在主 bundle 中执行）
       if (imgs.length) {
         const limit = canMultiImg
           ? Infinity
           : Math.max(0, 1 - imgPreviews.length);
+
         imgs.slice(0, limit).forEach((file) => {
           const reader = new FileReader();
           reader.onloadend = () =>
@@ -192,31 +206,43 @@ const MessageInput: React.FC = () => {
             ]);
           reader.readAsDataURL(file);
         });
-        if (imgs.length > limit)
+
+        if (imgs.length > limit) {
           toast.error(
             t("insufficientBalanceForMultipleImages", "余额不足20，仅限1张图片")
           );
+        }
       }
 
-      // Handle Docs
-      for (const file of docs) {
-        const fid = nanoid();
-        setProcessing((p) => new Set(p).add(fid));
-        setErrors((p) => {
-          const m = new Map(p);
-          m.delete(fid);
-          return m;
-        });
-        try {
-          await processDocumentFile({ file, fileId: fid, dispatch, t, toast });
-        } catch (e: any) {
-          setErrors((p) => new Map(p).set(fid, e.message || "Error"));
-        } finally {
-          setProcessing((p) => {
-            const s = new Set(p);
-            s.delete(fid);
-            return s;
+      // 有文档文件时，再懒加载 fileProcessor（里面才会 import xlsx/pdfjs 等）
+      if (docs.length) {
+        const processDocumentFile = await getProcessDocumentFile();
+
+        for (const file of docs) {
+          const fid = nanoid();
+          setProcessing((p) => new Set(p).add(fid));
+          setErrors((p) => {
+            const m = new Map(p);
+            m.delete(fid);
+            return m;
           });
+
+          try {
+            await processDocumentFile({
+              file,
+              fileId: fid,
+              dispatch,
+              t,
+            });
+          } catch (e: any) {
+            setErrors((p) => new Map(p).set(fid, e.message || "Error"));
+          } finally {
+            setProcessing((p) => {
+              const s = new Set(p);
+              s.delete(fid);
+              return s;
+            });
+          }
         }
       }
     },
@@ -345,7 +371,10 @@ const MessageInput: React.FC = () => {
               onChange={(e) => {
                 setText(e.target.value);
                 e.target.style.height = "auto";
-                e.target.style.height = `${Math.min(e.target.scrollHeight, window.innerWidth > 768 ? 200 : 140)}px`;
+                e.target.style.height = `${Math.min(
+                  e.target.scrollHeight,
+                  window.innerWidth > 768 ? 200 : 140
+                )}px`;
               }}
               onKeyDown={(e) =>
                 !isMobile &&
