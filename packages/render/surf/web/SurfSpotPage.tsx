@@ -12,8 +12,7 @@ interface SurfSpotDescriptionProps {
 
 import { ShareIcon } from "@primer/octicons-react";
 import { useFetchData } from "app/hooks";
-import { PageLoader } from "../../blocks/PageLoader";
-
+import PageLoading from "render/web/ui/PageLoading";
 const SurfSpotDescription = ({
   title,
   description,
@@ -35,7 +34,7 @@ const SurfSpotDescription = ({
 const SurfSpotPage = ({ id }) => {
   const { data, isLoading } = useFetchData(id);
   if (isLoading) {
-    return <PageLoader />;
+    return <PageLoading />;
   }
   if (data) {
     const { title, lat, lng } = data;

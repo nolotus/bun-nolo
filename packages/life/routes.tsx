@@ -1,26 +1,36 @@
-import type React from "react";
-import { Suspense, lazy } from "react";
-import { PageLoader } from "render/blocks/PageLoader";
+import React, { Suspense, lazy } from "react";
+import PageLoading from "render/web/ui/PageLoading";
 
-const LazyLoadWrapper = ({ component }: { component: React.ReactNode }) => (
-  <Suspense fallback={<PageLoader />}>{component}</Suspense>
-);
-
-// 共享的懒加载组件（前两个路由使用相同模块）
 const LazyUsage = lazy(() => import("life/web/Usage"));
 const LazyUsersPage = lazy(() => import("auth/web/UsersPage"));
+
+const Load = ({ children }: { children: React.ReactNode }) => (
+  <Suspense fallback={<PageLoading />}>{children}</Suspense>
+);
 
 export const lifeRoutes = [
   {
     path: "/life",
-    element: <LazyLoadWrapper component={<LazyUsage />} />,
+    element: (
+      <Load>
+        <LazyUsage />
+      </Load>
+    ),
   },
   {
     path: "/life/usage",
-    element: <LazyLoadWrapper component={<LazyUsage />} />,
+    element: (
+      <Load>
+        <LazyUsage />
+      </Load>
+    ),
   },
   {
-    path: "/life/users", // 已添加 "/" 以符合标准路由路径；如需调整请告知
-    element: <LazyLoadWrapper component={<LazyUsersPage />} />,
+    path: "/life/users",
+    element: (
+      <Load>
+        <LazyUsersPage />
+      </Load>
+    ),
   },
 ];
