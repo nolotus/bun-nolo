@@ -76,7 +76,7 @@ export const processToolData = createAsyncThunk(
         behavior,
         inputSummary,
         interaction,
-        input: toolArgs, // ✅ 修复：之前的 input 未定义，这里必须用 toolArgs
+        input: toolArgs,
       })
     );
 
@@ -158,7 +158,7 @@ export const processToolData = createAsyncThunk(
           await dispatch(
             streamAgentChatTurn({
               cybotId: toolArgs.agentKey,
-              userInput: toolArgs.userInput,
+              userInput: toolArgsInput,
               parentMessageId,
             })
           ).unwrap();
@@ -257,6 +257,13 @@ export const processToolData = createAsyncThunk(
 );
 
 // ========= handleToolCalls ===========
+//
+// 设计要点：
+// - 不再把工具输出塞回当前 assistant 文本（保持 contentBuffer 纯净）
+// - 但会：
+//   * 始终写一条 role:"tool" 的消息
+//   * 为自动 follow‑up 汇总 data 工具的文本
+//   * 标记本轮是否出现 orchestrator / data 工具
 
 export const handleToolCalls = createAsyncThunk(
   "message/handleToolCalls",
@@ -273,6 +280,11 @@ export const handleToolCalls = createAsyncThunk(
     // 不再把 tool 输出塞回 assistant 文本，避免重复。
     const updatedContentBuffer = [...currentContentBuffer];
     let hasHandedOff = false;
+
+    // 本轮工具调用的统计信息（用于自动 follow‑up）
+    let toolTextForFollowup = "";
+    let hadOrchestrator = false;
+    let hasDataTool = false;
 
     for (const toolCall of accumulatedCalls) {
       if (!toolCall.function?.name) continue;
@@ -318,6 +330,22 @@ export const handleToolCalls = createAsyncThunk(
               customKey: toolDbKey,
             })
           );
+
+          // === 统计本轮工具行为，用于自动 follow‑up ===
+          const def = toolDefinitionsByName[result.toolName];
+          const behavior = def?.behavior ?? "action";
+
+          if (behavior === "data") {
+            hasDataTool = true;
+            const text =
+              (result.displayContent as any)?.text ??
+              JSON.stringify(result.displayContent);
+            if (text) {
+              toolTextForFollowup += `\n${text}`;
+            }
+          } else if (behavior === "orchestrator") {
+            hadOrchestrator = true;
+          }
         }
       } catch (rejectedValue: any) {
         if (rejectedValue.displayContent && rejectedValue.toolName) {
@@ -346,6 +374,22 @@ export const handleToolCalls = createAsyncThunk(
               customKey: toolDbKey,
             })
           );
+
+          // 错误同样计入 data 工具输出，以便总结时能看到错误信息
+          const def = toolDefinitionsByName[rejectedValue.toolName];
+          const behavior = def?.behavior ?? "action";
+
+          if (behavior === "data") {
+            hasDataTool = true;
+            const text =
+              (rejectedValue.displayContent as any)?.text ??
+              JSON.stringify(rejectedValue.displayContent);
+            if (text) {
+              toolTextForFollowup += `\n${text}`;
+            }
+          } else if (behavior === "orchestrator") {
+            hadOrchestrator = true;
+          }
         }
       }
 
@@ -353,6 +397,12 @@ export const handleToolCalls = createAsyncThunk(
       // assistant 内容只来自模型自然语言回复。
     }
 
-    return { finalContentBuffer: updatedContentBuffer, hasHandedOff };
+    return {
+      finalContentBuffer: updatedContentBuffer,
+      hasHandedOff,
+      toolTextForFollowup,
+      hadOrchestrator,
+      hasDataTool,
+    };
   }
 );

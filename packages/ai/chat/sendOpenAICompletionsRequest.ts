@@ -1,4 +1,4 @@
-// /ai/chat/sendOpenAICompletionsRequest.ts
+// ai/chat/sendOpenAICompletionsRequest.ts
 
 import {
   addActiveController,
@@ -35,14 +35,6 @@ export const prepareTools = (toolNames: string[]) => {
     .filter(Boolean); // 过滤掉未找到的工具
 };
 
-// 把 contentBuffer 中所有文本段拼成一段纯文本，用于 follow-up 总结
-function contentBufferToPlainText(buffer: any[]): string {
-  return buffer
-    .filter((c) => c && c.type === "text" && c.text)
-    .map((c) => String(c.text))
-    .join("");
-}
-
 // 追加文本 chunk 到 contentBuffer（保持原实现）
 function appendTextChunk(
   currentContentBuffer: any[],
@@ -64,58 +56,38 @@ function appendTextChunk(
 }
 
 // ============ 自动 follow-up 总结：基于 behavior 的策略 ============
+//
+// 新设计：
+// - 是否存在 orchestrator / data 工具，由 handleToolCalls 统计后传入
+// - 总结时仅基于 data 工具拼出的 toolTextForFollowup，不再依赖 contentBuffer
 
 async function autoFollowupIfNeeded(params: {
-  toolCalls: any[];
+  hasOrchestrator: boolean;
+  hasDataTool: boolean;
+  toolTextForFollowup: string;
   bodyData: any;
   cybotConfig: any;
   thunkApi: any;
   dialogKey: string;
-  contentBuffer: any[];
 }) {
   const {
-    toolCalls,
+    hasOrchestrator,
+    hasDataTool,
+    toolTextForFollowup,
     bodyData,
     cybotConfig,
     thunkApi,
     dialogKey,
-    contentBuffer,
   } = params;
   const { dispatch } = thunkApi;
 
-  if (!toolCalls || toolCalls.length === 0) return;
+  // 1) 有 orchestrator（createPlan / runStreamingAgent 等）：外层完全不做总结
+  if (hasOrchestrator) return;
 
-  // 1) 收集这轮调用的工具 behavior
-  const behaviors = toolCalls
-    .map((call) => {
-      const func = call.function;
-      if (!func?.name) return null;
-      try {
-        const { canonicalName } = findToolExecutor(func.name);
-        const def = toolDefinitionsByName[canonicalName];
-        return def?.behavior || null;
-      } catch {
-        return null;
-      }
-    })
-    .filter(Boolean) as ToolBehavior[];
+  // 2) 没有任何 data 工具 → 无需总结
+  if (!hasDataTool) return;
 
-  if (behaviors.length === 0) return;
-
-  const hasOrchestrator = behaviors.includes("orchestrator");
-  if (hasOrchestrator) {
-    // createPlan / runStreamingAgent 等 orchestrator：外层不做自动总结
-    return;
-  }
-
-  const hasDataTool = behaviors.includes("data");
-  if (!hasDataTool) {
-    // 只有 action / answer 工具：通常不需要自动总结
-    return;
-  }
-
-  // 2) 有 data 工具且无 orchestrator → 触发自动总结
-  const toolText = contentBufferToPlainText(contentBuffer);
+  const toolText = String(toolTextForFollowup || "");
   if (!toolText.trim()) return;
 
   const originalMessages = Array.isArray(bodyData.messages)
@@ -271,7 +243,7 @@ export const sendOpenAICompletionsRequest = async ({
               currentContentBuffer: contentBuffer,
               cybotConfig,
               messageId,
-              dialogId, // ✅ 新增：传入 dialogId，便于持久化 tool 消息
+              dialogId,
             })
           ).unwrap();
 
@@ -284,14 +256,15 @@ export const sendOpenAICompletionsRequest = async ({
             // 工具结果已经写完，先结束第一条消息的 streaming
             finalize();
 
-            // 再根据 behavior 决定是否自动 follow-up 总结
+            // 再根据行为（orchestrator / data）决定是否自动 follow-up 总结
             await autoFollowupIfNeeded({
-              toolCalls: toolCallsForThisTurn,
+              hasOrchestrator: result.hadOrchestrator,
+              hasDataTool: result.hasDataTool,
+              toolTextForFollowup: result.toolTextForFollowup,
               bodyData,
               cybotConfig,
               thunkApi,
               dialogKey,
-              contentBuffer,
             });
           }
         }
@@ -359,7 +332,7 @@ export const sendOpenAICompletionsRequest = async ({
                   currentContentBuffer: contentBuffer,
                   cybotConfig,
                   messageId,
-                  dialogId, // ✅ 同样这里也要传 dialogId
+                  dialogId,
                 })
               ).unwrap();
 
@@ -374,14 +347,15 @@ export const sendOpenAICompletionsRequest = async ({
                 // 工具结果已经写完，先结束第一条消息的 streaming
                 finalize();
 
-                // 再根据 behavior 决定是否自动 follow-up 总结
+                // 再根据行为决定是否自动 follow-up 总结
                 await autoFollowupIfNeeded({
-                  toolCalls: toolCallsForThisTurn,
+                  hasOrchestrator: result.hadOrchestrator,
+                  hasDataTool: result.hasDataTool,
+                  toolTextForFollowup: result.toolTextForFollowup,
                   bodyData,
                   cybotConfig,
                   thunkApi,
                   dialogKey,
-                  contentBuffer,
                 });
               }
             } else if (finishReason !== "stop") {
