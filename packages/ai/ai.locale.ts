@@ -9,6 +9,7 @@ export default {
       creating: "Creating...",
       edit: "Edit",
       delete: "Delete",
+      confirmDelete: "Confirm Delete",
       resetToDefaults: "Reset to Defaults",
       loading: "Loading...",
       startChat: "Start Chat",
@@ -175,11 +176,12 @@ export default {
       creating: "创建中...",
       edit: "编辑",
       delete: "删除",
+      confirmDelete: "确认删除",
       resetToDefaults: "重置为默认值",
       loading: "加载中...",
       startChat: "开始聊天",
       starting: "启动中...",
-      viewDetails: "查看详情",
+      viewDetails: "详情",
       deleteSuccess: "删除成功！",
 
       // 组件特定
@@ -337,6 +339,7 @@ export default {
       creating: "建立中...",
       edit: "編輯",
       delete: "刪除",
+      confirmDelete: "確認刪除",
       resetToDefaults: "重設為預設值",
       loading: "載入中...",
       startChat: "開始對話",
@@ -421,7 +424,7 @@ export default {
         },
       },
 
-      // 幫助提示文字
+      // 幫助文字
       help: {
         tags: "新增標籤，用於分類和發現",
         proxy:
@@ -436,7 +439,7 @@ export default {
         topP: "控制輸出的多樣性，範圍0-1。越高輸出越多樣化。",
         frequencyPenalty: "降低詞彙重複度，範圍-2到2。越高越能避免重複用詞。",
         presencePenalty: "降低主題重複度，範圍-2到2。越高越鼓勵談論新主題。",
-        maxTokens: "限制單次回答的長度，最小為1。",
+        maxTokens: "限制單次回覆的長度，最小為1。",
       },
 
       // 驗證資訊
@@ -499,6 +502,7 @@ export default {
       creating: "作成中...",
       edit: "編集",
       delete: "削除",
+      confirmDelete: "削除の確認",
       resetToDefaults: "デフォルトにリセット",
       loading: "読み込み中...",
       startChat: "チャットを開始",
