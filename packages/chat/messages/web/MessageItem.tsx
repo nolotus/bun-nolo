@@ -13,15 +13,7 @@ import { useMessageInteraction } from "../../hooks/useMessageInteraction";
 import { MessageToolConfirmBar } from "./MessageToolConfirmBar";
 import { ThinkingSection } from "./ThinkingSection";
 import ImagePreviewModal from "chat/web/ImagePreviewModal";
-
-// --- 子组件：流式传输指示器 ---
-const StreamingIndicator = memo(() => (
-  <div className="streaming-indicator">
-    <span className="dot" />
-    <span className="dot" />
-    <span className="dot" />
-  </div>
-));
+import StreamingIndicator from "render/web/ui/StreamingIndicator";
 
 // --- 子组件：文本/Markdown 渲染 ---
 const MessageText = memo(({ content, role, isStreaming = false }: any) => {
@@ -350,37 +342,6 @@ export const MessageItem = memo(({ message }: any) => {
       </div>
 
       <style href="message-item" precedence="high">{`
-/* --- StreamingIndicator --- */
-.streaming-indicator {
-  position: absolute;
-  bottom: -4px;
-  right: -6px;
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  padding: 5px 8px;
-  background: var(--background);
-  /* 调整：移除边框，使用柔和阴影 (40% 拟物) */
-  border: none;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  border-radius: 50px;
-  z-index: 10;
-}
-.streaming-indicator .dot {
-  width: 4px;
-  height: 4px;
-  background-color: var(--primary);
-  border-radius: 50%;
-  animation: streaming-bounce 1.4s infinite ease-in-out;
-}
-.streaming-indicator .dot:nth-child(1) { animation-delay: 0s; }
-.streaming-indicator .dot:nth-child(2) { animation-delay: 0.2s; }
-.streaming-indicator .dot:nth-child(3) { animation-delay: 0.4s; }
-@keyframes streaming-bounce {
-  0%, 80%, 100% { transform: scale(0.6); opacity: 0.3; }
-  40% { transform: scale(1); opacity: 1; }
-}
-
 /* --- MessageItem 基础样式 --- */
 .msg {
   padding: 0 var(--space-4);

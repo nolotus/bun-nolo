@@ -29,13 +29,7 @@ import WelcomeSection from "./WelcomeSection";
 import Tabs, { TabItem } from "render/web/ui/Tabs";
 import PublicAgents from "ai/agent/web/PublicAgents";
 import AgentListView from "ai/agent/web/AgentListView";
-const LoadingShimmer = () => (
-  <div className="cybots-grid">
-    {Array.from({ length: 6 }, (_, i) => (
-      <div key={i} className="loading-card" />
-    ))}
-  </div>
-);
+import StreamingIndicator from "render/web/ui/StreamingIndicator";
 
 const EmptyPlaceholder = ({ message }: { message: string }) => (
   <div className="empty-container">
@@ -74,9 +68,13 @@ const CybotList = ({
     await reload();
   }, [clearCache, reload]);
 
-  // 1. 处理加载状态
+  // 1. 处理加载状态：使用 StreamingIndicator
   if (loading && !items.length) {
-    return <LoadingShimmer />;
+    return (
+      <div className="loading-indicator-container">
+        <StreamingIndicator />
+      </div>
+    );
   }
 
   // 2. 处理空数据状态
@@ -333,8 +331,7 @@ const Home = () => {
         /* 通用 Glass 卡片样式 */
         .action-card,
         .explore-plaza-button,
-        .view-all-link,
-        .loading-card {
+        .view-all-link {
           backdrop-filter: var(--glass-blur);
           -webkit-backdrop-filter: var(--glass-blur);
           box-shadow: var(--shadow-base);
@@ -512,20 +509,15 @@ const Home = () => {
         }
         
         .content-body { padding: var(--space-6) 0; }
-        .cybots-grid { 
-          display: grid; 
-          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
-          gap: var(--space-5); 
+
+        /* 加载指示器容器：让 StreamingIndicator 居中显示 */
+        .loading-indicator-container {
+          position: relative;
+          min-height: 200px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
-        
-        .loading-card { 
-          background: var(--backgroundSecondary); 
-          border-radius: 16px; 
-          height: 280px; 
-          animation: pulse 1.5s ease-in-out infinite;
-        }
-        
-        @keyframes pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 0.8; } }
         
         .empty-container { 
           display: flex; 
@@ -566,13 +558,11 @@ const Home = () => {
         @media (max-width: 768px) {
           .action-grid { grid-template-columns: 1fr; gap: var(--space-3); }
           .action-card { grid-column: span 1 !important; }
-          .cybots-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
         }
         
         @media (max-width: 480px) {
           .home-main { padding: var(--space-4) var(--space-2) var(--space-6); }
           .action-icon { width: 32px; height: 32px; }
-          .cybots-grid { grid-template-columns: 1fr; }
         }
       `}</style>
     </>
