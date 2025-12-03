@@ -7,21 +7,30 @@ import {
 import toast from "react-hot-toast";
 import SearchInput from "render/web/ui/SearchInput";
 
-import PublicAgentsList from "./PublicAgentsList"; // 新增：引入刚才抽出来的组件
+import PublicAgentsList from "./PublicAgentsList";
 
 interface PublicAgentsProps {
   limit?: number;
 }
 
+const DEBOUNCE_DELAY = 300; // 搜索防抖时间（ms）
+
 const PublicAgents = memo(({ limit = 20 }: PublicAgentsProps) => {
   const [sortBy, setSortBy] =
     useState<UsePublicAgentsOptions["sortBy"]>("newest");
+
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
 
+  /**
+   * 搜索关键字防抖
+   */
   useEffect(() => {
-    const handler = setTimeout(() => setDebouncedSearchTerm(searchTerm), 300);
-    return () => clearTimeout(handler);
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, DEBOUNCE_DELAY);
+
+    return () => clearTimeout(timer);
   }, [searchTerm]);
 
   const { loading, error, data, reload } = usePublicAgents({
@@ -30,10 +39,29 @@ const PublicAgents = memo(({ limit = 20 }: PublicAgentsProps) => {
     searchName: debouncedSearchTerm,
   });
 
+  /**
+   * 切换为「最新发布」
+   */
+  const handleNewestSortClick = () => {
+    setSortBy("newest");
+  };
+
+  /**
+   * 切换价格排序：升序 <-> 降序
+   */
   const handlePriceSortClick = () => {
     setSortBy((prev) =>
       prev === "outputPriceAsc" ? "outputPriceDesc" : "outputPriceAsc"
     );
+  };
+
+  const handleSearchClear = () => {
+    setSearchTerm("");
+    setDebouncedSearchTerm("");
+  };
+
+  const handleSearchSubmit = () => {
+    setDebouncedSearchTerm(searchTerm);
   };
 
   if (error) {
@@ -45,32 +73,35 @@ const PublicAgents = memo(({ limit = 20 }: PublicAgentsProps) => {
     <div className="public-agents">
       {/* 顶部控制栏 */}
       <div className="public-agents__controls">
+        {/* 搜索框区域 */}
         <div className="public-agents__search">
           <SearchInput
             value={searchTerm}
             onChange={setSearchTerm}
-            onSearch={() => setDebouncedSearchTerm(searchTerm)}
-            onClear={() => {
-              setSearchTerm("");
-              setDebouncedSearchTerm("");
-            }}
+            onSearch={handleSearchSubmit}
+            onClear={handleSearchClear}
             placeholder="搜索 AI 助手..."
             className="public-agents__search-input"
           />
         </div>
 
+        {/* 排序区域 */}
         <div className="public-agents__sort">
           <span className="public-agents__sort-label">排序:</span>
+
           <button
+            type="button"
             className={
               "public-agents__sort-pill" +
               (sortBy === "newest" ? " public-agents__sort-pill--active" : "")
             }
-            onClick={() => setSortBy("newest")}
+            onClick={handleNewestSortClick}
           >
             最新发布
           </button>
+
           <button
+            type="button"
             className={
               "public-agents__sort-pill" +
               (sortBy?.includes("Price")
@@ -91,21 +122,19 @@ const PublicAgents = memo(({ limit = 20 }: PublicAgentsProps) => {
         </div>
       </div>
 
-      {/* 列表区域：已抽成独立组件 */}
+      {/* 列表区域（布局由 PublicAgentsList 统一处理） */}
       <PublicAgentsList loading={loading} data={data} reload={reload} />
 
       <style href="public-agents-styles" precedence="default">{`
         :root {
           --public-agents-control-height: 40px;
-          --public-agents-skeleton-bg: var(--backgroundSecondary);
-          --public-agents-skeleton-highlight: rgba(255, 255, 255, 0.5);
         }
 
         .public-agents {
           width: 100%;
           display: flex;
           flex-direction: column;
-          gap: 24px;
+          gap: var(--space-6, 24px);
         }
 
         /* 顶部控制栏 */
@@ -113,7 +142,7 @@ const PublicAgents = memo(({ limit = 20 }: PublicAgentsProps) => {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          gap: 16px;
+          gap: var(--space-4, 16px);
           padding-bottom: 4px;
         }
 
@@ -122,7 +151,7 @@ const PublicAgents = memo(({ limit = 20 }: PublicAgentsProps) => {
           max-width: 400px;
         }
 
-        /* 适配新版 SearchInput */
+        /* 适配新版 SearchInput 外壳 */
         :global(.public-agents__search-input .search-input) {
           height: var(--public-agents-control-height);
           border-radius: 20px;
@@ -171,7 +200,8 @@ const PublicAgents = memo(({ limit = 20 }: PublicAgentsProps) => {
         .public-agents__sort-pill--active {
           background: var(--background);
           color: var(--primary);
-          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08),
+          box-shadow:
+            0 2px 6px rgba(0, 0, 0, 0.08),
             0 1px 2px rgba(0, 0, 0, 0.04);
           font-weight: 600;
         }
@@ -182,12 +212,12 @@ const PublicAgents = memo(({ limit = 20 }: PublicAgentsProps) => {
           height: 14px;
         }
 
-        /* 响应式（控制栏相关） */
+        /* 控制栏响应式 */
         @media (max-width: 768px) {
           .public-agents__controls {
             flex-direction: column;
             align-items: stretch;
-            gap: 12px;
+            gap: var(--space-3, 12px);
           }
 
           .public-agents__search {
@@ -212,6 +242,7 @@ const PublicAgents = memo(({ limit = 20 }: PublicAgentsProps) => {
     </div>
   );
 });
+
 PublicAgents.displayName = "PublicAgents";
 
 export default PublicAgents;

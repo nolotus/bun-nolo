@@ -6,18 +6,18 @@ const SKELETON_COUNT = 6;
 
 interface PublicAgentsListProps {
   loading: boolean;
-  data?: any[]; // 这里你可以根据 usePublicAgents 的返回类型，替换为更精确的类型
+  data?: any[]; // TODO: 可替换为 usePublicAgents 返回的精确类型
   reload: () => Promise<void> | void;
 }
 
 /**
- * 骨架屏列表
+ * 骨架屏列表（使用与正式列表相同的 Grid 容器）
  */
 const PublicAgentsSkeleton = memo(() => {
   const items = useMemo(() => Array.from({ length: SKELETON_COUNT }), []);
 
   return (
-    <div className="public-agents__skeleton-list">
+    <div className="public-agents__grid">
       {items.map((_, index) => (
         <div key={index} className="public-agents__skeleton-card">
           <div className="public-agents__skeleton-header">
@@ -46,32 +46,31 @@ const PublicAgentsSkeleton = memo(() => {
 PublicAgentsSkeleton.displayName = "PublicAgentsSkeleton";
 
 /**
- * 列表 & 骨架屏 & 空状态 & 加载更多
+ * 列表 & 骨架屏 & 加载更多
+ *
+ * 注意：
+ * 1. PublicAgentsList 业务上「不可能出现空状态」，因此这里**故意不渲染任何空状态 UI**。
+ *    不要在此处再添加「暂无数据」之类的分支。
  */
 const PublicAgentsList = memo(
   ({ loading, data, reload }: PublicAgentsListProps) => {
-    const hasData = data && data.length > 0;
-
-    const handleReload = async () => {
-      await reload();
-    };
+    const hasData = !!data && data.length > 0;
 
     return (
       <div className="public-agents__list-wrapper">
-        {loading && !hasData ? (
-          <PublicAgentsSkeleton />
-        ) : hasData ? (
-          <div className="public-agents__list">
+        {/* 首屏加载骨架（无数据时） */}
+        {loading && !hasData && <PublicAgentsSkeleton />}
+
+        {/* 有数据时的主列表（Grid 布局） */}
+        {hasData && (
+          <div className="public-agents__grid">
             {data!.map((item: any) => (
-              <AgentBlock key={item.id} item={item} reload={handleReload} />
+              <AgentBlock key={item.id} item={item} reload={reload} />
             ))}
-          </div>
-        ) : (
-          <div className="public-agents__empty">
-            暂无相关助手，换个关键词试试？
           </div>
         )}
 
+        {/* 加载更多状态：底部 Loading 提示 */}
         {loading && hasData && (
           <div className="public-agents__loading-more">
             <SyncIcon
@@ -83,26 +82,29 @@ const PublicAgentsList = memo(
         )}
 
         <style href="public-agents-list-styles" precedence="default">{`
+          :root {
+            --public-agents-skeleton-bg: var(--backgroundSecondary);
+            --public-agents-skeleton-shimmer: linear-gradient(
+              90deg,
+              rgba(255, 255, 255, 0.06),
+              rgba(255, 255, 255, 0.2),
+              rgba(255, 255, 255, 0.06)
+            );
+          }
+
           .public-agents__list-wrapper {
             width: 100%;
           }
 
-          .public-agents__list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 24px;
-          }
-
-          .public-agents__list > * {
-            flex: 1 1 300px; /* 最小 300px，按行自动折行 */
-            max-width: 100%;
-          }
-
-          .public-agents__empty {
-            text-align: center;
-            padding: 40px;
-            color: var(--textTertiary);
-            font-size: 0.95rem;
+          /* 
+            重要：默认情况（桌面端宽度）每行固定显示 3 个卡片。
+            这是产品需求，请不要改成 auto-fill / auto-fit 等自适应列数。
+          */
+          .public-agents__grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr)); /* 默认每行 3 个 */
+            gap: var(--space-4, 16px);
+            align-items: stretch;
           }
 
           .public-agents__loading-more {
@@ -128,16 +130,8 @@ const PublicAgentsList = memo(
             }
           }
 
-          /* 骨架屏 */
-          .public-agents__skeleton-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 24px;
-          }
-
+          /* 骨架卡片（直接占满 grid 单元格） */
           .public-agents__skeleton-card {
-            flex: 1 1 300px;
-            max-width: 100%;
             padding: 16px;
             border-radius: 16px;
             background: var(--public-agents-skeleton-bg);
@@ -155,12 +149,7 @@ const PublicAgentsList = memo(
             width: 40px;
             height: 40px;
             border-radius: 9999px;
-            background: linear-gradient(
-              90deg,
-              rgba(255, 255, 255, 0.08),
-              rgba(255, 255, 255, 0.18),
-              rgba(255, 255, 255, 0.08)
-            );
+            background: var(--public-agents-skeleton-shimmer);
             background-size: 200% 100%;
             animation: public-agents-skeleton-shimmer 1.4s linear infinite;
           }
@@ -188,12 +177,7 @@ const PublicAgentsList = memo(
           .public-agents__skeleton-line {
             height: 10px;
             border-radius: 9999px;
-            background: linear-gradient(
-              90deg,
-              rgba(255, 255, 255, 0.06),
-              rgba(255, 255, 255, 0.18),
-              rgba(255, 255, 255, 0.06)
-            );
+            background: var(--public-agents-skeleton-shimmer);
             background-size: 200% 100%;
             animation: public-agents-skeleton-shimmer 1.4s linear infinite;
           }
@@ -215,12 +199,7 @@ const PublicAgentsList = memo(
             height: 22px;
             width: 80px;
             border-radius: 9999px;
-            background: linear-gradient(
-              90deg,
-              rgba(255, 255, 255, 0.06),
-              rgba(255, 255, 255, 0.2),
-              rgba(255, 255, 255, 0.06)
-            );
+            background: var(--public-agents-skeleton-shimmer);
             background-size: 200% 100%;
             animation: public-agents-skeleton-shimmer 1.4s linear infinite;
           }
@@ -238,24 +217,21 @@ const PublicAgentsList = memo(
             }
           }
 
-          /* 响应式（列表和骨架相关部分） */
-          @media (max-width: 768px) {
-            .public-agents__list {
-              flex-direction: column;
-              gap: 16px;
+          /* 
+            响应式说明：
+            - 这里仅在小屏下从 3 列变为 2 列 / 1 列，方便阅读。
+            - 但「默认情况」依然是 3 列，对应上面的业务注释。
+          */
+          @media (max-width: 1024px) {
+            .public-agents__grid {
+              grid-template-columns: repeat(2, minmax(0, 1fr));
             }
+          }
 
-            .public-agents__list > * {
-              flex: 1 1 100%;
-            }
-
-            .public-agents__skeleton-list {
-              flex-direction: column;
-              gap: 16px;
-            }
-
-            .public-agents__skeleton-card {
-              flex: 1 1 100%;
+          @media (max-width: 600px) {
+            .public-agents__grid {
+              grid-template-columns: 1fr;
+              gap: var(--space-3, 12px);
             }
           }
         `}</style>
@@ -263,6 +239,7 @@ const PublicAgentsList = memo(
     );
   }
 );
+
 PublicAgentsList.displayName = "PublicAgentsList";
 
 export default PublicAgentsList;
