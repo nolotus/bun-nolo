@@ -40,7 +40,7 @@ const preloadEditBundle = () => {
 };
 
 const AgentBlock = ({ item, reload }: AgentBlockProps) => {
-  const { t } = useTranslation("ai");
+  const { t } = useTranslation(["common", "ai"]);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 

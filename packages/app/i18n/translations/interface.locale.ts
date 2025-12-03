@@ -29,6 +29,7 @@ export default {
       confirm: "Confirm",
       cancel: "Cancel",
       messageOrImageHere: "Type Message or drag and drop image here",
+      confirmDelete: "Confirm Delete",
       deleteDialog: "Delete Dialog",
       edit: "Edit",
       delete: "Delete",
@@ -83,7 +84,7 @@ export default {
         feature1: {
           title: "Multi-Modal AI Workspace",
           description:
-            "Go beyond simple chat. Access top-tier models like GPT-5, Claude, and Gemini. Upload documents, analyze images, and generate video. Orchestrate multiple AIs in a single conversation to execute complex plans.", // [!code focus]
+            "Go beyond simple chat. Access top-tier models like GPT-5, Claude, and Gemini. Upload documents, analyze images, and generate video. Orchestrate multiple AIs in a single conversation to execute complex plans.",
           highlights: {
             0: "📚 Docs & Image Analysis",
             1: "🎨 Image & Video Generation",
@@ -162,6 +163,7 @@ export default {
       confirm: "确认",
       cancel: "取消",
       messageOrImageHere: "输入消息或拖放图片",
+      confirmDelete: "确认删除",
       deleteDialog: "删除对话",
       edit: "编辑",
       delete: "删除",
@@ -216,7 +218,7 @@ export default {
         feature1: {
           title: "多模态AI工作空间",
           description:
-            "超越简单聊天。在同一个对话中，自由切换并协同包括 GPT-5, Claude, 和 Gemini 在内的多个顶尖AI，上传文档、识别图像，甚至生成视频，执行你设定的复杂任务流。", // [!code focus]
+            "超越简单聊天。在同一个对话中，自由切换并协同包括 GPT-5, Claude, 和 Gemini 在内的多个顶尖AI，上传文档、识别图像，甚至生成视频，执行你设定的复杂任务流。",
           highlights: {
             0: "📚 文档与图像识别",
             1: "🎨 图像与视频生成",
@@ -295,6 +297,7 @@ export default {
       confirm: "確認",
       cancel: "取消",
       messageOrImageHere: "輸入訊息或拖放圖片",
+      confirmDelete: "確認刪除",
       deleteDialog: "刪除對話",
       edit: "編輯",
       delete: "刪除",
@@ -349,7 +352,7 @@ export default {
         feature1: {
           title: "多模態AI工作空間",
           description:
-            "超越簡單聊天。在同一個對話中，自由切換並協同包括 GPT-5, Claude 和 Gemini 在內的多個頂尖 AI，上傳文件、識別圖像，甚至生成影片，執行您設定的複雜任務流。", // [!code focus]
+            "超越簡單聊天。在同一個對話中，自由切換並協同包括 GPT-5, Claude 和 Gemini 在內的多個頂尖 AI，上傳文件、識別圖像，甚至生成影片，執行您設定的複雜任務流。",
           highlights: {
             0: "📚 文件與圖像識別",
             1: "🎨 圖像與影片生成",
@@ -430,6 +433,7 @@ export default {
       cancel: "キャンセル",
       messageOrImageHere:
         "メッセージを入力またはここに画像をドラッグ＆ドロップ",
+      confirmDelete: "削除を確認",
       deleteDialog: "ダイアログを削除",
       edit: "編集",
       delete: "削除",
@@ -485,7 +489,7 @@ export default {
         feature1: {
           title: "マルチモーダルAIワークスペース",
           description:
-            "シンプルなチャットを超えましょう。単一の会話でGPT-5、Claude、Geminiといった最先端のAIモデルを自由に切り替え、連携させ、ドキュメントのアップロード、画像の認識、ビデオ生成など、あなたが設定した複雑なプランを実行します。", // [!code focus]
+            "シンプルなチャットを超えましょう。単一の会話でGPT-5、Claude、Geminiといった最先端のAIモデルを自由に切り替え、連携させ、ドキュメントのアップロード、画像の認識、ビデオ生成など、あなたが設定した複雑なプランを実行します。",
           highlights: {
             0: "📚 ドキュメント・画像認識",
             1: "🎨 画像・動画生成",
@@ -495,7 +499,7 @@ export default {
         feature2: {
           title: "ノーコードAIビルダー",
           description:
-            "AIクリエイターになりましょう。独自のプロンプト、外部ツール、プライベートナレッジベースを視覚的に組み合わせ、家庭教師から自動化されたカスタマーサービスまで、あらゆる目的の専用AIを構築します。",
+            "AIクリエイターになりましょう。独自のプロンプト、外部ツール、プライベートナレッジベースを視覚的に組み合わせ、家庭教師から自動化されたカスタマーサービスまで、あらゆる目的の專用AIを構築します。",
           highlights: {
             0: "🧩 ブロックで構築",
             1: "🛠️ ツールを統合",
