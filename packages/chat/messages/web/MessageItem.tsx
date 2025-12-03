@@ -64,7 +64,7 @@ const ImagePreview = memo(({ src, alt, onPreview }: any) => {
 });
 
 // --- 子组件：消息内容聚合 ---
-const MessageContent = memo(
+export const MessageContent = memo(
   ({ content, thinkContent, role, isStreaming = false }: any) => {
     const [filePreview, setFilePreview] = useState<any | null>(null);
     const [imgPreview, setImgPreview] = useState<string | null>(null);
@@ -101,7 +101,7 @@ const MessageContent = memo(
     }, [content]);
 
     const renderContent = useMemo(() => {
-      if (!content) return <div className="empty-content">思考中</div>;
+      if (!content) return <div className="empty-content">思考中...</div>;
 
       if (typeof content === "string") {
         return (
@@ -196,8 +196,6 @@ const MessageContent = memo(
   }
 );
 
-export { MessageContent };
-
 // --- 主组件：MessageItem ---
 export const MessageItem = memo(({ message }: any) => {
   const dispatch = useAppDispatch();
@@ -220,7 +218,7 @@ export const MessageItem = memo(({ message }: any) => {
   const { data: robotData } =
     cybotKey && isRobot ? useFetchData(cybotKey) : { data: null };
 
-  const displayName = isRobot ? robotData?.name || "Robot" : "User";
+  const displayName = isRobot ? robotData?.name || "AI Assistant" : "User";
 
   const toggleCollapse = useCallback(() => setCollapsed((v) => !v), []);
 
@@ -258,7 +256,11 @@ export const MessageItem = memo(({ message }: any) => {
                   type={isRobot ? "robot" : "user"}
                   size="medium"
                 />
-                {isRobot && isStreaming && <StreamingIndicator />}
+                {isRobot && isStreaming && (
+                  <div className="avatar-indicator-pos">
+                    <StreamingIndicator />
+                  </div>
+                )}
               </div>
               <MessageActions
                 isRobot={isRobot}
@@ -302,7 +304,11 @@ export const MessageItem = memo(({ message }: any) => {
                   type={isRobot ? "robot" : "user"}
                   size="small"
                 />
-                {isRobot && isStreaming && <StreamingIndicator />}
+                {isRobot && isStreaming && (
+                  <div className="avatar-indicator-pos mobile">
+                    <StreamingIndicator />
+                  </div>
+                )}
               </div>
               {isRobot && displayName && (
                 <div className="robot-name mobile">{displayName}</div>
@@ -342,37 +348,34 @@ export const MessageItem = memo(({ message }: any) => {
       </div>
 
       <style href="message-item" precedence="high">{`
-/* --- MessageItem 基础样式 --- */
+/* --- 布局容器 --- */
 .msg {
   padding: 0 var(--space-4);
-  margin-bottom: var(--space-5); /* 调整：增加间距，提升呼吸感 */
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  border-radius: var(--space-3);
+  /* 增加自然间距，避免内容过于紧凑 */
+  margin-bottom: var(--space-6); 
   position: relative;
   z-index: 1;
 }
 
-.msg.actions-visible { z-index: 50; }
-
-/* --- 桌面端布局 --- */
+/* --- 桌面端结构 --- */
 .msg-inner.desktop {
   max-width: 900px;
   margin: 0 auto;
   display: flex;
-  gap: var(--space-4); /* 调整：增加头像与内容的间距 */
+  gap: 16px; /* 适中的头像距离 */
   align-items: flex-start;
 }
 
 .msg.self .msg-inner.desktop {
   flex-direction: row-reverse;
-  max-width: 75%;
+  max-width: 85%;
   margin-left: auto;
   margin-right: 0;
 }
 
-.msg.robot .msg-inner.desktop { max-width: 95%; }
+.msg.robot .msg-inner.desktop { max-width: 98%; }
 
+/* --- 头像与状态 --- */
 .avatar-area {
   flex-shrink: 0;
   display: flex;
@@ -380,210 +383,146 @@ export const MessageItem = memo(({ message }: any) => {
   align-items: center;
   gap: var(--space-2);
   position: sticky;
-  top: var(--space-4);
+  top: 20px;
 }
 
 .avatar-wrapper { position: relative; }
 
-.content-area {
-  flex: 1;
-  min-width: 0;
+/* 状态指示器悬浮定位 (Badge Style) */
+.avatar-indicator-pos {
+  position: absolute;
+  bottom: -4px;
+  right: -8px;
+  z-index: 10;
+  transform: scale(0.8);
 }
+.avatar-indicator-pos.mobile {
+  right: -6px; bottom: -4px;
+  transform: scale(0.7);
+}
+
+.content-area { flex: 1; min-width: 0; }
 
 .robot-name {
   font-size: 11px;
-  font-weight: 500; /* 调整：稍微纤细一点 */
-  color: var(--textSecondary);
-  text-transform: uppercase;
-  margin-bottom: var(--space-2);
-  letter-spacing: 0.5px;
+  font-weight: 500;
+  color: var(--textTertiary);
+  margin-bottom: 6px;
   opacity: 0.8;
 }
 
-/* 桌面端悬停效果 */
-@media (hover: hover) and (pointer: fine) {
-  .msg:hover .actions {
-    opacity: 0.9;
-    visibility: visible;
-  }
-}
-
-/* --- 移动端布局 --- */
-@media (hover: none) and (pointer: coarse) {
-  .msg {
-    padding: var(--space-3) var(--space-2);
-    margin-bottom: var(--space-3);
-    overflow: visible;
-  }
-
-  .msg.actions-visible {
-    background-color: var(--primaryGhost);
-    transform: scale(0.995);
-    transition: all 0.2s ease;
-  }
-
-  .msg-inner.mobile {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    gap: var(--space-2);
-  }
-
-  .msg-header {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    margin-bottom: var(--space-1);
-  }
-
-  .msg.self .msg-header {
-    flex-direction: row-reverse;
-    justify-content: flex-start;
-  }
-
-  .msg-header .avatar-wrapper {
-    width: 28px;
-    height: 28px;
-    flex-shrink: 0;
-  }
-
-  .robot-name.mobile {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--textSecondary);
-    margin: 0;
-    flex-shrink: 0;
-  }
-
-  .content-area.mobile {
-    width: 100%;
-    flex: none;
-  }
-
-  .msg-body.mobile {
-    width: 100%;
-    margin: 0;
-  }
-
-  .msg-body.self.mobile {
-    background: var(--primaryBg);
-    border-radius: 18px 18px 4px 18px; /* 调整：更圆润的圆角 */
-    padding: var(--space-3) var(--space-4);
-    /* 调整：移除边框，改用阴影 */
-    border: none;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    margin-left: auto;
-    max-width: 88%;
-  }
-
-  .msg-body.robot.mobile {
-    background: transparent;
-    padding: 0;
-    width: 100%;
-    max-width: none;
-  }
-}
-
-/* --- 通用消息体样式 --- */
+/* --- 消息气泡 (核心减负) --- */
 .msg-body {
   color: var(--text);
-  line-height: 1.65; /* 调整：增加行高，提升阅读舒适度 */
+  line-height: 1.75; /* 保持优秀的阅读体验 */
+  font-size: 15px;
   word-wrap: break-word;
 }
 
+/* User 气泡：极简色块 */
 .msg-body.self {
-  background: var(--primaryBg);
-  border-radius: 18px 18px 4px 18px; /* 调整：更圆润 */
-  padding: var(--space-4) var(--space-5); /* 调整：增加左右内边距 */
-  /* 调整：移除边框，增加精致的克制阴影 */
-  border: none;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 8px rgba(0, 0, 0, 0.02);
+  /* 自动适配：亮色用浅蓝/浅灰，暗色用深色，依赖 var(--primaryBg) */
+  background: var(--primaryBg); 
+  
+  border-radius: 16px; /* 稍微减小圆角，更现代 */
+  padding: 12px 18px;
+  
+  /* 极微弱的阴影，仅为了防止在某些背景下融入，完全移除边框 */
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+/* 暗色模式下气泡阴影加深一点点 */
+@media (prefers-color-scheme: dark) {
+  .msg-body.self {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  }
+}
+:global(.dark) .msg-body.self {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .msg-body.robot {
   background: transparent;
-  padding: var(--space-2) 0;
+  padding: 0; /* 机器人消息不需要内边距，直接流式排版 */
 }
 
-.msg-content {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
+/* --- 移动端 --- */
+@media (hover: none) and (pointer: coarse) {
+  .msg {
+    padding: var(--space-3);
+    margin-bottom: var(--space-2);
+  }
+  .msg-inner.mobile {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .msg-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 2px;
+  }
+  .msg.self .msg-header { flex-direction: row-reverse; }
+  
+  .msg-header .avatar-wrapper { width: 28px; height: 28px; }
+  .robot-name.mobile { font-size: 12px; margin: 0; }
+  
+  .msg-body.self.mobile {
+    background: var(--primaryBg);
+    border-radius: 16px 16px 4px 16px;
+    padding: 10px 14px;
+    margin-left: auto;
+    max-width: 90%;
+  }
 }
 
-.empty-content {
-  color: var(--textTertiary);
-  font-style: italic;
-}
+/* --- 附件与图片 --- */
+.msg-content { display: flex; flex-direction: column; gap: 8px; }
+.empty-content { color: var(--textTertiary); font-style: italic; font-size: 13px; }
+.message-text { line-height: inherit; }
+.simple-text { white-space: pre-wrap; margin: 0; }
 
-.message-text {
-  line-height: 1.6; /* 调整：统一行高 */
-}
-
-.simple-text {
-  white-space: pre-wrap;
-  margin: 0;
-}
-
-/* --- 图片缩略图相关 --- */
-.msg-image-wrap { display: inline-block; }
+.msg-image-wrap { display: inline-block; vertical-align: top; }
 .msg-image {
-  border-radius: var(--space-3); /* 调整：圆角统一 */
+  border-radius: 8px;
   max-width: 100%;
   max-height: 400px;
   object-fit: contain;
-  /* 调整：移除边框，使用更通透的阴影 */
-  border: none;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  /* 移除投影，只保留极细的分割线 */
+  border: 1px solid var(--border);
   cursor: pointer;
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-.msg-image:hover { transform: translateY(-2px); }
 
 .msg-images {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: var(--space-2);
-  margin-top: var(--space-2);
+  gap: 8px;
+  margin-top: 8px;
 }
 .msg-images .msg-image { max-height: 200px; }
 
-/* --- 收起态 --- */
+/* --- 交互态 --- */
+@media (hover: hover) and (pointer: fine) {
+  .msg:hover .actions { opacity: 1; visibility: visible; }
+}
+
 .msg.collapsed .msg-content {
-  max-height: 60px;
+  max-height: 56px;
   overflow: hidden;
   position: relative;
-  transition: max-height 0.3s ease;
 }
 .msg.collapsed .msg-content::after {
   content: "";
   position: absolute;
   bottom: 0; left: 0; right: 0;
-  height: 24px;
-  background: linear-gradient(
-    transparent,
-    var(--background)
-  );
+  height: 32px;
+  background: linear-gradient(transparent, var(--background));
 }
 
-/* --- 极小屏幕优化 --- */
 @media (max-width: 480px) {
-  .msg { 
-    padding: var(--space-2) var(--space-1);
-    margin-bottom: var(--space-3);
-  }
-  .msg-header .avatar-wrapper {
-    width: 24px;
-    height: 24px;
-  }
-  .robot-name.mobile { font-size: 11px; }
-  .msg-body.self.mobile,
-  .msg-body.robot.mobile {
-    padding: var(--space-2) var(--space-3);
-    font-size: 15px; /* 调整：微调字号易读性 */
-    max-width: 90%;
-  }
-  .msg-image { max-height: 250px; }
+  .msg-body.self.mobile, 
+  .msg-body.robot.mobile { font-size: 15px; }
 }
       `}</style>
     </>

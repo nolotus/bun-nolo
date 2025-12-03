@@ -1,4 +1,3 @@
-// routes.tsx（示例文件名）
 import React, { Suspense, lazy } from "react";
 import Home from "app/pages/Home";
 import MainLayout from "render/layout/MainLayout";
@@ -10,7 +9,6 @@ import { settingRoutes } from "app/settings/routes";
 import { lifeRoutes } from "life/routes";
 import PageLoader from "render/page/PageLoader";
 
-// 新增：使用统一的 PageLoading 组件
 import PageLoading from "render/web/ui/PageLoading";
 
 const Lab = lazy(() => import("app/pages/Lab"));
@@ -18,17 +16,20 @@ const PricePage = lazy(() => import("app/pages/Pricing/Price"));
 const RechargePage = lazy(() => import("app/pages/Recharge"));
 const AgentExplore = lazy(() => import("ai/agent/web/AgentExplore"));
 
-// 删除原来的 fallbackStyle
+/**
+ * 统一的 Suspense 包装：
+ * - 使用 PageLoading 作为 fallback
+ * - message 会根据传入的 pageName 生成「在加载什么」
+ */
+const withSuspense = (element: JSX.Element, pageName?: string) => {
+  const message = pageName ? `${pageName}加载中...` : "内容加载中，请稍候...";
 
-const withSuspense = (element: JSX.Element, message?: string) => (
-  <Suspense
-    fallback={
-      <PageLoading fullHeight message={message ?? "页面加载中，请稍候..."} />
-    }
-  >
-    {element}
-  </Suspense>
-);
+  return (
+    <Suspense fallback={<PageLoading fullHeight message={message} />}>
+      {element}
+    </Suspense>
+  );
+};
 
 const commonRoutes = [
   ...authRoutes,
@@ -45,11 +46,22 @@ export const routes = () => [
     children: [
       ...commonRoutes,
       { index: true, element: <Home /> },
-      { path: "lab", element: withSuspense(<Lab />) },
-      { path: "pricing", element: withSuspense(<PricePage />) },
-      { path: "recharge", element: withSuspense(<RechargePage />) },
+
+      // 按页面给出清晰的加载文案
+      { path: "lab", element: withSuspense(<Lab />, "实验室页面") },
+      {
+        path: "pricing",
+        element: withSuspense(<PricePage />, "定价与套餐信息"),
+      },
+      {
+        path: "recharge",
+        element: withSuspense(<RechargePage />, "充值页面"),
+      },
       spaceRoutes,
-      { path: "explore", element: withSuspense(<AgentExplore />) },
+      {
+        path: "explore",
+        element: withSuspense(<AgentExplore />, "智能体广场"),
+      },
     ],
   },
 ];
