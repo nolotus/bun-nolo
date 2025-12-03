@@ -408,4 +408,16 @@ export const openrouterModels = [
     contextWindow: 2000000,
     supportsTool: true,
   },
+  {
+    name: "x-ai/grok-4.1-fast:free",
+    displayName: "xAI: Grok 4.1 Fast Free",
+    hasVision: true,
+    price: {
+      input: 0,
+      output: 0,
+    },
+    maxOutputTokens: 65536,
+    contextWindow: 2000000,
+    supportsTool: true,
+  },
 ];
