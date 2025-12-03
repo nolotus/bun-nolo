@@ -22,7 +22,6 @@ import {
   LuPencil,
   LuPlus,
   LuRefreshCw,
-  LuStar,
   LuTrash2,
   LuX,
   LuCheck,
@@ -51,7 +50,6 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
   const [showActions, setShowActions] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(false);
   const allowEdit = useCouldEdit(agentKey);
 
   const startDialog = async () => {
@@ -86,18 +84,6 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
     preloadEditBundle();
     openEdit();
   }, [openEdit]);
-
-  const handleToggleFavorite = useCallback(
-    (e: React.MouseEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setIsFavorite((v) => !v);
-      toast.success(
-        !isFavorite ? t("addedToFavorites") : t("removedFromFavorites")
-      );
-    },
-    [isFavorite, t]
-  );
 
   const handleMoreClick = useCallback(
     (e: React.MouseEvent) => {
@@ -153,16 +139,9 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           }
         }}
       >
-        <div className="agent__top-actions">
-          <button
-            className={`agent__favorite ${isFavorite ? "agent__favorite--active" : ""}`}
-            onClick={handleToggleFavorite}
-            title={isFavorite ? t("removeFromFavorites") : t("addToFavorites")}
-          >
-            <LuStar size={18} />
-          </button>
-
-          {allowEdit && (
+        {/* Top Actions: simplified without star */}
+        {allowEdit && (
+          <div className="agent__top-actions">
             <button
               className={`agent__more ${showActions ? "agent__more--active" : ""}`}
               onPointerEnter={preloadEditBundle}
@@ -172,8 +151,8 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
             >
               <LuEllipsis size={18} />
             </button>
-          )}
-        </div>
+          </div>
+        )}
 
         {showActions && allowEdit && (
           <div className="agent__actions-menu">
@@ -320,226 +299,167 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           background: var(--background);
           border-radius: var(--space-3);
           padding: var(--space-5);
+          /* 移除硬边框，使用更通透的阴影 */
           border: none;
           transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
           cursor: pointer;
           position: relative;
           display: flex;
           flex-direction: column;
-          gap: var(--space-4);
+          /* 略微增加元素垂直间距，增强呼吸感 */
+          gap: var(--space-5);
           height: 100%;
           overflow: visible;
           
-          /* 明亮模式：精致玻璃质感 + 适中阴影 */
+          /* 明亮模式：精致玻璃质感 + 适中阴影（拟物/扁平结合） */
           box-shadow: 
-            0 0 0 0.5px rgba(0, 0, 0, 0.04),          /* 极细边缘定义 */
-            0 1px 2px 0 rgba(0, 0, 0, 0.05),           /* 近距细腻阴影 */
-            0 2px 8px -1px rgba(0, 0, 0, 0.06),        /* 中距柔和阴影 */
-            0 4px 16px -2px rgba(0, 0, 0, 0.04);       /* 远距环境阴影 */
+            0 0 0 1px rgba(0, 0, 0, 0.03),             /* 极细微边框替代品 */
+            0 2px 8px -2px rgba(0, 0, 0, 0.05),        /* 基础阴影 */
+            0 8px 24px -4px rgba(0, 0, 0, 0.04);       /* 环境光感 */
           
           /* macOS Liquid Glass 效果 */
-          backdrop-filter: blur(8px) saturate(1.2);
-          -webkit-backdrop-filter: blur(8px) saturate(1.2);
+          backdrop-filter: blur(10px) saturate(1.1);
+          -webkit-backdrop-filter: blur(10px) saturate(1.1);
         }
 
         /* 暗色模式增强 */
         @media (prefers-color-scheme: dark) {
           .agent {
+            background: rgba(255, 255, 255, 0.02);
             box-shadow: 
-              0 0 0 0.5px rgba(255, 255, 255, 0.06),   /* 暗色边缘光晕 */
-              0 1px 2px 0 rgba(0, 0, 0, 0.3),          /* 近距深阴影 */
-              0 2px 8px -1px rgba(0, 0, 0, 0.4),       /* 中距加强阴影 */
-              0 4px 16px -2px rgba(0, 0, 0, 0.3),      /* 远距环境阴影 */
-              inset 0 0.5px 0 0 rgba(255, 255, 255, 0.04); /* 顶部微光 */
+              0 0 0 1px rgba(255, 255, 255, 0.06),   
+              0 2px 8px -2px rgba(0, 0, 0, 0.4),       
+              0 8px 24px -4px rgba(0, 0, 0, 0.2);
             
-            backdrop-filter: blur(12px) saturate(1.4);
-            -webkit-backdrop-filter: blur(12px) saturate(1.4);
+            backdrop-filter: blur(16px) saturate(1.2);
+            -webkit-backdrop-filter: blur(16px) saturate(1.2);
           }
         }
 
         .agent:hover {
-          transform: translateY(-3px);
+          transform: translateY(-4px);
           
-          /* Hover 明亮模式：浮起 + 主题色光晕 */
+          /* Hover：光晕与深度增强 */
           box-shadow: 
             0 0 0 1px var(--primaryGhost),
-            0 2px 4px 0 rgba(0, 0, 0, 0.06),
-            0 8px 20px -2px rgba(0, 0, 0, 0.1),
-            0 16px 40px -4px rgba(0, 0, 0, 0.08),
-            0 4px 24px -2px var(--primaryGhost);       /* 主题色光晕 */
+            0 4px 12px -2px rgba(0, 0, 0, 0.06),
+            0 12px 32px -4px rgba(0, 0, 0, 0.08),
+            0 4px 24px -6px var(--primaryGhost);       /* 主题色环境光 */
         }
 
         @media (prefers-color-scheme: dark) {
           .agent:hover {
             box-shadow: 
               0 0 0 1px var(--primary),
-              0 2px 4px 0 rgba(0, 0, 0, 0.4),
-              0 8px 20px -2px rgba(0, 0, 0, 0.6),
-              0 16px 40px -4px rgba(0, 0, 0, 0.5),
-              0 4px 32px -2px var(--primaryGhost),     /* 加强主题色光晕 */
-              inset 0 1px 0 0 rgba(255, 255, 255, 0.08); /* 增强顶部高光 */
+              0 4px 12px -2px rgba(0, 0, 0, 0.5),
+              0 12px 32px -4px rgba(0, 0, 0, 0.4),
+              0 4px 32px -6px var(--primaryGhost);
           }
         }
 
         .agent:has(.agent__delete-confirm) {
-          background: rgba(239, 68, 68, 0.04);
-          
-          /* 删除警示：红色光晕系统 */
+          background: rgba(239, 68, 68, 0.02);
           box-shadow: 
-            0 0 0 1px rgba(239, 68, 68, 0.3),
-            0 2px 4px 0 rgba(239, 68, 68, 0.15),
-            0 4px 16px -1px rgba(239, 68, 68, 0.2),
-            0 8px 32px -2px rgba(239, 68, 68, 0.15);
-        }
-
-        @media (prefers-color-scheme: dark) {
-          .agent:has(.agent__delete-confirm) {
-            background: rgba(239, 68, 68, 0.08);
-            box-shadow: 
-              0 0 0 1px rgba(239, 68, 68, 0.4),
-              0 2px 4px 0 rgba(239, 68, 68, 0.25),
-              0 4px 16px -1px rgba(239, 68, 68, 0.3),
-              0 8px 32px -2px rgba(239, 68, 68, 0.25),
-              inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
-          }
+            0 0 0 1px rgba(239, 68, 68, 0.2),
+            0 8px 30px -4px rgba(239, 68, 68, 0.12);
         }
 
         .agent__top-actions {
           position: absolute;
           top: var(--space-4);
           right: var(--space-4);
-          display: flex;
-          gap: var(--space-1);
           z-index: 10;
         }
 
-        .agent__favorite,
+        /* 简化按钮样式，更加纤细精致 */
         .agent__more {
-          background: rgba(255, 255, 255, 0.5);
+          background: transparent;
           border: none;
           color: var(--textTertiary);
-          padding: var(--space-2);
+          padding: 0;
+          width: 28px;
+          height: 28px;
           border-radius: var(--space-2);
-          transition: all 0.2s ease;
+          transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
           cursor: pointer;
           display: flex;
           align-items: center;
           justify-content: center;
-          width: 36px;
-          height: 36px;
-          opacity: 0.7;
-          backdrop-filter: blur(8px);
-          -webkit-backdrop-filter: blur(8px);
+          opacity: 0; /* 默认隐藏，更简洁 */
         }
-
-        @media (prefers-color-scheme: dark) {
-          .agent__favorite,
-          .agent__more {
-            background: rgba(255, 255, 255, 0.08);
-          }
-        }
-
-        .agent__favorite:hover {
-          color: var(--warning);
-          background: rgba(255, 255, 255, 0.7);
+        
+        /* 仅在卡片hover时或如果是移动端显示更多按钮 */
+        .agent:hover .agent__more,
+        .agent__more:focus,
+        .agent__more--active {
           opacity: 1;
-          transform: scale(1.1);
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+          color: var(--textSecondary);
+          background: rgba(0, 0, 0, 0.04);
         }
 
         @media (prefers-color-scheme: dark) {
-          .agent__favorite:hover {
-            background: rgba(255, 255, 255, 0.12);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+          .agent:hover .agent__more,
+          .agent__more:focus,
+          .agent__more--active {
+             background: rgba(255, 255, 255, 0.1);
           }
         }
 
         .agent__more:hover,
         .agent__more--active {
-          color: var(--textSecondary);
-          background: rgba(255, 255, 255, 0.7);
-          opacity: 1;
-          transform: scale(1.1);
-        }
-
-        @media (prefers-color-scheme: dark) {
-          .agent__more:hover,
-          .agent__more--active {
-            background: rgba(255, 255, 255, 0.12);
-          }
-        }
-
-        .agent__favorite--active {
-          color: var(--warning);
-          background: rgba(255, 255, 255, 0.7);
-          opacity: 1;
-        }
-
-        @media (prefers-color-scheme: dark) {
-          .agent__favorite--active {
-            background: rgba(255, 255, 255, 0.12);
-          }
-        }
-
-        .agent__favorite--active svg {
-          fill: currentColor;
+          color: var(--text);
+          transform: scale(1.05); /* 微交互：轻微放大 */
         }
 
         .agent__actions-menu {
           position: absolute;
-          top: var(--space-16);
+          top: var(--space-12);
           right: var(--space-4);
           background: var(--background);
-          border: none;
           border-radius: var(--space-3);
           z-index: 20;
           overflow: hidden;
-          min-width: 120px;
-          animation: slideDown 0.15s ease-out;
+          min-width: 110px;
+          animation: slideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
           
           /* 菜单 Liquid Glass 效果 */
-          backdrop-filter: blur(20px) saturate(1.4);
-          -webkit-backdrop-filter: blur(20px) saturate(1.4);
+          backdrop-filter: blur(20px) saturate(1.8);
+          -webkit-backdrop-filter: blur(20px) saturate(1.8);
           
           box-shadow: 
             0 0 0 0.5px rgba(0, 0, 0, 0.08),
-            0 4px 8px 0 rgba(0, 0, 0, 0.1),
-            0 12px 32px -4px rgba(0, 0, 0, 0.15),
-            0 24px 64px -8px rgba(0, 0, 0, 0.12);
+            0 8px 20px -4px rgba(0, 0, 0, 0.12);
         }
 
         @media (prefers-color-scheme: dark) {
           .agent__actions-menu {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(30, 30, 30, 0.8);
             box-shadow: 
               0 0 0 0.5px rgba(255, 255, 255, 0.1),
-              0 4px 8px 0 rgba(0, 0, 0, 0.4),
-              0 12px 32px -4px rgba(0, 0, 0, 0.6),
-              0 24px 64px -8px rgba(0, 0, 0, 0.5),
-              inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+              0 12px 32px -4px rgba(0, 0, 0, 0.5);
           }
         }
 
         @keyframes slideDown {
-          from { opacity: 0; transform: translateY(-8px); }
-          to { opacity: 1; transform: translateY(0); }
+          from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
         .agent__action-item {
           width: 100%;
-          padding: var(--space-3) var(--space-4);
+          padding: var(--space-2) var(--space-3);
           border: none;
           background: none;
           display: flex;
           align-items: center;
           gap: var(--space-2);
-          font-size: 0.875rem;
+          font-size: 0.85rem;
           cursor: pointer;
           transition: background-color 0.15s ease;
           color: var(--textSecondary);
         }
 
-        .agent__action-item:hover { background: var(--backgroundHover); }
+        .agent__action-item:hover { background: var(--backgroundHover); color: var(--text); }
         .agent__action-item--edit:hover { color: var(--primary); }
         .agent__action-item--delete:hover {
           color: var(--error);
@@ -553,13 +473,14 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           right: 0;
           background: var(--error);
           color: white;
-          padding: var(--space-3) var(--space-4);
+          padding: var(--space-2) var(--space-4);
           display: flex;
           align-items: center;
           justify-content: space-between;
           border-radius: var(--space-3) var(--space-3) 0 0;
           animation: slideDownRed 0.2s ease-out;
           z-index: 15;
+          height: 44px; /* 固定高度确保布局不跳动 */
         }
 
         @keyframes slideDownRed {
@@ -571,7 +492,7 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           display: flex;
           align-items: center;
           gap: var(--space-2);
-          font-size: 0.875rem;
+          font-size: 0.85rem;
           font-weight: 500;
         }
 
@@ -579,11 +500,11 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
 
         .agent__delete-cancel,
         .agent__delete-confirm-btn {
-          background: rgba(255, 255, 255, 0.2);
-          border: 1px solid rgba(255, 255, 255, 0.3);
+          background: rgba(255, 255, 255, 0.15);
+          border: none;
           color: white;
-          width: 28px;
-          height: 28px;
+          width: 24px;
+          height: 24px;
           border-radius: var(--space-1);
           display: flex;
           align-items: center;
@@ -594,13 +515,12 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
 
         .agent__delete-cancel:hover { background: rgba(255, 255, 255, 0.3); }
         .agent__delete-confirm-btn:hover { background: rgba(255, 255, 255, 0.3); }
-        .agent__delete-confirm-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
         .agent__spinner {
-          width: 14px;
-          height: 14px;
-          border: 2px solid rgba(255, 255, 255, 0.3);
-          border-top: 2px solid white;
+          width: 12px;
+          height: 12px;
+          border: 1.5px solid rgba(255, 255, 255, 0.3);
+          border-top: 1.5px solid white;
           border-radius: 50%;
           animation: spin 1s linear infinite;
         }
@@ -611,34 +531,36 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           display: flex;
           gap: var(--space-3);
           align-items: flex-start;
-          padding-right: var(--space-12);
-          margin-top: var(--space-0);
+          /* 减少右侧padding，因为去掉了收藏按钮 */
+          padding-right: var(--space-8);
+          margin-top: var(--space-1);
         }
-
-        .agent:has(.agent__delete-confirm) .agent__header { margin-top: var(--space-12); }
+        
+        .agent:has(.agent__delete-confirm) .agent__header { margin-top: var(--space-8); }
 
         .agent__info {
           flex: 1;
           min-width: 0;
           display: flex;
           flex-direction: column;
-          gap: var(--space-2);
+          gap: var(--space-1); /* 更紧凑的信息行 */
         }
 
         .agent__title-link {
-          display: flex;
+          display: inline-flex;
           align-items: center;
           gap: var(--space-2);
           text-decoration: none;
           color: inherit;
+          max-width: 100%;
         }
 
         .agent__title {
-          font-size: 1.1rem;
+          font-size: 1.05rem; /* 字体稍微纤细化 */
           font-weight: 600;
           margin: 0;
           color: var(--text);
-          line-height: 1.3;
+          line-height: 1.4;
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
@@ -652,6 +574,8 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           opacity: 0;
           transform: translateX(-4px);
           transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
         }
 
         .agent:hover .agent__title-arrow {
@@ -661,26 +585,32 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
         }
 
         .agent__price {
-          font-size: 0.8rem;
+          font-size: 0.75rem;
           color: var(--textTertiary);
           display: flex;
           align-items: center;
           gap: var(--space-1);
+          margin-top: 2px;
         }
 
         .agent__price-unit {
           color: var(--textQuaternary);
-          font-size: 0.75rem;
+          opacity: 0.8;
         }
 
-        .agent__tags { display: flex; gap: var(--space-1); flex-wrap: wrap; }
+        .agent__tags { 
+          display: flex; 
+          gap: var(--space-1); 
+          flex-wrap: wrap; 
+          margin-top: var(--space-1);
+        }
 
         .agent__tag {
-          font-size: 0.75rem;
-          padding: var(--space-1) var(--space-2);
+          font-size: 0.7rem;
+          padding: 2px 6px; /* 减小padding，更精致 */
           background: var(--backgroundTertiary);
-          border-radius: var(--space-1);
-          color: var(--textTertiary);
+          border-radius: 4px; /* 统一圆角感觉 */
+          color: var(--textSecondary);
           font-weight: 500;
           white-space: nowrap;
         }
@@ -688,30 +618,47 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
         .agent__vision {
           display: flex;
           align-items: center;
-          gap: 4px;
+          gap: 3px;
           color: var(--primary);
           background: var(--primaryGhost);
+          padding-left: 5px;
+          padding-right: 7px;
         }
 
-        .agent__tag--more { color: var(--primary); background: var(--primaryGhost); }
+        .agent__tag--more { 
+          color: var(--primary); 
+          background: var(--primaryGhost);
+          font-family: inherit;
+        }
 
         .agent__desc {
           flex: 1;
-          font-size: 0.9rem;
-          line-height: 1.5;
+          font-size: 0.875rem;
+          line-height: 1.6; /* 提高行高，增加阅读舒适度 */
           color: var(--textSecondary);
           white-space: pre-wrap;
           overflow-y: auto;
-          max-height: 90px;
+          max-height: 96px;
           padding: var(--space-2) var(--space-3);
-          background: var(--backgroundSecondary);
+          /* 极淡的背景，接近透明，只为了区分区域 */
+          background: rgba(0, 0, 0, 0.02);
           border-radius: var(--space-2);
+          /* 淡化边框感 */
+        }
+        
+        @media (prefers-color-scheme: dark) {
+          .agent__desc {
+             background: rgba(255, 255, 255, 0.03);
+          }
         }
 
-        .agent__desc::-webkit-scrollbar { width: 4px; }
-        .agent__desc::-webkit-scrollbar-thumb { background-color: var(--border); border-radius: 4px; }
+        .agent__desc::-webkit-scrollbar { width: 3px; }
+        .agent__desc::-webkit-scrollbar-thumb { 
+          background-color: var(--border); 
+          border-radius: 4px; 
+        }
 
-        .agent__actions { display: flex; margin-top: auto; }
+        .agent__actions { display: flex; margin-top: auto; padding-top: var(--space-1); }
         .agent__primary { flex: 1; }
 
         .agent-exit {
@@ -731,8 +678,8 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
         .agent__dialog-spinner {
           width: 24px;
           height: 24px;
-          border: 3px solid rgba(0,0,0,0.1);
-          border-top: 3px solid var(--primary);
+          border: 2px solid rgba(0,0,0,0.1);
+          border-top: 2px solid var(--primary);
           border-radius: 50%;
           animation: spin 1s linear infinite;
         }
@@ -743,18 +690,14 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
 
         @media (max-width: 768px) {
           .agent { padding: var(--space-4); }
-          .agent__top-actions { top: var(--space-3); right: var(--space-3); }
-          .agent__header { padding-right: var(--space-10); }
-          .agent__favorite, .agent__more { width: 32px; height: 32px; }
+          .agent__header { padding-right: var(--space-2); }
+          .agent__more { opacity: 1; } /* 移动端默认显示更多按钮 */
           .agent__title-arrow { opacity: 1; transform: none; }
-          .agent__favorite, .agent__more { opacity: 1; }
-          .agent__actions-menu { right: var(--space-3); }
         }
 
         @media (prefers-reduced-motion: reduce) {
           .agent,
           .agent__title-arrow,
-          .agent__favorite,
           .agent__more,
           .agent__actions-menu,
           .agent__delete-confirm {
