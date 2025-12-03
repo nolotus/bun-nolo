@@ -46,14 +46,16 @@ const getContentString = (content: any): string => {
 };
 
 export const ToolMessageItem = memo(({ message }: ToolMessageProps) => {
-  const [collapsed, setCollapsed] = useState(true); // Tool 默认折叠
+  const { content, toolName, isStreaming = false } = message || {};
+  const isPlan = toolName === "createPlan"; // ✅ 是否为 plan 工具
+  const [collapsed, setCollapsed] = useState(!isPlan); // ✅ plan 默认展开
   const [isHovered, setIsHovered] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const { t } = useTranslation("chat");
 
-  const { content, toolName, isStreaming = false } = message || {};
-  const displayName = toolName || "System Tool";
+  // 普通 tool 显示原始名称，plan 显示更友好的名字
+  const displayName = isPlan ? "Plan (createPlan)" : toolName || "System Tool";
 
   const toggleCollapse = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -83,18 +85,23 @@ export const ToolMessageItem = memo(({ message }: ToolMessageProps) => {
   return (
     <>
       <div
-        className={`tool-msg-wrapper ${collapsed ? "collapsed" : ""}`}
+        className={`tool-msg-wrapper ${
+          collapsed ? "collapsed" : ""
+        } ${isPlan ? "plan" : ""}`}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
         <div className="tool-msg-inner">
           {/* Header */}
-          <div className="tool-header" onClick={toggleCollapse}>
+          <div
+            className={`tool-header ${isPlan ? "is-plan" : ""}`}
+            onClick={toggleCollapse}
+          >
             <div className="tool-header-left">
               <span
                 className={`tool-status-icon ${
                   isStreaming ? "spinning" : "success"
-                }`}
+                } ${isPlan ? "plan-status" : ""}`}
               >
                 {isStreaming ? (
                   <SyncIcon size={14} />
@@ -102,8 +109,14 @@ export const ToolMessageItem = memo(({ message }: ToolMessageProps) => {
                   <CheckCircleIcon size={14} />
                 )}
               </span>
-              <span className="tool-name">{displayName}</span>
-              {!isStreaming && <span className="tool-tag">Completed</span>}
+              <span className={`tool-name ${isPlan ? "plan-name" : ""}`}>
+                {displayName}
+              </span>
+              {!isStreaming && (
+                <span className={`tool-tag ${isPlan ? "plan-tag" : ""}`}>
+                  {isPlan ? "Plan" : "Completed"}
+                </span>
+              )}
             </div>
 
             <div className="tool-header-right">
@@ -143,7 +156,7 @@ export const ToolMessageItem = memo(({ message }: ToolMessageProps) => {
           </div>
 
           {/* Body */}
-          <div className="tool-body">
+          <div className={`tool-body ${isPlan ? "plan-body" : ""}`}>
             <MessageContent
               content={content || ""}
               role="tool"
@@ -166,12 +179,23 @@ export const ToolMessageItem = memo(({ message }: ToolMessageProps) => {
             max-width: calc(95% - 56px);
           }
         }
-        
+
         .tool-msg-inner {
           background: var(--backgroundSecondary);
           border: 1px solid var(--border);
           border-radius: 8px;
           overflow: visible; /* 允许 Tooltip 溢出 */
+        }
+
+        /* ===== Plan 专用外观增强 ===== */
+        .tool-msg-wrapper.plan .tool-msg-inner {
+          border-color: var(--borderAccent, var(--primary));
+          box-shadow: 0 0 0 1px var(--primaryGhost, rgba(22,119,255,0.08));
+          background: linear-gradient(
+            135deg,
+            rgba(22,119,255,0.04),
+            rgba(22,119,255,0.01)
+          );
         }
 
         .tool-header {
@@ -183,25 +207,46 @@ export const ToolMessageItem = memo(({ message }: ToolMessageProps) => {
           min-height: 32px;
         }
 
+        .tool-header.is-plan {
+          background: radial-gradient(
+            circle at 0 0,
+            rgba(22,119,255,0.15),
+            transparent 55%
+          );
+        }
+
         .tool-header-left { display: flex; align-items: center; gap: 8px; }
         .tool-header-right { display: flex; align-items: center; gap: 8px; }
 
         .tool-status-icon.success { color: var(--success, #10B981); }
         .tool-status-icon.spinning { color: var(--primary); animation: spin 2s linear infinite; }
-        
+        .tool-status-icon.plan-status {
+          color: var(--primary);
+        }
+
         .tool-name {
           font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
           font-size: 12px;
           font-weight: 600;
           color: var(--textSecondary);
         }
-        
+
+        .tool-name.plan-name {
+          color: var(--primary);
+        }
+
         .tool-tag {
            font-size: 10px;
            color: var(--textQuaternary);
            background: rgba(0,0,0,0.03);
            padding: 1px 5px;
            border-radius: 4px;
+        }
+
+        .tool-tag.plan-tag {
+          color: var(--primaryDark, #0958D9);
+          background: var(--primaryGhost, rgba(22,119,255,0.08));
+          border: 1px solid var(--borderAccent, rgba(22,119,255,0.3));
         }
 
         .tool-actions {
@@ -232,7 +277,15 @@ export const ToolMessageItem = memo(({ message }: ToolMessageProps) => {
           color: var(--textTertiary);
           font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
         }
-        
+
+        .tool-body.plan-body {
+          font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+          font-size: 13px;
+          line-height: 1.6;
+          background: var(--background);
+          color: var(--textSecondary);
+        }
+
         .tool-msg-wrapper.collapsed .tool-body {
             display: none;
         }

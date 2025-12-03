@@ -1,23 +1,24 @@
 import { memo, useMemo } from "react";
 import { SyncIcon } from "@primer/octicons-react";
-import AgentBlock from "ai/agent/web/AgentBlock";
+// 按实际路径修改：
+import AgentListView from "./AgentListView";
 
 const SKELETON_COUNT = 6;
 
 interface PublicAgentsListProps {
   loading: boolean;
-  data?: any[]; // TODO: 可替换为 usePublicAgents 返回的精确类型
+  data?: any[]; // TODO: 替换为具体 Agent 类型
   reload: () => Promise<void> | void;
 }
 
 /**
- * 骨架屏列表（使用与正式列表相同的 Grid 容器）
+ * 骨架屏列表：使用与正式列表一致的「3 列 Grid」布局
  */
 const PublicAgentsSkeleton = memo(() => {
   const items = useMemo(() => Array.from({ length: SKELETON_COUNT }), []);
 
   return (
-    <div className="public-agents__grid">
+    <div className="public-agents__skeleton-grid">
       {items.map((_, index) => (
         <div key={index} className="public-agents__skeleton-card">
           <div className="public-agents__skeleton-header">
@@ -48,9 +49,10 @@ PublicAgentsSkeleton.displayName = "PublicAgentsSkeleton";
 /**
  * 列表 & 骨架屏 & 加载更多
  *
- * 注意：
- * 1. PublicAgentsList 业务上「不可能出现空状态」，因此这里**故意不渲染任何空状态 UI**。
- *    不要在此处再添加「暂无数据」之类的分支。
+ * 重要业务约束：
+ * 1. PublicAgentsList 业务上「不可能出现空状态」，因此这里**刻意不渲染空状态 UI**。
+ *    不要在此处再添加「暂无数据」或类似分支。
+ * 2. 真实列表的网格布局交给 AgentListView 处理，这里只负责骨架和加载更多。
  */
 const PublicAgentsList = memo(
   ({ loading, data, reload }: PublicAgentsListProps) => {
@@ -58,17 +60,11 @@ const PublicAgentsList = memo(
 
     return (
       <div className="public-agents__list-wrapper">
-        {/* 首屏加载骨架（无数据时） */}
+        {/* 首屏加载：无数据时显示骨架 */}
         {loading && !hasData && <PublicAgentsSkeleton />}
 
-        {/* 有数据时的主列表（Grid 布局） */}
-        {hasData && (
-          <div className="public-agents__grid">
-            {data!.map((item: any) => (
-              <AgentBlock key={item.id} item={item} reload={reload} />
-            ))}
-          </div>
-        )}
+        {/* 有数据：交给 AgentListView 渲染网格列表 */}
+        {hasData && <AgentListView items={data!} onReload={reload} />}
 
         {/* 加载更多状态：底部 Loading 提示 */}
         {loading && hasData && (
@@ -96,17 +92,6 @@ const PublicAgentsList = memo(
             width: 100%;
           }
 
-          /* 
-            重要：默认情况（桌面端宽度）每行固定显示 3 个卡片。
-            这是产品需求，请不要改成 auto-fill / auto-fit 等自适应列数。
-          */
-          .public-agents__grid {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr)); /* 默认每行 3 个 */
-            gap: var(--space-4, 16px);
-            align-items: stretch;
-          }
-
           .public-agents__loading-more {
             display: flex;
             justify-content: center;
@@ -130,7 +115,19 @@ const PublicAgentsList = memo(
             }
           }
 
-          /* 骨架卡片（直接占满 grid 单元格） */
+          /* 
+            骨架列表布局说明：
+            - 这里的 skeleton grid 要与 AgentListView 中的 .cybots-grid 保持一致：
+              默认 3 列，中屏 2 列，小屏 1 列。
+            - 如需修改列数，请同时更新 AgentListView 与此处的样式。
+          */
+          .public-agents__skeleton-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr)); /* 默认每行 3 个 */
+            gap: var(--space-5, 20px);
+            align-items: stretch;
+          }
+
           .public-agents__skeleton-card {
             padding: 16px;
             border-radius: 16px;
@@ -217,21 +214,16 @@ const PublicAgentsList = memo(
             }
           }
 
-          /* 
-            响应式说明：
-            - 这里仅在小屏下从 3 列变为 2 列 / 1 列，方便阅读。
-            - 但「默认情况」依然是 3 列，对应上面的业务注释。
-          */
           @media (max-width: 1024px) {
-            .public-agents__grid {
+            .public-agents__skeleton-grid {
               grid-template-columns: repeat(2, minmax(0, 1fr));
             }
           }
 
           @media (max-width: 600px) {
-            .public-agents__grid {
+            .public-agents__skeleton-grid {
               grid-template-columns: 1fr;
-              gap: var(--space-3, 12px);
+              gap: var(--space-4, 16px);
             }
           }
         `}</style>
