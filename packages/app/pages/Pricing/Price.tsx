@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Table, TableRow, TableCell } from "render/web/ui/Table";
 // import { openAIModels } from "integrations/openai/models";
 // import { mistralModels } from "integrations/mistral/models";
@@ -6,75 +7,335 @@ import { Table, TableRow, TableCell } from "render/web/ui/Table";
 import { deepSeekModels } from "integrations/deepseek/models";
 import { openrouterModels } from "integrations/openrouter/models";
 // import { xaiModels } from "integrations/xai/models";
-import UsageRules from "./UsageRules";
+
 import {
+  LuSparkles,
+  LuZap,
+  LuShield,
+  LuRocket,
+  LuCheck,
+  LuX,
   LuArrowUp,
   LuArrowDown,
-  LuEye,
-  LuWrench,
-  LuBrainCircuit,
 } from "react-icons/lu";
 
 const BREAKPOINT_MOBILE = 768;
 const BREAKPOINT_TABLET = 1024;
 
+/* ========================  方案选择区域（UsageRules）  ======================== */
+
+const TIERS = {
+  basic: {
+    name: "基础版",
+    meta: "余额 ≤ 20",
+    icon: LuShield,
+    color: "#667eea",
+    features: [
+      { text: "单文件上传", ok: true },
+      { text: "联网受限", ok: false },
+    ],
+  },
+  pro: {
+    name: "专业版",
+    meta: "余额 ＞ 20",
+    icon: LuRocket,
+    color: "#f5576c",
+    features: [
+      { text: "批量上传", ok: true },
+      { text: "完整联网", ok: true },
+      { text: "优先处理", ok: true },
+    ],
+  },
+};
+
+const Card: React.FC<{ tier: typeof TIERS.basic; isPro?: boolean }> = ({
+  tier,
+  isPro,
+}) => {
+  const Icon = tier.icon;
+
+  return (
+    <div className={`pricing-card ${isPro ? "pricing-card--pro" : ""}`}>
+      {isPro && (
+        <div className="pricing-card__badge">
+          <LuSparkles className="pricing-card__badge-icon" /> 推荐
+        </div>
+      )}
+
+      <div
+        className="pricing-card__icon-wrapper"
+        style={{ background: tier.color }}
+      >
+        <Icon />
+      </div>
+
+      <h3 className="pricing-card__title">{tier.name}</h3>
+      <div className="pricing-card__meta">{tier.meta}</div>
+
+      <ul className="pricing-card__features">
+        {tier.features.map((f, i) => (
+          <li
+            key={i}
+            className={`pricing-card__feature ${
+              f.ok ? "pricing-card__feature--ok" : "pricing-card__feature--no"
+            }`}
+          >
+            <div
+              className={`pricing-card__status-icon ${
+                f.ok
+                  ? "pricing-card__status-icon--ok"
+                  : "pricing-card__status-icon--no"
+              }`}
+            >
+              {f.ok ? <LuCheck size={12} /> : <LuX size={12} />}
+            </div>
+            <span>{f.text}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+const UsageRules: React.FC = () => {
+  const navigate = useNavigate();
+
+  return (
+    <>
+      <style>{`
+        .rules {
+          max-width: 960px;
+          margin: var(--space-8) auto var(--space-6);
+          padding: 0 var(--space-4);
+        }
+        
+        .rules__grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: var(--space-4);
+          margin-bottom: var(--space-6);
+        }
+        
+        .pricing-card {
+          width: 100%;
+          background: color-mix(in srgb, var(--background) 80%, #ffffff 20%);
+          border: 1px solid var(--borderLight);
+          border-radius: 18px;
+          padding: var(--space-6);
+          position: relative;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+          box-shadow: 0 18px 45px var(--shadowLight);
+          backdrop-filter: blur(14px);
+          transition: transform 0.18s ease-out, box-shadow 0.18s ease-out,
+            border-color 0.18s ease-out, background 0.18s ease-out;
+        }
+        
+        .pricing-card:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 20px 50px var(--shadowMedium);
+          border-color: var(--primary);
+          background: color-mix(in srgb, var(--background) 75%, #ffffff 25%);
+        }
+        
+        .pricing-card--pro {
+          border-color: var(--primary);
+          background: var(--primaryBg);
+        }
+        
+        .pricing-card__badge {
+          position: absolute;
+          top: 12px;
+          right: 12px;
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          background: var(--primary);
+          color: #ffffff;
+          font-size: 11px;
+          font-weight: 700;
+          padding: 4px 10px;
+          border-radius: 999px;
+        }
+        
+        .pricing-card__badge-icon {
+          font-size: 12px;
+        }
+
+        .pricing-card__icon-wrapper {
+          width: 52px;
+          height: 52px;
+          border-radius: 14px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: var(--space-3);
+          color: #ffffff;
+          font-size: 24px;
+          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.18);
+        }
+        
+        .pricing-card__title {
+          font-size: 18px;
+          font-weight: 700;
+          color: var(--text);
+          margin: 0 0 var(--space-1);
+        }
+
+        .pricing-card__meta {
+          display: inline-block;
+          background: var(--backgroundTertiary);
+          color: var(--textSecondary);
+          font-size: 12px;
+          font-weight: 600;
+          padding: 4px 12px;
+          border-radius: 999px;
+          margin-bottom: var(--space-5);
+        }
+        
+        .pricing-card__features {
+          list-style: none;
+          margin: 0;
+          padding: 0;
+          width: 100%;
+          display: grid;
+          gap: var(--space-3);
+          text-align: left;
+        }
+        
+        .pricing-card__feature {
+          display: flex;
+          align-items: center;
+          gap: var(--space-3);
+          font-size: 14px;
+          color: var(--text);
+        }
+
+        .pricing-card__status-icon {
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+
+        .pricing-card__status-icon--ok {
+          background: var(--success);
+          color: #ffffff;
+        }
+
+        .pricing-card__status-icon--no {
+          background: var(--backgroundTertiary);
+          color: var(--textQuaternary);
+        }
+
+        .pricing-card__feature--no span {
+          color: var(--textTertiary);
+          text-decoration: line-through;
+          opacity: 0.7;
+        }
+
+        .rules__cta {
+          text-align: center;
+          padding: var(--space-5);
+          background: var(--backgroundTertiary);
+          border-radius: 18px;
+        }
+        
+        .rules__cta-title {
+          margin: 0 0 var(--space-3) 0;
+          font-size: 16px;
+          color: var(--text);
+        }
+
+        .rules__btn {
+          display: inline-flex;
+          align-items: center;
+          gap: var(--space-2);
+          background: var(--primary);
+          color: #ffffff;
+          font-size: 14px;
+          font-weight: 600;
+          padding: 10px 32px;
+          border: none;
+          border-radius: 999px;
+          cursor: pointer;
+          transition: all 0.18s ease-out;
+        }
+
+        .rules__btn:hover {
+          background: var(--hover);
+          transform: translateY(-1px);
+          box-shadow: 0 10px 28px var(--shadowMedium);
+        }
+        
+        @media (max-width: 768px) {
+          .rules {
+            padding: 0 var(--space-3);
+          }
+
+          .rules__grid {
+            grid-template-columns: 1fr;
+          }
+        }
+      `}</style>
+
+      <section className="rules">
+        <div className="rules__grid">
+          <Card tier={TIERS.basic} />
+          <Card tier={TIERS.pro} isPro />
+        </div>
+
+        <div className="rules__cta">
+          <h3 className="rules__cta-title">准备好体验了吗？</h3>
+          <button className="rules__btn" onClick={() => navigate("/recharge")}>
+            <LuZap />
+            立即充值
+          </button>
+        </div>
+      </section>
+    </>
+  );
+};
+
+/* ========================  模型对比区域（ModelComparison）  ======================== */
+
 const TABLE_HEADERS = [
   { key: "displayName", label: "模型名称", sortable: false },
-  { key: "formattedMaxOutputTokens", label: "最大输出", sortable: true },
-  { key: "formattedContextWindow", label: "上下文窗口", sortable: true },
-  { key: "price.input", label: "输入价格 / 1M", sortable: true },
-  { key: "price.output", label: "输出价格 / 1M", sortable: true },
-  { key: "capabilities", label: "拥有能力", sortable: false },
+  { key: "price.input", label: "输入 / 1M 积分", sortable: true },
+  { key: "price.output", label: "输出 / 1M 积分", sortable: true },
+  { key: "vision", label: "视觉识别", sortable: false },
 ];
 
-const formatNumber = (n?: number): string => {
+// 价格展示：0 -> 免费，其他为「数值 + 积分」，小额自动多保留几位
+const formatPrice = (n?: number): string => {
   if (typeof n !== "number" || isNaN(n)) return "未知";
-  if (n >= 1e6) return `${(n / 1e6).toFixed(1).replace(".0", "")}M`;
-  if (n >= 1e3) return `${(n / 1e3).toFixed(1).replace(".0", "")}K`;
-  return n.toString();
-};
+  if (n === 0) return "免费";
 
-const formatPrice = (n?: number, decimals = 2): string => {
-  if (typeof n !== "number" || isNaN(n)) return "未知";
-  return `$${n
+  const abs = Math.abs(n);
+  const decimals = abs < 0.01 ? 4 : abs < 1 ? 3 : 2;
+
+  const num = n
     .toFixed(decimals)
     .replace(/\.0+$/, "")
-    .replace(/(\.\d*?[1-9])0+$/, "$1")}`;
-};
+    .replace(/(\.\d*?[1-9])0+$/, "$1");
 
-const parseFormattedNumber = (str: string): number => {
-  if (str === "未知") return -1;
-  const num = parseFloat(str);
-  if (str.endsWith("M")) return num * 1e6;
-  if (str.endsWith("K")) return num * 1e3;
-  return num;
+  return `${num} 积分`;
 };
 
 const getNestedValue = (obj: any, path: string): any =>
   path.split(".").reduce((o, k) => (o || {})[k], obj);
 
-const CapabilityIcon: React.FC<{
-  Icon: React.ComponentType<any>;
-  title: string;
-  active: boolean;
-}> = ({ Icon, title, active }) => (
-  <Icon title={title} className={active ? "active" : ""} />
-);
-
-const CapabilitiesIcons: React.FC<{ model: any }> = ({ model }) => (
-  <div className="capabilities-icons">
-    <CapabilityIcon Icon={LuEye} title="支持视觉" active={model.hasVision} />
-    <CapabilityIcon
-      Icon={LuWrench}
-      title="支持工具调用"
-      active={model.canUseTools}
-    />
-    <CapabilityIcon
-      Icon={LuBrainCircuit}
-      title="增强推理"
-      active={model.hasAdvancedReasoning}
-    />
-  </div>
+const VisionTag: React.FC<{ hasVision: boolean }> = ({ hasVision }) => (
+  <span
+    className={`vision-tag ${hasVision ? "vision-tag--yes" : "vision-tag--no"}`}
+  >
+    {hasVision ? "支持" : "不支持"}
+  </span>
 );
 
 const SortButton: React.FC<{
@@ -94,9 +355,7 @@ const SortButton: React.FC<{
 const ModelComparison: React.FC = () => {
   const normalizeModel = (model: any, provider: string) => ({
     ...model,
-    provider,
-    formattedContextWindow: formatNumber(model.contextWindow),
-    formattedMaxOutputTokens: formatNumber(model.maxOutputTokens),
+    provider, // 仅内部使用，不展示
   });
 
   const allModels = useMemo(() => {
@@ -133,12 +392,6 @@ const ModelComparison: React.FC = () => {
         const valA = getNestedValue(a, key) ?? Infinity;
         const valB = getNestedValue(b, key) ?? Infinity;
         return valA - valB;
-      }
-
-      if (
-        ["formattedContextWindow", "formattedMaxOutputTokens"].includes(key)
-      ) {
-        return parseFormattedNumber(a[key]) - parseFormattedNumber(b[key]);
       }
 
       return String(getNestedValue(a, key) ?? "").localeCompare(
@@ -188,12 +441,6 @@ const ModelComparison: React.FC = () => {
           color: var(--text);
         }
         
-        .model-provider {
-          color: var(--textTertiary);
-          font-size: 12px;
-          margin-top: var(--space-1);
-        }
-        
         .sort-btn {
           background: none;
           border: none;
@@ -223,26 +470,26 @@ const ModelComparison: React.FC = () => {
           color: var(--hover);
           background: var(--primaryGhost);
         }
-        
-        .capabilities-icons {
-          display: flex;
+
+        .vision-tag {
+          display: inline-flex;
           align-items: center;
-          gap: var(--space-3);
-          font-size: 18px;
+          justify-content: center;
+          min-width: 56px;
+          padding: 2px 10px;
+          border-radius: 999px;
+          font-size: 12px;
+          font-weight: 500;
+        }
+        
+        .vision-tag--yes {
+          background: rgba(16, 185, 129, 0.12);
+          color: #10b981;
+        }
+        
+        .vision-tag--no {
+          background: var(--backgroundTertiary);
           color: var(--textQuaternary);
-        }
-        
-        .capabilities-icons > svg {
-          transition: all 0.2s ease;
-        }
-        
-        .capabilities-icons > svg:not(.active):hover {
-          color: var(--textTertiary);
-          transform: scale(1.1);
-        }
-        
-        .capabilities-icons > .active {
-          color: var(--primary);
         }
         
         .model-list {
@@ -314,8 +561,9 @@ const ModelComparison: React.FC = () => {
       `}</style>
 
       <section className="model-comparison">
-        <h2 className="comparison-title">大模型性能和价格对比</h2>
+        <h2 className="comparison-title">模型价格对比（消耗积分）</h2>
 
+        {/* 桌面端表格视图 */}
         <div className="desktop-view">
           <Table>
             <thead>
@@ -346,13 +594,6 @@ const ModelComparison: React.FC = () => {
                     <div className="model-name">
                       {model.displayName || model.name}
                     </div>
-                    <div className="model-provider">{model.provider}</div>
-                  </TableCell>
-                  <TableCell element={{ header: false }}>
-                    {model.formattedMaxOutputTokens}
-                  </TableCell>
-                  <TableCell element={{ header: false }}>
-                    {model.formattedContextWindow}
                   </TableCell>
                   <TableCell element={{ header: false }}>
                     {formatPrice(model.price?.input)}
@@ -361,7 +602,7 @@ const ModelComparison: React.FC = () => {
                     {formatPrice(model.price?.output)}
                   </TableCell>
                   <TableCell element={{ header: false }}>
-                    <CapabilitiesIcons model={model} />
+                    <VisionTag hasVision={!!model.hasVision} />
                   </TableCell>
                 </TableRow>
               ))}
@@ -369,40 +610,26 @@ const ModelComparison: React.FC = () => {
           </Table>
         </div>
 
+        {/* 移动端卡片视图 */}
         <div className="mobile-view">
           <div className="model-list">
             {models.map((model, index) => (
               <article key={`${model.name}-${index}`} className="model-card">
                 <header className="card-header">
-                  <div>
-                    <div className="model-name">
-                      {model.displayName || model.name}
-                    </div>
-                    <div className="model-provider">{model.provider}</div>
+                  <div className="model-name">
+                    {model.displayName || model.name}
                   </div>
-                  <CapabilitiesIcons model={model} />
+                  <VisionTag hasVision={!!model.hasVision} />
                 </header>
                 <div className="card-grid">
                   <div>
-                    <div className="card-item-label">最大输出</div>
-                    <div className="card-item-value">
-                      {model.formattedMaxOutputTokens}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="card-item-label">上下文窗口</div>
-                    <div className="card-item-value">
-                      {model.formattedContextWindow}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="card-item-label">输入价格 / 1M</div>
+                    <div className="card-item-label">输入 / 1M 积分</div>
                     <div className="card-item-value">
                       {formatPrice(model.price?.input)}
                     </div>
                   </div>
                   <div>
-                    <div className="card-item-label">输出价格 / 1M</div>
+                    <div className="card-item-label">输出 / 1M 积分</div>
                     <div className="card-item-value">
                       {formatPrice(model.price?.output)}
                     </div>
@@ -417,50 +644,48 @@ const ModelComparison: React.FC = () => {
   );
 };
 
+/* ========================  页面容器（PricingPage）  ======================== */
+
 const PricingPage: React.FC = () => (
   <>
     <style href="pricing-page" precedence="low">{`
       .pricing-page {
         max-width: 1440px;
         margin: 0 auto;
-        padding: var(--space-8) 0;
+        padding: var(--space-8) 0 var(--space-10);
       }
       
-      .page-title {
+      .pricing-page__title {
         font-size: 32px;
         font-weight: 700;
         text-align: center;
-        margin-bottom: var(--space-3);
+        margin-bottom: var(--space-1);
         color: var(--text);
         letter-spacing: -0.02em;
       }
-      
-      .page-subtitle {
+
+      .pricing-page__subtitle {
         text-align: center;
+        font-size: 14px;
         color: var(--textSecondary);
-        font-size: 16px;
-        margin-bottom: var(--space-2);
+        margin-bottom: var(--space-4);
       }
       
       @media (max-width: ${BREAKPOINT_MOBILE}px) {
         .pricing-page {
-          padding: var(--space-6) 0;
+          padding: var(--space-6) 0 var(--space-8);
         }
         
-        .page-title {
+        .pricing-page__title {
           font-size: 24px;
-          margin-bottom: var(--space-2);
-        }
-        
-        .page-subtitle {
-          font-size: 14px;
+          margin-bottom: var(--space-1);
         }
       }
     `}</style>
 
     <main className="pricing-page">
-      <h1 className="page-title">定价与模型对比</h1>
-      <p className="page-subtitle">透明的价格,强大的性能</p>
+      <h1 className="pricing-page__title">定价与模型对比</h1>
+      <p className="pricing-page__subtitle">按积分计费，更透明的使用体验</p>
       <UsageRules />
       <ModelComparison />
     </main>
