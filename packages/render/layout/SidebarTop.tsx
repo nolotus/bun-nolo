@@ -70,14 +70,16 @@ export const SidebarTop: React.FC = () => {
   return (
     <>
       <div className="SidebarTop">
-        {/* Home 按钮：设计为圆形，更灵动 */}
+        {/* Home 按钮 */}
         <NavLink
           to="/"
-          className="SidebarTop__homeButton"
+          className={({ isActive }) =>
+            `SidebarTop__homeButton ${isActive ? "active" : ""}`
+          }
           title={t("home")}
           aria-label={t("home")}
         >
-          <LuHouse size={18} />
+          <LuHouse size={18} strokeWidth={2.5} />
         </NavLink>
 
         <div className="SidebarTop__dropdownWrapper" ref={dropdownRef}>
@@ -144,102 +146,119 @@ export const SidebarTop: React.FC = () => {
 
       <style href="SidebarTop-styles" precedence="component">{`
         :root {
-           --headerHeight: 60px; /* 稍微增高一点，更舒展 */
-           --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+           /* 局部变量 */
+           --st-height: 56px;
+           --st-ease: cubic-bezier(0.2, 0, 0.2, 1);
         }
 
         .SidebarTop {
           display: flex;
           align-items: center;
-          gap: 12px;
-          padding: 0 16px;
-          height: var(--headerHeight);
+          gap: var(--space-3); /* 使用空间系统 12px */
+          padding: 0 var(--space-4); /* 使用空间系统 16px */
+          height: var(--st-height);
           flex-shrink: 0;
-          background: transparent; /* 依赖 Sidebar 背景 */
+          position: relative;
+          z-index: 10;
         }
 
         /* === Home Button === */
+        /* 采用圆形设计，悬停时微弱背景，选中时强调色 */
         .SidebarTop__homeButton {
           display: flex;
           align-items: center;
           justify-content: center;
-          width: 36px;
+          width: 36px; /* 固定尺寸，保持精致 */
           height: 36px;
           flex-shrink: 0;
-          border-radius: 50%; /* 圆形 */
+          border-radius: 50%;
+          
           color: var(--textTertiary);
           background: transparent;
           border: 1px solid transparent;
+          
+          transition: all 0.2s var(--st-ease);
           cursor: pointer;
-          transition: all 0.2s var(--ease-spring);
         }
 
         .SidebarTop__homeButton:hover {
           color: var(--text);
-          background: var(--backgroundSecondary);
-          transform: scale(1.05);
+          background: var(--backgroundHover);
         }
 
         .SidebarTop__homeButton.active {
           color: var(--primary);
           background: var(--primaryGhost);
-          box-shadow: 0 2px 8px rgba(var(--primary-rgb), 0.15);
+          /* 40% 拟物：微弱的彩色光晕 */
+          box-shadow: 0 0 0 1px var(--primary-alpha-10), 0 2px 6px -2px rgba(var(--primary-rgb), 0.3);
         }
 
-        /* === Dropdown Trigger === */
+        /* === Dropdown Wrapper === */
         .SidebarTop__dropdownWrapper {
           flex: 1;
           position: relative;
-          min-width: 0;
+          min-width: 0; 
         }
 
+        /* === Trigger Button === */
+        /* 介于扁平与拟物之间：有背景，无明显线框，强调层次 */
         .SidebarTop__trigger {
           display: flex;
           align-items: center;
           width: 100%;
           height: 36px;
-          padding: 0 12px;
-          border-radius: 10px; /* 柔和圆角 */
-          /* 40% 拟物：去边框，使用极淡背景和内阴影 */
+          padding: 0 var(--space-3);
+          border-radius: 8px; /* 适中的圆角 */
+          
+          /* 核心样式：使用变量 */
           background-color: var(--backgroundSecondary);
           border: 1px solid transparent; 
-          box-shadow: inset 0 1px 2px rgba(0,0,0,0.03); 
-          
           color: var(--text);
+          
           cursor: pointer;
           font-family: inherit;
-          transition: all 0.2s ease;
+          transition: all 0.2s var(--st-ease);
+          user-select: none;
         }
 
+        /* 悬停态 */
         .SidebarTop__trigger:hover:not(:disabled) {
           background-color: var(--backgroundHover);
           color: var(--text);
+          /* 细微的边框感知 */
+          border-color: var(--borderHover);
         }
         
+        /* 激活态（菜单打开时） */
         .SidebarTop__trigger.active {
-           background-color: var(--background);
-           border-color: var(--primary-alpha-20);
-           box-shadow: 0 0 0 3px var(--primary-alpha-10), 0 2px 8px rgba(0,0,0,0.05);
+           background-color: var(--background); /* 凸起感，变亮 */
            color: var(--primary);
+           border-color: var(--primary);
+           /* 聚焦光环 */
+           box-shadow: 0 0 0 3px var(--focus);
         }
 
-        .SidebarTop__trigger:disabled { opacity: 0.6; cursor: not-allowed; }
+        .SidebarTop__trigger:disabled { 
+            opacity: 0.6; 
+            cursor: not-allowed; 
+        }
 
         .SidebarTop__label {
           flex: 1;
-          font-size: 0.9rem;
+          font-size: 0.875rem; /* 14px */
           font-weight: 500;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
           text-align: left;
+          letter-spacing: 0.01em; /* 增加一点呼吸感 */
         }
 
         .SidebarTop__chevron {
           color: var(--textTertiary);
-          transition: transform 0.3s var(--ease-spring);
+          transition: transform 0.3s var(--st-ease);
           flex-shrink: 0;
-          margin-left: 8px;
+          margin-left: var(--space-2);
         }
         
         .SidebarTop__trigger.active .SidebarTop__chevron {
@@ -252,64 +271,60 @@ export const SidebarTop: React.FC = () => {
             color: var(--textTertiary);
         }
 
-        /* === Dropdown Menu === */
+        /* === Dropdown Menu (Liquid Glass) === */
         .SidebarTop__menu {
           position: absolute;
           top: calc(100% + 6px);
           left: 0;
           right: 0;
           
-          /* 玻璃拟态风格 */
-          background-color: var(--background);
-          /* 如果支持 backdrop-filter，可以稍微透明一点 */
-          @supports (backdrop-filter: blur(10px)) {
-             background-color: rgba(255, 255, 255, 0.9);
-             backdrop-filter: blur(12px);
-          }
+          /* Liquid Glass 效果核心 */
+          background-color: var(--backgroundGhost); /* 使用带透明度的变量 */
+          backdrop-filter: blur(12px); /* 磨砂玻璃 */
+          -webkit-backdrop-filter: blur(12px);
           
           border-radius: 12px;
-          /* 极细边框 + 深邃阴影 */
-          border: 1px solid rgba(0,0,0,0.06);
+          border: 1px solid var(--border);
+          
+          /* 深度阴影 */
           box-shadow: 
-            0 4px 6px -1px rgba(0, 0, 0, 0.05), 
-            0 10px 15px -3px rgba(0, 0, 0, 0.05),
-            0 0 0 1px rgba(0,0,0,0.02);
+            0 4px 6px -1px rgba(0, 0, 0, 0.02),
+            0 12px 32px var(--shadowHeavy);
             
           z-index: ${zIndex.dropdown};
-          animation: slideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+          animation: st-slideDown 0.2s var(--st-ease);
           transform-origin: top center;
-          min-width: 200px;
+          min-width: 220px;
           overflow: hidden;
-        }
-        
-        .dark .SidebarTop__menu {
-            background-color: rgba(30, 30, 30, 0.9);
-            border-color: rgba(255,255,255,0.08);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
 
         .SidebarTop__content {
-          max-height: 300px;
+          max-height: 320px;
           overflow-y: auto;
-          padding: 6px;
+          padding: var(--space-2);
         }
         
-        /* 滚动条美化 */
+        /* 滚动条隐藏与美化 */
         .SidebarTop__content::-webkit-scrollbar { width: 4px; }
-        .SidebarTop__content::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 2px; }
+        .SidebarTop__content::-webkit-scrollbar-track { background: transparent; }
+        .SidebarTop__content::-webkit-scrollbar-thumb { 
+            background: var(--border); 
+            border-radius: 2px; 
+        }
+        .SidebarTop__content::-webkit-scrollbar-thumb:hover { background: var(--textTertiary); }
 
         .SidebarTop__loadingItem,
         .SidebarTop__emptyItem {
-          padding: 12px;
+          padding: var(--space-4);
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 8px;
+          gap: var(--space-2);
           color: var(--textTertiary);
           font-size: 0.85rem;
         }
 
-        @keyframes slideDown {
+        @keyframes st-slideDown {
           from { opacity: 0; transform: translateY(-8px) scale(0.98); }
           to { opacity: 1; transform: translateY(0) scale(1); }
         }
