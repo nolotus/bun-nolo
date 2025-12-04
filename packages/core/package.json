@@ -11,6 +11,7 @@
   "dependencies": {
     "@types/crypto-js": "^4.1.2",
     "crypto-js": "^4.1.1",
+    "level": "^10.0.0",
     "tweetnacl": "^1.0.3"
   }
 }

@@ -11,7 +11,7 @@
   "dependencies": {
     "core": "workspace:core",
     "date-fns-tz": "^2.0.0",
-    "level": "^9.0.0",
+    "level": "^10.0.0",
     "utils": "workspace:utils"
   }
 }
