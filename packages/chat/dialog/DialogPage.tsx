@@ -52,13 +52,13 @@ const DialogPage = ({ pageKey }: { pageKey: string }) => {
   const renderContent = () => {
     if (!isLoggedIn) {
       return (
-        <Suspense fallback={<PageLoading />}>
+        <Suspense fallback={<PageLoading message="检查权限" />}>
           <GuestGuide />
         </Suspense>
       );
     }
 
-    if (isLoadingInitial) return <PageLoading />;
+    if (isLoadingInitial) return <PageLoading message="加载对话数据" />;
 
     if (error) {
       return (
