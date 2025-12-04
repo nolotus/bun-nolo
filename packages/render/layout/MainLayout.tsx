@@ -173,9 +173,14 @@ const MainLayout: React.FC = () => {
           min-height: 100dvh;
           background: var(--background);
         }
-        .MainLayout.is-resizing { cursor: col-resize; user-select: none; }
+        .MainLayout.is-resizing {
+          cursor: col-resize;
+          user-select: none;
+        }
         .MainLayout.is-resizing .MainLayout__sidebar,
-        .MainLayout.is-resizing .MainLayout__main { transition: none !important; }
+        .MainLayout.is-resizing .MainLayout__main {
+          transition: none !important;
+        }
 
         .MainLayout__sidebar {
           height: 100dvh;
@@ -187,7 +192,7 @@ const MainLayout: React.FC = () => {
           overflow: hidden;
           transition: width 0.28s cubic-bezier(0.16, 1, 0.3, 1);
           background: var(--background);
-          box-shadow: 
+          box-shadow:
             1px 0 0 0 rgba(0, 0, 0, 0.018),
             3px 0 8px -1px rgba(0, 0, 0, 0.02),
             6px 0 16px -3px rgba(0, 0, 0, 0.015);
@@ -204,10 +209,11 @@ const MainLayout: React.FC = () => {
         .MainLayout__sidebarContent::-webkit-scrollbar { width: 6px; }
         .MainLayout__sidebarContent::-webkit-scrollbar-track { background: transparent; }
         .MainLayout__sidebarContent::-webkit-scrollbar-thumb {
-          background: var(--textQuaternary); border-radius: 3px;
+          background: var(--textQuaternary);
+          border-radius: 3px;
         }
 
-        /* --- 核心修改区开始 --- */
+        /* 主内容区：flex 列布局，由 main 负责滚动 */
         .MainLayout__main {
           flex: 1;
           display: flex;
@@ -215,20 +221,17 @@ const MainLayout: React.FC = () => {
           height: 100dvh;
           min-width: 0;
           background: var(--backgroundSecondary);
-          
-          /* 关键修改：让 main 负责滚动，而不是 pageContent */
-          overflow-y: auto; 
+          overflow-y: auto;
           overflow-x: hidden;
-          position: relative; /* 确保 scroll context 正常 */
+          position: relative;
         }
 
-        .MainLayout__pageContent { 
-          /* 关键修改：移除这里的 overflow: auto，让内容撑开 */
-          /* flex: 1;  删除这一行，不需要强行占位，顺其自然流动 */
+        /* 页面内容：占满剩余空间，允许被压缩，内部再滚动（如有需要） */
+        .MainLayout__pageContent {
+          flex: 1 1 auto;
           width: 100%;
-          min-height: calc(100vh - var(--headerHeight)); /* 保证最小高度 */
+          min-height: 0; /* 关键：不要用一个很大的 min-height 去挤压 topbar */
         }
-        /* --- 核心修改区结束 --- */
 
         .MainLayout__resizeHandle {
           position: absolute;
@@ -257,19 +260,24 @@ const MainLayout: React.FC = () => {
         }
 
         .MainLayout__backdrop {
-          position: fixed; inset: 0;
-          background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(4px);
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.4);
+          backdrop-filter: blur(4px);
           z-index: ${zIndex.sidebarBackdrop};
           animation: fadeIn 0.24s ease;
         }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
 
         @media (max-width: 768px) {
           .MainLayout__sidebar {
             position: fixed;
             width: 85% !important;
             max-width: 320px;
-            box-shadow: 
+            box-shadow:
               1px 0 0 0 rgba(0, 0, 0, 0.025),
               6px 0 16px -2px rgba(0, 0, 0, 0.04),
               12px 0 32px -6px rgba(0, 0, 0, 0.03);
@@ -277,8 +285,12 @@ const MainLayout: React.FC = () => {
             border-right: none;
             transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
           }
-          .MainLayout__sidebar.is-open { transform: translateX(0); }
-          .MainLayout__resizeHandle { display: none; }
+          .MainLayout__sidebar.is-open {
+            transform: translateX(0);
+          }
+          .MainLayout__resizeHandle {
+            display: none;
+          }
         }
       `}</style>
     </>

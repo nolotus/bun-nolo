@@ -68,9 +68,7 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
   // --- Effect: 监听滚动 ---
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 0);
-    // 使用 passive 提升滚动性能
     window.addEventListener("scroll", onScroll, { passive: true });
-    // 初始化检查
     onScroll();
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
@@ -79,7 +77,6 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
   const showEdit = useMemo(() => {
     if (!pageKey?.startsWith("page") || !page?.isInitialized) return false;
     const creator = extractUserId(pageKey);
-    // 如果是创建者或者是新页面（无创建者），则允许编辑
     return creator === user?.userId || !page?.creator;
   }, [pageKey, page?.isInitialized, page?.creator, user?.userId]);
 
@@ -90,7 +87,7 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
     );
   }, []);
 
-  // --- Handlers: 操作逻辑 ---
+  // --- Handlers ---
   const handleToggleEdit = useCallback(() => {
     dispatch(toggleReadOnly());
   }, [dispatch]);
@@ -128,8 +125,7 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
     }
   }, [dispatch, dbSpace, curSpace, pageKey, navigate, t]);
 
-  // --- Render Components ---
-  // 将 Tooltip 内容提取出来，保持 JSX 清爽
+  // Tooltip 内容
   const SidebarTooltip = (
     <div className="tooltip-shortcut">
       <span>{t("toggleSidebar")}</span>
@@ -140,7 +136,7 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
   return (
     <>
       <div className={`topbar ${isScrolled ? "topbar--scrolled" : ""}`}>
-        {/* 左侧区域：Home / 菜单 */}
+        {/* 左侧区域 */}
         <div className="topbar__section topbar__section--left">
           {!isLoggedIn && (
             <Suspense fallback={null}>
@@ -165,7 +161,7 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
           )}
         </div>
 
-        {/* 中间区域：操作按钮 / 对话菜单 */}
+        {/* 中间区域 */}
         <div className="topbar__center">
           <Suspense fallback={null}>
             {showEdit ? (
@@ -211,7 +207,7 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
           </Suspense>
         </div>
 
-        {/* 右侧区域：登录 / 语言切换 */}
+        {/* 右侧区域 */}
         <div className="topbar__section topbar__section--right">
           {isLoggedIn ? (
             <Suspense fallback={<div style={{ width: 24 }} />}>
@@ -248,78 +244,107 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
 
       <style href="topbar-styles" precedence="default">{`
         :root {
-          /* 定义一些局部变量，方便调整 */
           --topbar-blur: 12px;
-          --topbar-bg-opacity: 20%; /* 背景透明度，越大越不透明 */
+          --topbar-bg-opacity: 20%;
         }
 
-        /* --- 主容器：毛玻璃效果 (Glassmorphism) --- */
+        /* 顶部栏：固定 56px 高度 + 不允许 flex 收缩 */
         .topbar {
           display: grid;
           grid-template-columns: 1fr auto 1fr;
           align-items: center;
           gap: var(--space-4);
-          
+
           position: sticky;
           top: 0;
-          height: var(--headerHeight);
+          height: 56px;
+
+          /* 关键：作为 flex 子元素时，不要被压缩 */
+          flex: 0 0 56px;
+
           padding: 0 var(--space-4);
           z-index: ${zIndex.topbar};
 
-          /* 关键：背景混合透明度 */
-          background: color-mix(in srgb, var(--background), transparent var(--topbar-bg-opacity));
-          
-          /* 关键：模糊滤镜 */
+          background: color-mix(
+            in srgb,
+            var(--background),
+            transparent var(--topbar-bg-opacity)
+          );
+
           backdrop-filter: blur(var(--topbar-blur));
           -webkit-backdrop-filter: blur(var(--topbar-blur));
 
-          /* 边框处理 */
           border-bottom: 1px solid transparent;
           transition: border-color 0.2s ease-in-out, background 0.2s ease;
         }
 
         .topbar--scrolled {
-          /* 滚动时加深边框颜色，增加层次感 */
           border-bottom-color: var(--border);
         }
 
-        /* --- 布局分区 --- */
-        .topbar__section { display: flex; align-items: center; gap: var(--space-2); }
-        .topbar__section--left { justify-content: flex-start; }
-        .topbar__section--right { justify-content: flex-end; }
-        
+        /* 布局分区 */
+        .topbar__section {
+          display: flex;
+          align-items: center;
+          gap: var(--space-2);
+        }
+        .topbar__section--left {
+          justify-content: flex-start;
+        }
+        .topbar__section--right {
+          justify-content: flex-end;
+        }
+
         .topbar__center {
           display: flex;
           align-items: center;
           gap: var(--space-4);
           min-width: 0;
+          justify-content: center;
         }
-        
-        .topbar__actions { display: flex; align-items: center; gap: var(--space-3); }
 
-        /* --- 按钮样式 --- */
+        .topbar__actions {
+          display: flex;
+          align-items: center;
+          gap: var(--space-3);
+        }
+
+        /* 按钮样式 */
         .topbar__button {
           display: flex;
           align-items: center;
           justify-content: center;
           flex-shrink: 0;
-          
+
           width: var(--space-8);
           height: var(--space-8);
           background: transparent;
           border: none;
           border-radius: 6px;
-          
+
           cursor: pointer;
           color: var(--textSecondary);
           transition: all 0.15s ease;
         }
-        .topbar__button:hover { background: var(--backgroundHover); color: var(--text); }
-        .topbar__button:disabled { opacity: 0.5; cursor: not-allowed; }
-        .topbar__button--delete:hover { background: var(--primaryGhost); color: var(--error); }
+        .topbar__button:hover {
+          background: var(--backgroundHover);
+          color: var(--text);
+        }
+        .topbar__button:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+        .topbar__button--delete:hover {
+          background: var(--primaryGhost);
+          color: var(--error);
+        }
 
-        /* --- Tooltip 内部样式 --- */
-        .tooltip-shortcut { display: flex; align-items: center; gap: var(--space-2); }
+        /* Tooltip 内部样式 */
+        .tooltip-shortcut {
+          display: flex;
+          align-items: center;
+          gap: var(--space-2);
+        }
         .tooltip-kbd {
           background: var(--background);
           border: 1px solid var(--border);
@@ -331,7 +356,7 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
           line-height: 1;
         }
 
-        /* --- 响应式 --- */
+        /* 响应式 */
         .topbar__mobile-menu {
           position: relative;
           display: none;
@@ -345,13 +370,22 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
             padding: 0 var(--space-2);
             gap: var(--space-2);
           }
-          .topbar__center { justify-content: center; }
-          .topbar__actions { display: none !important; }
-          .topbar__mobile-menu { display: flex; }
+          .topbar__center {
+            justify-content: center;
+          }
+          .topbar__actions {
+            display: none !important;
+          }
+          .topbar__mobile-menu {
+            display: flex;
+          }
         }
 
         @media (max-width: 480px) {
-          .topbar__button { width: var(--space-7); height: var(--space-7); }
+          .topbar__button {
+            width: var(--space-7);
+            height: var(--space-7);
+          }
         }
       `}</style>
     </>

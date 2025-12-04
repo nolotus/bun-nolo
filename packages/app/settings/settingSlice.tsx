@@ -71,7 +71,7 @@ const initialState: SettingState = {
   themeName: "blue",
   isDark: false,
   sidebarWidth: 260,
-  headerHeight: 48,
+  headerHeight: 56,
   // 默认跟随系统
   themeFollowsSystem: true,
 
