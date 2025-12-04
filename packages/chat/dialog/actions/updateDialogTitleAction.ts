@@ -7,7 +7,6 @@ import {
 } from "create/space/spaceSlice";
 import { patch, selectById } from "database/dbSlice";
 import { differenceInMinutes, format } from "date-fns";
-import { filter, flatten, pipe, reverse, take } from "rambda";
 import { selectAllMsgs } from "../../messages/messageSlice";
 
 // --- 常量 ---
@@ -17,23 +16,32 @@ const MAX_MESSAGES_FOR_CONTEXT = 20;
 const MESSAGE_SAMPLING_THRESHOLD = 10;
 
 // --- 辅助函数 ---
-const getMessageContextForTitle = (state: RootState) =>
-  pipe(
-    flatten,
-    filter(
-      (msg: any) =>
-        msg?.content &&
-        typeof msg.content === "string" &&
-        msg.content.trim() !== ""
-    ),
-    reverse,
-    (messages: any[]) => {
-      if (messages.length <= MESSAGE_SAMPLING_THRESHOLD) return messages;
-      const step = Math.ceil(messages.length / MAX_MESSAGES_FOR_CONTEXT);
-      return messages.filter((_, index) => index % step === 0);
-    },
-    take(MAX_MESSAGES_FOR_CONTEXT)
-  )(selectAllMsgs(state));
+const getMessageContextForTitle = (state: RootState) => {
+  const allMsgs = selectAllMsgs(state);
+
+  const flattened = Array.isArray(allMsgs)
+    ? typeof (allMsgs as any).flat === "function"
+      ? (allMsgs as any).flat()
+      : (allMsgs as any).reduce((acc: any[], cur: any) => acc.concat(cur), [])
+    : [];
+
+  const filtered = flattened.filter(
+    (msg: any) =>
+      msg?.content &&
+      typeof msg.content === "string" &&
+      msg.content.trim() !== ""
+  );
+
+  const reversed = filtered.slice().reverse();
+
+  let sampled = reversed;
+  if (sampled.length > MESSAGE_SAMPLING_THRESHOLD) {
+    const step = Math.ceil(sampled.length / MAX_MESSAGES_FOR_CONTEXT);
+    sampled = sampled.filter((_, index) => index % step === 0);
+  }
+
+  return sampled.slice(0, MAX_MESSAGES_FOR_CONTEXT);
+};
 
 const shouldUpdateTitle = (
   createdAt?: string,

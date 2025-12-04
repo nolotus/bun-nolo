@@ -1,9 +1,6 @@
 import { Node } from "slate";
-// 【修改】从 rambda 导入 equals 函数
-import { equals } from "rambda";
 
 // ================ 类型定义 ================
-// (类型定义保持不变)
 export type EditorContent = Array<{
   type: string;
   children: Array<{ text: string; [key: string]: any }>;
@@ -11,6 +8,45 @@ export type EditorContent = Array<{
 }>;
 
 // ================ 工具函数 ================
+
+/**
+ * 原生实现的深度比较
+ * 仅考虑普通对象、数组、基本类型，适用于 Slate Node 这类 JSON 结构
+ */
+const deepEqual = (a: any, b: any): boolean => {
+  // 引用相同或值相同（包含基本类型）
+  if (a === b) return true;
+
+  // 其中一个为 null 或 undefined
+  if (a == null || b == null) return false;
+
+  // 类型不同
+  if (typeof a !== "object" || typeof b !== "object") return false;
+
+  // 数组比较
+  const isArrayA = Array.isArray(a);
+  const isArrayB = Array.isArray(b);
+  if (isArrayA || isArrayB) {
+    if (!isArrayA || !isArrayB) return false;
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) {
+      if (!deepEqual(a[i], b[i])) return false;
+    }
+    return true;
+  }
+
+  // 普通对象比较
+  const keysA = Object.keys(a);
+  const keysB = Object.keys(b);
+  if (keysA.length !== keysB.length) return false;
+
+  for (const key of keysA) {
+    if (!Object.prototype.hasOwnProperty.call(b, key)) return false;
+    if (!deepEqual(a[key], b[key])) return false;
+  }
+
+  return true;
+};
 
 /**
  * 比较两个 Slate 内容是否相同
@@ -31,9 +67,9 @@ export const compareSlateContent = (
   // 长度检查 (作为另一层快速检查)
   if (newContent.length !== oldContent.length) return true; // 内容不同
 
-  // 【修改】使用 rambda.equals 进行高性能的深度比较
-  // equals 返回 true 表示内容相同，所以我们需要取反
-  return !equals(newContent, oldContent);
+  // 使用原生 deepEqual 进行深度比较
+  // deepEqual 返回 true 表示内容相同，所以需要取反
+  return !deepEqual(newContent, oldContent);
 };
 
 /**
@@ -57,7 +93,6 @@ export const extractTitleFromSlate = (slateData: EditorContent): string => {
 
   // 回退到查找第一个包含非空文本的块元素
   for (const node of slateData) {
-    // 同样使用 Node.string 进行可靠的文本提取
     const text = Node.string(node).trim();
     if (text) {
       return text.length > 30 ? `${text.substring(0, 30)}...` : text;
