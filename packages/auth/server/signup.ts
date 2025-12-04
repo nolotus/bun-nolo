@@ -3,7 +3,6 @@
 
 import i18nServer from "app/i18n/i18n.server";
 import serverDb from "database/server/db.js";
-import { reject } from "rambda";
 import { signMessage } from "core/crypto";
 import { generateUserIdV1 } from "core/generateMainKey";
 import {
@@ -35,7 +34,7 @@ const ABUSE_PREFIX = {
 };
 
 function getDayKey(d: Date = new Date()) {
-  // e.g., 20251101
+  // e.g., 2025-11-01 -> 20251101
   return d.toISOString().slice(0, 10).replace(/-/g, "");
 }
 
@@ -139,26 +138,39 @@ async function checkUserExists(userId: string, t: any) {
   return null;
 }
 
+/**
+ * 去掉 rambda.reject 后的实现：
+ * 显式构造对象，只在有值时写入可选字段，行为等价但更直观。
+ */
 function prepareUserData(userData: any) {
-  return reject((x) => x === null || x === undefined, {
+  const now = Date.now();
+  const prepared: any = {
     username: userData.username,
     publicKey: userData.publicKey,
     locale: userData.locale,
-    createdAt: Date.now(),
-    email: userData.email,
-    inviterId: userData.inviterId,
+    createdAt: now,
     balance: 0,
-    balanceUpdatedAt: Date.now(),
-  });
+    balanceUpdatedAt: now,
+  };
+
+  if (userData.email != null) {
+    prepared.email = userData.email;
+  }
+  if (userData.inviterId != null) {
+    prepared.inviterId = userData.inviterId;
+  }
+
+  return prepared;
 }
 
 function prepareUserProfile(username: string, email?: string) {
+  const now = Date.now();
   return {
     nickname: username,
     avatar: "",
     bio: "",
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
+    createdAt: now,
+    updatedAt: now,
     email,
   };
 }

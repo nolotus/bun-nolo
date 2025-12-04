@@ -1,4 +1,4 @@
-import { curry } from "rambda";
+// 删除：import { curry } from "rambda";
 import { browserDb } from "database/browser/db";
 import { createTokenStatsKey } from "database/keys";
 
@@ -26,31 +26,32 @@ export interface StatsParams {
   endDate: string; // UTC YYYY-MM-DD
 }
 
-// 通用数据库迭代器
-const iterateDb = curry(
-  async <T>(options: any, filter: (v: T) => boolean): Promise<T[]> => {
-    const records: T[] = [];
-    const { offset = 0, limit } = options;
-    let count = 0;
+// 通用数据库迭代器（不再使用 curry）
+const iterateDb = async <T>(
+  options: any,
+  filter: (v: T) => boolean
+): Promise<T[]> => {
+  const records: T[] = [];
+  const { offset = 0, limit } = options;
+  let count = 0;
 
-    try {
-      for await (const [_, value] of browserDb.iterator(options)) {
-        if (filter(value)) {
-          if (count >= offset) {
-            records.push(value);
-            if (limit && records.length >= limit) {
-              break;
-            }
+  try {
+    for await (const [_, value] of browserDb.iterator(options)) {
+      if (filter(value)) {
+        if (count >= offset) {
+          records.push(value);
+          if (limit && records.length >= limit) {
+            break;
           }
-          count++;
         }
+        count++;
       }
-      return records;
-    } catch (err) {
-      throw err;
     }
+    return records;
+  } catch (err) {
+    throw err;
   }
-);
+};
 
 /**
  * 获取Token统计数据
@@ -68,10 +69,13 @@ export const getTokenStats = async (
   const startKey = createTokenStatsKey(userId, startDate);
   const endKey = createTokenStatsKey(userId, endDate);
 
-  const records = await iterateDb<TokenStats>({
-    gte: startKey,
-    lte: endKey,
-  })((record) => Boolean(record?.total));
+  const records = await iterateDb<TokenStats>(
+    {
+      gte: startKey,
+      lte: endKey,
+    },
+    (record) => Boolean(record?.total)
+  );
 
   return records;
 };
