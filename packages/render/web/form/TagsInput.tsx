@@ -1,6 +1,6 @@
 // features/web/form/TagsInput.tsx
 
-import React, { useState, forwardRef } from "react";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { XIcon } from "@primer/octicons-react";
 
@@ -12,7 +12,6 @@ interface TagsInputProps {
   disabled?: boolean;
   label?: string;
   helperText?: string;
-  size?: "small" | "medium" | "large";
   variant?: "default" | "filled" | "ghost";
   maxTags?: number;
   allowDuplicates?: boolean;
@@ -20,162 +19,173 @@ interface TagsInputProps {
   className?: string;
   style?: React.CSSProperties;
   id?: string;
+
+  // React 19: 直接以 prop 形式接收 ref
+  ref?: React.Ref<HTMLInputElement>;
 }
 
-export const TagsInput = forwardRef<HTMLInputElement, TagsInputProps>(
-  (
-    {
-      value = "",
-      onChange,
-      error,
-      placeholder,
-      disabled = false,
-      label,
-      helperText,
-      size = "medium",
-      variant = "default",
-      maxTags,
-      allowDuplicates = false,
-      separator = /[,\s]+/,
-      className = "",
-      style,
-      id,
-    },
-    ref
-  ) => {
-    const { t } = useTranslation("ai");
+export const TagsInput = ({
+  value = "",
+  onChange,
+  error,
+  placeholder,
+  disabled = false,
+  label,
+  helperText,
+  variant = "default",
+  maxTags,
+  allowDuplicates = false,
+  separator = /[,\s]+/,
+  className = "",
+  style,
+  id,
+  ref,
+}: TagsInputProps) => {
+  const { t } = useTranslation("ai");
 
-    const [inputValue, setInputValue] = useState("");
-    const [isFocused, setIsFocused] = useState(false);
+  const [inputValue, setInputValue] = useState("");
+  const [isFocused, setIsFocused] = useState(false);
 
-    const tagsArray = String(value)
-      .split(",")
-      .map((tag) => tag.trim())
-      .filter(Boolean);
+  const tagsArray = String(value)
+    .split(",")
+    .map((tag) => tag.trim())
+    .filter(Boolean);
 
-    const inputId =
-      id || `tags-input-${Math.random().toString(36).substr(2, 9)}`;
-    const helperTextId = helperText || error ? `${inputId}-helper` : undefined;
+  const inputId = id || `tags-input-${Math.random().toString(36).substr(2, 9)}`;
+  const helperTextId =
+    helperText || error?.message ? `${inputId}-helper` : undefined;
 
-    const addTag = (tagToAdd: string) => {
-      const trimmedTag = tagToAdd.trim();
-      if (
-        !trimmedTag ||
-        (maxTags && tagsArray.length >= maxTags) ||
-        (!allowDuplicates && tagsArray.includes(trimmedTag))
-      )
-        return;
-      onChange([...tagsArray, trimmedTag].join(", "));
-      setInputValue("");
-    };
+  const addTag = (tagToAdd: string) => {
+    const trimmedTag = tagToAdd.trim();
+    if (
+      !trimmedTag ||
+      (maxTags && tagsArray.length >= maxTags) ||
+      (!allowDuplicates && tagsArray.includes(trimmedTag))
+    )
+      return;
 
-    const removeTag = (indexToRemove: number) => {
-      const newTags = tagsArray
-        .filter((_, index) => index !== indexToRemove)
-        .join(", ");
-      onChange(newTags);
-    };
+    onChange([...tagsArray, trimmedTag].join(", "));
+    setInputValue("");
+  };
 
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === "Enter" || e.key === "Tab") {
-        e.preventDefault();
-        addTag(inputValue);
-      } else if (e.key === "Backspace" && !inputValue && tagsArray.length) {
-        removeTag(tagsArray.length - 1);
-      }
-    };
+  const removeTag = (indexToRemove: number) => {
+    const newTags = tagsArray
+      .filter((_, index) => index !== indexToRemove)
+      .join(", ");
+    onChange(newTags);
+  };
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      setInputValue(e.target.value);
-    };
-
-    const handleBlur = () => {
-      setIsFocused(false);
-      if (inputValue.trim()) {
-        addTag(inputValue);
-      }
-    };
-
-    const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" || e.key === "Tab") {
       e.preventDefault();
-      const pastedText = e.clipboardData.getData("text");
-      pastedText.split(separator).forEach(addTag);
-    };
+      addTag(inputValue);
+    } else if (e.key === "Backspace" && !inputValue && tagsArray.length) {
+      removeTag(tagsArray.length - 1);
+    }
+  };
 
-    const finalPlaceholder = placeholder || t("form.tagsPlaceholder");
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(e.target.value);
+  };
 
-    return (
-      <>
-        <TagsInputStyles />
-        <div className={`ti-container ${className}`} style={style}>
-          {label && (
-            <label
-              htmlFor={inputId}
-              className={`ti-label ${error ? "error" : ""}`}
-            >
-              {label}
-            </label>
-          )}
-          <div
-            className={`ti-wrapper ${size} ${variant} ${isFocused ? "focused" : ""} ${error ? "error" : ""} ${disabled ? "disabled" : ""}`}
+  const handleBlur = () => {
+    setIsFocused(false);
+    if (inputValue.trim()) {
+      addTag(inputValue);
+    }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const pastedText = e.clipboardData.getData("text");
+    pastedText.split(separator).forEach(addTag);
+  };
+
+  const finalPlaceholder = placeholder || t("form.tagsPlaceholder");
+
+  const wrapperClasses = [
+    "ti-wrapper",
+    variant, // default | filled | ghost
+    isFocused ? "focused" : "",
+    error ? "error" : "",
+    disabled ? "disabled" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  return (
+    <>
+      <TagsInputStyles />
+      <div className={`ti-container ${className}`} style={style}>
+        {label && (
+          <label
+            htmlFor={inputId}
+            className={`ti-label ${error ? "error" : ""}`}
           >
-            {tagsArray.map((tag, index) => (
-              <span key={`${tag}-${index}`} className={`ti-tag ${size}`}>
-                <span title={tag}>{tag}</span>
-                {!disabled && (
-                  <button
-                    type="button"
-                    className={`ti-remove ${size}`}
-                    onClick={() => removeTag(index)}
-                    aria-label={t("form.removeTag", { tag })}
-                    tabIndex={-1}
-                  >
-                    <XIcon
-                      size={size === "small" ? 10 : size === "large" ? 14 : 12}
-                    />
-                  </button>
-                )}
-              </span>
-            ))}
-            <input
-              ref={ref}
-              id={inputId}
-              type="text"
-              value={inputValue}
-              onChange={handleInputChange}
-              onKeyDown={handleKeyDown}
-              onBlur={handleBlur}
-              onFocus={() => setIsFocused(true)}
-              onPaste={handlePaste}
-              placeholder={tagsArray.length === 0 ? finalPlaceholder : ""}
-              disabled={disabled}
-              className={`ti-input ${size}`}
-              aria-invalid={!!error}
-              aria-describedby={helperTextId}
-              autoComplete="off"
-            />
-            {maxTags && (
-              <div
-                className={`ti-counter ${tagsArray.length >= maxTags ? "warning" : ""}`}
-              >
-                {tagsArray.length}/{maxTags}
-              </div>
-            )}
-          </div>
-          {(helperText || error?.message) && (
+            {label}
+          </label>
+        )}
+
+        <div className={wrapperClasses}>
+          {tagsArray.map((tag, index) => (
+            <span key={`${tag}-${index}`} className="ti-tag">
+              <span title={tag}>{tag}</span>
+              {!disabled && (
+                <button
+                  type="button"
+                  className="ti-remove"
+                  onClick={() => removeTag(index)}
+                  aria-label={t("form.removeTag", { tag })}
+                  tabIndex={-1}
+                >
+                  <XIcon size={12} />
+                </button>
+              )}
+            </span>
+          ))}
+
+          <input
+            ref={ref}
+            id={inputId}
+            type="text"
+            value={inputValue}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+            onBlur={handleBlur}
+            onFocus={() => setIsFocused(true)}
+            onPaste={handlePaste}
+            placeholder={tagsArray.length === 0 ? finalPlaceholder : ""}
+            disabled={disabled}
+            className="ti-input"
+            aria-invalid={!!error}
+            aria-describedby={helperTextId}
+            autoComplete="off"
+          />
+
+          {maxTags && (
             <div
-              id={helperTextId}
-              className={`ti-helper ${error ? "error" : ""}`}
-              role={error ? "alert" : "note"}
+              className={`ti-counter ${
+                tagsArray.length >= maxTags ? "warning" : ""
+              }`}
             >
-              {error?.message || helperText}
+              {tagsArray.length}/{maxTags}
             </div>
           )}
         </div>
-      </>
-    );
-  }
-);
+
+        {(helperText || error?.message) && (
+          <div
+            id={helperTextId}
+            className={`ti-helper ${error ? "error" : ""}`}
+            role={error ? "alert" : "note"}
+          >
+            {error?.message || helperText}
+          </div>
+        )}
+      </div>
+    </>
+  );
+};
 
 const TagsInputStyles = () => {
   return (
@@ -210,24 +220,8 @@ const TagsInputStyles = () => {
         transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         position: relative;
         box-shadow: 0 1px 3px var(--shadowLight);
-      }
-
-      /* 尺寸变体 */
-      .ti-wrapper.small {
-        min-height: 36px;
-        padding: var(--space-1) var(--space-3);
-        border-radius: var(--space-2);
-      }
-
-      .ti-wrapper.medium {
         min-height: 42px;
         padding: var(--space-2) var(--space-4);
-      }
-
-      .ti-wrapper.large {
-        min-height: 48px;
-        padding: var(--space-2) var(--space-5);
-        border-radius: var(--space-4);
       }
 
       /* 样式变体 */
@@ -255,7 +249,9 @@ const TagsInputStyles = () => {
       }
 
       .ti-wrapper.error.focused {
-        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2), 0 2px 8px rgba(239, 68, 68, 0.15);
+        box-shadow:
+          0 0 0 3px rgba(239, 68, 68, 0.2),
+          0 2px 8px rgba(239, 68, 68, 0.15);
       }
 
       .ti-wrapper.disabled {
@@ -284,23 +280,9 @@ const TagsInputStyles = () => {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-      }
-
-      .ti-tag.small {
-        padding: 3px var(--space-2);
-        font-size: 0.75rem;
-        border-radius: var(--space-1);
-      }
-
-      .ti-tag.medium {
         padding: 4px var(--space-2);
         font-size: 0.8125rem;
-      }
-
-      .ti-tag.large {
-        padding: var(--space-1) var(--space-3);
-        font-size: 0.875rem;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
       }
 
       .ti-tag:hover {
@@ -322,24 +304,9 @@ const TagsInputStyles = () => {
         border-radius: 50%;
         transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         flex-shrink: 0;
-      }
-
-      .ti-remove.small {
-        width: 16px;
-        height: 16px;
-        padding: 2px;
-      }
-
-      .ti-remove.medium {
         width: 18px;
         height: 18px;
         padding: 2px;
-      }
-
-      .ti-remove.large {
-        width: 20px;
-        height: 20px;
-        padding: 3px;
       }
 
       .ti-remove:hover {
@@ -358,21 +325,8 @@ const TagsInputStyles = () => {
         min-width: 120px;
         font-family: inherit;
         letter-spacing: -0.01em;
-      }
-
-      .ti-input.small {
-        font-size: 0.875rem;
-        padding: 3px 0;
-      }
-
-      .ti-input.medium {
         font-size: 0.925rem;
         padding: 4px 0;
-      }
-
-      .ti-input.large {
-        font-size: 1rem;
-        padding: var(--space-1) 0;
       }
 
       .ti-input::placeholder {
@@ -415,7 +369,7 @@ const TagsInputStyles = () => {
 
       /* 响应式 */
       @media (max-width: 768px) {
-        .ti-input.medium {
+        .ti-input {
           font-size: 1rem;
         }
         
@@ -427,10 +381,6 @@ const TagsInputStyles = () => {
       @media (max-width: 480px) {
         .ti-wrapper {
           border-radius: var(--space-2);
-        }
-        
-        .ti-wrapper.large {
-          border-radius: var(--space-3);
         }
         
         .ti-tag {

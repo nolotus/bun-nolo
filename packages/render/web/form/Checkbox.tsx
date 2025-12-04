@@ -1,86 +1,87 @@
 // web/form/Checkbox.tsx
-import { useTheme } from "app/theme";
 import type React from "react";
-import { forwardRef } from "react";
 
 interface CheckboxProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   helperText?: string;
   error?: boolean;
-  size?: "small" | "medium" | "large";
   variant?: "default" | "filled";
+
+  // React 19: ref 作为普通 prop 传入
+  ref?: React.Ref<HTMLInputElement>;
 }
 
-export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
-  (
-    {
-      label,
-      helperText,
-      error = false,
-      size = "medium",
-      variant = "default",
-      className = "",
-      style,
-      disabled,
-      checked,
-      id,
-      ...props
-    },
-    ref
-  ) => {
-    const theme = useTheme();
-    const inputId = id || `checkbox-${Math.random().toString(36).substr(2, 9)}`;
-    const helperTextId = helperText ? `${inputId}-helper` : undefined;
+export const Checkbox = ({
+  label,
+  helperText,
+  error = false,
+  variant = "default",
+  className = "",
+  style,
+  disabled,
+  checked,
+  id,
+  ref,
+  ...props
+}: CheckboxProps) => {
+  const inputId = id || `checkbox-${Math.random().toString(36).substr(2, 9)}`;
+  const helperTextId = helperText ? `${inputId}-helper` : undefined;
 
-    return (
-      <>
-        <CheckboxStyles />
-        <div className={`checkbox-container ${className}`} style={style}>
-          <label
-            htmlFor={inputId}
-            className={`checkbox-wrapper size-${size} variant-${variant} ${disabled ? "disabled" : ""} ${error ? "error" : ""}`}
+  return (
+    <>
+      <CheckboxStyles />
+      <div className={`checkbox-container ${className}`} style={style}>
+        <label
+          htmlFor={inputId}
+          className={[
+            "checkbox-wrapper",
+            `variant-${variant}`,
+            disabled ? "disabled" : "",
+            error ? "error" : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
+        >
+          <input
+            ref={ref}
+            id={inputId}
+            type="checkbox"
+            className="checkbox-input"
+            disabled={disabled}
+            checked={checked}
+            aria-invalid={error}
+            aria-describedby={helperTextId}
+            {...props}
+          />
+
+          <span className="checkbox-box">
+            <span className="checkbox-checkmark" />
+          </span>
+
+          {label && <span className="checkbox-label">{label}</span>}
+        </label>
+
+        {helperText && (
+          <div
+            id={helperTextId}
+            className={`checkbox-helper ${error ? "error" : "normal"}`}
+            role={error ? "alert" : "note"}
           >
-            <input
-              ref={ref}
-              id={inputId}
-              type="checkbox"
-              className="checkbox-input"
-              disabled={disabled}
-              checked={checked}
-              aria-invalid={error}
-              aria-describedby={helperTextId}
-              {...props}
-            />
-            <span className="checkbox-box">
-              <span className="checkbox-checkmark" />
-            </span>
-            {label && <span className="checkbox-label">{label}</span>}
-          </label>
-
-          {helperText && (
-            <div
-              id={helperTextId}
-              className={`checkbox-helper ${error ? "error" : "normal"}`}
-              role={error ? "alert" : "note"}
-            >
-              {helperText}
-            </div>
-          )}
-        </div>
-      </>
-    );
-  }
-);
+            {helperText}
+          </div>
+        )}
+      </div>
+    </>
+  );
+};
 
 const CheckboxStyles = () => {
-  const theme = useTheme();
-
   return (
     <style href="checkbox" precedence="medium">{`
       .checkbox-container {
         display: flex;
         flex-direction: column;
-        gap: ${theme.space[1]};
+        gap: var(--space-1);
       }
 
       .checkbox-wrapper {
@@ -89,27 +90,14 @@ const CheckboxStyles = () => {
         position: relative;
         cursor: pointer;
         transition: opacity 0.3s ease;
+        gap: var(--space-2);
+        padding: 2px;
       }
 
       .checkbox-wrapper.disabled {
         opacity: 0.6;
         cursor: not-allowed;
         pointer-events: none;
-      }
-
-      .checkbox-wrapper.size-small {
-        gap: ${theme.space[2]};
-        padding: ${theme.space[1]};
-      }
-
-      .checkbox-wrapper.size-medium {
-        gap: ${theme.space[2]};
-        padding: 2px;
-      }
-
-      .checkbox-wrapper.size-large {
-        gap: ${theme.space[3]};
-        padding: ${theme.space[1]};
       }
 
       .checkbox-input {
@@ -122,53 +110,39 @@ const CheckboxStyles = () => {
 
       .checkbox-box {
         position: relative;
-        border-radius: ${theme.space[1]};
+        border-radius: var(--space-1);
         transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        background: ${theme.background};
-        border: 1.5px solid ${theme.border};
+        background: var(--background);
+        border: 1.5px solid var(--border);
         display: flex;
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
-        box-shadow: 0 1px 3px ${theme.shadow1};
-      }
-
-      .checkbox-wrapper.size-small .checkbox-box {
-        width: 14px;
-        height: 14px;
-        border-radius: 3px;
-      }
-
-      .checkbox-wrapper.size-medium .checkbox-box {
+        box-shadow: 0 1px 3px var(--shadowLight);
         width: 16px;
         height: 16px;
-        border-radius: ${theme.space[1]};
-      }
-
-      .checkbox-wrapper.size-large .checkbox-box {
-        width: 18px;
-        height: 18px;
-        border-radius: 5px;
       }
 
       .checkbox-wrapper.variant-filled .checkbox-box {
-        background: ${theme.backgroundSecondary};
-        border-color: ${theme.borderLight};
+        background: var(--backgroundSecondary);
+        border-color: var(--borderLight);
       }
 
       .checkbox-wrapper.error .checkbox-box {
-        border-color: ${theme.error};
+        border-color: var(--error);
       }
 
       .checkbox-input:checked + .checkbox-box {
-        background: ${theme.primary};
-        border-color: ${theme.primary};
-        box-shadow: 0 2px 6px ${theme.primary}30, inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        background: var(--primary);
+        border-color: var(--primary);
+        box-shadow:
+          0 2px 6px color-mix(in srgb, var(--primary) 30%, transparent),
+          inset 0 1px 0 rgba(255, 255, 255, 0.2);
       }
 
       .checkbox-wrapper.error .checkbox-input:checked + .checkbox-box {
-        background: ${theme.error};
-        border-color: ${theme.error};
+        background: var(--error);
+        border-color: var(--error);
       }
 
       .checkbox-checkmark {
@@ -177,21 +151,8 @@ const CheckboxStyles = () => {
         transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         border: solid white;
         border-width: 0 2px 2px 0;
-      }
-
-      .checkbox-wrapper.size-small .checkbox-checkmark {
-        width: 3px;
-        height: 6px;
-      }
-
-      .checkbox-wrapper.size-medium .checkbox-checkmark {
         width: 4px;
         height: 7px;
-      }
-
-      .checkbox-wrapper.size-large .checkbox-checkmark {
-        width: 5px;
-        height: 8px;
       }
 
       .checkbox-input:checked + .checkbox-box .checkbox-checkmark {
@@ -200,76 +161,63 @@ const CheckboxStyles = () => {
       }
 
       .checkbox-wrapper:hover .checkbox-box {
-        border-color: ${theme.primary}60;
+        border-color: color-mix(in srgb, var(--primary) 60%, transparent);
         transform: scale(1.05);
       }
 
       .checkbox-wrapper.error:hover .checkbox-box {
-        border-color: ${theme.error}60;
+        border-color: color-mix(in srgb, var(--error) 60%, transparent);
       }
 
       .checkbox-wrapper:hover .checkbox-input:checked + .checkbox-box {
-        background: ${theme.primary}90;
-        box-shadow: 0 3px 8px ${theme.primary}40, inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        background: color-mix(in srgb, var(--primary) 90%, transparent);
+        box-shadow:
+          0 3px 8px color-mix(in srgb, var(--primary) 40%, transparent),
+          inset 0 1px 0 rgba(255, 255, 255, 0.3);
       }
 
       .checkbox-wrapper.error:hover .checkbox-input:checked + .checkbox-box {
-        background: ${theme.error}90;
+        background: color-mix(in srgb, var(--error) 90%, transparent);
       }
 
       .checkbox-label {
-        color: ${theme.textSecondary};
+        color: var(--textSecondary);
         user-select: none;
         line-height: 1.4;
         letter-spacing: -0.01em;
         margin-top: 1px;
-      }
-
-      .checkbox-wrapper.size-small .checkbox-label {
-        font-size: 0.8125rem;
-      }
-
-      .checkbox-wrapper.size-medium .checkbox-label {
         font-size: 0.875rem;
       }
 
-      .checkbox-wrapper.size-large .checkbox-label {
-        font-size: 0.925rem;
-      }
-
       .checkbox-wrapper.error .checkbox-label {
-        color: ${theme.error};
+        color: var(--error);
       }
 
       .checkbox-input:focus-visible + .checkbox-box {
-        box-shadow: 0 0 0 2px ${theme.background}, 0 0 0 4px ${theme.primary}40;
+        box-shadow:
+          0 0 0 2px var(--background),
+          0 0 0 4px color-mix(in srgb, var(--primary) 40%, transparent);
       }
 
       .checkbox-wrapper.error .checkbox-input:focus-visible + .checkbox-box {
-        box-shadow: 0 0 0 2px ${theme.background}, 0 0 0 4px ${theme.error}40;
+        box-shadow:
+          0 0 0 2px var(--background),
+          0 0 0 4px color-mix(in srgb, var(--error) 40%, transparent);
       }
 
       .checkbox-helper {
         font-size: 0.8125rem;
         line-height: 1.4;
-        margin-left: calc(16px + ${theme.space[2]} + 2px);
+        margin-left: calc(16px + var(--space-2) + 2px);
         letter-spacing: -0.01em;
       }
 
-      .checkbox-wrapper.size-small ~ .checkbox-helper {
-        margin-left: calc(14px + ${theme.space[2]} + ${theme.space[1]});
-      }
-
-      .checkbox-wrapper.size-large ~ .checkbox-helper {
-        margin-left: calc(18px + ${theme.space[3]} + ${theme.space[1]});
-      }
-
       .checkbox-helper.error {
-        color: ${theme.error};
+        color: var(--error);
       }
 
       .checkbox-helper.normal {
-        color: ${theme.textTertiary};
+        color: var(--textTertiary);
       }
 
       /* 响应式设计 */

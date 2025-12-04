@@ -1,10 +1,15 @@
 // render/web/form/Slider.tsx
-import React, { useCallback, useState, forwardRef } from "react";
-import { useTheme } from "app/theme";
+import type React from "react";
+import { useCallback, useState, useEffect } from "react";
 
-export interface SliderProps {
+export interface SliderProps
+  extends Omit<
+    React.InputHTMLAttributes<HTMLInputElement>,
+    "type" | "value" | "onChange"
+  > {
   value: number;
   onChange: (value: number) => void;
+
   min?: number;
   max?: number;
   step?: number;
@@ -15,165 +20,187 @@ export interface SliderProps {
   className?: string;
   helperText?: string;
   error?: boolean;
+
+  // React 19: ref 作为普通 prop
+  ref?: React.Ref<HTMLInputElement>;
 }
 
-export const Slider = forwardRef<HTMLInputElement, SliderProps>(
-  (
-    {
-      value,
-      onChange,
-      min = 0,
-      max = 100,
-      step = 1,
-      disabled = false,
-      label,
-      showValue = false,
-      size = "medium",
-      className = "",
-      helperText,
-      error = false,
+export const Slider = ({
+  value,
+  onChange,
+  min = 0,
+  max = 100,
+  step = 1,
+  disabled = false,
+  label,
+  showValue = false,
+  size = "medium",
+  className = "",
+  helperText,
+  error = false,
+  ref,
+  id,
+  ...inputProps
+}: SliderProps) => {
+  const [localValue, setLocalValue] = useState(value);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+
+  const inputId = id || `slider-${Math.random().toString(36).substr(2, 9)}`;
+  const helperTextId = helperText ? `${inputId}-helper` : undefined;
+
+  const progress = ((localValue - min) / (max - min)) * 100;
+
+  const handleInput = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const val = parseFloat(e.target.value);
+      setLocalValue(val);
+      if (!isDragging) setIsDragging(true);
     },
-    ref
-  ) => {
-    const theme = useTheme();
-    const [localValue, setLocalValue] = useState(value);
-    const [isDragging, setIsDragging] = useState(false);
-    const [isHovered, setIsHovered] = useState(false);
+    [isDragging]
+  );
 
-    const progress = ((localValue - min) / (max - min)) * 100;
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const val = parseFloat(e.target.value);
+      setLocalValue(val);
+      onChange(val);
+      setIsDragging(false);
+    },
+    [onChange]
+  );
 
-    const handleInput = useCallback(
-      (e: React.ChangeEvent<HTMLInputElement>) => {
-        const val = parseFloat(e.target.value);
-        setLocalValue(val);
-        if (!isDragging) setIsDragging(true);
-      },
-      [isDragging]
-    );
+  useEffect(() => {
+    if (!isDragging) setLocalValue(value);
+  }, [value, isDragging]);
 
-    const handleChange = useCallback(
-      (e: React.ChangeEvent<HTMLInputElement>) => {
-        const val = parseFloat(e.target.value);
-        setLocalValue(val);
-        onChange(val);
-        setIsDragging(false);
-      },
-      [onChange]
-    );
+  const displayValue =
+    step < 1 ? localValue.toFixed(1) : Math.round(localValue).toString();
 
-    React.useEffect(() => {
-      if (!isDragging) setLocalValue(value);
-    }, [value, isDragging]);
-
-    const displayValue =
-      step < 1 ? localValue.toFixed(1) : Math.round(localValue).toString();
-
-    return (
-      <>
-        <SliderStyles />
-        <div
-          className={`slider-container size-${size} ${disabled ? "disabled" : ""} ${error ? "error" : ""} ${className}`}
-        >
-          {(label || showValue) && (
-            <div className="slider-header">
-              {label && <span className="slider-label">{label}</span>}
-              {showValue && (
-                <span className="slider-value">{displayValue}</span>
-              )}
-            </div>
-          )}
-
-          <div
-            className="slider-track-container"
-            onMouseEnter={() => !disabled && setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-          >
-            <div className={`slider-track-bg ${isHovered ? "hovered" : ""}`} />
-            <div
-              className={`slider-track-fill ${isDragging ? "dragging" : ""} ${isHovered ? "hovered" : ""}`}
-              style={{ width: `${progress}%` }}
-            />
-            <input
-              ref={ref}
-              type="range"
-              value={localValue}
-              onInput={handleInput}
-              onChange={handleChange}
-              min={min}
-              max={max}
-              step={step}
-              disabled={disabled}
-              className={`slider-input ${isDragging ? "dragging" : ""} ${isHovered ? "hovered" : ""}`}
-              aria-label={label}
-              aria-describedby={helperText ? "slider-helper" : undefined}
-            />
+  return (
+    <>
+      <SliderStyles />
+      <div
+        className={[
+          "slider-container",
+          `size-${size}`,
+          disabled ? "disabled" : "",
+          error ? "error" : "",
+          className,
+        ]
+          .filter(Boolean)
+          .join(" ")}
+      >
+        {(label || showValue) && (
+          <div className="slider-header">
+            {label && <span className="slider-label">{label}</span>}
+            {showValue && <span className="slider-value">{displayValue}</span>}
           </div>
+        )}
 
-          {helperText && (
-            <div id="slider-helper" className="slider-helper">
-              {helperText}
-            </div>
-          )}
+        <div
+          className="slider-track-container"
+          onMouseEnter={() => !disabled && setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
+          <div className={`slider-track-bg ${isHovered ? "hovered" : ""}`} />
+          <div
+            className={[
+              "slider-track-fill",
+              isDragging ? "dragging" : "",
+              isHovered ? "hovered" : "",
+            ]
+              .filter(Boolean)
+              .join(" ")}
+            style={{ width: `${progress}%` }}
+          />
+          <input
+            ref={ref}
+            id={inputId}
+            type="range"
+            value={localValue}
+            onInput={handleInput}
+            onChange={handleChange}
+            min={min}
+            max={max}
+            step={step}
+            disabled={disabled}
+            className={[
+              "slider-input",
+              isDragging ? "dragging" : "",
+              isHovered ? "hovered" : "",
+            ]
+              .filter(Boolean)
+              .join(" ")}
+            aria-label={label}
+            aria-describedby={helperTextId}
+            {...inputProps}
+          />
         </div>
-      </>
-    );
-  }
-);
+
+        {helperText && (
+          <div id={helperTextId} className="slider-helper">
+            {helperText}
+          </div>
+        )}
+      </div>
+    </>
+  );
+};
 
 const SliderStyles = () => {
-  const theme = useTheme();
-
   return (
     <style href="slider" precedence="medium">{`
       .slider-container {
         width: 100%;
         display: flex;
         flex-direction: column;
-        gap: ${theme.space[2]};
+        gap: var(--space-2);
       }
 
       .slider-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: ${theme.space[1]};
+        margin-bottom: var(--space-1);
       }
 
       .slider-label {
         font-size: 0.875rem;
         font-weight: 550;
-        color: ${theme.text};
+        color: var(--text);
         letter-spacing: -0.01em;
         line-height: 1.4;
       }
 
       .slider-container.error .slider-label {
-        color: ${theme.error};
+        color: var(--error);
       }
 
       .slider-value {
         font-size: 0.8125rem;
         font-weight: 600;
-        color: ${theme.primary};
+        color: var(--primary);
         font-variant-numeric: tabular-nums;
-        background: ${theme.backgroundSecondary};
-        padding: ${theme.space[1]} ${theme.space[2]};
-        border-radius: ${theme.space[1]};
-        border: 1px solid ${theme.borderLight};
+        background: var(--backgroundSecondary);
+        padding: var(--space-1) var(--space-2);
+        border-radius: var(--space-1);
+        border: 1px solid var(--borderLight);
         min-width: 40px;
         text-align: center;
         transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        box-shadow: 0 1px 3px ${theme.shadow1};
+        box-shadow: 0 1px 3px var(--shadowLight);
       }
 
       .slider-container.error .slider-value {
-        color: ${theme.error};
-        border-color: ${theme.error}40;
+        color: var(--error);
+        border-color: color-mix(in srgb, var(--error) 40%, transparent);
       }
 
+      /* 理论上想在拖拽时放大数值显示（保持原逻辑写法） */
       .slider-value:has(.dragging) {
         transform: scale(1.05);
-        box-shadow: 0 2px 6px ${theme.shadow2};
+        box-shadow: 0 2px 6px var(--shadowMedium);
       }
 
       .slider-track-container {
@@ -185,26 +212,26 @@ const SliderStyles = () => {
 
       .slider-container.size-small .slider-track-container {
         height: 24px;
-        padding: ${theme.space[1]} 0;
+        padding: var(--space-1) 0;
       }
 
       .slider-container.size-medium .slider-track-container {
         height: 28px;
-        padding: ${theme.space[2]} 0;
+        padding: var(--space-2) 0;
       }
 
       .slider-container.size-large .slider-track-container {
         height: 32px;
-        padding: ${theme.space[2]} 0;
+        padding: var(--space-2) 0;
       }
 
       .slider-track-bg {
         position: absolute;
         width: 100%;
-        background: ${theme.backgroundTertiary};
+        background: var(--backgroundTertiary);
         border-radius: 2px;
         transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        border: 1px solid ${theme.borderLight};
+        border: 1px solid var(--borderLight);
       }
 
       .slider-container.size-small .slider-track-bg {
@@ -220,18 +247,23 @@ const SliderStyles = () => {
       }
 
       .slider-track-bg.hovered {
-        background: ${theme.backgroundSelected || theme.backgroundHover};
+        background: var(--backgroundSelected);
         transform: scaleY(1.2);
       }
 
       .slider-track-fill {
         position: absolute;
-        background: linear-gradient(90deg, ${theme.primary} 0%, ${theme.primary}90 100%);
+        background: linear-gradient(
+          90deg,
+          var(--primary) 0%,
+          color-mix(in srgb, var(--primary) 90%, transparent) 100%
+        );
         border-radius: 2px;
-        transition: width 0.15s cubic-bezier(0.16, 1, 0.3, 1), 
-                    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
-                    box-shadow 0.3s ease;
-        box-shadow: 0 1px 3px ${theme.primary}20;
+        transition:
+          width 0.15s cubic-bezier(0.16, 1, 0.3, 1),
+          transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+          box-shadow 0.3s ease;
+        box-shadow: 0 1px 3px color-mix(in srgb, var(--primary) 20%, transparent);
       }
 
       .slider-container.size-small .slider-track-fill {
@@ -247,7 +279,12 @@ const SliderStyles = () => {
       }
 
       .slider-container.error .slider-track-fill {
-        background: linear-gradient(90deg, ${theme.error} 0%, ${theme.error}90 100%);
+        background: linear-gradient(
+          90deg,
+          var(--error) 0%,
+          color-mix(in srgb, var(--error) 90%, transparent) 100%
+        );
+        box-shadow: 0 1px 3px color-mix(in srgb, var(--error) 20%, transparent);
       }
 
       .slider-track-fill.hovered {
@@ -256,11 +293,11 @@ const SliderStyles = () => {
 
       .slider-track-fill.dragging {
         transition: none;
-        box-shadow: 0 0 12px ${theme.primary}40;
+        box-shadow: 0 0 12px color-mix(in srgb, var(--primary) 40%, transparent);
       }
 
       .slider-container.error .slider-track-fill.dragging {
-        box-shadow: 0 0 12px ${theme.error}40;
+        box-shadow: 0 0 12px color-mix(in srgb, var(--error) 40%, transparent);
       }
 
       .slider-input {
@@ -285,14 +322,14 @@ const SliderStyles = () => {
         pointer-events: none;
       }
 
-      /* Webkit Thumb 样式 */
+      /* WebKit Thumb */
       .slider-input::-webkit-slider-thumb {
         -webkit-appearance: none;
         border-radius: 50%;
-        background: ${theme.background};
-        border: 2px solid ${theme.primary};
+        background: var(--background);
+        border: 2px solid var(--primary);
         cursor: grab;
-        box-shadow: 0 2px 6px ${theme.shadow1}, 0 0 0 0 ${theme.primary}00;
+        box-shadow: 0 2px 6px var(--shadowLight), 0 0 0 0 transparent;
         transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       }
 
@@ -312,47 +349,55 @@ const SliderStyles = () => {
       }
 
       .slider-container.error .slider-input::-webkit-slider-thumb {
-        border-color: ${theme.error};
+        border-color: var(--error);
       }
 
       .slider-input.hovered::-webkit-slider-thumb {
         transform: scale(1.1);
-        box-shadow: 0 3px 8px ${theme.shadow2};
+        box-shadow: 0 3px 8px var(--shadowMedium);
       }
 
       .slider-input.dragging::-webkit-slider-thumb {
         cursor: grabbing;
         transform: scale(1.15);
-        box-shadow: 0 4px 12px ${theme.shadow2}, 0 0 0 4px ${theme.primary}20;
+        box-shadow:
+          0 4px 12px var(--shadowMedium),
+          0 0 0 4px color-mix(in srgb, var(--primary) 20%, transparent);
       }
 
       .slider-container.error .slider-input.dragging::-webkit-slider-thumb {
-        box-shadow: 0 4px 12px ${theme.shadow2}, 0 0 0 4px ${theme.error}20;
+        box-shadow:
+          0 4px 12px var(--shadowMedium),
+          0 0 0 4px color-mix(in srgb, var(--error) 20%, transparent);
       }
 
       .slider-input:focus-visible::-webkit-slider-thumb {
-        box-shadow: 0 2px 8px ${theme.shadow2}, 0 0 0 3px ${theme.primary}30;
+        box-shadow:
+          0 2px 8px var(--shadowMedium),
+          0 0 0 3px color-mix(in srgb, var(--primary) 30%, transparent);
       }
 
       .slider-container.error .slider-input:focus-visible::-webkit-slider-thumb {
-        box-shadow: 0 2px 8px ${theme.shadow2}, 0 0 0 3px ${theme.error}30;
+        box-shadow:
+          0 2px 8px var(--shadowMedium),
+          0 0 0 3px color-mix(in srgb, var(--error) 30%, transparent);
       }
 
       .slider-input:disabled::-webkit-slider-thumb {
-        border-color: ${theme.textQuaternary};
-        background: ${theme.textQuaternary};
+        border-color: var(--textQuaternary);
+        background: var(--textQuaternary);
         transform: scale(1);
         box-shadow: none;
         cursor: not-allowed;
       }
 
-      /* Mozilla Thumb 样式 */
+      /* Firefox Thumb */
       .slider-input::-moz-range-thumb {
         border-radius: 50%;
-        background: ${theme.background};
-        border: 2px solid ${theme.primary};
+        background: var(--background);
+        border: 2px solid var(--primary);
         cursor: grab;
-        box-shadow: 0 2px 6px ${theme.shadow1};
+        box-shadow: 0 2px 6px var(--shadowLight);
         transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       }
 
@@ -372,33 +417,43 @@ const SliderStyles = () => {
       }
 
       .slider-container.error .slider-input::-moz-range-thumb {
-        border-color: ${theme.error};
+        border-color: var(--error);
       }
 
       .slider-input.hovered::-moz-range-thumb {
         transform: scale(1.1);
-        box-shadow: 0 3px 8px ${theme.shadow2};
+        box-shadow: 0 3px 8px var(--shadowMedium);
       }
 
       .slider-input.dragging::-moz-range-thumb {
         cursor: grabbing;
         transform: scale(1.15);
-        box-shadow: 0 4px 12px ${theme.shadow2}, 0 0 0 4px ${theme.primary}20;
+        box-shadow:
+          0 4px 12px var(--shadowMedium),
+          0 0 0 4px color-mix(in srgb, var(--primary) 20%, transparent);
+      }
+
+      .slider-input:disabled::-moz-range-thumb {
+        border-color: var(--textQuaternary);
+        background: var(--textQuaternary);
+        transform: scale(1);
+        box-shadow: none;
+        cursor: not-allowed;
       }
 
       .slider-helper {
         font-size: 0.8125rem;
         line-height: 1.4;
-        margin-top: ${theme.space[1]};
+        margin-top: var(--space-1);
         letter-spacing: -0.01em;
-        color: ${theme.textTertiary};
+        color: var(--textTertiary);
       }
 
       .slider-container.error .slider-helper {
-        color: ${theme.error};
+        color: var(--error);
       }
 
-      /* 响应式设计 */
+      /* 响应式：小屏 thumb 稍微大一点 */
       @media (max-width: 768px) {
         .slider-input::-webkit-slider-thumb {
           width: 18px;

@@ -1,8 +1,8 @@
 // render/web/ui/Button.tsx
 
 import React from "react";
-// 移除 unused import: useTheme
 import { Link } from "react-router-dom";
+import LoadingSpinner from "render/web/ui/LoadingSpinner";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "secondary" | "ghost" | "danger";
@@ -11,88 +11,78 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   loading?: boolean;
   block?: boolean;
   type?: "button" | "submit" | "reset";
-  as?: React.ElementType; // 简化 as 类型
+  as?: React.ElementType;
   to?: string;
+  ref?: React.Ref<HTMLButtonElement | HTMLAnchorElement>;
 }
 
-// 修正多态组件的类型定义
-const Button = React.forwardRef<
-  HTMLButtonElement | HTMLAnchorElement,
-  ButtonProps
->(
-  (
-    {
-      variant = "primary",
-      size = "medium",
-      icon,
-      loading,
-      disabled,
-      block,
-      type = "button",
-      className = "",
-      children,
-      onClick,
-      as: Component = "button",
-      to,
-      ...rest
-    },
-    ref
-  ) => {
-    const isDisabled = disabled || loading;
+const Button = ({
+  variant = "primary",
+  size = "medium",
+  icon,
+  loading,
+  disabled,
+  block,
+  type = "button",
+  className = "",
+  children,
+  onClick,
+  as: Component = "button",
+  to,
+  ref,
+  ...rest
+}: ButtonProps) => {
+  const isDisabled = disabled || loading;
 
-    const handleClick = (e: React.MouseEvent<any>) => {
-      if (isDisabled) {
-        e.preventDefault();
-        return;
-      }
-      onClick?.(e as any);
-    };
-
-    const commonProps = {
-      className:
-        `btn btn-${variant} btn-${size} ${block ? "btn-block" : ""} ${isDisabled ? "btn-disabled" : ""} ${className}`.trim(),
-      // 如果 Component 是 Link，disabled 属性可能不被支持，主要靠样式和 onClick 拦截
-      disabled: Component === "button" ? isDisabled : undefined,
-      onClick: handleClick,
-      ref: ref as any,
-      ...rest,
-    };
-
-    const renderContent = () => (
-      <span className="btn-content">
-        {loading ? (
-          <LoadingSpinner />
-        ) : (
-          <>
-            {icon && <span className="btn-icon">{icon}</span>}
-            {children && <span className="btn-text">{children}</span>}
-          </>
-        )}
-      </span>
-    );
-
-    // 特殊处理 React Router Link
-    if (Component === Link) {
-      return (
-        <>
-          <Component
-            {...(commonProps as any)}
-            to={to || "#"} // 防止 Link 缺少 to 报错
-            style={{ textDecoration: "none" }}
-          >
-            {renderContent()}
-          </Component>
-          <ButtonStyles />
-        </>
-      );
+  const handleClick = (e: React.MouseEvent<any>) => {
+    if (isDisabled) {
+      e.preventDefault();
+      return;
     }
+    onClick?.(e as any);
+  };
 
+  const classes = [
+    "btn",
+    `btn-${variant}`,
+    `btn-${size}`,
+    block ? "btn-block" : "",
+    isDisabled ? "btn-disabled" : "",
+    className,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+
+  const commonProps = {
+    className: classes,
+    disabled: Component === "button" ? isDisabled : undefined,
+    onClick: handleClick,
+    ref,
+    ...rest,
+  };
+
+  const renderContent = () => (
+    <span className="btn-content">
+      {loading ? (
+        // 使用公共 LoadingSpinner
+        <LoadingSpinner size={16} />
+      ) : (
+        <>
+          {icon && <span className="btn-icon">{icon}</span>}
+          {children && <span className="btn-text">{children}</span>}
+        </>
+      )}
+    </span>
+  );
+
+  if (Component === Link) {
     return (
       <>
         <Component
-          {...commonProps}
-          // 只有 button 元素才有 type 属性
-          type={Component === "button" ? type : undefined}
+          {...(commonProps as any)}
+          to={to || "#"}
+          style={{ textDecoration: "none" }}
         >
           {renderContent()}
         </Component>
@@ -100,7 +90,19 @@ const Button = React.forwardRef<
       </>
     );
   }
-);
+
+  return (
+    <>
+      <Component
+        {...commonProps}
+        type={Component === "button" ? type : undefined}
+      >
+        {renderContent()}
+      </Component>
+      <ButtonStyles />
+    </>
+  );
+};
 
 const ButtonStyles = () => {
   return (
@@ -139,7 +141,6 @@ const ButtonStyles = () => {
       .btn-content { display: flex; align-items: center; justify-content: center; gap: inherit; z-index: 2; transform: translateY(-0.5px); }
       .btn-icon { display: flex; align-items: center; }
 
-      /* Primary - 使用 color-mix 解决 hex 变量的透明度问题 */
       .btn-primary {
         background: var(--primary);
         background-image: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(0,0,0,0.05) 100%);
@@ -165,7 +166,6 @@ const ButtonStyles = () => {
         background-image: none;
       }
 
-      /* Secondary */
       .btn-secondary {
         background: var(--background);
         color: var(--text);
@@ -185,7 +185,6 @@ const ButtonStyles = () => {
         box-shadow: none;
       }
 
-      /* Ghost */
       .btn-ghost {
         background: transparent;
         color: var(--textSecondary);
@@ -201,7 +200,6 @@ const ButtonStyles = () => {
         transform: scale(0.97);
       }
 
-      /* Danger */
       .btn-danger {
         background: var(--error);
         background-image: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0.05) 100%);
@@ -233,7 +231,9 @@ const ButtonStyles = () => {
       }
 
       .btn:focus-visible {
-        box-shadow: 0 0 0 2px var(--background), 0 0 0 4px color-mix(in srgb, var(--primary) 50%, transparent);
+        box-shadow: 
+          0 0 0 2px var(--background), 
+          0 0 0 4px color-mix(in srgb, var(--primary) 50%, transparent);
       }
 
       .dark .btn-secondary {
@@ -251,37 +251,6 @@ const ButtonStyles = () => {
     `}</style>
   );
 };
-
-const LoadingSpinner = () => (
-  <svg
-    className="animate-spin"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <circle
-      cx="12"
-      cy="12"
-      r="10"
-      stroke="currentColor"
-      strokeWidth="3"
-      strokeLinecap="round"
-      opacity="0.25"
-    />
-    <path
-      d="M4 12a8 8 0 018-8"
-      stroke="currentColor"
-      strokeWidth="3"
-      strokeLinecap="round"
-    />
-    <style>{`
-      .animate-spin { animation: spin 1s linear infinite; }
-      @keyframes spin { to { transform: rotate(360deg); } }
-    `}</style>
-  </svg>
-);
 
 Button.displayName = "Button";
 

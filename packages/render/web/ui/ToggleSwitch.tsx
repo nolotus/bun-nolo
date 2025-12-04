@@ -1,152 +1,136 @@
 // render/web/ui/ToggleSwitch.tsx
 
-import { useTheme } from "app/theme";
 import type React from "react";
-import { useEffect, useState, forwardRef } from "react";
+import { useEffect, useState } from "react";
+import LoadingSpinner from "render/web/ui/LoadingSpinner";
 
-interface ToggleSwitchProps {
-  disabled?: boolean;
+interface ToggleSwitchProps
+  extends Omit<
+    React.InputHTMLAttributes<HTMLInputElement>,
+    "type" | "onChange" | "size" | "checked" | "defaultChecked"
+  > {
   loading?: boolean;
+  helperText?: string;
+  error?: boolean;
+  label?: string;
+
   checked?: boolean;
   defaultChecked?: boolean;
   onChange?: (checked: boolean) => void;
-  ariaLabelledby?: string;
-  ariaDescribedby?: string;
-  value?: boolean;
-  size?: "small" | "medium" | "large";
-  label?: string;
-  helperText?: string;
-  error?: boolean;
-  id?: string;
+
   className?: string;
+
+  // React 19: ref 作为 prop
+  ref?: React.Ref<HTMLInputElement>;
 }
 
-const ToggleSwitch = forwardRef<HTMLInputElement, ToggleSwitchProps>(
-  (
-    {
-      disabled = false,
-      loading = false,
-      checked,
-      defaultChecked = false,
-      onChange,
-      ariaLabelledby,
-      ariaDescribedby,
-      value,
-      size = "medium",
-      label,
-      helperText,
-      error = false,
-      id,
-      className = "",
-    },
-    ref
-  ) => {
-    const [isChecked, setIsChecked] = useState<boolean>(
-      value ?? defaultChecked
-    );
+function ToggleSwitch(props: ToggleSwitchProps) {
+  const {
+    disabled = false,
+    loading = false,
+    checked,
+    defaultChecked = false,
+    onChange,
+    label,
+    helperText,
+    error = false,
+    id,
+    className = "",
+    ref,
+    ...inputProps
+  } = props;
 
-    useEffect(() => {
-      if (checked !== undefined) {
-        setIsChecked(checked);
-      }
-    }, [checked]);
+  const [isChecked, setIsChecked] = useState<boolean>(
+    checked ?? defaultChecked ?? false
+  );
 
-    const handleToggle = () => {
-      if (!loading && !disabled) {
-        const newChecked = !isChecked;
-        setIsChecked(newChecked);
-        onChange?.(newChecked);
-      }
-    };
+  useEffect(() => {
+    if (typeof checked === "boolean") {
+      setIsChecked(checked);
+    }
+  }, [checked]);
 
-    const inputId = id || `toggle-${Math.random().toString(36).substr(2, 9)}`;
-    const helperTextId = helperText ? `${inputId}-helper` : undefined;
+  const handleToggle = () => {
+    if (!loading && !disabled) {
+      const newChecked = !isChecked;
+      setIsChecked(newChecked);
+      onChange?.(newChecked);
+    }
+  };
 
-    return (
-      <>
-        <ToggleSwitchStyles />
-        <div className={`toggle-container ${className}`}>
-          {label && (
-            <label
-              htmlFor={inputId}
-              className={`toggle-label ${error ? "error" : ""}`}
-            >
-              {label}
-            </label>
-          )}
+  const inputId = id || `toggle-${Math.random().toString(36).substr(2, 9)}`;
+  const helperTextId = helperText ? `${inputId}-helper` : undefined;
 
+  return (
+    <>
+      <ToggleSwitchStyles />
+      <div className={`toggle-container ${className}`}>
+        {label && (
           <label
-            className={`toggle-wrapper size-${size} ${disabled ? "disabled" : ""} ${loading ? "loading" : ""}`}
-            aria-labelledby={ariaLabelledby}
-            aria-describedby={ariaDescribedby}
             htmlFor={inputId}
+            className={`toggle-label ${error ? "error" : ""}`}
           >
-            <input
-              ref={ref}
-              id={inputId}
-              type="checkbox"
-              className="toggle-input"
-              checked={isChecked}
-              onChange={handleToggle}
-              disabled={disabled || loading}
-              aria-describedby={helperTextId}
-              aria-invalid={error}
-            />
-
-            <div
-              className={`toggle-switch ${isChecked ? "checked" : ""} ${error ? "error" : ""}`}
-            >
-              <span className="toggle-background"></span>
-              {!loading ? (
-                <span className="toggle-handle"></span>
-              ) : (
-                <span className="toggle-loading">
-                  <LoadingSpinner />
-                </span>
-              )}
-            </div>
+            {label}
           </label>
+        )}
 
-          {helperText && (
-            <div
-              id={helperTextId}
-              className={`toggle-helper ${error ? "error" : "normal"}`}
-              role={error ? "alert" : "note"}
-            >
-              {helperText}
-            </div>
-          )}
-        </div>
-      </>
-    );
-  }
-);
+        <label
+          className={[
+            "toggle-wrapper",
+            disabled ? "disabled" : "",
+            loading ? "loading" : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
+          htmlFor={inputId}
+        >
+          <input
+            ref={ref}
+            id={inputId}
+            type="checkbox"
+            className="toggle-input"
+            {...inputProps}
+            checked={isChecked}
+            onChange={handleToggle}
+            disabled={disabled || loading}
+            aria-describedby={helperTextId}
+            aria-invalid={error}
+          />
 
-const LoadingSpinner = () => (
-  <svg
-    className="spinner"
-    width="12"
-    height="12"
-    viewBox="0 0 12 12"
-    fill="none"
-  >
-    <circle
-      cx="6"
-      cy="6"
-      r="4"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      opacity="0.25"
-    />
-    <path
-      d="M10 6A4 4 0 016 2"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-    />
-  </svg>
-);
+          <div
+            className={[
+              "toggle-switch",
+              isChecked ? "checked" : "",
+              error ? "error" : "",
+            ]
+              .filter(Boolean)
+              .join(" ")}
+          >
+            <span className="toggle-background" />
+            {!loading ? (
+              <span className="toggle-handle" />
+            ) : (
+              <span className="toggle-loading">
+                {/* 使用公共 LoadingSpinner */}
+                <LoadingSpinner size={12} />
+              </span>
+            )}
+          </div>
+        </label>
+
+        {helperText && (
+          <div
+            id={helperTextId}
+            className={`toggle-helper ${error ? "error" : "normal"}`}
+            role={error ? "alert" : "note"}
+          >
+            {helperText}
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
 
 const ToggleSwitchStyles = () => {
   return (
@@ -199,25 +183,10 @@ const ToggleSwitchStyles = () => {
         box-shadow: 
           0 1px 3px var(--shadowLight),
           inset 0 1px 0 rgba(255, 255, 255, 0.1);
-      }
-
-      /* 尺寸系统 */
-      .toggle-wrapper.size-small .toggle-switch {
-        height: 20px;
-        width: 36px;
-      }
-
-      .toggle-wrapper.size-medium .toggle-switch {
         height: 24px;
         width: 44px;
       }
 
-      .toggle-wrapper.size-large .toggle-switch {
-        height: 28px;
-        width: 52px;
-      }
-
-      /* 激活状态 */
       .toggle-switch.checked {
         background: var(--primary);
         border-color: var(--primary);
@@ -227,7 +196,6 @@ const ToggleSwitchStyles = () => {
           inset 0 1px 0 rgba(255, 255, 255, 0.2);
       }
 
-      /* 错误状态 */
       .toggle-switch.error {
         border-color: var(--error);
         background: rgba(239, 68, 68, 0.1);
@@ -238,7 +206,6 @@ const ToggleSwitchStyles = () => {
         border-color: var(--error);
       }
 
-      /* 悬浮效果 */
       .toggle-wrapper:hover:not(.disabled):not(.loading) .toggle-switch {
         border-color: rgba(22, 119, 255, 0.4);
         box-shadow: 
@@ -253,9 +220,7 @@ const ToggleSwitchStyles = () => {
           inset 0 1px 0 rgba(255, 255, 255, 0.25);
       }
 
-      /* 背景渐变 */
       .toggle-background {
-        content: '';
         position: absolute;
         display: block;
         height: 100%;
@@ -272,7 +237,6 @@ const ToggleSwitchStyles = () => {
         opacity: 1;
       }
 
-      /* 滑块手柄 */
       .toggle-handle {
         position: absolute;
         display: block;
@@ -285,43 +249,13 @@ const ToggleSwitchStyles = () => {
           0 1px 3px rgba(0, 0, 0, 0.15),
           0 0 0 1px rgba(0, 0, 0, 0.05),
           inset 0 1px 0 rgba(255, 255, 255, 0.8);
-      }
-
-      /* 小尺寸手柄 */
-      .toggle-wrapper.size-small .toggle-handle {
-        height: 16px;
-        width: 16px;
-        left: 2px;
-      }
-
-      .toggle-wrapper.size-small .toggle-switch.checked .toggle-handle {
-        left: 18px;
-      }
-
-      /* 中等尺寸手柄 */
-      .toggle-wrapper.size-medium .toggle-handle {
         height: 20px;
         width: 20px;
         left: 2px;
       }
 
-      .toggle-wrapper.size-medium .toggle-switch.checked .toggle-handle {
-        left: 22px;
-      }
-
-      /* 大尺寸手柄 */
-      .toggle-wrapper.size-large .toggle-handle {
-        height: 24px;
-        width: 24px;
-        left: 2px;
-      }
-
-      .toggle-wrapper.size-large .toggle-switch.checked .toggle-handle {
-        left: 26px;
-      }
-
-      /* 激活时的手柄样式 */
       .toggle-switch.checked .toggle-handle {
+        left: 22px;
         background: white;
         box-shadow: 
           0 2px 6px rgba(0, 0, 0, 0.2),
@@ -329,7 +263,6 @@ const ToggleSwitchStyles = () => {
           inset 0 1px 0 rgba(255, 255, 255, 1);
       }
 
-      /* 加载状态 */
       .toggle-loading {
         position: absolute;
         top: 50%;
@@ -345,20 +278,6 @@ const ToggleSwitchStyles = () => {
         color: white;
       }
 
-      .spinner {
-        animation: spin 1s linear infinite;
-      }
-
-      @keyframes spin {
-        from {
-          transform: rotate(0deg);
-        }
-        to {
-          transform: rotate(360deg);
-        }
-      }
-
-      /* 隐藏原生 input */
       .toggle-input {
         position: absolute;
         opacity: 0;
@@ -367,7 +286,6 @@ const ToggleSwitchStyles = () => {
         pointer-events: none;
       }
 
-      /* 焦点状态 */
       .toggle-input:focus-visible + .toggle-switch {
         box-shadow: 
           0 0 0 2px var(--background),
@@ -375,7 +293,6 @@ const ToggleSwitchStyles = () => {
           0 1px 3px var(--shadowLight);
       }
 
-      /* 帮助文本 */
       .toggle-helper {
         font-size: 0.8125rem;
         line-height: 1.4;
@@ -391,24 +308,22 @@ const ToggleSwitchStyles = () => {
         color: var(--textTertiary);
       }
 
-      /* 响应式设计 */
       @media (max-width: 768px) {
-        .toggle-wrapper.size-medium .toggle-switch {
+        .toggle-switch {
           height: 26px;
           width: 46px;
         }
 
-        .toggle-wrapper.size-medium .toggle-handle {
+        .toggle-handle {
           height: 22px;
           width: 22px;
         }
 
-        .toggle-wrapper.size-medium .toggle-switch.checked .toggle-handle {
+        .toggle-switch.checked .toggle-handle {
           left: 22px;
         }
       }
 
-      /* 高对比度支持 */
       @media (prefers-contrast: high) {
         .toggle-switch {
           border-width: 2px;
@@ -419,33 +334,21 @@ const ToggleSwitchStyles = () => {
         }
       }
 
-      /* 减少动画偏好 */
       @media (prefers-reduced-motion: reduce) {
         .toggle-switch,
         .toggle-handle,
         .toggle-background {
           transition: none;
         }
-        
-        .spinner {
-          animation: none;
-        }
-        
-        .spinner::after {
-          content: '...';
-        }
       }
 
-      /* 触摸设备优化 */
       @media (hover: none) and (pointer: coarse) {
         .toggle-wrapper {
-          /* 增大触摸区域 */
           padding: var(--space-1);
           margin: calc(-1 * var(--space-1));
         }
         
         .toggle-wrapper:hover:not(.disabled):not(.loading) .toggle-switch {
-          /* 移除悬浮效果 */
           border-color: var(--border);
           box-shadow: 
             0 1px 3px var(--shadowLight),

@@ -51,7 +51,7 @@ export const Button: React.FC<
         padding: "var(--space-1) var(--space-2)", // 4px 8px
         borderRadius: "var(--space-1)", // 4px
         backgroundColor,
-        transition: "color 0.2s, background-color 0.2s", // ✨ 优化：只动画必要属性
+        transition: "color 0.2s, background-color 0.2s", // ✨ 只动画必要属性
         display: "inline-flex",
         alignItems: "center",
         justifyContent: "center",
@@ -63,11 +63,17 @@ export const Button: React.FC<
   );
 };
 
-// 通用 Menu 组件
-export const Menu = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className = "", style = {}, ...props }, ref) => (
+// 通用 Menu 组件（React 19: ref 作为普通 prop 传入）
+type MenuProps = React.HTMLAttributes<HTMLDivElement> & {
+  ref?: React.Ref<HTMLDivElement>;
+};
+
+export const Menu = ({
+  className = "",
+  style = {},
+  ref,
+  ...props
+}: MenuProps) => (
   <div
     {...props}
     ref={ref}
@@ -80,7 +86,7 @@ export const Menu = React.forwardRef<
       ...style,
     }}
   />
-));
+);
 
 // Portal 组件（保持不变）
 export const Portal: React.FC = ({ children }) =>

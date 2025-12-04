@@ -1,26 +1,52 @@
-// components/LoadingSpinner.tsx
-import React from "react";
+// render/web/ui/LoadingSpinner.tsx
+import type React from "react";
 
-const spinKeyframes = `
-  @keyframes loadingSpin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-`;
+interface LoadingSpinnerProps {
+  size?: number; // 直径
+  thickness?: number; // 线宽
+  className?: string;
+}
 
-const LoadingSpinner: React.FC<{ size?: number }> = ({ size = 30 }) => (
+const SpinnerStyles = () => (
+  <style href="loading-spinner" precedence="medium">{`
+    @keyframes loadingSpin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      border-radius: 999px;
+      border-style: solid;
+      border-color: var(--backgroundTertiary);
+      border-left-color: var(--primary);
+      animation: loadingSpin 0.9s linear infinite;
+      box-shadow: 0 1px 3px var(--shadowLight);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .loading-spinner {
+        animation: none;
+      }
+    }
+  `}</style>
+);
+
+const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
+  size = 16,
+  thickness = 2,
+  className = "",
+}) => (
   <>
-    {/* 注入一次简单的 keyframes */}
-    <style>{spinKeyframes}</style>
-    <div
+    <SpinnerStyles />
+    <span
+      className={`loading-spinner ${className}`.trim()}
       style={{
-        border: "4px solid var(--backgroundTertiary)",
-        borderLeftColor: "var(--primary)",
-        borderRadius: "50%",
         width: size,
         height: size,
-        animation: "loadingSpin 1s linear infinite",
+        borderWidth: thickness,
       }}
+      aria-hidden="true"
     />
   </>
 );
