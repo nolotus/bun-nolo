@@ -18,14 +18,12 @@ import {
   LuCoins,
   LuEye,
   LuMessageSquare,
-  LuEllipsis,
-  LuPencil,
   LuPlus,
   LuRefreshCw,
-  LuTrash2,
-  LuX,
-  LuCheck,
 } from "react-icons/lu";
+
+// 懒加载 More Actions 组件（包含更多菜单 + 删除 ConfirmModal）
+const AgentMoreActionsLazy = lazy(() => import("./AgentMoreActions"));
 
 interface AgentBlockProps {
   item: Agent;
@@ -47,9 +45,7 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
   const agentKey = item.dbKey || item.id;
   const { isLoading, createNewDialog } = useCreateDialog();
   const { visible: editVisible, open: openEdit, close: closeEdit } = useModal();
-  const [showActions, setShowActions] = useState(false);
-  const [confirmingDelete, setConfirmingDelete] = useState(false);
-  const [deleting, setDeleting] = useState(false);
+
   const allowEdit = useCouldEdit(agentKey);
 
   const stopEvent = (e: React.MouseEvent) => {
@@ -66,59 +62,32 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
     }
   };
 
+  // 仅负责“真正删除”的逻辑，不负责任何 UI 状态（modal/loading 等）
   const handleDelete = useCallback(async () => {
-    if (deleting) return;
-    setDeleting(true);
-
     try {
       const element = document.getElementById(`agent-${item.id}`);
       element?.classList.add("agent-exit");
+
       await new Promise((r) => setTimeout(r, 250));
       await dispatch(remove(agentKey));
+
       toast.success(t("deleteSuccess"));
       await reload();
     } catch {
-      setDeleting(false);
-      setConfirmingDelete(false);
       toast.error(t("deleteError"));
+      // 注意：AgentMoreActions 内部也会把 loading 置回 false
     }
-  }, [item.id, agentKey, deleting, dispatch, reload, t]);
+  }, [item.id, agentKey, dispatch, reload, t]);
 
+  // 打开编辑弹窗
   const handleEdit = useCallback(() => {
-    setShowActions(false);
     preloadEditBundle();
     openEdit();
   }, [openEdit]);
 
-  const handleMoreClick = useCallback(
-    (e: React.MouseEvent) => {
-      stopEvent(e);
-      const next = !showActions;
-      setShowActions(next);
-      if (next) preloadEditBundle();
-    },
-    [showActions]
-  );
-
   const handleViewDetails = (e: React.MouseEvent) => {
     stopEvent(e);
     navigate(`/${agentKey}`);
-  };
-
-  const handleDeleteClick = (e: React.MouseEvent) => {
-    stopEvent(e);
-    setConfirmingDelete(true);
-    setShowActions(false);
-  };
-
-  const cancelDelete = (e: React.MouseEvent) => {
-    stopEvent(e);
-    setConfirmingDelete(false);
-  };
-
-  const confirmDelete = (e: React.MouseEvent) => {
-    stopEvent(e);
-    handleDelete();
   };
 
   // 点击卡片空白区域或 .clickable 元素时进入详情
@@ -134,70 +103,15 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
   return (
     <>
       <div id={`agent-${item.id}`} className="agent" onClick={handleCardClick}>
+        {/* 只有有编辑权限时，才懒加载 More Actions（包含更多菜单 + 删除确认） */}
         {allowEdit && (
-          <div className="agent__top-actions">
-            <button
-              className={`agent__more ${
-                showActions ? "agent__more--active" : ""
-              }`}
-              onPointerEnter={preloadEditBundle}
-              onFocus={preloadEditBundle}
-              onClick={handleMoreClick}
-              title={t("moreActions")}
-            >
-              <LuEllipsis size={18} />
-            </button>
-          </div>
-        )}
-
-        {showActions && allowEdit && (
-          <div className="agent__actions-menu">
-            <button
-              className="agent__action-item agent__action-item--edit"
-              onPointerEnter={preloadEditBundle}
-              onFocus={preloadEditBundle}
-              onClick={handleEdit}
-            >
-              <LuPencil size={14} />
-              <span>{t("edit")}</span>
-            </button>
-            <button
-              className="agent__action-item agent__action-item--delete"
-              onClick={handleDeleteClick}
-            >
-              <LuTrash2 size={14} />
-              <span>{t("delete")}</span>
-            </button>
-          </div>
-        )}
-
-        {confirmingDelete && (
-          <div className="agent__delete-confirm">
-            <div className="agent__delete-message">
-              <LuTrash2 size={16} />
-              <span>{t("confirmDelete")}</span>
-            </div>
-            <div className="agent__delete-actions">
-              <button
-                className="agent__delete-btn agent__delete-btn--cancel"
-                onClick={cancelDelete}
-                disabled={deleting}
-              >
-                <LuX size={14} />
-              </button>
-              <button
-                className="agent__delete-btn agent__delete-btn--confirm"
-                onClick={confirmDelete}
-                disabled={deleting}
-              >
-                {deleting ? (
-                  <div className="agent__spinner" />
-                ) : (
-                  <LuCheck size={14} />
-                )}
-              </button>
-            </div>
-          </div>
+          <Suspense fallback={null}>
+            <AgentMoreActionsLazy
+              preloadEditBundle={preloadEditBundle}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
+          </Suspense>
         )}
 
         <div className="agent__header">
@@ -254,7 +168,7 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           <Button
             icon={<LuMessageSquare size={16} />}
             onClick={startDialog}
-            disabled={isLoading || confirmingDelete}
+            disabled={isLoading}
             loading={isLoading}
             size="medium"
             className="agent__primary"
@@ -292,7 +206,6 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
 
       <style href="agent-block" precedence="medium">{`
         .agent {
-          /* 固定卡片高度：列表对齐依赖该值 */
           --agent-card-height: 220px;
           --agent-glass-blur: blur(10px) saturate(1.1);
 
@@ -309,7 +222,6 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           height: var(--agent-card-height);
           overflow: hidden;
 
-          /* 使用设计系统阴影变量 */
           box-shadow:
             0 0 0 1px var(--borderLight),
             0 4px 12px -2px var(--shadowLight),
@@ -328,190 +240,12 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
             0 18px 48px -8px var(--shadowMedium);
         }
 
-        /* 删除确认时：用 error + 全局阴影变量强调 */
-        .agent:has(.agent__delete-confirm) {
-          background: var(--backgroundSecondary);
-          box-shadow:
-            0 0 0 1px var(--error),
-            0 8px 30px -4px var(--shadowMedium);
-        }
-
-        .agent__top-actions {
-          position: absolute;
-          top: var(--space-4);
-          right: var(--space-4);
-          z-index: 10;
-        }
-
-        .agent__more {
-          background: transparent;
-          border: none;
-          color: var(--textTertiary);
-          padding: 0;
-          width: 28px;
-          height: 28px;
-          border-radius: var(--space-2);
-          transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          opacity: 0;
-        }
-
-        .agent:hover .agent__more,
-        .agent__more:focus,
-        .agent__more--active {
-          opacity: 1;
-          color: var(--textSecondary);
-          background: var(--backgroundSecondary);
-        }
-
-        .agent__more:hover,
-        .agent__more--active {
-          color: var(--text);
-          transform: scale(1.05);
-          background: var(--backgroundTertiary);
-        }
-
-        .agent__actions-menu {
-          position: absolute;
-          top: var(--space-12);
-          right: var(--space-4);
-          background: var(--background);
-          border-radius: var(--space-3);
-          z-index: 20;
-          overflow: hidden;
-          min-width: 110px;
-          animation: slideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-          backdrop-filter: var(--agent-glass-blur);
-          -webkit-backdrop-filter: var(--agent-glass-blur);
-          box-shadow:
-            0 0 0 0.5px var(--borderLight),
-            0 8px 20px -4px var(--shadowMedium);
-        }
-
-        @keyframes slideDown {
-          from { opacity: 0; transform: translateY(-4px) scale(0.98); }
-          to { opacity: 1; transform: translateY(0) scale(1); }
-        }
-
-        .agent__action-item {
-          width: 100%;
-          padding: var(--space-2) var(--space-3);
-          border: none;
-          background: none;
-          display: flex;
-          align-items: center;
-          gap: var(--space-2);
-          font-size: 0.85rem;
-          cursor: pointer;
-          transition: background-color 0.15s ease, color 0.15s ease;
-          color:(--textSecondary);
-        }
-
-        .agent__action-item:hover {
-          background: var(--backgroundHover);
-          color: var(--text);
-        }
-
-        .agent__action-item--edit:hover {
-          color: var(--primary);
-        }
-
-        .agent__action-item--delete:hover {
-          color: var(--error);
-          background: var(--backgroundSelected);
-        }
-
-        .agent__delete-confirm {
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          background: var(--error);
-          /* 用纯白字保证对比度，这里保留固定色值 */
-          color: #ffffff;
-          padding: var(--space-2) var(--space-4);
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          border-radius: var(--space-3) var(--space-3) 0 0;
-          animation: slideDownRed 0.2s ease-out;
-          z-index: 15;
-          height: 44px;
-        }
-
-        @keyframes slideDownRed {
-          from { opacity: 0; transform: translateY(-100%); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-
-        .agent__delete-message {
-          display: flex;
-          align-items: center;
-          gap: var(--space-2);
-          font-size: 0.85rem;
-          font-weight: 500;
-        }
-
-        .agent__delete-actions {
-          display: flex;
-          gap: var(--space-2);
-        }
-
-        .agent__delete-btn {
-          background: var(--primaryGhost);
-          border: none;
-          color: #ffffff;
-          width: 24px;
-          height: 24px;
-          border-radius: var(--space-1);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          transition: background 0.15s ease, transform 0.15s ease;
-        }
-
-        .agent__delete-btn--cancel {
-          opacity: 0.85;
-        }
-
-        .agent__delete-btn--confirm {
-          background: var(--primaryLight);
-        }
-
-        .agent__delete-btn:hover {
-          transform: translateY(-1px);
-          box-shadow:
-            0 1px 2px 0 var(--shadowLight),
-            0 4px 10px -2px var(--shadowMedium);
-        }
-
-        .agent__spinner {
-          width: 12px;
-          height: 12px;
-          border: 1.5px solid var(--primaryGhost);
-          border-top: 1.5px solid #ffffff;
-          border-radius: 50%;
-          animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-
         .agent__header {
           display: flex;
           gap: var(--space-3);
           align-items: flex-start;
           padding-right: var(--space-8);
           margin-top: var(--space-1);
-        }
-
-        .agent:has(.agent__delete-confirm) .agent__header {
-          margin-top: var(--space-8);
         }
 
         .agent__info {
@@ -663,6 +397,10 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           animation: spin 1s linear infinite;
         }
 
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+
         .agent__dialog-text {
           color: var(--textSecondary);
           font-size: 0.9rem;
@@ -675,9 +413,6 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           .agent__header {
             padding-right: var(--space-2);
           }
-          .agent__more {
-            opacity: 1;
-          }
           .agent__title-arrow {
             opacity: 1;
             transform: none;
@@ -686,10 +421,7 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
 
         @media (prefers-reduced-motion: reduce) {
           .agent,
-          .agent__title-arrow,
-          .agent__more,
-          .agent__actions-menu,
-          .agent__delete-confirm {
+          .agent__title-arrow {
             transition: none;
             animation: none;
           }
