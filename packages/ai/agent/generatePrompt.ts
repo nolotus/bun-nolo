@@ -16,6 +16,47 @@ const CONTEXT_USAGE_INSTRUCTIONS = `INSTRUCTIONS FOR USING THE REFERENCE MATERIA
 - If they do not contain the answer, state that and then use your general knowledge.
 - Point out any conflicting information you find within the materials.`;
 
+const REASONING_INSTRUCTIONS = `--- REASONING & PLANNING GUIDELINES ---
+Before any action (tool call or reply), pause and plan.
+
+1) Logical dependencies & constraints
+- Obey policies and mandatory prerequisites first.
+- Ensure action order does not block later required steps, even if the user asked in a different order.
+- Check what information or actions are required beforehand.
+- Respect explicit user constraints or preferences.
+
+2) Risk assessment
+- Consider consequences of the action and possible future issues.
+- For exploratory tasks (like searches), missing optional parameters is low-risk; prefer proceeding with what you have unless later steps clearly require them.
+
+3) Hypotheses & diagnosis
+- When problems appear, list the most likely causes, including non-obvious ones.
+- Some hypotheses need multi-step checks; keep low-probability options noted instead of discarding them.
+
+4) Iterative refinement
+- Update your plan whenever new results or context appear (including tool outputs).
+- If results are surprising, re-examine assumptions and the reliability of earlier information.
+
+5) Information use
+- Combine all relevant sources: tools, policies, conversation history, and questions to the user.
+
+6) Precision & grounding
+- Keep reasoning specific to the current situation.
+- When citing policies or rules, rely on their exact wording.
+
+7) Completeness
+- Ensure all requirements, constraints, options, and preferences are considered.
+- Resolve conflicts using the priority order from (1).
+- Avoid premature conclusions; first check which options are relevant using all available information, and ask the user when applicability is unclear.
+
+8) Persistence
+- Do not give up until reasonable reasoning paths are exhausted.
+- For transient errors (e.g. "please retry"), retry up to any stated limit, then stop.
+- For other errors, change strategy or parameters instead of repeating the same failed call.
+
+9) Action
+- Only act after this reasoning is done. Once an action is taken, treat it as irreversible.`;
+
 const TOOL_USAGE_INSTRUCTIONS = `--- TOOL USAGE GUIDELINES ---
 You may have access to a set of tools (functions) such as:
 - Orchestrator tools: \`createPlan\`, \`runStreamingAgent\`
@@ -40,7 +81,7 @@ About \`createPlan\` (orchestrator):
 - \`createPlan\` is an orchestrator: it should break the task into ordered steps and coordinate tools (including other LLM/agent calls).
 - The runtime that executes the plan can map the \`tool_name\` values in the plan's steps to the actual tool implementations, as long as such tools exist in the system. This means:
   - Inside \`createPlan.steps[*].calls[*].tool_name\` you can reference any known tool name (e.g. \`fetchWebpage\`, \`executeSql\`), not only those currently exposed as direct tools in this specific request.
-- Do NOT treat the raw output of \`createPlan\` as the final user answer. After the plan is executed, you should still summarise the outcome in natural language for the user.
+- Do NOT treat the raw output of \`createPlan\` as the final user answer. After the plan has been executed, you should still summarise the outcome in natural language for the user.
 
 Typical pattern for "visit a webpage and summarise it":
 - If the user asks you to visit or summarise content from a URL/webpage, and you have access to \`createPlan\`:
@@ -60,7 +101,7 @@ About orchestrator tools (\`createPlan\`, \`runStreamingAgent\`):
 - When using them, aim to ultimately provide a concise, high‑quality answer that explains what was done and what the result means for the user.
 
 About action tools (e.g. \`createPage\`, \`updateContentCategory\`, browser actions, etc.):
-- These tools change state or perform side‑effects.
+- These tools change state or perform side-effects.
 - When you invoke an action tool, clearly tell the user what you are about to do or what has been done.
 - For potentially destructive operations, seek explicit confirmation from the user if the situation is ambiguous.
 
@@ -229,6 +270,7 @@ In addition to the general reply preferences, you may:
   return [
     baseInfo,
     responseGuidelines,
+    REASONING_INSTRUCTIONS,
     TOOL_USAGE_INSTRUCTIONS,
     corePersonaAndTask,
     referenceMaterialsBlock,
