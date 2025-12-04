@@ -1,16 +1,29 @@
 import React from "react";
 import StreamingIndicator from "render/web/ui/StreamingIndicator";
 
-interface PageLoadingProps {
+export interface PageLoadingProps {
+  /**
+   * 加载中的提示文案，例如：
+   * - "正在打开页面，为你准备内容…"
+   * - "正在为你准备编辑体验…"
+   */
   message?: string;
+  /**
+   * 是否占满可用高度（用于整页加载）
+   */
   fullHeight?: boolean;
-  style?: React.CSSProperties;
 }
 
+/**
+ * 通用页面加载状态组件：
+ * - 居中展示 StreamingIndicator
+ * - 支持自定义提示文案
+ * - 可选是否占满可用高度
+ * - 不对外暴露 style，避免破坏统一布局
+ */
 const PageLoading: React.FC<PageLoadingProps> = ({
   message,
   fullHeight = true,
-  style,
 }) => {
   const containerStyle: React.CSSProperties = {
     width: "100%",
@@ -27,8 +40,7 @@ const PageLoading: React.FC<PageLoadingProps> = ({
       : {}),
     padding: 24,
     boxSizing: "border-box",
-    gap: 8, // 让指示器和文字之间有一点间距
-    ...style,
+    gap: 8, // 指示器和文字之间的间距
   };
 
   return (
@@ -36,6 +48,7 @@ const PageLoading: React.FC<PageLoadingProps> = ({
       <div className="loading-indicator-wrap">
         <StreamingIndicator />
       </div>
+
       {message && <span className="loading-text">{message}</span>}
 
       <style href="page-loading-styles" precedence="high">{`
