@@ -6,7 +6,6 @@ interface NavListItemProps {
   label?: string;
   icon?: React.ReactNode;
   onClick?: () => void;
-  size?: "default" | "large";
 }
 
 const NavListItem: React.FC<NavListItemProps> = ({
@@ -14,13 +13,7 @@ const NavListItem: React.FC<NavListItemProps> = ({
   label,
   icon,
   onClick,
-  size = "default",
 }) => {
-  const height = size === "large" ? "48px" : "32px";
-  const padding = size === "large" ? "0 var(--space-4)" : "0 var(--space-3)";
-  const fontSize = size === "large" ? "16px" : "14px";
-  const iconMargin = size === "large" ? "var(--space-3)" : "var(--space-2)";
-
   return (
     <>
       <style>
@@ -28,7 +21,7 @@ const NavListItem: React.FC<NavListItemProps> = ({
           .nav-list-item {
             display: flex;
             align-items: center;
-            padding: ${padding};
+            padding: 0 var(--space-3);
             border-radius: 6px;
             color: var(--text);
             background: transparent;
@@ -36,14 +29,14 @@ const NavListItem: React.FC<NavListItemProps> = ({
             transition: all 0.2s ease;
             cursor: pointer;
             font-weight: 400;
-            height: ${height};
-            font-size: ${fontSize};
+            height: 32px;
+            font-size: 14px;
           }
 
           .nav-list-icon {
             display: flex;
             align-items: center;
-            margin-right: ${iconMargin};
+            margin-right: var(--space-2);
             color: var(--textSecondary);
           }
 
