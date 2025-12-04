@@ -80,12 +80,12 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
     return creator === user?.userId || !page?.creator;
   }, [pageKey, page?.isInitialized, page?.creator, user?.userId]);
 
-  const isMac = useMemo(() => {
-    return (
+  const isMac = useMemo(
+    () =>
       typeof window !== "undefined" &&
-      /Mac|iPod|iPhone|iPad/.test(window.navigator.platform)
-    );
-  }, []);
+      /Mac|iPod|iPhone|iPad/.test(window.navigator.platform),
+    []
+  );
 
   // --- Handlers ---
   const handleToggleEdit = useCallback(() => {
@@ -125,14 +125,6 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
     }
   }, [dispatch, dbSpace, curSpace, pageKey, navigate, t]);
 
-  // Tooltip 内容
-  const SidebarTooltip = (
-    <div className="tooltip-shortcut">
-      <span>{t("toggleSidebar")}</span>
-      <kbd className="tooltip-kbd">{isMac ? "⌘" : "Ctrl"} + B</kbd>
-    </div>
-  );
-
   return (
     <>
       <div className={`topbar ${isScrolled ? "topbar--scrolled" : ""}`}>
@@ -149,7 +141,12 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
           )}
 
           {toggleSidebar && (
-            <Tooltip content={SidebarTooltip} placement="bottom">
+            <Tooltip
+              content={
+                <kbd className="tooltip-kbd">{isMac ? "⌘" : "Ctrl"} + B</kbd>
+              }
+              placement="bottom"
+            >
               <button
                 className="topbar__button"
                 onClick={toggleSidebar}
@@ -339,12 +336,6 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
           color: var(--error);
         }
 
-        /* Tooltip 内部样式 */
-        .tooltip-shortcut {
-          display: flex;
-          align-items: center;
-          gap: var(--space-2);
-        }
         .tooltip-kbd {
           background: var(--background);
           border: 1px solid var(--border);

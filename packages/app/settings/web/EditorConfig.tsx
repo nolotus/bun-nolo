@@ -4,8 +4,7 @@ import { useAppDispatch, useAppSelector } from "app/store";
 import {
   // 聚合选择器，一次拿到所有编辑器配置
   selectEditorConfig,
-  // 单独 action
-  setEditorDefaultMode,
+  // 单独 action（去掉 setEditorDefaultMode）
   setEditorLightCodeTheme,
   setEditorDarkCodeTheme,
   toggleEditorWordCount,
@@ -69,10 +68,10 @@ const EditorConfig: React.FC = () => {
 
   // 用聚合 selector，一次取出所有编辑器相关配置
   const {
-    defaultMode,
+    // defaultMode 已删除
     lightCodeTheme,
     darkCodeTheme,
-    codeTheme, // 当前实际生效的主题（根据深浅色自动切换），这里只是展示用，不直接写入
+    codeTheme, // 保留：当前实际生效的主题（展示用）
     wordCountEnabled,
     shortcuts,
     fontSize,
@@ -119,10 +118,6 @@ const EditorConfig: React.FC = () => {
     { value: "okaidia", label: "Okaidia（深色 / Monokai）" },
     { value: "github-light", label: "GitHub Light" },
     { value: "github-dark", label: "GitHub Dark" },
-    // 如果你后面补了 Monokai / Solarized / Dracula 的 CSS，可以再把这些放回来：
-    // { value: "monokai", label: "Monokai" },
-    // { value: "solarized-light", label: "Solarized Light" },
-    // { value: "dracula", label: "Dracula" },
   ];
 
   const fontSizes = [12, 13, 14, 15, 16, 17, 18];
@@ -185,7 +180,7 @@ const EditorConfig: React.FC = () => {
             padding-top: var(--space-1);
           }
 
-          /* 分段控制器 */
+          /* 分段控制器（目前没有用到，但可以保留给以后其它段选控件使用） */
           .segmented-control {
             display: flex;
             background-color: var(--backgroundSecondary);
@@ -356,7 +351,7 @@ const EditorConfig: React.FC = () => {
               grid-template-columns: 1fr;
               gap: var(--space-4);
             }
-            
+
             .section-header {
               padding-bottom: var(--space-3);
               border-bottom: 1px solid var(--borderLight);
@@ -367,34 +362,6 @@ const EditorConfig: React.FC = () => {
 
       <div className="editor-config-page">
         <h1 className="page-title">{t("editor.title", "编辑器设置")}</h1>
-
-        {/* 默认模式 */}
-        <SettingSection
-          title={t("editor.defaultMode.title", "默认编辑模式")}
-          description={t(
-            "editor.defaultMode.description",
-            "选择新建文档时默认使用的编辑器类型。"
-          )}
-        >
-          <div className="segmented-control">
-            <button
-              className={`segment-button ${
-                defaultMode === "markdown" ? "active" : ""
-              }`}
-              onClick={() => dispatch(setEditorDefaultMode("markdown"))}
-            >
-              Markdown
-            </button>
-            <button
-              className={`segment-button ${
-                defaultMode === "block" ? "active" : ""
-              }`}
-              onClick={() => dispatch(setEditorDefaultMode("block"))}
-            >
-              {t("editor.mode.block", "块编辑器")}
-            </button>
-          </div>
-        </SettingSection>
 
         {/* 代码块主题：白天 + 夜晚 各一个选择器 */}
         <SettingSection
