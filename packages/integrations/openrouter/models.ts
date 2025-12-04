@@ -401,8 +401,8 @@ export const openrouterModels = [
     displayName: "xAI: Grok 4.1 Fast",
     hasVision: true,
     price: {
-      input: 0,
-      output: 0,
+      input: 0.2 * 9,
+      output: 0.5 * 9,
     },
     maxOutputTokens: 65536,
     contextWindow: 2000000,
