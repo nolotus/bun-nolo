@@ -2,8 +2,7 @@
 
 import React from "react";
 import { useTranslation } from "react-i18next";
-import Dropdown from "render/web/ui/Dropdown";
-// [更新] 引入 LuImage 替代 LuEye
+import Combobox from "render/web/ui/Combobox";
 import { LuImage, LuCheck } from "react-icons/lu";
 import { ALL_MODELS, type ModelWithProvider } from "./models";
 
@@ -16,6 +15,52 @@ interface AllModelsSelectorProps {
   size?: "small" | "medium" | "large";
 }
 
+const styles = `
+  /* 仅保留列表项内部的内容布局样式 */
+  .model-selector__content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    /* 移除所有 padding 和背景色，由 Combobox 统一管理 */
+  }
+
+  .model-selector__details {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .model-selector__name {
+    font-size: 0.875rem;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .model-selector__vision-icon {
+    color: var(--textSecondary); 
+    flex-shrink: 0;
+    opacity: 0.6;
+  }
+  
+  /* 当父级 item 被选中或高亮时，调整内部图标颜色 */
+  [data-highlighted] .model-selector__vision-icon,
+  [data-selected] .model-selector__vision-icon {
+    color: var(--primary);
+    opacity: 1;
+  }
+
+  .model-selector__check-icon {
+    color: var(--primary);
+    flex-shrink: 0;
+    margin-left: auto;
+  }
+`;
+
 const AllModelsSelector: React.FC<AllModelsSelectorProps> = ({
   value,
   onChange,
@@ -26,138 +71,54 @@ const AllModelsSelector: React.FC<AllModelsSelectorProps> = ({
 }) => {
   const { t } = useTranslation("ai");
 
-  const selectedItem = ALL_MODELS.find((m) => m.name === value) || null;
+  const selectedItem = ALL_MODELS.find((model) => model.name === value) ?? null;
 
   return (
     <>
-      <style href="model-selector" precedence="medium">{`
-        .model-selector-container {
-          display: flex;
-          flex-direction: column;
-          gap: var(--space-1);
-          width: 100%;
-        }
+      <style>{styles}</style>
 
-        .model-selector-label {
-          font-size: 0.875rem;
-          font-weight: 550;
-          color: var(--text);
-          margin-bottom: var(--space-1);
-        }
+      {/* 
+         直接将 layout 属性 (label, error, helperText) 传给 Combobox，
+         让它渲染统一的 Field 结构
+      */}
+      <Combobox
+        items={ALL_MODELS}
+        selectedItem={selectedItem}
+        onChange={onChange}
+        labelField="name"
+        valueField="name"
+        // 样式与文案
+        placeholder={t("form.selectModel")}
+        label={label}
+        helperText={helperText}
+        error={error}
+        size={size}
+        // 功能开关
+        searchable
+        clearable
+        // 自定义渲染选项内容
+        renderOptionContent={(item, isHighlighted, isSelected) => (
+          <div className="model-selector__content">
+            <div className="model-selector__details">
+              <span className="model-selector__name">{item.name}</span>
 
-        .model-option {
-          display: flex;
-          align-items: center;
-          gap: var(--space-2);
-          padding: 0 var(--space-1);
-          min-height: 40px;
-          width: 100%;
-          transition: all 0.2s ease-in-out;
-          position: relative;
-          overflow: hidden;
-        }
-        
-        .model-details {
-          display: flex;
-          align-items: center;
-          gap: var(--space-2);
-          flex: 1;
-          min-width: 0;
-        }
-
-        .model-name {
-          font-weight: 550;
-          font-size: 0.9rem;
-          color: var(--text);
-          transition: color 0.2s ease;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-
-        .vision-icon {
-          color: var(--primary);
-          flex-shrink: 0;
-          opacity: 0.7;
-          transition: opacity 0.2s ease;
-        }
-
-        .check-icon {
-          color: var(--primary);
-          flex-shrink: 0;
-          margin-left: auto;
-          transition: transform 0.2s ease;
-        }
-
-        .model-helper {
-          font-size: 0.8125rem;
-          line-height: 1.4;
-          margin-top: var(--space-1);
-          color: var(--textTertiary);
-        }
-        
-        /* --- 交互状态 --- */
-        .model-option:hover {
-          background-color: var(--backgroundHover);
-        }
-
-        .model-option:hover .model-name {
-          color: var(--primary);
-        }
-        
-        .model-option:hover .vision-icon {
-          opacity: 1;
-        }
-
-        .model-option:hover .check-icon {
-          transform: scale(1.1);
-        }
-
-        .dropdown-item.selected .model-name {
-          color: var(--primary);
-          font-weight: 600;
-        }
-
-        /* --- 错误状态 --- */
-        .model-selector-container.error .model-selector-label,
-        .model-selector-container.error .model-helper {
-          color: var(--error);
-        }
-      `}</style>
-
-      <div
-        className={`model-selector-container size-${size} ${error ? "error" : ""}`}
-      >
-        {label && <label className="model-selector-label">{label}</label>}
-
-        <Dropdown
-          items={ALL_MODELS}
-          selectedItem={selectedItem}
-          onChange={onChange}
-          labelField="name"
-          valueField="name"
-          placeholder={t("form.selectModel")}
-          error={error}
-          size={size}
-          renderOptionContent={(item, isHighlighted, isSelected) => (
-            <div className="model-option">
-              <div className="model-details">
-                <span className="model-name">{item.name}</span>
-                {/* [更新] 使用 LuImage 并微调大小 */}
-                {item.hasVision && (
-                  <LuImage size={15} className="vision-icon" />
-                )}
-              </div>
-              {isSelected && <LuCheck size={16} className="check-icon" />}
+              {/* 视觉模型图标 */}
+              {item.hasVision && (
+                <LuImage
+                  size={14}
+                  className="model-selector__vision-icon"
+                  title="Vision Supported"
+                />
+              )}
             </div>
-          )}
-        />
-        {helperText && (
-          <div className="model-helper" role={error ? "alert" : "note"}>
-            {helperText}
+
+            {/* 选中打勾图标 */}
+            {isSelected && (
+              <LuCheck size={16} className="model-selector__check-icon" />
+            )}
           </div>
         )}
-      </div>
+      />
     </>
   );
 };

@@ -1,42 +1,193 @@
+// src/components/UsageRecord.tsx
+
+import React, { useState, useMemo, useEffect } from "react";
 import { format, formatISO, parseISO } from "date-fns";
 import { utcToZonedTime } from "date-fns-tz";
-import { TokenRecord } from "ai/token/types";
-import React, { useState, useMemo } from "react";
-import { useAppSelector } from "app/store";
-import { selectTheme } from "app/settings/settingSlice";
-import { useRecords, RecordsFilter } from "ai/token/hooks/useRecords";
-import { selectUserId } from "auth/authSlice";
 import { useTranslation } from "react-i18next";
-import { ClockIcon, CalendarIcon, FilterIcon } from "@primer/octicons-react";
+import { ClockIcon, FilterIcon } from "@primer/octicons-react";
+
+import { TokenRecord } from "ai/token/types";
+import { useRecords, RecordsFilter } from "ai/token/hooks/useRecords";
+import { useAppSelector } from "app/store";
+import { selectUserId } from "auth/authSlice";
 import Pagination from "render/web/ui/Pagination";
-import Dropdown from "render/web/ui/Dropdown";
+import Combobox from "render/web/ui/Combobox";
 
 const ITEMS_PER_PAGE = 10;
 const USER_TIMEZONE = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-const getTodayInUserTimezone = () => {
+// --- Helper Functions ---
+const getTodayInUserTimezone = (): string => {
   const today = utcToZonedTime(new Date(), USER_TIMEZONE);
   return formatISO(today, { representation: "date" });
 };
 
-const formatTokensDisplay = (record: TokenRecord) =>
-  `${record.input_tokens} / ${record.output_tokens}`;
+const formatTokensDisplay = (record: TokenRecord): string =>
+  `${record.input_tokens.toLocaleString()} / ${record.output_tokens.toLocaleString()}`;
 
-const formatLocalTimeDisplay = (utcTime: string | number | Date) => {
+const formatLocalTimeDisplay = (utcTime: string | number | Date): string => {
   const date =
     typeof utcTime === "string" ? parseISO(utcTime) : new Date(utcTime);
   return format(utcToZonedTime(date, USER_TIMEZONE), "HH:mm:ss");
 };
 
-const formatPriceDisplay = (inputPrice?: number, outputPrice?: number) => {
-  return inputPrice && outputPrice
-    ? `${inputPrice.toFixed(4)} / ${outputPrice.toFixed(4)}`
-    : "-";
+const formatPriceDisplay = (
+  inputPrice?: number,
+  outputPrice?: number
+): string => {
+  if (inputPrice === undefined || outputPrice === undefined) return "-";
+  return `${inputPrice.toFixed(4)} / ${outputPrice.toFixed(4)}`;
 };
+
+// --- Styles ---
+const STYLES = `
+  .usage-record {
+    background: var(--background);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    box-shadow: 0 1px 3px var(--shadowLight);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .usage-record__header {
+    padding: 16px 20px;
+    background: var(--backgroundSecondary);
+    border-bottom: 1px solid var(--borderLight);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .usage-record__title {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--text);
+  }
+
+  .usage-record__filters {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  /* Date Input Styling */
+  .usage-record__date-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .usage-record__date-input {
+    height: 32px;
+    padding: 0 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--background);
+    color: var(--text);
+    font-size: 0.8125rem;
+    outline: none;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .usage-record__date-input:hover {
+    border-color: var(--textTertiary);
+  }
+
+  .usage-record__date-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px var(--focus);
+  }
+
+  /* Table Styling */
+  .usage-record__table-container {
+    overflow-x: auto;
+    min-height: 200px;
+  }
+
+  .usage-record__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+
+  .usage-record__table th {
+    background: var(--backgroundSecondary);
+    color: var(--textSecondary);
+    font-weight: 500;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--borderLight);
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  .usage-record__table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--borderLight);
+    color: var(--text);
+    white-space: nowrap;
+  }
+
+  .usage-record__row:last-child td {
+    border-bottom: none;
+  }
+
+  .usage-record__row:hover {
+    background: var(--backgroundGhost);
+  }
+
+  .cell-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 0.8125rem; }
+  .cell-time { color: var(--textTertiary); }
+  .cell-id { color: var(--text); font-family:monospace; opacity: 0.8; max-width: 100px; overflow: hidden; text-overflow:ellipsis; }
+  .cell-cost { color: var(--primary); font-weight: 600; text-align: right; }
+  .cell-model { font-weight: 500; }
+
+  .usage-record__empty {
+    text-align: center;
+    padding: 40px;
+    color: var(--textTertiary);
+  }
+
+  .usage-record__footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+    background: var(--backgroundSecondary);
+    border-top: 1px solid var(--borderLight);
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .usage-total {
+    font-size: 0.875rem;
+    color: var(--textSecondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .usage-total strong { color: var(--primary); font-family: ui-monospace, monospace; }
+
+  /* Pulse Animation for Loading */
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+  .animate-pulse { animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+`;
+
+type ModelOption = { label: string; value: string };
 
 const UsageRecord: React.FC = () => {
   const { t } = useTranslation();
-  const theme = useAppSelector(selectTheme);
   const userId = useAppSelector(selectUserId);
 
   const [filter, setFilter] = useState<RecordsFilter>({
@@ -47,266 +198,117 @@ const UsageRecord: React.FC = () => {
 
   const { records, loading, totalCount } = useRecords(userId, filter);
 
-  // 从实际的 records 数据中提取模型列表
-  const modelDropdownOptions = useMemo(() => {
-    if (!records || records.length === 0) {
-      return [{ label: t("all_models", "全部模型"), value: "全部模型" }];
-    }
+  // 动态收集曾用过的模型
+  const [modelNames, setModelNames] = useState<string[]>([]);
+  useEffect(() => {
+    if (!records || records.length === 0) return;
+    if (filter.model !== "全部模型") return;
 
-    // 从 records 中提取唯一的模型名称
-    const uniqueModels = [
-      ...new Set(records.map((record) => record.model)),
-    ].sort();
+    const names = Array.from(new Set(records.map((r) => r.model)));
+    setModelNames((prev) => Array.from(new Set([...prev, ...names])).sort());
+  }, [records, filter.model]);
 
-    return [
+  const modelOptions: ModelOption[] = useMemo(
+    () => [
       { label: t("all_models", "全部模型"), value: "全部模型" },
-      ...uniqueModels.map((modelName) => ({
-        label: modelName,
-        value: modelName,
-      })),
-    ];
-  }, [records, t]);
+      ...modelNames.map((name) => ({ label: name, value: name })),
+    ],
+    [modelNames, t]
+  );
 
-  const updateFilterState = (updates: Partial<RecordsFilter>) => {
-    setFilter((prevFilter) => ({ ...prevFilter, ...updates, currentPage: 1 }));
+  const updateFilter = (patch: Partial<RecordsFilter>) => {
+    setFilter((prev) => ({ ...prev, ...patch, currentPage: 1 }));
   };
 
-  const totalCost = records.reduce((sum, record) => sum + record.cost, 0);
+  const currentTotalCost = useMemo(
+    () => records.reduce((sum, r) => sum + r.cost, 0),
+    [records]
+  );
 
-  const usageRecordStyles = `
-    .usage-record-container { 
-      background: ${theme.background}; 
-      border-radius: 16px; 
-      border: 1px solid ${theme.borderLight}; 
-      overflow: hidden; 
-      box-shadow: 0 2px 8px ${theme.shadowLight}; 
-    }
-    
-    .usage-record-header { 
-      padding: 20px 24px; 
-      background: linear-gradient(135deg, ${theme.backgroundSecondary}, ${theme.backgroundTertiary}); 
-      border-bottom: 1px solid ${theme.borderLight}; 
-      display: flex; 
-      justify-content: space-between; 
-      align-items: center; 
-      flex-wrap: wrap; 
-      gap: 20px; 
-    }
-    
-    .usage-record-title { 
-      font: 600 18px/1.4 system-ui; 
-      color: ${theme.text}; 
-      display: flex; 
-      align-items: center; 
-      gap: 8px; 
-      margin: 0; 
-    }
-    
-    .usage-record-filters { 
-      display: flex; 
-      gap: 12px; 
-      align-items: center; 
-      flex-wrap: wrap; 
-    }
-    
-    .usage-record-date-input { 
-      padding: 8px 32px 8px 12px; 
-      border-radius: 8px; 
-      border: 1px solid ${theme.border}; 
-      background: ${theme.background}; 
-      color: ${theme.text}; 
-      font-size: 13px; 
-      outline: none; 
-    }
-    .usage-record-date-input:focus { 
-      border-color: ${theme.primary}; 
-      box-shadow: 0 0 0 2px ${theme.primary}20; 
-    }
-    
-    .usage-record-table { 
-      width: 100%; 
-      border-collapse: separate; 
-      border-spacing: 0; 
-    }
-    .usage-record-table th { 
-      background: ${theme.backgroundSecondary}; 
-      color: ${theme.textSecondary}; 
-      font: 600 12px/1 system-ui; 
-      text-transform: uppercase; 
-      padding: 12px 16px; 
-      border-bottom: 1px solid ${theme.borderLight}; 
-      text-align: left; 
-    }
-    .usage-record-table td { 
-      padding: 16px; 
-      border-bottom: 1px solid ${theme.borderLight}; 
-      color: ${theme.text}; 
-      font-size: 14px; 
-    }
-    .usage-record-table tr:hover { 
-      background: ${theme.backgroundHover}; 
-    }
-    
-    .usage-record-table-container { 
-      padding: 20px 24px; 
-      overflow-x: auto; 
-    }
-    
-    .usage-record-cell-monospace { 
-      font-family: 'SF Mono', Monaco, Consolas, monospace; 
-    }
-    
-    .usage-record-cell-time { 
-      color: ${theme.textSecondary}; 
-      font-size: 13px; 
-    }
-    
-    .usage-record-cell-cybot { 
-      color: ${theme.primary}; 
-      font-weight: 500; 
-      max-width: 150px; 
-      text-overflow: ellipsis; 
-      overflow: hidden; 
-      white-space: nowrap; 
-    }
-    
-    .usage-record-cell-cost { 
-      color: ${theme.primary}; 
-      font-weight: 600; 
-      text-align: right; 
-    }
-    
-    .usage-record-total-section { 
-      padding: 20px 24px; 
-      background: ${theme.backgroundSecondary}; 
-      border-top: 1px solid ${theme.borderLight}; 
-      display: flex; 
-      justify-content: space-between; 
-      align-items: center; 
-    }
-    
-    .usage-record-total-amount { 
-      font: 600 16px/1 'SF Mono', Monaco, Consolas, monospace; 
-      color: ${theme.primary}; 
-    }
-    
-    .usage-record-empty-state { 
-      text-align: center; 
-      padding: 40px; 
-      color: ${theme.textTertiary}; 
-    }
-    
-    .usage-record-loading-indicator { 
-      display: inline-flex; 
-      gap: 2px; 
-      margin-left: 8px; 
-    }
-    
-    .usage-record-loading-dot { 
-      width: 4px; 
-      height: 4px; 
-      border-radius: 50%; 
-      background: ${theme.primary}; 
-      animation: usageRecordPulse 1.4s infinite; 
-    }
-    .usage-record-loading-dot:nth-child(2) { animation-delay: 0.2s; }
-    .usage-record-loading-dot:nth-child(3) { animation-delay: 0.4s; }
-    
-    @keyframes usageRecordPulse { 
-      0%, 80%, 100% { opacity: 0.3; } 
-      40% { opacity: 1; } 
-    }
-    
-    .usage-record-pagination-container { 
-      padding: 20px 24px; 
-      border-top: 1px solid ${theme.borderLight}; 
-    }
-  `;
+  const selectedModel =
+    modelOptions.find((o) => o.value === filter.model) || modelOptions[0];
 
   return (
     <>
-      <style>{usageRecordStyles}</style>
-
-      <div className="usage-record-container">
-        <div className="usage-record-header">
-          <h2 className="usage-record-title">
-            <ClockIcon size={20} />
+      <style>{STYLES}</style>
+      <div className="usage-record">
+        {/* Header */}
+        <div className="usage-record__header">
+          <h2
+            className={`usage-record__title ${loading ? "animate-pulse" : ""}`}
+          >
+            <ClockIcon size={18} />
             {t("usage_records", "使用记录")}
-            {loading && (
-              <div className="usage-record-loading-indicator">
-                <div className="usage-record-loading-dot" />
-                <div className="usage-record-loading-dot" />
-                <div className="usage-record-loading-dot" />
-              </div>
-            )}
           </h2>
 
-          <div className="usage-record-filters">
-            <input
-              type="date"
-              className="usage-record-date-input"
-              value={filter.date}
-              onChange={(e) => updateFilterState({ date: e.target.value })}
-            />
+          <div className="usage-record__filters">
+            <div className="usage-record__date-wrap">
+              <input
+                type="date"
+                className="usage-record__date-input"
+                value={filter.date}
+                onChange={(e) => updateFilter({ date: e.target.value })}
+              />
+            </div>
 
-            <Dropdown
-              items={modelDropdownOptions}
-              selectedItem={modelDropdownOptions.find(
-                (option) => option.value === filter.model
-              )}
-              onChange={(selectedItem) =>
-                updateFilterState({ model: selectedItem.value })
-              }
-              placeholder={t("select_model", "选择模型")}
-              size="small"
-              icon={<FilterIcon size={14} />}
-            />
+            <div style={{ width: 160 }}>
+              <Combobox
+                items={modelOptions}
+                selectedItem={selectedModel}
+                onChange={(item) =>
+                  updateFilter({ model: item?.value ?? "全部模型" })
+                }
+                placeholder={t("select_model")}
+                size="small"
+                variant="filled" // 使用实心风格突出操作区
+                searchable // 开启搜索，方便查找模型
+                icon={<FilterIcon size={14} />}
+              />
+            </div>
           </div>
         </div>
 
-        <div className="usage-record-table-container">
-          <table className="usage-record-table">
+        {/* Table Content */}
+        <div className="usage-record__table-container">
+          <table className="usage-record__table">
             <thead>
               <tr>
-                <th>{t("time", "时间")}</th>
-                <th>{t("robot", "机器人")}</th>
-                <th>{t("tokens", "Tokens")}</th>
-                <th>{t("model", "模型")}</th>
-                <th>{t("input_output_price", "输入/输出价格")} (¥)</th>
-                <th>{t("cost", "费用")} (¥)</th>
+                <th style={{ width: "10%" }}>{t("time", "时间")}</th>
+                <th style={{ width: "10%" }}>{t("robot", "Robot ID")}</th>
+                <th style={{ width: "15%" }}>{t("model", "模型")}</th>
+                <th style={{ width: "25%" }}>Tokens (In / Out)</th>
+                <th style={{ width: "25%" }}>{t("price", "价格 (¥/1k)")}</th>
+                <th style={{ width: "15%", textAlign: "right" }}>
+                  {t("cost", "费用")}
+                </th>
               </tr>
             </thead>
             <tbody>
               {records.length > 0 ? (
-                records.map((record) => (
-                  <tr key={record.id}>
-                    <td className="usage-record-cell-monospace usage-record-cell-time">
-                      {formatLocalTimeDisplay(record.createdAt)}
+                records.map((r) => (
+                  <tr key={r.id} className="usage-record__row">
+                    <td className="cell-mono cell-time">
+                      {formatLocalTimeDisplay(r.createdAt)}
                     </td>
+                    <td className="cell-id" title={r.cybotId}>
+                      {r.cybotId || "-"}
+                    </td>
+                    <td className="cell-model">{r.model}</td>
+                    <td className="cell-mono">{formatTokensDisplay(r)}</td>
                     <td
-                      className="usage-record-cell-cybot"
-                      title={record.cybotId}
+                      className="cell-mono"
+                      style={{ color: "var(--textTertiary)" }}
                     >
-                      {record.cybotId || "-"}
+                      {formatPriceDisplay(r.inputPrice, r.outputPrice)}
                     </td>
-                    <td className="usage-record-cell-monospace">
-                      {formatTokensDisplay(record)}
-                    </td>
-                    <td>{record.model}</td>
-                    <td className="usage-record-cell-monospace">
-                      {formatPriceDisplay(
-                        record.inputPrice,
-                        record.outputPrice
-                      )}
-                    </td>
-                    <td className="usage-record-cell-monospace usage-record-cell-cost">
-                      ¥{record.cost.toFixed(4)}
+                    <td className="cell-mono cell-cost">
+                      ¥{r.cost.toFixed(4)}
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="usage-record-empty-state">
+                  <td colSpan={6} className="usage-record__empty">
                     {loading
                       ? t("loading", "加载中...")
                       : t("no_data", "暂无数据")}
@@ -317,28 +319,26 @@ const UsageRecord: React.FC = () => {
           </table>
         </div>
 
-        {records.length > 0 && (
-          <div className="usage-record-total-section">
-            <span>
-              {t("page_total", "当页合计")} ({records.length}{" "}
-              {t("records", "条记录")})
-            </span>
-            <div className="usage-record-total-amount">
-              ¥{totalCost.toFixed(4)}
+        {/* Footer & Pagination */}
+        {(records.length > 0 || totalCount > 0) && (
+          <div className="usage-record__footer">
+            <div className="usage-total">
+              {t("page_total", "本页")}:{" "}
+              <strong>¥{currentTotalCost.toFixed(4)}</strong>
+              <span style={{ margin: "0 8px", color: "var(--border)" }}>|</span>
+              Total: {totalCount}
             </div>
-          </div>
-        )}
 
-        {totalCount > ITEMS_PER_PAGE && (
-          <div className="usage-record-pagination-container">
-            <Pagination
-              currentPage={filter.currentPage}
-              totalItems={totalCount}
-              pageSize={ITEMS_PER_PAGE}
-              onPageChange={(page) =>
-                setFilter((prev) => ({ ...prev, currentPage: page }))
-              }
-            />
+            {totalCount > ITEMS_PER_PAGE && (
+              <Pagination
+                currentPage={filter.currentPage}
+                totalItems={totalCount}
+                pageSize={ITEMS_PER_PAGE}
+                onPageChange={(p) =>
+                  setFilter((prev) => ({ ...prev, currentPage: p }))
+                }
+              />
+            )}
           </div>
         )}
       </div>
