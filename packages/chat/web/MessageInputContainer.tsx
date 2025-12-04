@@ -146,7 +146,6 @@ const MESSAGE_INPUT_STYLES = `
 
   .skel-container,
   .err-container {
-    width: 100%;
     padding: var(--space-4);
     padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
     display: flex;

@@ -1,6 +1,6 @@
 // 文件路径: render/layout/SidebarBottom.tsx
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { useTranslation } from "react-i18next";
@@ -25,67 +25,93 @@ import {
   fetchUserProfile,
   selectCurrentUserBalance,
 } from "auth/authSlice";
-import DropdownMenu from "render/web/ui/DropDownMenu";
 import { Tooltip } from "render/web/ui/Tooltip";
-
-const MenuItem = ({ icon: Icon, text, onClick, className = "" }) => (
-  <button onClick={onClick} className={`dd-item ${className}`}>
-    <Icon size={14} />
-    <span>{text}</span>
-  </button>
-);
 
 const SidebarBottom: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { user: authUser } = useAuth();
+
+  // Redux Data
   const users = useAppSelector(selectUsers);
   const currentUserId = useAppSelector(selectUserId);
   const balance = useAppSelector(selectCurrentUserBalance);
+
+  // Local State
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const timerRef = useRef<NodeJS.Timeout>();
 
+  const balanceValue = typeof balance === "number" ? balance : 0;
   const isLoading = typeof balance !== "number";
-  const isLowBalance = !isLoading && balance < 10;
+  const otherUsers = users.filter((u) => u && u.userId !== currentUserId);
 
+  // 初始化
   useEffect(() => {
-    if (currentUserId) {
-      dispatch(fetchUserProfile());
-    }
+    if (currentUserId) dispatch(fetchUserProfile());
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, [currentUserId, dispatch]);
 
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth <= 768);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  const handleUserChange = (user: User) => {
-    dispatch(changeUser(user));
+  // 菜单交互逻辑
+  const handleMouseEnter = () => {
+    if (isMobile) return;
+    clearTimeout(timerRef.current);
+    setMenuOpen(true);
   };
 
-  const handleLogout = () => {
-    dispatch(signOut())
-      .unwrap()
-      .then(() => navigate("/"));
+  const handleMouseLeave = () => {
+    if (isMobile) return;
+    timerRef.current = setTimeout(() => setMenuOpen(false), 200);
   };
 
-  const handleRecharge = () => {
-    navigate("/recharge");
-  };
-
-  const handleInviteFriend = async () => {
-    const inviteUrl = `${window.location.origin}/invite-signup?inviterId=${currentUserId}`;
+  // 动作处理
+  const handleInvite = async () => {
     try {
-      await navigator.clipboard.writeText(inviteUrl);
+      await navigator.clipboard.writeText(
+        `${window.location.origin}/invite-signup?inviterId=${currentUserId}`
+      );
       toast.success("邀请链接已复制");
     } catch {
       toast.error("复制失败");
     }
   };
 
-  const otherUsers = users.filter(
-    (user) => user && user.userId !== currentUserId
+  const handleLogout = () =>
+    dispatch(signOut())
+      .unwrap()
+      .then(() => navigate("/"));
+
+  // 渲染菜单项辅助函数
+  const renderItem = (
+    Icon: any,
+    text: string,
+    onClick: () => void,
+    className = ""
+  ) => (
+    <button
+      onClick={(e) => {
+        onClick();
+        setMenuOpen(false);
+      }}
+      className={`menu-item ${className}`}
+    >
+      <Icon size={14} />
+      <span>{text}</span>
+    </button>
   );
 
   if (!authUser) return null;
@@ -93,255 +119,159 @@ const SidebarBottom: React.FC = () => {
   return (
     <>
       <div className="SidebarBottom">
+        {/* 左侧：用户信息 + 余额 */}
         <div className="left-content">
-          <Tooltip content="当前登录账户" placement="top" disabled={isMobile}>
+          <Tooltip content="当前账户" placement="top" disabled={isMobile}>
             <NavLink
               to="/life"
               className={({ isActive }) =>
-                `user-info-link ${isActive ? "active" : ""}`
+                `user-link ${isActive ? "active" : ""}`
               }
             >
-              <LuUser size={16} />
+              <div className="avatar">
+                <LuUser size={14} />
+              </div>
               <span className="username">{authUser.username}</span>
             </NavLink>
           </Tooltip>
-          <span className={`balance ${isLowBalance ? "low" : ""}`}>
-            {isLoading ? "..." : `¥${balance.toFixed(2)}`}
-          </span>
+
+          <div className="balance-box">
+            <span
+              className={`balance-text ${!isLoading && balanceValue < 10 ? "low" : ""}`}
+            >
+              {isLoading ? "..." : `¥${balanceValue.toFixed(2)}`}
+            </span>
+            <Tooltip content={t("recharge", "充值")} placement="top">
+              <button
+                className="btn-add"
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigate("/recharge");
+                }}
+              >
+                <LuPlus size={10} strokeWidth={3} />
+              </button>
+            </Tooltip>
+          </div>
         </div>
 
-        <div className="right-content">
-          <button className="recharge-btn" onClick={handleRecharge}>
-            {t("recharge", "充值")}
-          </button>
-          <DropdownMenu
-            trigger={
-              <button className="menu-trigger">
-                <LuChevronUp size={16} />
-              </button>
-            }
-            direction="top"
-            triggerType={isMobile ? "click" : "hover"}
+        {/* 右侧：合并后的菜单 */}
+        <div
+          className="right-content"
+          ref={menuRef}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        >
+          <button
+            className={`menu-trigger ${menuOpen ? "active" : ""}`}
+            onClick={() => setMenuOpen(!menuOpen)}
           >
-            <div className="compact-dropdown">
-              {otherUsers.length > 0 && (
-                <>
-                  {otherUsers.map((user) => (
-                    <MenuItem
-                      key={`user-${user.userId}`}
-                      icon={LuUser}
-                      text={user.username}
-                      onClick={() => handleUserChange(user)}
-                    />
-                  ))}
-                  <div className="divider" />
-                </>
-              )}
-              <MenuItem
-                icon={LuPlus}
-                text={t("inviteFriend", "邀请朋友")}
-                onClick={handleInviteFriend}
-                className="invite"
-              />
-              <MenuItem
-                icon={LuSettings}
-                text={t("settings.title", "设置")}
-                onClick={() => navigate(SettingRoutePaths.SETTING)}
-              />
-              <MenuItem
-                icon={LuLogOut}
-                text={t("logout", "退出")}
-                onClick={handleLogout}
-                className="logout"
-              />
-            </div>
-          </DropdownMenu>
+            <LuChevronUp size={16} />
+          </button>
+
+          <div className={`menu-popup ${menuOpen ? "open" : ""}`}>
+            {otherUsers.map((u) => (
+              <React.Fragment key={u.userId}>
+                {renderItem(LuUser, u.username, () => dispatch(changeUser(u)))}
+              </React.Fragment>
+            ))}
+            {otherUsers.length > 0 && <div className="divider" />}
+
+            {renderItem(
+              LuPlus,
+              t("inviteFriend", "邀请朋友"),
+              handleInvite,
+              "invite"
+            )}
+            {renderItem(LuSettings, t("settings.title", "设置"), () =>
+              navigate(SettingRoutePaths.SETTING)
+            )}
+            {renderItem(LuLogOut, t("logout", "退出"), handleLogout, "logout")}
+          </div>
         </div>
       </div>
 
-      <style href="SidebarBottom-compact" precedence="medium">{`
+      <style href="SidebarBottom-v2" precedence="high">{`
         .SidebarBottom {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 0 var(--space-3);
+          padding: 0 var(--space-2) 0 var(--space-3);
           background: var(--background);
           height: 48px;
           flex-shrink: 0;
-          gap: var(--space-2);
-          
-          /* 移除边框，使用向上的轻盈阴影 */
-          border-top: none;
-          box-shadow: 
-            0 -1px 0 0 rgba(0, 0, 0, 0.018),       /* 极细分隔线 */
-            0 -3px 8px -1px rgba(0, 0, 0, 0.02),   /* 近距柔光 */
-            0 -6px 16px -3px rgba(0, 0, 0, 0.015); /* 远距环境光 */
+          box-shadow: 0 -1px 0 rgba(0,0,0,0.03), 0 -4px 12px -2px rgba(0,0,0,0.03);
+          z-index: 10;
         }
 
-        .left-content, .right-content {
-          display: flex;
-          align-items: center;
-          gap: var(--space-3);
+        .left-content { display: flex; align-items: center; flex: 1; min-width: 0; gap: var(--space-3); }
+        
+        .user-link {
+          display: flex; alignItems: center; gap: 8px; text-decoration: none;
+          color: var(--text); padding: 4px; border-radius: 6px; transition: opacity 0.2s;
+          min-width: 0; overflow: hidden;
         }
-
-        .left-content {
-          flex: 1;
-          min-width: 0;
+        .user-link:hover { opacity: 0.8; }
+        .user-link.active .avatar { background: var(--primary); color: #fff; }
+        
+        .avatar {
+          width: 20px; height: 20px; border-radius: 50%; display: flex;
+          align-items: center; justify-content: center; background: var(--backgroundSecondary);
+          color: var(--textTertiary); transition: all 0.2s;
         }
+        .username { font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-        .right-content {
-          flex-shrink: 0;
+        .balance-box {
+          display: flex; align-items: center; gap: 6px; padding-left: 12px;
+          border-left: 1px solid var(--border); height: 20px;
         }
-
-        .user-info-link {
-          display: flex;
-          align-items: center;
-          gap: var(--space-2);
-          flex: 1;
-          min-width: 0;
-          padding: var(--space-1) var(--space-2);
-          text-decoration: none;
-          color: var(--text);
-          border-radius: 4px;
-          transition: background 0.15s ease;
+        .balance-text { font-family: monospace; font-size: 12px; font-weight: 600; color: var(--textSecondary); letter-spacing: -0.02em; }
+        .balance-text.low { color: var(--error); }
+        
+        .btn-add {
+          width: 16px; height: 16px; border-radius: 50%; background: var(--primaryGhost);
+          color: var(--primary); border: none; cursor: pointer; display: flex;
+          align-items: center; justify-content: center; padding: 0; transition: all 0.2s;
         }
-
-        .user-info-link:hover {
-          background: var(--backgroundHover);
-        }
-
-        .user-info-link.active {
-          background: var(--backgroundSelected);
-          font-weight: 500;
-        }
-
-        .user-info-link svg {
-          color: var(--textTertiary);
-          flex-shrink: 0;
-        }
-
-        .username {
-          font-size: 13px;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-
-        .balance {
-          font-size: 12px;
-          font-weight: 600;
-          color: var(--primary);
-          white-space: nowrap;
-          font-feature-settings: 'tnum';
-        }
-
-        .balance.low {
-          color: var(--error);
-        }
-
-        .recharge-btn {
-          background: var(--primaryGhost);
-          color: var(--primary);
-          border: 1px solid transparent;
-          border-radius: 4px;
-          padding: var(--space-1) var(--space-2);
-          font-size: 12px;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.15s ease;
-          white-space: nowrap;
-        }
-
-        .recharge-btn:hover {
-          background: var(--primaryHover);
-          border-color: var(--primary);
-        }
-
-        .recharge-btn:active {
-          transform: scale(0.96);
-        }
-
+        .btn-add:hover { background: var(--primary); color: #fff; transform: scale(1.1); }
+        
+        .right-content { position: relative; display: flex; align-items: center; }
+        
         .menu-trigger {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: transparent;
-          border: none;
-          cursor: pointer;
-          padding: var(--space-1);
-          border-radius: 4px;
-          color: var(--textTertiary);
-          transition: all 0.15s ease;
+          background: transparent; border: none; cursor: pointer; width: 28px; height: 28px;
+          border-radius: 4px; color: var(--textTertiary); display: flex; align-items: center; justify-content: center;
+          transition: 0.15s;
         }
+        .menu-trigger:hover, .menu-trigger.active { background: var(--backgroundHover); color: var(--text); }
+
+        .menu-popup {
+          position: absolute; bottom: 100%; right: 0; margin-bottom: 8px;
+          background: var(--background); border: 1px solid var(--border);
+          border-radius: 8px; padding: 4px; min-width: 150px;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+          opacity: 0; visibility: hidden; transform: translateY(8px) scale(0.96);
+          transition: all 0.15s cubic-bezier(0.2, 0, 0.2, 1);
+          pointer-events: none;
+        }
+        .menu-popup.open { opacity: 1; visibility: visible; transform: translateY(0) scale(1); pointer-events: auto; }
+        /* 隐形桥梁防止 Hover 中断 */
+        .menu-popup::before { content: ''; position: absolute; top: 100%; left: 0; width: 100%; height: 10px; }
+
+        .menu-item {
+          display: flex; align-items: center; gap: 8px; width: 100%; padding: 6px 8px;
+          background: transparent; border: none; border-radius: 4px;
+          font-size: 13px; color: var(--textSecondary); cursor: pointer; text-align: left;
+        }
+        .menu-item:hover { background: var(--backgroundHover); color: var(--text); }
+        .menu-item.invite { color: var(--primary); }
+        .menu-item.invite:hover { background: var(--primaryHover); }
+        .menu-item.logout:hover { background: var(--errorBg); color: var(--error); }
         
-        .menu-trigger:hover {
-          background: var(--backgroundHover);
-          color: var(--text);
-        }
-
-        .menu-trigger:active {
-          transform: scale(0.92);
-        }
-
-        .compact-dropdown {
-          background: var(--background);
-          border: 1px solid var(--border);
-          border-radius: 6px;
-          padding: var(--space-1);
-          min-width: 180px;
-          box-shadow: var(--shadowMedium);
-          margin-bottom: var(--space-1);
-        }
-
-        .dd-item {
-          display: flex;
-          align-items: center;
-          gap: var(--space-2);
-          width: 100%;
-          padding: var(--space-2);
-          background: transparent;
-          border: none;
-          border-radius: 4px;
-          font-size: 13px;
-          color: var(--textSecondary);
-          cursor: pointer;
-          transition: background 0.15s ease, color 0.15s ease;
-          text-align: left;
-        }
-        
-        .dd-item:hover {
-          background: var(--backgroundHover);
-          color: var(--text);
-        }
-
-        .dd-item svg {
-          color: var(--textQuaternary);
-        }
-
-        .dd-item:hover svg {
-          color: var(--textTertiary);
-        }
-        
-        .dd-item.invite { color: var(--primary); }
-        .dd-item.invite:hover { background: var(--primaryHover); }
-        .dd-item.invite svg { color: var(--primary); }
-
-        .dd-item.logout:hover {
-          background: color-mix(in srgb, var(--error) 10%, transparent);
-          color: var(--error);
-        }
-        .dd-item.logout:hover svg { color: var(--error); }
-
-        .divider {
-          height: 1px;
-          background: var(--border);
-          margin: var(--space-1);
-        }
+        .divider { height: 1px; background: var(--border); margin: 4px 0; }
 
         @media (max-width: 768px) {
-          .SidebarBottom { padding: 0 var(--space-2); gap: var(--space-1); }
-          .left-content, .right-content { gap: var(--space-2); }
-          .balance { display: none; }
+          .SidebarBottom { padding: 0 var(--space-2); }
+          .balance-box { display: none; }
         }
       `}</style>
     </>
