@@ -212,7 +212,6 @@ const CreateMenuButton = () => {
           border-radius: var(--space-3);
           box-shadow: 0 4px 6px -1px rgba(0,0,0,.08), 0 2px 4px -1px rgba(0,0,0,.04);
           backdrop-filter: blur(8px);
-          z-index: ${zIndex.dropdown};
           animation: popIn .18s cubic-bezier(.34,1.56,.64,1);
         }
 
@@ -248,7 +247,6 @@ const CreateMenuButton = () => {
           .create-menu__overlay {
             display: block; position: fixed; inset: 0;
             background: rgba(0,0,0,.08); backdrop-filter: blur(4px);
-            z-index: calc(${zIndex.dropdown} - 1);
           }
           .create-menu__dropdown {
             position: fixed; top: auto; bottom: var(--space-5);

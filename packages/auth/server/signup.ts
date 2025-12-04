@@ -139,7 +139,6 @@ async function checkUserExists(userId: string, t: any) {
 }
 
 /**
- * 去掉 rambda.reject 后的实现：
  * 显式构造对象，只在有值时写入可选字段，行为等价但更直观。
  */
 function prepareUserData(userData: any) {
