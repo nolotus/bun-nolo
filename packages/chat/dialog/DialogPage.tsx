@@ -1,5 +1,4 @@
 // chat/dialog/DialogPage.tsx
-
 import React, { useEffect, Suspense } from "react";
 import { useAppDispatch, useAppSelector } from "app/store";
 import { useAuth } from "auth/hooks/useAuth";
@@ -53,7 +52,11 @@ const DialogPage = ({ pageKey }: { pageKey: string }) => {
     if (!isLoggedIn) {
       return (
         <Suspense fallback={<PageLoading message="检查权限" />}>
-          <GuestGuide />
+          <div style={{ flex: 1 }}>
+            {" "}
+            {/* 撑开高度 */}
+            <GuestGuide />
+          </div>
         </Suspense>
       );
     }
@@ -63,7 +66,9 @@ const DialogPage = ({ pageKey }: { pageKey: string }) => {
     if (error) {
       return (
         <Suspense fallback={<PageLoading />}>
-          <ErrorView error={error} />
+          <div style={{ flex: 1 }}>
+            <ErrorView error={error} />
+          </div>
         </Suspense>
       );
     }
@@ -71,7 +76,17 @@ const DialogPage = ({ pageKey }: { pageKey: string }) => {
     if (currentDialogConfig && dialogId) {
       return (
         <>
-          <MessagesList dialogId={dialogId} />
+          {/* 
+             关键修改：
+             给消息列表包裹一个 div，并设置 flex: 1。
+             这样当消息很少时，这个 div 会自动伸展占据空白区域，
+             把下方的 MessageInputContainer 挤到最底部。
+          */}
+          <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+            <MessagesList dialogId={dialogId} />
+          </div>
+
+          {/* 输入框组件，会自动呆在该在的地方 */}
           <MessageInputContainer />
         </>
       );
@@ -80,7 +95,10 @@ const DialogPage = ({ pageKey }: { pageKey: string }) => {
     return (
       <div
         style={{
-          textAlign: "center",
+          flex: 1, // 同样撑开，保持居中逻辑正常
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
           padding: "var(--space-5)",
           color: "var(--textSecondary)",
         }}
@@ -97,8 +115,13 @@ const DialogPage = ({ pageKey }: { pageKey: string }) => {
         style={{
           display: "flex",
           flexDirection: "column",
-          minHeight: "100%",
+          // 关键修改：
+          // 确保容器至少占据可视窗口减去头部的高度。
+          // 配合 MainLayout 的 overflow-y: auto，这会创造一个
+          // “内容少时占满屏，内容多时可滚动”的效果。
+          minHeight: "calc(100vh - var(--headerHeight))",
           backgroundColor: "var(--background)",
+          position: "relative",
         }}
       >
         {renderContent()}

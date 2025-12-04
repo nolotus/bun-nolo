@@ -2,15 +2,12 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "app/store";
 import {
-  selectEditorDefaultMode,
-  selectEditorCodeTheme,
-  selectEditorWordCountEnabled,
-  selectEditorShortcuts,
-  selectEditorFontSize,
-  selectEditorAutoSave,
-  selectEditorAutoSaveInterval,
+  // 聚合选择器，一次拿到所有编辑器配置
+  selectEditorConfig,
+  // 单独 action
   setEditorDefaultMode,
-  setEditorCodeTheme,
+  setEditorLightCodeTheme,
+  setEditorDarkCodeTheme,
   toggleEditorWordCount,
   toggleEditorShortcut,
   setEditorFontSize,
@@ -66,18 +63,22 @@ const ShortcutToggle: React.FC<{
   </div>
 );
 
-const EditorConfig = () => {
+const EditorConfig: React.FC = () => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
 
-  // Redux 状态
-  const defaultMode = useAppSelector(selectEditorDefaultMode);
-  const codeTheme = useAppSelector(selectEditorCodeTheme);
-  const wordCountEnabled = useAppSelector(selectEditorWordCountEnabled);
-  const shortcuts = useAppSelector(selectEditorShortcuts);
-  const fontSize = useAppSelector(selectEditorFontSize);
-  const autoSave = useAppSelector(selectEditorAutoSave);
-  const autoSaveInterval = useAppSelector(selectEditorAutoSaveInterval);
+  // 用聚合 selector，一次取出所有编辑器相关配置
+  const {
+    defaultMode,
+    lightCodeTheme,
+    darkCodeTheme,
+    codeTheme, // 当前实际生效的主题（根据深浅色自动切换），这里只是展示用，不直接写入
+    wordCountEnabled,
+    shortcuts,
+    fontSize,
+    autoSave,
+    autoSaveInterval,
+  } = useAppSelector(selectEditorConfig);
 
   const shortcutItems = [
     {
@@ -112,12 +113,16 @@ const EditorConfig = () => {
     },
   ];
 
+  // 这里的 value 要和 PRISM_CODE_THEMES 的 key 对得上
   const codeThemes = [
-    { value: "github-dark", label: "GitHub Dark" },
+    { value: "default", label: "Prism Default（浅色）" },
+    { value: "okaidia", label: "Okaidia（深色 / Monokai）" },
     { value: "github-light", label: "GitHub Light" },
-    { value: "monokai", label: "Monokai" },
-    { value: "solarized-light", label: "Solarized Light" },
-    { value: "dracula", label: "Dracula" },
+    { value: "github-dark", label: "GitHub Dark" },
+    // 如果你后面补了 Monokai / Solarized / Dracula 的 CSS，可以再把这些放回来：
+    // { value: "monokai", label: "Monokai" },
+    // { value: "solarized-light", label: "Solarized Light" },
+    // { value: "dracula", label: "Dracula" },
   ];
 
   const fontSizes = [12, 13, 14, 15, 16, 17, 18];
@@ -359,9 +364,11 @@ const EditorConfig = () => {
           }
         `}
       </style>
+
       <div className="editor-config-page">
         <h1 className="page-title">{t("editor.title", "编辑器设置")}</h1>
 
+        {/* 默认模式 */}
         <SettingSection
           title={t("editor.defaultMode.title", "默认编辑模式")}
           description={t(
@@ -371,13 +378,17 @@ const EditorConfig = () => {
         >
           <div className="segmented-control">
             <button
-              className={`segment-button ${defaultMode === "markdown" ? "active" : ""}`}
+              className={`segment-button ${
+                defaultMode === "markdown" ? "active" : ""
+              }`}
               onClick={() => dispatch(setEditorDefaultMode("markdown"))}
             >
               Markdown
             </button>
             <button
-              className={`segment-button ${defaultMode === "block" ? "active" : ""}`}
+              className={`segment-button ${
+                defaultMode === "block" ? "active" : ""
+              }`}
               onClick={() => dispatch(setEditorDefaultMode("block"))}
             >
               {t("editor.mode.block", "块编辑器")}
@@ -385,26 +396,56 @@ const EditorConfig = () => {
           </div>
         </SettingSection>
 
+        {/* 代码块主题：白天 + 夜晚 各一个选择器 */}
         <SettingSection
           title={t("editor.codeTheme.title", "代码块主题")}
           description={t(
             "editor.codeTheme.description",
-            "为编辑器中的代码块选择一个你喜欢的语法高亮主题。"
+            "为编辑器中的代码块分别配置浅色模式和深色模式下使用的语法高亮主题。"
           )}
         >
-          <select
-            className="custom-select"
-            value={codeTheme}
-            onChange={(e) => dispatch(setEditorCodeTheme(e.target.value))}
-          >
-            {codeThemes.map((item) => (
-              <option key={item.value} value={item.value}>
-                {item.label}
-              </option>
-            ))}
-          </select>
+          <div className="setting-group">
+            <div className="setting-row">
+              <span className="setting-label">
+                {t("editor.codeTheme.light", "浅色模式代码主题")}
+              </span>
+              <select
+                className="custom-select"
+                value={lightCodeTheme}
+                onChange={(e) =>
+                  dispatch(setEditorLightCodeTheme(e.target.value))
+                }
+              >
+                {codeThemes.map((item) => (
+                  <option key={item.value} value={item.value}>
+                    {item.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="setting-row">
+              <span className="setting-label">
+                {t("editor.codeTheme.dark", "深色模式代码主题")}
+              </span>
+              <select
+                className="custom-select"
+                value={darkCodeTheme}
+                onChange={(e) =>
+                  dispatch(setEditorDarkCodeTheme(e.target.value))
+                }
+              >
+                {codeThemes.map((item) => (
+                  <option key={item.value} value={item.value}>
+                    {item.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
         </SettingSection>
 
+        {/* 编辑器偏好 */}
         <SettingSection
           title={t("editor.preferences.title", "编辑器偏好")}
           description={t(
@@ -465,6 +506,7 @@ const EditorConfig = () => {
           </div>
         </SettingSection>
 
+        {/* 字数统计 */}
         <SettingSection
           title={t("editor.wordCount.title", "字数统计")}
           description={t(
@@ -480,12 +522,12 @@ const EditorConfig = () => {
           />
         </SettingSection>
 
+        {/* 文本快捷方式 */}
         <SettingSection
           title={t("editor.shortcuts.title", "文本快捷方式")}
           description={t(
             "editor.shortcuts.description",
-            "在输入时自动将特定符号转换为格式化文本，例如输入" -
-              "会创建一个列表项。"
+            "在输入时自动将特定符号转换为格式化文本，例如输入 '-' 会创建一个列表项。"
           )}
         >
           <div className="shortcut-list">

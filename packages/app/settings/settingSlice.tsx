@@ -33,7 +33,11 @@ interface SettingState {
 
   // 编辑器配置
   editorDefaultMode: "markdown" | "block";
-  editorCodeTheme: string;
+
+  // 新增：白天 / 夜晚代码主题
+  editorLightCodeTheme: string; // 浅色模式下的代码主题（比如 "default"）
+  editorDarkCodeTheme: string; // 深色模式下的代码主题（比如 "okaidia"）
+
   editorWordCountEnabled: boolean;
   editorShortcuts: {
     heading: boolean;
@@ -73,7 +77,11 @@ const initialState: SettingState = {
 
   // 编辑器默认配置
   editorDefaultMode: "markdown",
-  editorCodeTheme: "github-dark",
+
+  // 默认：白天用 default，夜晚用 okaidia
+  editorLightCodeTheme: "default",
+  editorDarkCodeTheme: "okaidia",
+
   editorWordCountEnabled: true,
   editorShortcuts: {
     heading: true,
@@ -174,9 +182,29 @@ const settingSlice = createSliceWithThunks({
       async (mode: "markdown" | "block", { dispatch }) =>
         dispatch(setSettings({ editorDefaultMode: mode })).unwrap()
     ),
-    setEditorCodeTheme: create.asyncThunk(async (theme: string, { dispatch }) =>
-      dispatch(setSettings({ editorCodeTheme: theme })).unwrap()
+
+    // 设置白天代码主题
+    setEditorLightCodeTheme: create.asyncThunk(
+      async (theme: string, { dispatch }) =>
+        dispatch(setSettings({ editorLightCodeTheme: theme })).unwrap()
     ),
+
+    // 设置夜晚代码主题
+    setEditorDarkCodeTheme: create.asyncThunk(
+      async (theme: string, { dispatch }) =>
+        dispatch(setSettings({ editorDarkCodeTheme: theme })).unwrap()
+    ),
+
+    // 兼容旧接口：同时设置白天 + 夜晚为同一个主题
+    setEditorCodeTheme: create.asyncThunk(async (theme: string, { dispatch }) =>
+      dispatch(
+        setSettings({
+          editorLightCodeTheme: theme,
+          editorDarkCodeTheme: theme,
+        })
+      ).unwrap()
+    ),
+
     toggleEditorWordCount: create.asyncThunk(
       async (_, { dispatch, getState }) => {
         const current = (getState() as RootState).settings
@@ -228,7 +256,9 @@ export const {
   setSidebarWidth,
   // 编辑器 actions
   setEditorDefaultMode,
-  setEditorCodeTheme,
+  setEditorLightCodeTheme,
+  setEditorDarkCodeTheme,
+  setEditorCodeTheme, // 兼容旧接口
   toggleEditorWordCount,
   toggleEditorShortcut,
   setEditorFontSize,
@@ -262,12 +292,23 @@ export const selectThemeFollowsSystem = (state: RootState): boolean =>
 export const selectSidebarWidth = (state: RootState): number =>
   state.settings.sidebarWidth;
 
-// 编辑器相关 selectors
+// --- 编辑器相关 selectors（含白天 / 夜晚代码主题） ---
 export const selectEditorDefaultMode = (
   state: RootState
 ): "markdown" | "block" => state.settings.editorDefaultMode;
-export const selectEditorCodeTheme = (state: RootState): string =>
-  state.settings.editorCodeTheme;
+
+export const selectEditorLightCodeTheme = (state: RootState): string =>
+  state.settings.editorLightCodeTheme;
+
+export const selectEditorDarkCodeTheme = (state: RootState): string =>
+  state.settings.editorDarkCodeTheme;
+
+// 当前「生效」的代码主题：根据 isDark 自动选择白天 / 夜晚配置
+export const selectEditorCodeTheme = createSelector(
+  [selectEditorLightCodeTheme, selectEditorDarkCodeTheme, selectIsDark],
+  (lightTheme, darkTheme, isDark) => (isDark ? darkTheme : lightTheme)
+);
+
 export const selectEditorWordCountEnabled = (state: RootState): boolean =>
   state.settings.editorWordCountEnabled;
 export const selectEditorShortcuts = (state: RootState) =>
@@ -279,7 +320,7 @@ export const selectEditorAutoSave = (state: RootState): boolean =>
 export const selectEditorAutoSaveInterval = (state: RootState): number =>
   state.settings.editorAutoSaveInterval;
 
-// --- 高性能的记忆化 Selector ---
+// --- 高性能的记忆化 Selector（整体主题） ---
 export const selectTheme = createSelector(
   [selectThemeName, selectIsDark, selectSidebarWidth, selectHeaderHeight],
   (themeName, isDark, sidebarWidth, headerHeight) => {
@@ -295,34 +336,43 @@ export const selectTheme = createSelector(
   }
 );
 
-// 编辑器配置选择器
+// 编辑器配置选择器：返回当前主题 + 白天/夜晚配置，方便 UI 做设置面板
 export const selectEditorConfig = createSelector(
   [
     selectEditorDefaultMode,
-    selectEditorCodeTheme,
+    selectEditorLightCodeTheme,
+    selectEditorDarkCodeTheme,
     selectEditorWordCountEnabled,
     selectEditorShortcuts,
     selectEditorFontSize,
     selectEditorAutoSave,
     selectEditorAutoSaveInterval,
+    selectIsDark,
   ],
   (
     defaultMode,
-    codeTheme,
-    wordCountEnabled,
-    shortcuts,
-    fontSize,
-    autoSave,
-    autoSaveInterval
-  ) => ({
-    defaultMode,
-    codeTheme,
+    lightCodeTheme,
+    darkCodeTheme,
     wordCountEnabled,
     shortcuts,
     fontSize,
     autoSave,
     autoSaveInterval,
-  })
+    isDark
+  ) => {
+    const codeTheme = isDark ? darkCodeTheme : lightCodeTheme;
+    return {
+      defaultMode,
+      codeTheme, // 当前实际生效的代码主题
+      lightCodeTheme,
+      darkCodeTheme,
+      wordCountEnabled,
+      shortcuts,
+      fontSize,
+      autoSave,
+      autoSaveInterval,
+    };
+  }
 );
 
 // --- 导出 Reducer ---

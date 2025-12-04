@@ -25,7 +25,6 @@ import { useTranslation } from "react-i18next";
 import SidebarItem from "create/space/SidebarItem";
 import ChatSidebarHeader from "./ChatSidebarHeader";
 import toast from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
 import CategoryHeader from "create/space/category/CategoryHeader";
 import { AddCategoryModal } from "create/space/category/AddCategoryModal";
 import { DraggableContainer } from "./DraggableContainer";
@@ -191,7 +190,6 @@ const ChatSidebar: React.FC = () => {
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const dispatch = useAppDispatch();
-  const navigate = useNavigate();
   const space = useAppSelector(selectCurrentSpace);
 
   const { groupedData, sortedCategories } = useGroupedContent(space);

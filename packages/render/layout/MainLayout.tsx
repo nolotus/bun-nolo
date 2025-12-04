@@ -152,12 +152,14 @@ const MainLayout: React.FC = () => {
         )}
 
         <main className="MainLayout__main">
+          {/* TopBar 必须在这里，它是 Sticky 的 */}
           <Suspense fallback={<div style={{ height: 52 }} />}>
             <TopBar toggleSidebar={hasSidebar ? toggleSidebar : undefined} />
           </Suspense>
+
           <div className="MainLayout__pageContent">
             <PageContentErrorBoundary>
-              <Suspense fallback={<PageLoading></PageLoading>}>
+              <Suspense fallback={<PageLoading />}>
                 <Outlet />
               </Suspense>
             </PageContentErrorBoundary>
@@ -185,13 +187,10 @@ const MainLayout: React.FC = () => {
           overflow: hidden;
           transition: width 0.28s cubic-bezier(0.16, 1, 0.3, 1);
           background: var(--background);
-          border-right: none;
-          
-          /* 极致轻盈的阴影：如晨雾般的边界感 */
           box-shadow: 
-            1px 0 0 0 rgba(0, 0, 0, 0.018),        /* 极细分隔线 */
-            3px 0 8px -1px rgba(0, 0, 0, 0.02),    /* 近距柔光 */
-            6px 0 16px -3px rgba(0, 0, 0, 0.015);  /* 远距环境光 */
+            1px 0 0 0 rgba(0, 0, 0, 0.018),
+            3px 0 8px -1px rgba(0, 0, 0, 0.02),
+            6px 0 16px -3px rgba(0, 0, 0, 0.015);
         }
 
         .MainLayout__sidebarContent {
@@ -208,16 +207,28 @@ const MainLayout: React.FC = () => {
           background: var(--textQuaternary); border-radius: 3px;
         }
 
+        /* --- 核心修改区开始 --- */
         .MainLayout__main {
           flex: 1;
           display: flex;
           flex-direction: column;
           height: 100dvh;
           min-width: 0;
-          overflow: hidden;
           background: var(--backgroundSecondary);
+          
+          /* 关键修改：让 main 负责滚动，而不是 pageContent */
+          overflow-y: auto; 
+          overflow-x: hidden;
+          position: relative; /* 确保 scroll context 正常 */
         }
-        .MainLayout__pageContent { flex: 1; overflow: auto; }
+
+        .MainLayout__pageContent { 
+          /* 关键修改：移除这里的 overflow: auto，让内容撑开 */
+          /* flex: 1;  删除这一行，不需要强行占位，顺其自然流动 */
+          width: 100%;
+          min-height: calc(100vh - var(--headerHeight)); /* 保证最小高度 */
+        }
+        /* --- 核心修改区结束 --- */
 
         .MainLayout__resizeHandle {
           position: absolute;
@@ -258,7 +269,6 @@ const MainLayout: React.FC = () => {
             position: fixed;
             width: 85% !important;
             max-width: 320px;
-            /* 移动端保持稍明确的层级感 */
             box-shadow: 
               1px 0 0 0 rgba(0, 0, 0, 0.025),
               6px 0 16px -2px rgba(0, 0, 0, 0.04),

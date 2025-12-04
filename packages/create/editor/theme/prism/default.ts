@@ -1,4 +1,7 @@
-export const prismThemeCss = `
+// ./theme/prism/default.ts
+
+// 这里的内容直接用你问题里贴的 defaultCss 原样拷贝即可
+export const defaultCss = `
 /**
  * prism.js default theme for JavaScript, CSS and HTML
  * Based on dabblet (http://dabblet.com)
