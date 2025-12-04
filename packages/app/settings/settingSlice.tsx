@@ -6,7 +6,6 @@ import {
   createSelector,
   type PayloadAction,
 } from "@reduxjs/toolkit";
-import { omit } from "rambda";
 import type { RootState } from "app/store";
 import { isProduction } from "utils/env";
 import { read, patch } from "database/dbSlice";
@@ -69,7 +68,8 @@ const initialState: SettingState = {
   isDark: false,
   sidebarWidth: 260,
   headerHeight: 48,
-  themeFollowsSystem: false,
+  // 默认跟随系统
+  themeFollowsSystem: true,
 
   // 编辑器默认配置
   editorDefaultMode: "markdown",
@@ -102,7 +102,6 @@ const settingSlice = createSliceWithThunks({
   name: "settings",
   initialState,
   reducers: (create) => ({
-    // ... 其他 reducers 保持不变 ...
     _updateSettingsState: (
       state,
       action: PayloadAction<Partial<SettingState>>
@@ -127,7 +126,8 @@ const settingSlice = createSliceWithThunks({
       {
         fulfilled: (state, action) => {
           if (action.payload) {
-            const settingsToApply = omit(["currentServer"], action.payload);
+            const { currentServer: _ignored, ...settingsToApply } =
+              action.payload as SettingState;
             Object.assign(state, settingsToApply);
           }
         },
@@ -145,7 +145,7 @@ const settingSlice = createSliceWithThunks({
       }
     ),
 
-    // ... 主题相关的 actions 保持不变 ...
+    // 主题相关 actions
     changeTheme: create.asyncThunk(
       async (themeName: keyof typeof THEME_COLORS, { dispatch }) =>
         dispatch(setSettings({ themeName })).unwrap()
@@ -169,7 +169,7 @@ const settingSlice = createSliceWithThunks({
         dispatch(setSettings({ sidebarWidth })).unwrap()
     ),
 
-    // 编辑器配置相关的 actions
+    // 编辑器配置相关 actions
     setEditorDefaultMode: create.asyncThunk(
       async (mode: "markdown" | "block", { dispatch }) =>
         dispatch(setSettings({ editorDefaultMode: mode })).unwrap()

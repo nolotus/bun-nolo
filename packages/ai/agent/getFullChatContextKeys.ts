@@ -1,4 +1,3 @@
-import * as R from "rambda";
 import type { AsyncThunk } from "@reduxjs/toolkit";
 
 import { RootState } from "app/store";
@@ -8,6 +7,15 @@ import { contextCybotId } from "core/init";
 
 import { formatDataForApi } from "./formatDataForApi";
 import { runLlm } from "../cybot/cybotSlice";
+
+/** 简单的数组差集工具：返回 arrA 中不在 arrB 里的元素 */
+const difference = <T>(arrA: T[], arrB: T[]): T[] => {
+  if (!arrA.length) return [];
+  if (!arrB.length) [...arrA];
+
+  const exclude = new Set(arrB);
+  return arrA.filter((item) => !exclude.has(item));
+};
 
 /**
  * Collect all possible reference keys for this chat turn:
@@ -124,23 +132,23 @@ export const deduplicateContextKeys = (
 
   const finalBotInstructionKeys = Array.from(botInstructionKeys);
 
-  const finalCurrentInputKeys = R.difference(
+  const finalCurrentInputKeys = difference(
     Array.from(currentInputKeys),
     finalBotInstructionKeys
   );
 
-  const finalSmartReadKeys = R.difference(Array.from(smartReadKeys), [
+  const finalSmartReadKeys = difference(Array.from(smartReadKeys), [
     ...finalBotInstructionKeys,
     ...finalCurrentInputKeys,
   ]);
 
-  const finalHistoryKeys = R.difference(Array.from(historyKeys), [
+  const finalHistoryKeys = difference(Array.from(historyKeys), [
     ...finalBotInstructionKeys,
     ...finalCurrentInputKeys,
     ...finalSmartReadKeys,
   ]);
 
-  const finalBotKnowledgeKeys = R.difference(Array.from(botKnowledgeKeys), [
+  const finalBotKnowledgeKeys = difference(Array.from(botKnowledgeKeys), [
     ...finalBotInstructionKeys,
     ...finalCurrentInputKeys,
     ...finalSmartReadKeys,

@@ -1,5 +1,4 @@
 import { getModelsByProvider } from "ai/llm/providers";
-import { pipe } from "rambda";
 
 interface ModelPricing {
   inputPrice: number;
@@ -14,7 +13,7 @@ interface Prices {
   serverOutput: number;
 }
 
-const MAX_OUTPUT_TOKENS = 8192; // Single response maximum tokens
+const MAX_OUTPUT_TOKENS = 8192; // 单次返回最大 token 数
 
 export const getModelPricing = (
   provider: string,
@@ -39,19 +38,32 @@ export const getPrices = (config: any, serverPrices: any): Prices => ({
   serverOutput: Number(serverPrices?.outputPrice ?? 0),
 });
 
+/**
+ * 计算最终价格：
+ * - 从所有价格中取「每百万 tokens 价格」的最大值
+ * - 再换算成单 token 价格
+ * - 再乘以最大输出 token 数
+ */
 export const getFinalPrice = (prices: Prices): number => {
-  // Find the highest price per token among all valid prices
-  // These prices are originally based on 1M tokens cost
-  const maxPricePerMillion = pipe(
-    Object.values,
-    (values) => values.filter((v) => !isNaN(v) && v !== null),
-    (values) =>
-      values.length ? values.reduce((acc, curr) => Math.max(acc, curr), 0) : 0
-  )(prices);
+  // 1. 取出所有价格字段
+  const rawValues = Object.values(prices);
 
-  // Convert price from per 1M tokens to per token
+  // 2. 过滤出合法数字（去掉 NaN、Infinity、null/undefined 等）
+  const validValues = rawValues.filter(
+    (value) => typeof value === "number" && Number.isFinite(value)
+  );
+
+  // 3. 没有合法值时返回 0，避免 Math.max(...[]) 抛错
+  if (validValues.length === 0) {
+    return 0;
+  }
+
+  // 4. 找到每百万 token 的最高单价
+  const maxPricePerMillion = Math.max(...validValues);
+
+  // 5. 换算成单 token 价格
   const maxPricePerToken = maxPricePerMillion / 1_000_000;
 
-  // Calculate final price for maximum output tokens (8192)
+  // 6. 计算 8192 个 token 的费用
   return maxPricePerToken * MAX_OUTPUT_TOKENS;
 };
