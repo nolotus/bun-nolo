@@ -31,15 +31,37 @@ import PublicAgents from "ai/agent/web/PublicAgents";
 import AgentListView from "ai/agent/web/AgentListView";
 import StreamingIndicator from "render/web/ui/StreamingIndicator";
 
-const EmptyPlaceholder = ({ message }: { message: string }) => (
+/**
+ * 空状态：支持可选的操作按钮（如「创建 AI 助手」）
+ */
+const EmptyPlaceholder = ({
+  message,
+  actionLabel,
+  onAction,
+}: {
+  message: string;
+  actionLabel?: string;
+  onAction?: () => void;
+}) => (
   <div className="empty-container">
     <div className="empty-icon">
       <LuBot size={48} />
     </div>
     <p className="empty-text">{message}</p>
+
+    {actionLabel && onAction && (
+      <button className="empty-action-button" onClick={onAction}>
+        <LuBot size={18} />
+        <span>{actionLabel}</span>
+      </button>
+    )}
   </div>
 );
 
+/**
+ * 我的助手列表
+ * 空列表时展示 EmptyPlaceholder，并在其中提供「创建 AI 助手」按钮
+ */
 const CybotList = ({
   queryUserId,
   limit = 9,
@@ -47,6 +69,8 @@ const CybotList = ({
   queryUserId: string | null;
   limit?: number;
 }) => {
+  const navigate = useNavigate();
+
   const {
     loading,
     data: cybots = [],
@@ -68,7 +92,7 @@ const CybotList = ({
     await reload();
   }, [clearCache, reload]);
 
-  // 1. 处理加载状态：使用 StreamingIndicator
+  // 加载中（首次无数据）使用 StreamingIndicator
   if (loading && !items.length) {
     return (
       <div className="loading-indicator-container">
@@ -77,12 +101,18 @@ const CybotList = ({
     );
   }
 
-  // 2. 处理空数据状态
+  // 空状态：在占位中提供「创建 AI 助手」
   if (!items.length) {
-    return <EmptyPlaceholder message="还没有创建 AI 助手" />;
+    return (
+      <EmptyPlaceholder
+        message="还没有创建 AI 助手"
+        actionLabel="创建 AI 助手"
+        onAction={() => navigate(`/${CreateRoutePaths.CREATE_CYBOT}`)}
+      />
+    );
   }
 
-  // 3. 渲染纯列表视图
+  // 有数据时渲染列表
   return <AgentListView items={items} onReload={handleReload} />;
 };
 
@@ -124,6 +154,10 @@ const Home = () => {
     });
   };
 
+  /**
+   * 顶部操作区：
+   * - 已移除「创建 AI 助手」，该操作现在只在空状态占位里出现
+   */
   const actions = [
     {
       id: "quick-chat",
@@ -133,14 +167,6 @@ const Home = () => {
       onClick: startQuickChat,
       span: 2,
       primary: true,
-    },
-    {
-      id: "create-ai",
-      text: "创建 AI 助手",
-      icon: <LuBot size={22} />,
-      desc: "定制专属AI工作伙伴",
-      onClick: () => navigate(`/${CreateRoutePaths.CREATE_CYBOT}`),
-      span: 1,
     },
     {
       id: "create-note",
@@ -267,59 +293,12 @@ const Home = () => {
       </div>
 
       <style href="home-compact" precedence="high">{`
-        /* CSS 变量 - 双模式阴影系统 */
+        /* 基础布局：使用全局背景变量 */
         .home-layout {
-          --glass-blur-light: blur(8px) saturate(1.2);
-          --glass-blur-dark: blur(12px) saturate(1.4);
-          
-          --shadow-base-light: 
-            0 0 0 0.5px rgba(0, 0, 0, 0.04),
-            0 1px 2px 0 rgba(0, 0, 0, 0.05),
-            0 2px 8px -1px rgba(0, 0, 0, 0.06),
-            0 4px 16px -2px rgba(0, 0, 0, 0.04);
-          
-          --shadow-base-dark:
-            0 0 0 0.5px rgba(255, 255, 255, 0.06),
-            0 1px 2px 0 rgba(0, 0, 0, 0.3),
-            0 2px 8px -1px rgba(0, 0, 0, 0.4),
-            0 4px 16px -2px rgba(0, 0, 0, 0.3),
-            inset 0 0.5px 0 0 rgba(255, 255, 255, 0.04);
-          
-          --shadow-hover-light:
-            0 0 0 1px var(--primaryGhost),
-            0 2px 4px 0 rgba(0, 0, 0, 0.06),
-            0 8px 20px -2px rgba(0, 0, 0, 0.1),
-            0 16px 40px -4px rgba(0, 0, 0, 0.08),
-            0 4px 24px -2px var(--primaryGhost);
-          
-          --shadow-hover-dark:
-            0 0 0 1px var(--primary),
-            0 2px 4px 0 rgba(0, 0, 0, 0.4),
-            0 8px 20px -2px rgba(0, 0, 0, 0.6),
-            0 16px 40px -4px rgba(0, 0, 0, 0.5),
-            0 4px 32px -2px var(--primaryGhost),
-            inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
-          
           min-height: 100vh;
           background: var(--background);
-        }
-
-        /* 暗色模式变量覆盖 */
-        @media (prefers-color-scheme: dark) {
-          .home-layout {
-            --glass-blur: var(--glass-blur-dark);
-            --shadow-base: var(--shadow-base-dark);
-            --shadow-hover: var(--shadow-hover-dark);
-          }
-        }
-
-        /* 明亮模式变量 */
-        @media (prefers-color-scheme: light) {
-          .home-layout {
-            --glass-blur: var(--glass-blur-light);
-            --shadow-base: var(--shadow-base-light);
-            --shadow-hover: var(--shadow-hover-light);
-          }
+          /* 玻璃化模糊，可按需调整强度 */
+          --glass-blur: blur(10px) saturate(1.25);
         }
 
         .home-main { 
@@ -328,13 +307,17 @@ const Home = () => {
           padding: var(--space-8) var(--space-4) var(--space-12); 
         }
         
-        /* 通用 Glass 卡片样式 */
+        /* 通用 Glass 卡片样式，阴影使用全局 shadow 变量 */
         .action-card,
         .explore-plaza-button,
         .view-all-link {
           backdrop-filter: var(--glass-blur);
           -webkit-backdrop-filter: var(--glass-blur);
-          box-shadow: var(--shadow-base);
+          box-shadow:
+            0 0 0 0.5px var(--shadowLight),
+            0 1px 2px 0 var(--shadowLight),
+            0 2px 8px -1px var(--shadowMedium),
+            0 4px 16px -2px var(--shadowMedium);
           transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
@@ -365,7 +348,12 @@ const Home = () => {
           background: var(--background); 
           transform: translateY(-3px); 
           animation-play-state: paused;
-          box-shadow: var(--shadow-hover);
+          box-shadow:
+            0 0 0 1px var(--primaryGhost),
+            0 2px 4px 0 var(--shadowLight),
+            0 8px 20px -2px var(--shadowMedium),
+            0 16px 40px -4px var(--shadowMedium),
+            0 4px 24px -2px var(--primaryGhost);
         }
         
         @keyframes bounce { 
@@ -400,7 +388,12 @@ const Home = () => {
         
         .action-card:hover { 
           transform: translateY(-4px); 
-          box-shadow: var(--shadow-hover);
+          box-shadow:
+            0 0 0 1px var(--primaryGhost),
+            0 2px 4px 0 var(--shadowLight),
+            0 8px 20px -2px var(--shadowMedium),
+            0 16px 40px -4px var(--shadowMedium),
+            0 4px 24px -2px var(--primaryGhost);
         }
         
         .action-card.primary { 
@@ -408,40 +401,17 @@ const Home = () => {
           box-shadow: 
             0 0 0 0.5px var(--primaryGhost),
             0 1px 2px 0 var(--primaryGhost),
-            0 2px 8px -1px var(--primaryGhost),
-            0 4px 16px -2px var(--primaryGhost);
-        }
-        
-        @media (prefers-color-scheme: dark) {
-          .action-card.primary {
-            box-shadow: 
-              0 0 0 0.5px var(--primaryGhost),
-              0 1px 2px 0 rgba(0, 0, 0, 0.3),
-              0 2px 8px -1px var(--primaryGhost),
-              0 4px 16px -2px var(--primaryGhost),
-              inset 0 0.5px 0 0 rgba(255, 255, 255, 0.06);
-          }
+            0 2px 8px -1px var(--shadowMedium),
+            0 4px 16px -2px var(--shadowMedium);
         }
         
         .action-card.primary:hover {
           box-shadow: 
             0 0 0 1px var(--primary),
-            0 2px 4px 0 rgba(0, 0, 0, 0.06),
-            0 8px 20px -2px var(--primaryGhost),
-            0 16px 40px -4px var(--primaryGhost),
+            0 2px 4px 0 var(--shadowLight),
+            0 8px 20px -2px var(--shadowMedium),
+            0 16px 40px -4px var(--shadowMedium),
             0 4px 32px -2px var(--primaryGhost);
-        }
-        
-        @media (prefers-color-scheme: dark) {
-          .action-card.primary:hover {
-            box-shadow: 
-              0 0 0 1px var(--primary),
-              0 2px 4px 0 rgba(0, 0, 0, 0.4),
-              0 8px 20px -2px var(--primaryGhost),
-              0 16px 40px -4px var(--primaryGhost),
-              0 4px 40px -2px var(--primaryGhost),
-              inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
-          }
         }
         
         .action-card.loading { opacity: 0.6; pointer-events: none; }
@@ -472,13 +442,28 @@ const Home = () => {
           background: var(--primary); 
           color: var(--background); 
           transform: scale(1.05);
-          box-shadow: 0 4px 12px var(--primaryGhost);
+          box-shadow: 0 4px 12px 0 var(--primaryGhost);
         }
         
-        .action-title { font-size: 1.1rem; font-weight: 600; color: var(--text); margin: 0; }
-        .action-desc { font-size: 0.85rem; color: var(--textSecondary); margin: 0; line-height: 1.4; }
+        .action-title { 
+          font-size: 1.1rem; 
+          font-weight: 600; 
+          color: var(--text); 
+          margin: 0; 
+        }
 
-        .content-section { opacity: 0; animation: fadeInUp 0.6s ease 0.2s forwards; }
+        .action-desc { 
+          font-size: 0.85rem; 
+          color: var(--textSecondary); 
+          margin: 0; 
+          line-height: 1.4; 
+        }
+
+        .content-section { 
+          opacity: 0; 
+          animation: fadeInUp 0.6s ease 0.2s forwards; 
+        }
+
         .content-header { 
           display: flex; 
           justify-content: space-between; 
@@ -505,7 +490,12 @@ const Home = () => {
         .view-all-link:hover { 
           color: var(--primary); 
           transform: translateX(2px);
-          box-shadow: var(--shadow-hover);
+          box-shadow:
+            0 0 0 1px var(--primaryGhost),
+            0 2px 4px 0 var(--shadowLight),
+            0 8px 20px -2px var(--shadowMedium),
+            0 16px 40px -4px var(--shadowMedium),
+            0 4px 24px -2px var(--primaryGhost);
         }
         
         .content-body { padding: var(--space-6) 0; }
@@ -540,29 +530,68 @@ const Home = () => {
           align-items: center; 
           justify-content: center; 
           box-shadow: 
-            0 4px 12px var(--primaryGhost),
-            0 8px 24px -2px var(--primaryGhost);
+            0 4px 12px 0 var(--shadowMedium),
+            0 8px 24px -2px var(--shadowHeavy);
         }
         
-        @media (prefers-color-scheme: dark) {
-          .empty-icon {
-            box-shadow: 
-              0 4px 16px var(--primaryGhost),
-              0 8px 32px -2px var(--primaryGhost),
-              inset 0 1px 0 0 rgba(255, 255, 255, 0.2);
+        .empty-text { 
+          font-size: 1rem; 
+          font-weight: 500; 
+          margin: 0; 
+        }
+
+        /* 空状态中的操作按钮：使用主题主色 + 语义阴影 */
+        .empty-action-button {
+          margin-top: var(--space-2);
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: var(--space-2);
+          padding: var(--space-2) var(--space-5);
+          border-radius: 9999px;
+          border: 1px solid var(--primaryGhost);
+          background: var(--primary);
+          color: var(--background);
+          font-size: 0.875rem;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          box-shadow:
+            0 1px 2px 0 var(--shadowLight),
+            0 4px 12px -2px var(--primaryGhost);
+        }
+
+        .empty-action-button:hover {
+          background: var(--hover);
+          transform: translateY(-1px);
+          box-shadow:
+            0 2px 4px 0 var(--shadowLight),
+            0 8px 20px -4px var(--primaryGhost);
+        }
+
+        .empty-action-button:focus-visible {
+          outline: 2px solid var(--focus);
+          outline-offset: 2px;
+        }
+
+        @media (max-width: 768px) {
+          .action-grid { 
+            grid-template-columns: 1fr; 
+            gap: var(--space-3); 
+          }
+          .action-card { 
+            grid-column: span 1 !important; 
           }
         }
         
-        .empty-text { font-size: 1rem; font-weight: 500; margin: 0; }
-
-        @media (max-width: 768px) {
-          .action-grid { grid-template-columns: 1fr; gap: var(--space-3); }
-          .action-card { grid-column: span 1 !important; }
-        }
-        
         @media (max-width: 480px) {
-          .home-main { padding: var(--space-4) var(--space-2) var(--space-6); }
-          .action-icon { width: 32px; height: 32px; }
+          .home-main { 
+            padding: var(--space-4) var(--space-2) var(--space-6); 
+          }
+          .action-icon { 
+            width: 32px; 
+            height: 32px; 
+          }
         }
       `}</style>
     </>

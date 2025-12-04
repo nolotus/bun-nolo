@@ -292,8 +292,9 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
 
       <style href="agent-block" precedence="medium">{`
         .agent {
-          /* 固定卡片高度：列表对齐依赖该值，如需调整布局请优先改内部元素，避免随意提高此高度 */
+          /* 固定卡片高度：列表对齐依赖该值 */
           --agent-card-height: 220px;
+          --agent-glass-blur: blur(10px) saturate(1.1);
 
           background: var(--background);
           border-radius: var(--space-3);
@@ -307,48 +308,32 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           gap: var(--space-4);
           height: var(--agent-card-height);
           overflow: hidden;
-          box-shadow:
-            0 0 0 1px rgba(0, 0, 0, 0.03),
-            0 4px 12px -2px rgba(0, 0, 0, 0.06),
-            0 12px 32px -4px rgba(0, 0, 0, 0.08);
-          backdrop-filter: blur(10px) saturate(1.1);
-          -webkit-backdrop-filter: blur(10px) saturate(1.1);
-        }
 
-        @media (prefers-color-scheme: dark) {
-          .agent {
-            background: rgba(255, 255, 255, 0.02);
-            box-shadow:
-              0 0 0 1px rgba(255, 255, 255, 0.06),
-              0 4px 12px -2px rgba(0, 0, 0, 0.5),
-              0 12px 32px -4px rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(16px) saturate(1.2);
-            -webkit-backdrop-filter: blur(16px) saturate(1.2);
-          }
+          /* 使用设计系统阴影变量 */
+          box-shadow:
+            0 0 0 1px var(--borderLight),
+            0 4px 12px -2px var(--shadowLight),
+            0 12px 32px -4px var(--shadowMedium);
+
+          backdrop-filter: var(--agent-glass-blur);
+          -webkit-backdrop-filter: var(--agent-glass-blur);
         }
 
         .agent:hover {
           transform: translateY(-4px);
           box-shadow:
             0 0 0 1px var(--primaryGhost),
-            0 4px 12px -2px rgba(0, 0, 0, 0.06),
-            0 12px 32px -4px rgba(0, 0, 0, 0.08);
+            0 4px 12px -2px var(--shadowLight),
+            0 12px 32px -4px var(--shadowMedium),
+            0 18px 48px -8px var(--shadowMedium);
         }
 
-        @media (prefers-color-scheme: dark) {
-          .agent:hover {
-            box-shadow:
-              0 0 0 1px var(--primary),
-              0 4px 12px -2px rgba(0, 0, 0, 0.5),
-              0 12px 32px -4px rgba(0, 0, 0, 0.4);
-          }
-        }
-
+        /* 删除确认时：用 error + 全局阴影变量强调 */
         .agent:has(.agent__delete-confirm) {
-          background: rgba(239, 68, 68, 0.02);
+          background: var(--backgroundSecondary);
           box-shadow:
-            0 0 0 1px rgba(239, 68, 68, 0.2),
-            0 8px 30px -4px rgba(239, 68, 68, 0.12);
+            0 0 0 1px var(--error),
+            0 8px 30px -4px var(--shadowMedium);
         }
 
         .agent__top-actions {
@@ -379,21 +364,14 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
         .agent__more--active {
           opacity: 1;
           color: var(--textSecondary);
-          background: rgba(0, 0, 0, 0.04);
-        }
-
-        @media (prefers-color-scheme: dark) {
-          .agent:hover .agent__more,
-          .agent__more:focus,
-          .agent__more--active {
-            background: rgba(255, 255, 255, 0.1);
-          }
+          background: var(--backgroundSecondary);
         }
 
         .agent__more:hover,
         .agent__more--active {
           color: var(--text);
           transform: scale(1.05);
+          background: var(--backgroundTertiary);
         }
 
         .agent__actions-menu {
@@ -406,20 +384,11 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           overflow: hidden;
           min-width: 110px;
           animation: slideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-          backdrop-filter: blur(20px) saturate(1.8);
-          -webkit-backdrop-filter: blur(20px) saturate(1.8);
+          backdrop-filter: var(--agent-glass-blur);
+          -webkit-backdrop-filter: var(--agent-glass-blur);
           box-shadow:
-            0 0 0 0.5px rgba(0, 0, 0, 0.08),
-            0 8px 20px -4px rgba(0, 0, 0, 0.12);
-        }
-
-        @media (prefers-color-scheme: dark) {
-          .agent__actions-menu {
-            background: rgba(30, 30, 30, 0.8);
-            box-shadow:
-              0 0 0 0.5px rgba(255, 255, 255, 0.1),
-              0 12px 32px -4px rgba(0, 0, 0, 0.5);
-          }
+            0 0 0 0.5px var(--borderLight),
+            0 8px 20px -4px var(--shadowMedium);
         }
 
         @keyframes slideDown {
@@ -438,7 +407,7 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           font-size: 0.85rem;
           cursor: pointer;
           transition: background-color 0.15s ease, color 0.15s ease;
-          color: var(--textSecondary);
+          color:(--textSecondary);
         }
 
         .agent__action-item:hover {
@@ -452,7 +421,7 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
 
         .agent__action-item--delete:hover {
           color: var(--error);
-          background: rgba(239, 68, 68, 0.08);
+          background: var(--backgroundSelected);
         }
 
         .agent__delete-confirm {
@@ -461,7 +430,8 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           left: 0;
           right: 0;
           background: var(--error);
-          color: white;
+          /* 用纯白字保证对比度，这里保留固定色值 */
+          color: #ffffff;
           padding: var(--space-2) var(--space-4);
           display: flex;
           align-items: center;
@@ -491,9 +461,9 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
         }
 
         .agent__delete-btn {
-          background: rgba(255, 255, 255, 0.15);
+          background: var(--primaryGhost);
           border: none;
-          color: white;
+          color: #ffffff;
           width: 24px;
           height: 24px;
           border-radius: var(--space-1);
@@ -504,16 +474,26 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           transition: background 0.15s ease, transform 0.15s ease;
         }
 
+        .agent__delete-btn--cancel {
+          opacity: 0.85;
+        }
+
+        .agent__delete-btn--confirm {
+          background: var(--primaryLight);
+        }
+
         .agent__delete-btn:hover {
-          background: rgba(255, 255, 255, 0.3);
           transform: translateY(-1px);
+          box-shadow:
+            0 1px 2px 0 var(--shadowLight),
+            0 4px 10px -2px var(--shadowMedium);
         }
 
         .agent__spinner {
           width: 12px;
           height: 12px;
-          border: 1.5px solid rgba(255, 255, 255, 0.3);
-          border-top: 1.5px solid white;
+          border: 1.5px solid var(--primaryGhost);
+          border-top: 1.5px solid #ffffff;
           border-radius: 50%;
           animation: spin 1s linear infinite;
         }
@@ -636,14 +616,8 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           white-space: pre-wrap;
           overflow-y: auto;
           padding: var(--space-2) var(--space-3);
-          background: rgba(0, 0, 0, 0.02);
+          background: var(--backgroundSecondary);
           border-radius: var(--space-2);
-        }
-
-        @media (prefers-color-scheme: dark) {
-          .agent__desc {
-            background: rgba(255, 255, 255, 0.03);
-          }
         }
 
         .agent__desc::-webkit-scrollbar {
@@ -683,7 +657,7 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
         .agent__dialog-spinner {
           width: 24px;
           height: 24px;
-          border: 2px solid rgba(0, 0, 0, 0.1);
+          border: 2px solid var(--border);
           border-top: 2px solid var(--primary);
           border-radius: 50%;
           animation: spin 1s linear infinite;
