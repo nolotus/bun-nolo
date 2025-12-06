@@ -221,8 +221,8 @@ export const openrouterModels = [
 
   // --- MoonshotAI Models ---
   {
-    name: "moonshotai/kimi-k2-thinking:nitro",
-    displayName: "MoonshotAI: Kimi K2 Thinking :nitro",
+    name: "moonshotai/kimi-k2-thinking",
+    displayName: "MoonshotAI: Kimi K2 Thinking",
     hasVision: false,
     price: {
       input: 0.6 * 9, // 11→9

@@ -520,6 +520,6 @@ export const {
 } = messageSlice.actions;
 
 // Tool 相关 thunk 从独立文件导出，保持原有对外 API 不变
-export { handleToolCalls, processToolData } from "./toolThunks";
+export { handleToolCalls } from "./toolThunks";
 
 export default messageSlice.reducer;

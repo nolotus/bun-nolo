@@ -36,12 +36,12 @@ export interface ProcessToolDataPayload {
 
 // ========= processToolData ===========
 
-export const processToolData = createAsyncThunk(
+const processToolData = createAsyncThunk(
   "message/processToolData",
   async (args: ProcessToolDataPayload, thunkApi: AppThunkApi) => {
     const { toolCall, parentMessageId } = args;
     const { dispatch, rejectWithValue } = thunkApi;
-
+    console.log("args", args);
     const func = toolCall.function;
     if (!func || !func.name) {
       throw new Error(
@@ -202,13 +202,17 @@ export const processToolData = createAsyncThunk(
 
       let displayContent;
       const displayData = toolResult?.displayData;
+      console.log("toolArgs", toolArgs);
 
       if (canonicalName === "createPlan") {
+        console.log("plan");
+
         displayContent = {
           type: "text",
           text: displayData || "[Plan executed, but no report was generated.]",
         };
       } else {
+        console.log("normal tool ");
         const text =
           displayData ||
           `${canonicalName.replace(/_/g, " ")} executed successfully.`;

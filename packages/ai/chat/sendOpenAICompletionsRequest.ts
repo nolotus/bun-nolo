@@ -1,4 +1,4 @@
-// ai/chat/sendOpenAICompletionsRequest.ts
+// chat/messages/messageThunks.ts
 
 import {
   addActiveController,
@@ -16,26 +16,13 @@ import { selectCurrentToken } from "auth/authSlice";
 import { extractCustomId } from "core/prefix";
 
 import { performFetchRequest } from "./fetchUtils";
-import { parseMultilineSSE } from "./parseMultilineSSE";
+import { createSSEParser } from "./parseMultilineSSE"; // 使用修复后的 SSE 解析器
 import { parseApiError } from "./parseApiError";
 import { updateTotalUsage } from "./updateTotalUsage";
 import { accumulateToolCallChunks } from "./accumulateToolCallChunks";
-import {
-  toolRegistry,
-  toolDefinitionsByName,
-  findToolExecutor,
-  ToolBehavior,
-} from "../tools/toolRegistry";
+import { prepareTools } from "../tools/prepareTools";
 
-// ============ 工具准备：保持你原来的行为（按 cybotConfig.tools 过滤） ============
-
-export const prepareTools = (toolNames: string[]) => {
-  return toolNames
-    .map((toolName: string) => toolRegistry[toolName])
-    .filter(Boolean); // 过滤掉未找到的工具
-};
-
-// 追加文本 chunk 到 contentBuffer（保持原实现）
+// 追加文本 chunk 到 contentBuffer（与你原来的实现保持一致）
 function appendTextChunk(
   currentContentBuffer: any[],
   textChunk: string
@@ -55,12 +42,7 @@ function appendTextChunk(
   return updatedContentBuffer;
 }
 
-// ============ 自动 follow-up 总结：基于 behavior 的策略 ============
-//
-// 新设计：
-// - 是否存在 orchestrator / data 工具，由 handleToolCalls 统计后传入
-// - 总结时仅基于 data 工具拼出的 toolTextForFollowup，不再依赖 contentBuffer
-
+// 自动 follow-up 总结逻辑（保持你原来的行为）
 async function autoFollowupIfNeeded(params: {
   hasOrchestrator: boolean;
   hasDataTool: boolean;
@@ -81,10 +63,9 @@ async function autoFollowupIfNeeded(params: {
   } = params;
   const { dispatch } = thunkApi;
 
-  // 1) 有 orchestrator（createPlan / runStreamingAgent 等）：外层完全不做总结
+  // 有 orchestrator 工具时，不再自动总结
   if (hasOrchestrator) return;
-
-  // 2) 没有任何 data 工具 → 无需总结
+  // 没有 data 工具输出时，也不需要自动总结
   if (!hasDataTool) return;
 
   const toolText = String(toolTextForFollowup || "");
@@ -103,7 +84,6 @@ async function autoFollowupIfNeeded(params: {
       toolText,
   };
 
-  // 第二次调用：只做总结，不再允许 tools，以避免再次 tool_calls 死循环
   const { tools: _tools, tool_choice: _toolChoice, ...restBody } = bodyData;
 
   const followupBody = {
@@ -120,8 +100,7 @@ async function autoFollowupIfNeeded(params: {
   });
 }
 
-// ============ 主流程：发送常规聊天请求（Completions + 工具） ============
-
+// 主流程：发送请求 + 处理流式 SSE + 工具调用
 export const sendOpenAICompletionsRequest = async ({
   bodyData,
   cybotConfig,
@@ -145,9 +124,11 @@ export const sendOpenAICompletionsRequest = async ({
   let msgKey: string;
 
   if (parentMessageId) {
+    // 作为某条消息的后续（比如工具自动 follow-up）
     messageId = parentMessageId;
     msgKey = `msg:${dialogId}:${messageId}`;
   } else {
+    // 正常新建一条 assistant 消息
     const newIds = createDialogMessageKeyAndId(dialogId);
     messageId = newIds.messageId;
     msgKey = newIds.key;
@@ -155,7 +136,7 @@ export const sendOpenAICompletionsRequest = async ({
 
   dispatch(addActiveController({ messageId, controller }));
 
-  // 按 agent 配置过滤可用工具（保持你原来的行为）
+  // tools 配置：如果 cybot 带工具，则在请求体里挂上 tools / tool_choice
   if (cybotConfig.tools?.length > 0) {
     const tools = prepareTools(cybotConfig.tools);
     if (tools.length > 0) {
@@ -192,7 +173,11 @@ export const sendOpenAICompletionsRequest = async ({
     );
   };
 
+  // 为本次请求创建独立的 SSE 解析器实例（避免并发污染）
+  const parseSSE = createSSEParser();
+
   try {
+    // 如果不是 follow-up，总是先插入一条 streaming 的 assistant 消息
     if (!parentMessageId) {
       dispatch(
         messageStreaming({
@@ -234,9 +219,21 @@ export const sendOpenAICompletionsRequest = async ({
     while (true) {
       const { done, value } = await reader.read();
       if (done) {
-        // 流结束但还有累积的 tool_calls（例如最后一个 chunk 才给出）
+        console.log(
+          "[SSE] stream done. hasProcessedToolCalls:",
+          hasProcessedToolCalls,
+          "accumulatedToolCalls length:",
+          accumulatedToolCalls.length
+        );
+
+        // 流结束但还有累积的 tool_calls（模型在最后一个 chunk 才把工具调用发完）
         if (!hasProcessedToolCalls && accumulatedToolCalls.length > 0) {
           const toolCallsForThisTurn = accumulatedToolCalls;
+          console.log(
+            "[SSE] final toolCallsForThisTurn (on done):",
+            JSON.stringify(toolCallsForThisTurn, null, 2)
+          );
+
           const result = await dispatch(
             handleToolCalls({
               accumulatedCalls: toolCallsForThisTurn,
@@ -253,10 +250,7 @@ export const sendOpenAICompletionsRequest = async ({
           if (result.hasHandedOff) {
             hasHandedOff = true;
           } else {
-            // 工具结果已经写完，先结束第一条消息的 streaming
             finalize();
-
-            // 再根据行为（orchestrator / data）决定是否自动 follow-up 总结
             await autoFollowupIfNeeded({
               hasOrchestrator: result.hadOrchestrator,
               hasDataTool: result.hasDataTool,
@@ -272,7 +266,13 @@ export const sendOpenAICompletionsRequest = async ({
       }
 
       const chunk = decoder.decode(value, { stream: true });
-      const parsedResults = parseMultilineSSE(chunk);
+      // 解析当前 chunk 对应的一个或多个 SSE 事件（底层已经有“原始 chunk”日志）
+      const parsedResults = parseSSE(chunk);
+
+      console.log(
+        "[SSE] parsedResults:",
+        JSON.stringify(parsedResults, null, 2)
+      );
 
       for (const parsedData of parsedResults) {
         const dataList = Array.isArray(parsedData) ? parsedData : [parsedData];
@@ -296,17 +296,31 @@ export const sendOpenAICompletionsRequest = async ({
           const choice = data.choices?.[0];
           if (!choice) continue;
           const delta = choice.delta || {};
+
+          // 推理内容缓冲（如果你启用了 reasoning_content）
           if (delta.reasoning_content) {
             reasoningBuffer += delta.reasoning_content;
           }
 
+          // 处理工具调用增量
           if (delta.tool_calls && Array.isArray(delta.tool_calls)) {
+            console.log(
+              "[SSE] delta.tool_calls chunk:",
+              JSON.stringify(delta.tool_calls, null, 2)
+            );
+
             accumulatedToolCalls = accumulateToolCallChunks(
               accumulatedToolCalls,
               delta.tool_calls
             );
+
+            console.log(
+              "[SSE] accumulatedToolCalls so far:",
+              JSON.stringify(accumulatedToolCalls, null, 2)
+            );
           }
 
+          // 普通文本内容增量
           const contentChunk = delta.content || "";
           if (contentChunk) {
             contentBuffer = appendTextChunk(contentBuffer, contentChunk);
@@ -324,8 +338,20 @@ export const sendOpenAICompletionsRequest = async ({
 
           const finishReason = choice.finish_reason;
           if (finishReason) {
+            console.log(
+              "[SSE] finish_reason:",
+              finishReason,
+              "accumulatedToolCalls length:",
+              accumulatedToolCalls.length
+            );
+
             if (finishReason === "tool_calls") {
               const toolCallsForThisTurn = accumulatedToolCalls;
+              console.log(
+                "[SSE] toolCallsForThisTurn (on finish_reason=tool_calls):",
+                JSON.stringify(toolCallsForThisTurn, null, 2)
+              );
+
               const result = await dispatch(
                 handleToolCalls({
                   accumulatedCalls: toolCallsForThisTurn,
@@ -344,10 +370,7 @@ export const sendOpenAICompletionsRequest = async ({
                 hasHandedOff = true;
                 await reader.cancel();
               } else {
-                // 工具结果已经写完，先结束第一条消息的 streaming
                 finalize();
-
-                // 再根据行为决定是否自动 follow-up 总结
                 await autoFollowupIfNeeded({
                   hasOrchestrator: result.hadOrchestrator,
                   hasDataTool: result.hasDataTool,
@@ -359,6 +382,7 @@ export const sendOpenAICompletionsRequest = async ({
                 });
               }
             } else if (finishReason !== "stop") {
+              // 其它 finish_reason（如 length、content_filter）
               contentBuffer = appendTextChunk(
                 contentBuffer,
                 `\n[流结束原因: ${finishReason}]`
@@ -377,6 +401,7 @@ export const sendOpenAICompletionsRequest = async ({
     } else {
       errorText = `\n[错误: ${error.message || String(error)}]`;
     }
+    console.error("[SSE] sendOpenAICompletionsRequest error:", error);
     contentBuffer = appendTextChunk(contentBuffer, errorText);
     finalize();
   } finally {

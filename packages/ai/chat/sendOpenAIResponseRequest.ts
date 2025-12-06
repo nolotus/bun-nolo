@@ -9,7 +9,7 @@ import { createDialogMessageKeyAndId } from "database/keys";
 import { selectCurrentToken } from "auth/authSlice";
 import { extractCustomId } from "core/prefix";
 import { performFetchRequest } from "./fetchUtils";
-import { parseMultilineSSE } from "./parseMultilineSSE";
+import { createSSEParser } from "./parseMultilineSSE"; // 改为工厂函数
 import { parseApiError } from "./parseApiError";
 import { updateTotalUsage } from "./updateTotalUsage";
 import { toolRegistry } from "../tools/toolRegistry";
@@ -148,7 +148,7 @@ export const sendOpenAIResponseRequest = async ({
   })();
 
   /* ---------------- SSE handlers ---------------- */
-  type Event = any; // 可进一步在其它文件声明联合类型 (#6)
+  type Event = any;
   const handlers: Record<
     string,
     (e: Event) => Promise<"continue" | "finalize">
@@ -204,6 +204,9 @@ export const sendOpenAIResponseRequest = async ({
     return "continue";
   };
 
+  // 实例化解析器（每次请求独立）
+  const parseSSE = createSSEParser();
+
   /* ---------------- fetch & stream ---------------- */
   try {
     const api = getApiEndpoint(cybotConfig);
@@ -236,7 +239,7 @@ export const sendOpenAIResponseRequest = async ({
       if (done) break;
       const chunk = decoder.decode(value, { stream: true });
 
-      const eventsArr = parseMultilineSSE(chunk);
+      const eventsArr = parseSSE(chunk); // 使用实例解析器
       const events = Array.isArray(eventsArr) ? eventsArr : [eventsArr];
 
       for (const e of events) {

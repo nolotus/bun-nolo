@@ -146,6 +146,7 @@ const resolveParameters = (params: any, allSteps: Step[]): any => {
 };
 
 function formatParameters(params: Record<string, any>): string {
+  console.log("formatParameters", formatParameters);
   if (!params || Object.keys(params).length === 0) return "无";
   return Object.entries(params)
     .map(([key, value]) => `  - \`${key}\`: \`${JSON.stringify(value)}\``)

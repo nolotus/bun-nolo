@@ -1,69 +1,70 @@
 /**
  * 处理流式工具调用数据块，将其累积到数组中。
- * @param currentAccumulatedCalls - 当前已累积的工具调用数组。
- * @param toolCallChunks - 从流中接收到的新工具调用数据块。
- * @returns - 返回一个新的、包含了新数据块信息的累积数组。
+ * 关键点：
+ * - 支持按 index 拼接，也支持同一 id、无 index 的分片追加（OpenAI 风格常见）
+ * - 字符串分片追加；对象分片直接覆盖（最后一段为准）
+ * - 不再过滤特殊标记，保持原样透传
  */
 export function accumulateToolCallChunks(
   currentAccumulatedCalls: any[],
   toolCallChunks: any[]
 ): any[] {
-  // 创建一个副本以避免直接修改原始数组
-  let newAccumulatedCalls = [...currentAccumulatedCalls];
+  const out = [...currentAccumulatedCalls];
 
-  for (const toolCallChunk of toolCallChunks) {
-    const index = toolCallChunk.index;
-    const id = toolCallChunk.id;
-    const type = toolCallChunk.type;
-    const functionCall = toolCallChunk.function;
+  const appendArgs = (call: any, args: any) => {
+    if (args == null) return;
+    if (!call.function) call.function = { name: "", arguments: "" };
 
-    // 方式一：处理分块流，通过 index 合并
+    if (typeof args === "string") {
+      call.function.arguments = (call.function.arguments || "") + args;
+    } else {
+      // 模型直接给对象时，直接覆盖
+      call.function.arguments = args;
+    }
+  };
+
+  for (const chunk of toolCallChunks) {
+    const { index, id, type, function: fn } = chunk;
+
+    // 分块流（带 index）
     if (index != null) {
-      // 确保数组有足够的位置
-      while (newAccumulatedCalls.length <= index) {
-        newAccumulatedCalls.push({});
-      }
-      const currentTool = newAccumulatedCalls[index];
+      while (out.length <= index) out.push({});
+      const cur = out[index];
 
-      // 逐步填充工具调用的各个字段
-      if (id && !currentTool.id) currentTool.id = id;
-      if (type && !currentTool.type) currentTool.type = type;
-      if (functionCall) {
-        if (!currentTool.function) {
-          currentTool.function = { name: "", arguments: "" };
-        }
-        if (functionCall.name) {
-          currentTool.function.name += functionCall.name;
-        }
-        if (functionCall.arguments) {
-          currentTool.function.arguments =
-            (currentTool.function.arguments || "") + functionCall.arguments;
-        }
+      if (id && !cur.id) cur.id = id;
+      if (type && !cur.type) cur.type = type;
+
+      if (fn) {
+        if (!cur.function) cur.function = { name: "", arguments: "" };
+        if (fn.name) cur.function.name += fn.name;
+        appendArgs(cur, fn.arguments);
       }
+      continue;
     }
-    // 方式二：处理一次性发送的完整工具调用对象
-    else if (
-      id != null &&
-      type === "function" &&
-      functionCall?.name &&
-      functionCall.arguments != null
-    ) {
-      const existingIndex = id
-        ? newAccumulatedCalls.findIndex((c) => c.id === id)
-        : -1;
 
-      // 如果这是一个全新的调用，则直接推入数组
-      if (existingIndex === -1 || !id) {
-        newAccumulatedCalls.push({
+    // 无 index，但有 fn 的分片（同 id 的后续片段会被追加）
+    if (fn?.name && fn.arguments != null) {
+      const existingIndex = id != null ? out.findIndex((c) => c.id === id) : -1;
+
+      if (existingIndex >= 0) {
+        const target = out[existingIndex];
+        target.function = target.function || { name: "", arguments: "" };
+        if (fn.name) target.function.name = fn.name; // 以最新的 name 为准
+        appendArgs(target, fn.arguments);
+      } else {
+        const newCall = {
           id,
-          type,
-          function: {
-            name: functionCall.name,
-            arguments: functionCall.arguments,
-          },
-        });
+          type: type || "function",
+          function: { name: fn.name, arguments: "" },
+        };
+        appendArgs(newCall, fn.arguments);
+        out.push(newCall);
       }
+      continue;
     }
+
+    // 兜底：此处可按需扩展处理裸参数对象等情况
   }
-  return newAccumulatedCalls;
+
+  return out;
 }
