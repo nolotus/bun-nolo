@@ -1,7 +1,5 @@
-// render/web/ui/ModeToggle.tsx
-import { useTheme } from "app/theme";
-import { PencilIcon, EyeIcon } from "@primer/octicons-react";
 import type React from "react";
+import { LuEye, LuPencil } from "react-icons/lu";
 
 interface ModeToggleProps {
   isEdit: boolean;
@@ -14,70 +12,85 @@ const ModeToggle: React.FC<ModeToggleProps> = ({
   onChange,
   disabled = false,
 }) => {
-  const theme = useTheme();
-
   return (
     <>
-      <div className="mode-toggle">
-        <div className="slider-track" />
-        <div className={`active-slider ${isEdit ? "edit" : ""}`} />
+      <div
+        className={`mode-toggle ${disabled ? "mode-toggle--disabled" : ""}`}
+        role="group"
+        aria-label="模式切换"
+      >
+        {/* 滑块背景轨道 */}
+        <div
+          className={`mode-toggle__slider ${isEdit ? "mode-toggle__slider--edit" : ""}`}
+        />
+
+        {/* 阅读模式按钮 */}
         <button
-          className={`toggle-button ${!isEdit ? "active" : ""}`}
+          className={`mode-toggle__button ${!isEdit ? "mode-toggle__button--active" : ""}`}
           onClick={() => onChange(false)}
           disabled={disabled}
           type="button"
           aria-label="阅读模式"
+          title="阅读模式"
         >
-          <EyeIcon size={16} />
+          <LuEye className="mode-toggle__icon" />
         </button>
+
+        {/* 编辑模式按钮 */}
         <button
-          className={`toggle-button ${isEdit ? "active" : ""}`}
+          className={`mode-toggle__button ${isEdit ? "mode-toggle__button--active" : ""}`}
           onClick={() => onChange(true)}
           disabled={disabled}
           type="button"
           aria-label="编辑模式"
+          title="编辑模式"
         >
-          <PencilIcon size={16} />
+          <LuPencil className="mode-toggle__icon" />
         </button>
       </div>
 
-      <style>{`
+      <style href="ModeToggle" precedence="components">{`
         .mode-toggle {
           position: relative;
-          display: flex;
-          background: ${theme.backgroundSecondary};
-          padding: 2px;
+          display: inline-flex;
+          align-items: center;
+          /* 使用更深的背景作为凹槽 */
+          background-color: var(--backgroundTertiary);
+          /* 增加 Padding 以制造悬浮感 */
+          padding: 3px;
           border-radius: 8px;
-          gap: 2px;
-          border: 1px solid ${theme.border};
+          border: 1px solid var(--border);
+          width: fit-content;
+          user-select: none;
         }
 
-        .slider-track {
+        .mode-toggle--disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+          filter: grayscale(0.5);
+        }
+
+        .mode-toggle__slider {
           position: absolute;
-          top: 2px;
-          left: 2px;
-          right: 2px;
-          bottom: 2px;
+          /* 宽度扣除左右 padding */
+          width: calc(50% - 3px);
+          top: 3px;
+          bottom: 3px;
+          left: 3px;
+          /* 纯白卡片背景 */
+          background-color: var(--background);
           border-radius: 6px;
+          /* 拟物感核心：稍重的阴影制造厚度 */
+          box-shadow: 0 1px 2px var(--shadowLight), 0 2px 4px var(--shadowMedium);
+          transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+          z-index: 0;
         }
 
-        .active-slider {
-          position: absolute;
-          width: calc(50% - 2px);
-          top: 2px;
-          bottom: 2px;
-          left: 2px;
-          background: ${theme.background};
-          border-radius: 6px;
-          transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-          box-shadow: 0 1px 3px ${theme.shadowLight};
-        }
-
-        .active-slider.edit {
+        .mode-toggle__slider--edit {
           transform: translateX(100%);
         }
 
-        .toggle-button {
+        .mode-toggle__button {
           position: relative;
           z-index: 1;
           display: flex;
@@ -85,30 +98,29 @@ const ModeToggle: React.FC<ModeToggleProps> = ({
           justify-content: center;
           border: none;
           background: transparent;
-          padding: 6px;
+          padding: 0;
+          /* 紧凑的尺寸 */
+          width: 28px;
+          height: 26px;
           border-radius: 6px;
-          color: ${theme.textSecondary};
           cursor: pointer;
-          transition: all 0.15s ease;
-          width: 32px;
-          height: 32px;
+          /* 未选中状态使用更淡的灰色 */
+          color: var(--textQuaternary);
+          transition: color 0.2s ease;
         }
 
-        .toggle-button:hover:not(:disabled) {
-          color: ${theme.textPrimary};
+        .mode-toggle__button:hover:not(:disabled):not(.mode-toggle__button--active) {
+          color: var(--textSecondary);
         }
 
-        .toggle-button.active {
-          color: ${theme.primary};
+        .mode-toggle__button--active {
+          color: var(--primary);
         }
-
-        .toggle-button:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-
-        .mode-toggle:hover .active-slider {
-          background: ${theme.backgroundTertiary};
+        
+        .mode-toggle__icon {
+          width: 14px;
+          height: 14px;
+          stroke-width: 2.5px;
         }
       `}</style>
     </>
