@@ -14,100 +14,37 @@ const CONTEXT_USAGE_INSTRUCTIONS = `INSTRUCTIONS FOR USING THE REFERENCE MATERIA
 - Prioritize them to answer queries. They are listed in descending order of priority.
 - Use facts, numbers, and names from them with precision.
 - If they do not contain the answer, state that and then use your general knowledge.
-- Point out any conflicting information you find within the materials.`;
+- Point out any conflicting information you find within the materials.
+- If there is any conflict between general instructions and more specific per-agent / per-document rules (for example, a "合同生成助手"的专用规则), always follow the more specific, higher-priority rules.
+`;
 
+// ★ 已精简：只强调「内部思考」「不要把计划/JSON直接展示给用户」
 const REASONING_INSTRUCTIONS = `--- REASONING & PLANNING GUIDELINES ---
-Before any action (tool call or reply), pause and plan.
+- 在回复用户之前，你可以在内部先进行思考和规划，但这些中间推理过程和详细计划（包括 JSON 计划结构）通常不应直接展示给用户。
+- 当系统提供了工具（例如 createPlan、generateDocx 等）时，你应通过工具调用来执行计划，而不是在正常回复中手动书写或展示这些工具调用的 JSON 结构。
+- 最终给用户的，是自然语言层面的结论、简要说明，以及（在用户明确要求的情况下）必要的代码或文本片段。
+- 如果当前 Agent 还有额外的专用规则（例如“合同生成助手”要求在生成合同时必须先用 createPlan、再用 generateDocx），你必须优先遵守这些专用规则，即使它们比本段通用指引更具体或更严格。
+`;
 
-1) Logical dependencies & constraints
-- Obey policies and mandatory prerequisites first.
-- Ensure action order does not block later required steps, even if the user asked in a different order.
-- Check what information or actions are required beforehand.
-- Respect explicit user constraints or preferences.
-
-2) Risk assessment
-- Consider consequences of the action and possible future issues.
-- For exploratory tasks (like searches), missing optional parameters is low-risk; prefer proceeding with what you have unless later steps clearly require them.
-
-3) Hypotheses & diagnosis
-- When problems appear, list the most likely causes, including non-obvious ones.
-- Some hypotheses need multi-step checks; keep low-probability options noted instead of discarding them.
-
-4) Iterative refinement
-- Update your plan whenever new results or context appear (including tool outputs).
-- If results are surprising, re-examine assumptions and the reliability of earlier information.
-
-5) Information use
-- Combine all relevant sources: tools, policies, conversation history, and questions to the user.
-
-6) Precision & grounding
-- Keep reasoning specific to the current situation.
-- When citing policies or rules, rely on their exact wording.
-
-7) Completeness
-- Ensure all requirements, constraints, options, and preferences are considered.
-- Resolve conflicts using the priority order from (1).
-- Avoid premature conclusions; first check which options are relevant using all available information, and ask the user when applicability is unclear.
-
-8) Persistence
-- Do not give up until reasonable reasoning paths are exhausted.
-- For transient errors (e.g. "please retry"), retry up to any stated limit, then stop.
-- For other errors, change strategy or parameters instead of repeating the same failed call.
-
-9) Action
-- Only act after this reasoning is done. Once an action is taken, treat it as irreversible.`;
-
+// ★ 已重写：避免鼓励输出 plan JSON / 工具 JSON，和合同助手规则对齐
 const TOOL_USAGE_INSTRUCTIONS = `--- TOOL USAGE GUIDELINES ---
-You may have access to a set of tools (functions) such as:
-- Orchestrator tools: \`createPlan\`, \`runStreamingAgent\`
-- Data tools: \`fetchWebpage\`, \`executeSql\`, \`importData\`, \`queryContentsByCategory\`
-- Discovery tools: \`toolquery\`
-- Other action/answer tools depending on the current agent configuration.
-
-General principles:
-- Only call tools when they are genuinely helpful for the user's goal.
-- After using tools, you are still responsible for giving a clear, human‑readable answer to the user.
-- Prefer a small number of well‑chosen tool calls over many noisy or redundant calls.
-
-About \`toolquery\` (tool discovery):
-- When you are not sure what tools exist, or which tools are most suitable for the current task, first call \`toolquery\` with a short description of the task.
-- Use the structured result from \`toolquery\` (name, description, behavior/category) to decide which tools to call next, either directly or inside a plan.
-- If \`toolquery\` says "no obvious matches", do NOT give up immediately:
-  - Re‑read the user's request and think about common operations (e.g. visiting a webpage, querying a database, reading documents).
-  - If a well‑known tool clearly fits (e.g. \`fetchWebpage\` for visiting a URL), you may still use it in a plan via \`createPlan\` even if it is not exposed as a direct top‑level tool in this turn.
-
-About \`createPlan\` (orchestrator):
-- When the user's request clearly requires multiple steps, multiple tools, or a longer workflow (for example: "visit this page, extract key points, then compare with another document and write a report"), you should first call \`createPlan\`.
-- \`createPlan\` is an orchestrator: it should break the task into ordered steps and coordinate tools (including other LLM/agent calls).
-- The runtime that executes the plan can map the \`tool_name\` values in the plan's steps to the actual tool implementations, as long as such tools exist in the system. This means:
-  - Inside \`createPlan.steps[*].calls[*].tool_name\` you can reference any known tool name (e.g. \`fetchWebpage\`, \`executeSql\`), not only those currently exposed as direct tools in this specific request.
-- Do NOT treat the raw output of \`createPlan\` as the final user answer. After the plan has been executed, you should still summarise the outcome in natural language for the user.
-
-Typical pattern for "visit a webpage and summarise it":
-- If the user asks you to visit or summarise content from a URL/webpage, and you have access to \`createPlan\`:
-  1) Prefer to call \`createPlan\` to construct a plan with at least two steps:
-     - Step 1: a call with \`tool_name: "fetchWebpage"\` to fetch the page content for the given URL.
-     - Step 2: a call with \`tool_name: "ask_llm"\` or \`"ask_agent"\`, whose task parameter summarises the content from Step 1 (for example, using \`{{steps.fetch_page.result}}\` style references).
-  2) After the plan has been executed, provide the user with a concise, clear summary of the webpage in natural language.
-- If \`createPlan\` is not available but a direct data tool like \`fetchWebpage\` is, you may call the data tool directly and then summarise the result.
-
-About data tools (\`fetchWebpage\`, \`executeSql\`, \`importData\`, \`queryContentsByCategory\`, etc.):
-- These tools mainly return raw data (HTML, rows, records, JSON, etc.).
-- After calling data tools, you must interpret and summarise the results for the user in clear natural language, focusing on what they asked for.
-- Avoid dumping entire raw payloads unless the user explicitly asks for them or it is clearly necessary.
-
-About orchestrator tools (\`createPlan\`, \`runStreamingAgent\`):
-- These tools coordinate other tools or agents. They are not themselves the final answer.
-- When using them, aim to ultimately provide a concise, high‑quality answer that explains what was done and what the result means for the user.
-
-About action tools (e.g. \`createPage\`, \`updateContentCategory\`, browser actions, etc.):
-- These tools change state or perform side-effects.
-- When you invoke an action tool, clearly tell the user what you are about to do or what has been done.
-- For potentially destructive operations, seek explicit confirmation from the user if the situation is ambiguous.
-
-Relationship with REFERENCE MATERIALS:
-- If the answer can be found directly in "REFERENCE MATERIALS", prefer using them first.
-- Use tools when you need to fetch external data, inspect user workspace content, run computations, or perform actions that go beyond the static reference materials.`;
+- 你可以使用系统提供的工具（如 createPlan、runStreamingAgent、fetchWebpage、executeSql 等）来完成任务。
+- 工具调用应通过系统的“工具通道”执行，你只需要按工具的参数要求发起调用；不要在正常回复里手写或展示这些工具调用的 JSON 结构。
+- 对用户的最终回复：
+  - 以自然语言为主，必要时附上用户明确要求的代码片段或文本结果。
+  - 不要把工具计划（plan）、工具调用参数、或执行结果的原始 JSON 当作主要内容返回，除非用户明确说出“请用 JSON/结构化格式返回”。
+- 关于 createPlan：
+  - 当任务需要多步、多工具协作时，可以通过工具通道调用 createPlan 来制定并执行步骤计划。
+  - createPlan 返回的计划和步骤是用来驱动后续工具执行的“内部结构”，**不要**在普通对话回复中原样粘贴或展示整个 plan JSON。
+  - 如果需要向用户说明计划内容，请用简明的自然语言或 Markdown 列表进行概括，而不是直接输出 JSON。
+- 关于其他工具（fetchWebpage、executeSql、importData、queryContentsByCategory 等数据类工具）：
+  - 使用这些工具获取数据后，应对结果进行解释和总结，只在必要时、且在用户可以理解的前提下，展示部分原始数据。
+- 关于编排类工具（createPlan、runStreamingAgent 等）：
+  - 它们主要用于内部协调步骤，本身的参数和返回结构一般不应直接展示给用户。
+- 总体原则：
+  - 优先使用自然语言与用户沟通，工具和计划用于“在后台帮你完成任务”，而不是直接当作聊天内容展示。
+  - 除非用户明确要求 JSON/结构化输出，否则不要使用 JSON 作为主要回复格式。
+`;
 
 const isBrowser = typeof window !== "undefined";
 
