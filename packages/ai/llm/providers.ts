@@ -2,7 +2,6 @@
 import { anthropicModels } from "integrations/anthropic/anthropicModels";
 import { deepSeekModels } from "integrations/deepseek/models";
 import { googleModels } from "integrations/google/models";
-import { mistralModels } from "integrations/mistral/models";
 // import { openAIModels } from "integrations/openai/models";
 import { ollamaModels } from "integrations/ollama/models";
 import { openrouterModels } from "integrations/openrouter/models";
@@ -18,7 +17,6 @@ const allModels: Model[] = [
   ...anthropicModels,
   ...deepSeekModels,
   ...googleModels,
-  ...mistralModels,
   // ...openAIModels,
   ...ollamaModels,
   ...openrouterModels,
@@ -35,7 +33,6 @@ const MODEL_MAP = {
   anthropic: anthropicModels,
   ollama: ollamaModels,
   deepseek: deepSeekModels,
-  mistral: mistralModels,
   google: googleModels,
   // openai: openAIModels,
   openrouter: openrouterModels,
