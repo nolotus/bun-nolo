@@ -68,9 +68,22 @@ const processToolData = createAsyncThunk(
   async (args: ProcessToolDataPayload, thunkApi: AppThunkApi) => {
     const { toolCall, parentMessageId } = args;
     const { dispatch, rejectWithValue } = thunkApi;
-    console.log("args", args);
+
+    console.log(
+      "[ToolThunks/processToolData] ===== START ===== parentMessageId:",
+      parentMessageId
+    );
+    console.log(
+      "[ToolThunks/processToolData] incoming toolCall:",
+      JSON.stringify(toolCall, null, 2)
+    );
+
     const func = toolCall.function;
     if (!func || !func.name) {
+      console.error(
+        "[ToolThunks/processToolData] Invalid tool call data: missing function or function.name",
+        toolCall
+      );
       throw new Error(
         "Invalid tool call data: missing function or function.name"
       );
@@ -79,22 +92,72 @@ const processToolData = createAsyncThunk(
     const rawToolName = func.name;
     let toolArgs = func.arguments;
 
-    const { executor: handler, canonicalName } = findToolExecutor(rawToolName);
+    console.log(
+      "[ToolThunks/processToolData] rawToolName:",
+      rawToolName,
+      "typeof arguments:",
+      typeof toolArgs
+    );
+
+    let handler: any;
+    let canonicalName: string;
+
+    try {
+      const found = findToolExecutor(rawToolName);
+      handler = found.executor;
+      canonicalName = found.canonicalName;
+      console.log(
+        "[ToolThunks/processToolData] findToolExecutor result -> canonicalName:",
+        canonicalName,
+        "handler exists:",
+        !!handler
+      );
+    } catch (e: any) {
+      console.error(
+        "[ToolThunks/processToolData] findToolExecutor FAILED for rawToolName:",
+        rawToolName,
+        "error:",
+        e
+      );
+      throw e;
+    }
 
     // === 关键修复点：对字符串 arguments 先做清洗，再 JSON.parse ===
     if (typeof toolArgs === "string") {
+      console.log(
+        "[ToolThunks/processToolData] raw toolArgs string (first 200 chars):",
+        String(toolArgs).slice(0, 200)
+      );
       const cleaned = cleanToolArguments(toolArgs);
+      console.log(
+        "[ToolThunks/processToolData] cleaned toolArgs string (first 200 chars):",
+        cleaned.slice(0, 200)
+      );
 
       try {
         toolArgs = JSON.parse(cleaned);
+        console.log(
+          "[ToolThunks/processToolData] parsed toolArgs keys:",
+          typeof toolArgs === "object" && toolArgs
+            ? Object.keys(toolArgs)
+            : "(non-object)"
+        );
       } catch (e) {
         console.error(
-          "[processToolData] toolArgs JSON.parse failed. raw:",
+          "[ToolThunks/processToolData] toolArgs JSON.parse failed. raw:",
           toolArgs
         );
-        console.error("[processToolData] toolArgs after clean:", cleaned);
+        console.error(
+          "[ToolThunks/processToolData] toolArgs after clean:",
+          cleaned
+        );
         throw new Error(`Failed to parse tool arguments JSON: ${e}`);
       }
+    } else {
+      console.log(
+        "[ToolThunks/processToolData] toolArgs is non-string, value:",
+        toolArgs
+      );
     }
 
     const toolRunId = createToolRunId();
@@ -102,6 +165,15 @@ const processToolData = createAsyncThunk(
     const behavior = def?.behavior;
     const interaction = def?.interaction ?? "auto";
     const inputSummary = JSON.stringify(toolArgs).slice(0, 400);
+
+    console.log(
+      "[ToolThunks/processToolData] tool definition:",
+      canonicalName,
+      "behavior:",
+      behavior,
+      "interaction:",
+      interaction
+    );
 
     dispatch(
       toolRunStarted({
@@ -117,6 +189,9 @@ const processToolData = createAsyncThunk(
 
     // ===== applyDiff：只做预览 + pending，不真正执行 =====
     if (canonicalName === "applyDiff") {
+      console.log(
+        "[ToolThunks/processToolData] special-case applyDiff preview path"
+      );
       try {
         const filePath = toolArgs?.filePath || "(未提供文件路径)";
         const diffText =
@@ -151,6 +226,11 @@ const processToolData = createAsyncThunk(
           })
         );
 
+        console.log(
+          "[ToolThunks/processToolData] applyDiff preview completed, toolRunId:",
+          toolRunId
+        );
+
         return {
           displayContent,
           rawResult: {
@@ -169,6 +249,11 @@ const processToolData = createAsyncThunk(
           type: "text",
           text: `\n[Tool Execution Error: ${rawToolName} (preview)] ${errorMessage}\n`,
         };
+
+        console.error(
+          "[ToolThunks/processToolData] applyDiff preview ERROR:",
+          e
+        );
 
         dispatch(
           toolRunFailed({
@@ -189,6 +274,9 @@ const processToolData = createAsyncThunk(
     try {
       // runStreamingAgent：把对话交给子 Agent，不在当前消息继续输出
       if (canonicalName === "runStreamingAgent") {
+        console.log(
+          "[ToolThunks/processToolData] special-case runStreamingAgent path"
+        );
         try {
           // 注意：这里假设模型传入的字段名为 agentKey / userInput
           await dispatch(
@@ -206,6 +294,11 @@ const processToolData = createAsyncThunk(
             })
           );
 
+          console.log(
+            "[ToolThunks/processToolData] runStreamingAgent handoff done, toolRunId:",
+            toolRunId
+          );
+
           return {
             hasHandedOff: true,
             toolName: canonicalName,
@@ -216,6 +309,11 @@ const processToolData = createAsyncThunk(
             type: "text",
             text: `\n[Agent Failed to Start] ${e.message}\n`,
           };
+
+          console.error(
+            "[ToolThunks/processToolData] runStreamingAgent ERROR:",
+            e
+          );
 
           dispatch(
             toolRunFailed({
@@ -232,23 +330,49 @@ const processToolData = createAsyncThunk(
         }
       }
 
+      console.log(
+        "[ToolThunks/processToolData] about to call handler for canonicalName:",
+        canonicalName
+      );
+
       const toolResult = await handler(toolArgs, thunkApi, {
         parentMessageId,
       });
 
+      console.log(
+        "[ToolThunks/processToolData] handler resolved. canonicalName:",
+        canonicalName,
+        "toolResult:",
+        toolResult
+      );
+
       let displayContent;
       const displayData = toolResult?.displayData;
-      console.log("toolArgs", toolArgs);
+      console.log(
+        "[ToolThunks/processToolData] displayData (first 200 chars):",
+        typeof displayData === "string"
+          ? displayData.slice(0, 200)
+          : JSON.stringify(displayData)?.slice(0, 200)
+      );
+      console.log(
+        "[ToolThunks/processToolData] final toolArgs passed to handler:",
+        toolArgs
+      );
 
       if (canonicalName === "createPlan") {
-        console.log("plan");
+        console.log(
+          "[ToolThunks/processToolData] >>> entering createPlan branch"
+        );
 
         displayContent = {
           type: "text",
           text: displayData || "[Plan executed, but no report was generated.]",
         };
       } else {
-        console.log("normal tool ");
+        console.log(
+          "[ToolThunks/processToolData] normal tool branch, canonicalName:",
+          canonicalName
+        );
         const text =
           displayData ||
           `${canonicalName.replace(/_/g, " ")} executed successfully.`;
@@ -265,6 +389,14 @@ const processToolData = createAsyncThunk(
         })
       );
 
+      console.log(
+        "[ToolThunks/processToolData] toolRunSucceeded dispatched. toolRunId:",
+        toolRunId,
+        "canonicalName:",
+        canonicalName
+      );
+      console.log("[ToolThunks/processToolData] ===== END (success) =====");
+
       return {
         displayContent,
         rawResult: toolResult.rawData,
@@ -279,12 +411,23 @@ const processToolData = createAsyncThunk(
         text: `\n[Tool Execution Error: ${rawToolName}] ${errorMessage}\n`,
       };
 
+      console.error(
+        "[ToolThunks/processToolData] ERROR in handler. rawToolName:",
+        rawToolName,
+        "canonicalName:",
+        canonicalName,
+        "error:",
+        e
+      );
+
       dispatch(
         toolRunFailed({
           id: toolRunId,
           error: errorMessage,
         })
       );
+
+      console.log("[ToolThunks/processToolData] ===== END (error path) =====");
 
       return rejectWithValue({
         displayContent: errorContent,
@@ -317,6 +460,21 @@ export const handleToolCalls = createAsyncThunk(
     } = args;
     const { dispatch } = thunkApi;
 
+    console.log(
+      "[ToolThunks/handleToolCalls] ===== START ===== messageId:",
+      messageId,
+      "dialogId:",
+      dialogId
+    );
+    console.log(
+      "[ToolThunks/handleToolCalls] accumulatedCalls length:",
+      accumulatedCalls.length
+    );
+    console.log(
+      "[ToolThunks/handleToolCalls] accumulatedCalls detail:",
+      JSON.stringify(accumulatedCalls, null, 2)
+    );
+
     // 不再把 tool 输出塞回 assistant 文本，避免重复。
     const updatedContentBuffer = [...currentContentBuffer];
     let hasHandedOff = false;
@@ -327,7 +485,18 @@ export const handleToolCalls = createAsyncThunk(
     let hasDataTool = false;
 
     for (const toolCall of accumulatedCalls) {
-      if (!toolCall.function?.name) continue;
+      if (!toolCall.function?.name) {
+        console.warn(
+          "[ToolThunks/handleToolCalls] skip toolCall without function.name:",
+          toolCall
+        );
+        continue;
+      }
+
+      console.log(
+        "[ToolThunks/handleToolCalls] processing toolCall.function.name:",
+        toolCall.function.name
+      );
 
       try {
         const result = await dispatch(
@@ -337,12 +506,25 @@ export const handleToolCalls = createAsyncThunk(
           })
         ).unwrap();
 
+        console.log(
+          "[ToolThunks/handleToolCalls] processToolData result:",
+          result
+        );
+
         if (result.hasHandedOff) {
+          console.log(
+            "[ToolThunks/handleToolCalls] hasHandedOff = true, break loop."
+          );
           hasHandedOff = true;
           break;
         }
 
         if (result.displayContent && result.toolName) {
+          console.log(
+            "[ToolThunks/handleToolCalls] creating tool message for toolName:",
+            result.toolName
+          );
+
           const { key: toolDbKey, messageId: toolMessageId } =
             createDialogMessageKeyAndId(dialogId);
 
@@ -361,6 +543,12 @@ export const handleToolCalls = createAsyncThunk(
 
           // 1) 先更新 Redux 内存
           dispatch(addToolMessage(toolMessage));
+          console.log(
+            "[ToolThunks/handleToolCalls] tool message added to Redux. id:",
+            toolMessageId,
+            "toolName:",
+            result.toolName
+          );
 
           // 2) 再持久化到 DB（方式与助手消息一致）
           const { controller, ...messageToWrite } = toolMessage as any;
@@ -371,9 +559,21 @@ export const handleToolCalls = createAsyncThunk(
             })
           );
 
+          console.log(
+            "[ToolThunks/handleToolCalls] tool message written to DB. dbKey:",
+            toolDbKey
+          );
+
           // === 统计本轮工具行为，用于自动 follow‑up ===
           const def = toolDefinitionsByName[result.toolName];
           const behavior = def?.behavior ?? "action";
+
+          console.log(
+            "[ToolThunks/handleToolCalls] tool behavior:",
+            behavior,
+            "for toolName:",
+            result.toolName
+          );
 
           if (behavior === "data") {
             hasDataTool = true;
@@ -386,8 +586,18 @@ export const handleToolCalls = createAsyncThunk(
           } else if (behavior === "orchestrator") {
             hadOrchestrator = true;
           }
+        } else {
+          console.warn(
+            "[ToolThunks/handleToolCalls] result without displayContent or toolName:",
+            result
+          );
         }
       } catch (rejectedValue: any) {
+        console.error(
+          "[ToolThunks/handleToolCalls] processToolData rejected. value:",
+          rejectedValue
+        );
+
         if (rejectedValue.displayContent && rejectedValue.toolName) {
           const { key: toolDbKey, messageId: toolMessageId } =
             createDialogMessageKeyAndId(dialogId);
@@ -419,6 +629,13 @@ export const handleToolCalls = createAsyncThunk(
           const def = toolDefinitionsByName[rejectedValue.toolName];
           const behavior = def?.behavior ?? "action";
 
+          console.log(
+            "[ToolThunks/handleToolCalls] rejected tool behavior:",
+            behavior,
+            "for toolName:",
+            rejectedValue.toolName
+          );
+
           if (behavior === "data") {
             hasDataTool = true;
             const text =
@@ -436,6 +653,15 @@ export const handleToolCalls = createAsyncThunk(
       // 不再调用 messageStreaming 更新 assistant 文本；
       // assistant 内容只来自模型自然语言回复。
     }
+
+    console.log(
+      "[ToolThunks/handleToolCalls] ===== END ===== hasHandedOff:",
+      hasHandedOff,
+      "hadOrchestrator:",
+      hadOrchestrator,
+      "hasDataTool:",
+      hasDataTool
+    );
 
     return {
       finalContentBuffer: updatedContentBuffer,

@@ -59,7 +59,7 @@ const buildRequestBody = (options: BuildRequestBodyOptions): any => {
   const bodyData: any = { model, messages, stream: true };
   if (model.includes("moonshotai/kimi-k2-thinking")) {
     bodyData.provider = {
-      order: ["fireworks", "google-vertex", "moonshotai/int4"],
+      only: ["fireworks", "google-vertex", "moonshotai/int4"],
     };
   }
   if (["google", "openrouter", "xai", "openai"].includes(providerName)) {
