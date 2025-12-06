@@ -34,6 +34,33 @@ export interface ProcessToolDataPayload {
   parentMessageId: string;
 }
 
+// ========= 工具函数：清洗带有模型标记的 tool arguments ===========
+
+/**
+ * 部分模型会在 tool.arguments 末尾追加内部标记
+ * 如："<|tool_calls_section_end|>"，导致 JSON.parse 失败。
+ * 这里在真正解析前做一次统一清洗。
+ */
+const TOOL_ARGS_SENTINELS = [
+  "<|tool_calls_section_end|>",
+  "<|tool_calls_end|>",
+  "<|endofjson|>",
+];
+
+function cleanToolArguments(argStr: string): string {
+  if (!argStr) return argStr;
+
+  let cleaned = argStr;
+  for (const s of TOOL_ARGS_SENTINELS) {
+    const idx = cleaned.indexOf(s);
+    if (idx >= 0) {
+      cleaned = cleaned.slice(0, idx);
+    }
+  }
+
+  return cleaned.trim();
+}
+
 // ========= processToolData ===========
 
 const processToolData = createAsyncThunk(
@@ -54,10 +81,18 @@ const processToolData = createAsyncThunk(
 
     const { executor: handler, canonicalName } = findToolExecutor(rawToolName);
 
+    // === 关键修复点：对字符串 arguments 先做清洗，再 JSON.parse ===
     if (typeof toolArgs === "string") {
+      const cleaned = cleanToolArguments(toolArgs);
+
       try {
-        toolArgs = JSON.parse(toolArgs);
+        toolArgs = JSON.parse(cleaned);
       } catch (e) {
+        console.error(
+          "[processToolData] toolArgs JSON.parse failed. raw:",
+          toolArgs
+        );
+        console.error("[processToolData] toolArgs after clean:", cleaned);
         throw new Error(`Failed to parse tool arguments JSON: ${e}`);
       }
     }
@@ -155,10 +190,11 @@ const processToolData = createAsyncThunk(
       // runStreamingAgent：把对话交给子 Agent，不在当前消息继续输出
       if (canonicalName === "runStreamingAgent") {
         try {
+          // 注意：这里假设模型传入的字段名为 agentKey / userInput
           await dispatch(
             streamAgentChatTurn({
               cybotId: toolArgs.agentKey,
-              userInput: toolArgsInput,
+              userInput: toolArgs.userInput,
               parentMessageId,
             })
           ).unwrap();
@@ -327,7 +363,7 @@ export const handleToolCalls = createAsyncThunk(
           dispatch(addToolMessage(toolMessage));
 
           // 2) 再持久化到 DB（方式与助手消息一致）
-          const { controller, ...messageToWrite } = toolMessage;
+          const { controller, ...messageToWrite } = toolMessage as any;
           await dispatch(
             write({
               data: { ...messageToWrite, type: DataType.MSG },
@@ -371,7 +407,7 @@ export const handleToolCalls = createAsyncThunk(
 
           dispatch(addToolMessage(toolMessage));
 
-          const { controller, ...messageToWrite } = toolMessage;
+          const { controller, ...messageToWrite } = toolMessage as any;
           await dispatch(
             write({
               data: { ...messageToWrite, type: DataType.MSG },
