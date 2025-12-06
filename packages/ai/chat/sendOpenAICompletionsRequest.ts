@@ -1,4 +1,4 @@
-// chat/messages/messageThunks.ts
+// chat/sendOpenAICompletionsRequest.ts（或你的原始文件名）
 
 import {
   addActiveController,
@@ -16,13 +16,13 @@ import { selectCurrentToken } from "auth/authSlice";
 import { extractCustomId } from "core/prefix";
 
 import { performFetchRequest } from "./fetchUtils";
-import { createSSEParser } from "./parseMultilineSSE"; // 使用修复后的 SSE 解析器
+import { createSSEParser } from "./parseMultilineSSE";
 import { parseApiError } from "./parseApiError";
 import { updateTotalUsage } from "./updateTotalUsage";
 import { accumulateToolCallChunks } from "./accumulateToolCallChunks";
 import { prepareTools } from "../tools/prepareTools";
 
-// 追加文本 chunk 到 contentBuffer（与你原来的实现保持一致）
+// 追加文本 chunk 到 contentBuffer
 function appendTextChunk(
   currentContentBuffer: any[],
   textChunk: string
@@ -42,7 +42,7 @@ function appendTextChunk(
   return updatedContentBuffer;
 }
 
-// 自动 follow-up 总结逻辑（保持你原来的行为）
+// 自动 follow‑up 总结逻辑
 async function autoFollowupIfNeeded(params: {
   hasOrchestrator: boolean;
   hasDataTool: boolean;
@@ -84,6 +84,7 @@ async function autoFollowupIfNeeded(params: {
       toolText,
   };
 
+  // 从 bodyData 里去掉 tools / tool_choice（基础层）
   const { tools: _tools, tool_choice: _toolChoice, ...restBody } = bodyData;
 
   const followupBody = {
@@ -91,11 +92,13 @@ async function autoFollowupIfNeeded(params: {
     messages: [...originalMessages, followupUserMessage],
   };
 
+  // 关键：这一次 follow‑up 请求，彻底禁用工具
   await sendOpenAICompletionsRequest({
     bodyData: followupBody,
     cybotConfig,
     thunkApi,
     dialogKey,
+    disableToolsForThisRequest: true, // ⭐ 自动总结这轮禁止工具
     // 不传 parentMessageId：总结作为一条新的 assistant 消息
   });
 }
@@ -107,12 +110,14 @@ export const sendOpenAICompletionsRequest = async ({
   thunkApi,
   dialogKey,
   parentMessageId,
+  disableToolsForThisRequest = false, // ⭐ 新增参数，默认允许工具
 }: {
   bodyData: any;
   cybotConfig: any;
   thunkApi: any;
   dialogKey: string;
   parentMessageId?: string;
+  disableToolsForThisRequest?: boolean; // ⭐ 新增
 }) => {
   const { dispatch, getState, signal: thunkSignal } = thunkApi;
   const dialogId = extractCustomId(dialogKey);
@@ -137,7 +142,8 @@ export const sendOpenAICompletionsRequest = async ({
   dispatch(addActiveController({ messageId, controller }));
 
   // tools 配置：如果 cybot 带工具，则在请求体里挂上 tools / tool_choice
-  if (cybotConfig.tools?.length > 0) {
+  // ⭐ 这里加入 disableToolsForThisRequest 判断
+  if (!disableToolsForThisRequest && cybotConfig.tools?.length > 0) {
     const tools = prepareTools(cybotConfig.tools);
     if (tools.length > 0) {
       bodyData.tools = tools;
@@ -173,7 +179,7 @@ export const sendOpenAICompletionsRequest = async ({
     );
   };
 
-  // 为本次请求创建独立的 SSE 解析器实例（避免并发污染）
+  // 为本次请求创建独立的 SSE 解析器实例
   const parseSSE = createSSEParser();
 
   try {
@@ -266,7 +272,6 @@ export const sendOpenAICompletionsRequest = async ({
       }
 
       const chunk = decoder.decode(value, { stream: true });
-      // 解析当前 chunk 对应的一个或多个 SSE 事件（底层已经有“原始 chunk”日志）
       const parsedResults = parseSSE(chunk);
 
       console.log(
@@ -297,7 +302,7 @@ export const sendOpenAICompletionsRequest = async ({
           if (!choice) continue;
           const delta = choice.delta || {};
 
-          // 推理内容缓冲（如果你启用了 reasoning_content）
+          // 推理内容缓冲
           if (delta.reasoning_content) {
             reasoningBuffer += delta.reasoning_content;
           }

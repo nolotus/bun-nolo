@@ -59,7 +59,7 @@ const fetchWithServerProxy = async ({
       body: JSON.stringify({
         ...bodyData,
         url: api,
-        provider: cybotConfig.provider,
+        provider: bodyData.provider || cybotConfig.provider,
         KEY: cybotConfig.apiKey, // 在请求体中传递 apiKey
       }),
       signal, // 可选参数，直接传递

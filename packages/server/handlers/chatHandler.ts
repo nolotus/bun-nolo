@@ -299,8 +299,16 @@ export async function handleChatRequest(req: Request, extraHeaders = {}) {
       imageUrlCount: checkResult.imageUrlCount,
       estimatedCost: checkResult.estimatedCost,
     });
-
-    const apiKey = KEY?.trim() || getNoloKey(provider);
+    console.log("provider", provider);
+    let apiKey;
+    console.log('typeof provider === "object"', typeof provider === "object");
+    if (!!KEY) {
+      apiKey = KEY?.trim();
+    } else if (typeof provider === "object") {
+      apiKey = getNoloKey("openrouter");
+    } else {
+      apiKey = getNoloKey(provider);
+    }
     if (!apiKey) {
       logger.warn("API密钥缺失", { provider, userId });
       return new Response(
@@ -317,17 +325,20 @@ export async function handleChatRequest(req: Request, extraHeaders = {}) {
         }
       );
     }
+    console.log("apiKey", apiKey);
 
-    const headers = provider.includes("anthropic")
-      ? {
-          "Content-Type": "application/json",
-          "x-api-key": apiKey,
-          "anthropic-version": "2023-06-01",
-        }
-      : {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
-        };
+    const headers = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    };
+    // provider.includes("anthropic")
+    //   ? {
+    //       "Content-Type": "application/json",
+    //       "x-api-key": apiKey,
+    //       "anthropic-version": "2023-06-01",
+    //     }
+    //   :
+    console.log("headers", headers);
 
     // 全部都用 300s
     const TIMEOUT = 300_000;
@@ -335,7 +346,7 @@ export async function handleChatRequest(req: Request, extraHeaders = {}) {
     const timer = setTimeout(() => controller.abort("timeout"), TIMEOUT);
 
     logger.info("发送上游请求", { url, provider, model, timeout: TIMEOUT });
-
+    console.log("body", body);
     const upstream = await fetch(url, {
       method: "POST",
       headers,
