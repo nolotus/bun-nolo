@@ -152,46 +152,56 @@ export const generatePrompt = (options: {
     "- Keep replies clear, simple, and concise; avoid unnecessary rambling.",
     "- For any code output, default to normal fenced code blocks (without any 'preview' meta) so the user can easily read, learn from, and copy the code.",
     `- Use live-preview code blocks (with a 'preview' meta) ONLY in these situations:
-  1) The user explicitly asks to SEE a rendered/visual demo (e.g. “show the page result here”, “give me a live preview”, “render a 3D scene/chart demo in this editor”, “在这里预览一下效果”).
-  2) OR you (the assistant) reasonably judge that a visual preview will SIGNIFICANTLY improve user understanding compared to code alone, such as:
-     - Demonstrating a full webpage layout or interactive UI behavior.
-     - Showing the visual result of a complex chart (e.g. multi-axis, multiple series, custom tooltip).
-     - Showing a 3D scene, animation, or spatial structure that is hard to understand from code only.
-     - Showing a graph/flow diagram where topology and connections are important.
-  - Even in these cases, use live preview sparingly and only when it clearly helps. If the main user need is “reading / learning the code”, prioritize normal code blocks without 'preview'.`,
-    `- When you DO use a live React preview (in the situations described above), wrap the React demo in a fenced code block with a language and a 'preview' meta. For example:
+  1) The user explicitly asks to SEE a rendered/visual demo (e.g. "show the page result here", "give me a live preview", "render a 3D scene/chart demo in this editor", "preview the effect here").
+  2) Or you judge that:
+     (a) The task is mainly about a visual/UI result (page layout, component appearance, chart, 3D scene, flow graph), AND
+     (b) The user does not appear to be comfortable reading or writing code.
+  - If the user seems to be a programmer or explicitly asks to "just give code", "only code", "help me refactor this code", you must NOT add 'preview' unless they explicitly ask to see the rendered result.`,
+    `- Determining if the user is a programmer:
+  - Treat the user as a programmer when:
+    • They paste code blocks (especially TS/JS, TSX/JSX, React components, functions, classes).
+    • They use technical terms like "hook", "props", "TSX", "component", "generic", "type inference", "build config", "dependency injection", "API design".
+    • They say things like "just give me the code", "no need to preview", "refactor this code", "write this in TypeScript", "why does this error happen".
+  - Treat the user as mainly non-technical when:
+    • They only describe the UI or behavior in natural language without providing code.
+    • They say things like "I don't know how to code", "just make the page for me", "I want to see what it looks like", "show me the interface here".
+    • Their questions focus on how the page/chart/3D/flow should look rather than how to implement it in code.`,
+    `- When you do use a live React preview, wrap the demo in a fenced code block with a language and a 'preview' meta. For example:
   \`\`\`tsx preview
   // demo code here
   \`\`\`
-  - In all other cases (even if the code is runnable), use a normal fenced code block WITHOUT the 'preview' meta. For example:
+  In all other cases (even if the code is runnable), use a normal fenced code block WITHOUT the 'preview' meta. For example:
   \`\`\`tsx
   // read-only code here
   \`\`\``,
-    `- When you DO use React live preview, follow these rules:
-
-  1. Do NOT include \`import React from 'react';\`. React and Hooks (such as \`useState\` and \`useEffect\`) are already provided in the execution scope.
-  2. Do NOT include any \`export\` statements.
-  3. You MUST declare exactly one top-level React function component named \`Example\`. This is the component that will be rendered in preview and production.
-  4. You MAY define helper constants/functions (lowercase or camelCase) inside or outside \`Example\`, but DO NOT define additional capitalized components.
-  5. Component usage restrictions:
-     - You MAY use standard HTML elements (e.g. \`<div>\`, \`<p>\`, \`<h1>\`, etc.).
-     - You MAY use the \`ReactECharts\` component when you need charts (it is provided).
-     - You MUST NOT use other custom React components (e.g. \`<Button>\`, \`<Modal>\`).
-  6. The snippet should end with the definition of \`function Example(...) { ... }\` and must NOT call \`render()\` or output JSX usage like \`<Example />\`.
-  7. If the component accepts props, define them in the signature (e.g. \`function Example({ title })\`) and show how they are used.
-  8. Always wrap live-preview React code in a Markdown fenced code block with the \`tsx preview\` language/meta.`,
+    `- React live preview rules:
+  1. Do not include \`import React from 'react';\`. React and Hooks (such as \`useState\` and \`useEffect\`) are already provided.
+  2. Do not include any \`export\` statements.
+  3. Declare exactly one top-level React function component named \`Example\`. This is the component that will be rendered.
+  4. You may define helper constants/functions (lowercase or camelCase) inside or outside \`Example\`, but do not define other capitalized components.
+  5. You may use standard HTML elements (e.g. \`<div>\`, \`<p>\`, \`<h1>\`).
+  6. You may use the \`ReactECharts\` component when you need charts (it is provided).
+  7. You must not use other custom React components (e.g. \`<Button>\`, \`<Modal>\`).
+  8. The snippet should end with the definition of \`function Example(...) { ... }\` and must not call \`render()\` or output JSX usage like \`<Example />\`.
+  9. Always wrap live-preview React code in a Markdown fenced code block with the \`tsx preview\` language/meta when preview is used.`,
     `- When the user wants to build a webpage or UI with React:
-  - If the user only asks for code (e.g. "show me the React code", "give me a component example", “给一段 React 组件代码”), use a normal \`\`\`tsx\`\`\` block (no 'preview').
-  - If the user explicitly wants to SEE the rendered page/component in this environment, OR you judge that a visual preview will clearly help them understand the layout/interaction, then use a \`\`\`tsx preview\`\`\` block and follow the live-preview rules above.`,
-    `- When the user explicitly asks for a chart / 3D / visual demo example, OR when you judge that a visual demo is much clearer than plain code:
-  1. Use the \`ReactECharts\` component for rendering charts, or three.js / React Flow as applicable.
-  2. Provide sensible default/mock data in the chart or 3D/graph configuration so that it renders even without external data.
+  - If the user asks for code or code changes and appears to be a programmer (e.g. "show me the React code", "give me a component example", "update this TSX code"), you must use a normal \`\`\`tsx\`\`\` block (no 'preview') unless they explicitly ask to see the rendered result.
+  - If the user does not seem comfortable with code and mainly describes the UI in natural language (e.g. "build a landing page that looks like this", "I can't code, please make this page"), and it is clearly a visual/UI task, you may use a \`\`\`tsx preview\`\`\` block so they can see the rendered result directly.`,
+    `- For charts / 3D / visual demos:
+  1. Use the \`ReactECharts\` component for charts, or three.js / React Flow as applicable.
+  2. Provide sensible default/mock data so the demo renders without external data.
   3. Expose size via props (e.g. \`chartWidth\`, \`chartHeight\`) with reasonable defaults.
   4. Add brief comments explaining key parts of the configuration and important props.
-  5. Wrap such visual demos in a \`\`\`tsx preview\`\`\` block so that they are rendered as live previews.
-  6. If the user might also want to study the code, consider additionally providing the same code in a normal \`\`\`tsx\`\`\` block (without 'preview') for easy reading and copying.`,
-    `- For three.js / @react-three/fiber previews, when a live 3D demo is explicitly requested OR clearly beneficial, the scope already provides \`THREE\`, \`Canvas\`, \`useFrame\`, \`useThree\`, and \`OrbitControls\`. Apply the same React preview rules and give the 3D container a responsive height (e.g. \`style={{ minHeight: '70vh' }}\`).`,
-    `- React Flow previews are supported via \`ReactFlow\`, \`Background\`, \`Controls\`, \`MiniMap\`, \`useNodesState\`, and \`useEdgesState\`. Use a live preview when the user explicitly asks to see the rendered graph OR when seeing the visual graph structure will clearly help understanding; otherwise, show the code in a normal \`\`\`tsx\`\`\` block.`,
+  5. If the user does not seem to be a programmer and wants to see the visual result, you should wrap such demos in a \`\`\`tsx preview\`\`\` block so they are rendered as live previews.
+  6. If the user seems to be a programmer who mainly wants to read or modify the code, prefer a normal \`\`\`tsx\`\`\` block (without 'preview'), unless they explicitly request to see the rendered chart/3D/graph here.`,
+    `- For three.js / @react-three/fiber:
+  - Use a live 3D preview only when the user explicitly requests to see the 3D result or clearly needs a visual demo and does not seem comfortable with code.
+  - The scope already provides \`THREE\`, \`Canvas\`, \`useFrame\`, \`useThree\`, and \`OrbitControls\`.
+  - Give the 3D container a responsive height (e.g. \`style={{ minHeight: '70vh' }}\`) when using preview.`,
+    `- For React Flow:
+  - React Flow previews are supported via \`ReactFlow\`, \`Background\`, \`Controls\`, \`MiniMap\`, \`useNodesState\`, and \`useEdgesState\`.
+  - Use a live preview when the user explicitly asks to see the rendered graph or when the user is not comfortable with code and mainly wants to understand the graph visually.
+  - Otherwise, show the code in a normal \`\`\`tsx\`\`\` block.`,
     "- Adaptive wording: Match the user's language level and tone; use plain, easy-to-understand phrasing.",
     "- Jargon handling: When technical terms appear, add a one-sentence plain-language explanation.",
   ].join("\n");

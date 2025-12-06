@@ -274,6 +274,22 @@ export const openrouterModels = [
     contextWindow: 400000,
     supportsTool: true,
   },
+  // =================================================================
+  // [NEW] OpenAI: GPT-5.1-Codex-Max
+  // =================================================================
+  {
+    name: "openai/gpt-5.1-codex-max",
+    displayName: "OpenAI: GPT-5.1-Codex-Max",
+    hasVision: true,
+    price: {
+      input: 1.25 * 9,
+      output: 10 * 9,
+      webSearch: 10 * 9,
+    },
+    maxOutputTokens: 200000,
+    contextWindow: 400000,
+    supportsTool: true,
+  },
   {
     name: "openai/gpt-5:online",
     displayName: "OpenAI: GPT-5 (Online)",
@@ -391,6 +407,32 @@ export const openrouterModels = [
       output: 1.2 * 9, // 11→9
     },
     maxOutputTokens: 32800,
+    contextWindow: 262144,
+    supportsTool: true,
+  },
+
+  // --- Mistral Models ---
+  {
+    name: "mistralai/ministral-14b-2512",
+    displayName: "Mistral: Ministral 3 14B 2512",
+    hasVision: false,
+    price: {
+      input: 0.2 * 9,
+      output: 0.2 * 9,
+    },
+    maxOutputTokens: 262144,
+    contextWindow: 262144,
+    supportsTool: true,
+  },
+  {
+    name: "mistralai/mistral-large-2512",
+    displayName: "Mistral: Mistral Large 3 2512",
+    hasVision: true,
+    price: {
+      input: 0.5 * 9,
+      output: 1.5 * 9,
+    },
+    maxOutputTokens: 262144,
     contextWindow: 262144,
     supportsTool: true,
   },
