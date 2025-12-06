@@ -236,16 +236,16 @@ export async function handleChatRequest(req: Request, extraHeaders = {}) {
   logger.info("用户余额检查", { userId, balance });
 
   try {
-    const { url, KEY, provider = "", ...body } = await req.json();
+    const { url, KEY, ...body } = await req.json();
+
     logger.info("处理聊天请求", {
       url,
-      provider,
       hasKey: !!KEY,
       userId,
       bodyKeys: Object.keys(body),
     });
 
-    const { model, messages } = body;
+    const { model, messages, provider } = body;
 
     // 正确显示messages，包含格式化输出
     logger.info("=== Messages Debug Info ===", {
@@ -325,7 +325,6 @@ export async function handleChatRequest(req: Request, extraHeaders = {}) {
         }
       );
     }
-    console.log("apiKey", apiKey);
 
     const headers = {
       "Content-Type": "application/json",
@@ -338,7 +337,6 @@ export async function handleChatRequest(req: Request, extraHeaders = {}) {
     //       "anthropic-version": "2023-06-01",
     //     }
     //   :
-    console.log("headers", headers);
 
     // 全部都用 300s
     const TIMEOUT = 300_000;
