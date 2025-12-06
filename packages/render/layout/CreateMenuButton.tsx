@@ -17,6 +17,7 @@ import {
   LuFileText,
   LuFolderPlus,
   LuMessageSquare,
+  LuBot,
 } from "react-icons/lu";
 import { Dialog } from "render/web/ui/modal/Dialog";
 import { CreateSpaceForm } from "create/space/CreateSpaceForm";
@@ -144,6 +145,19 @@ const CreateMenuButton = () => {
                   <LuMessageSquare size={16} />
                 )}
                 <span>{t("chat:newchat", "新建对话")}</span>
+              </button>
+
+              {/* 新增：创建 AI */}
+              <button
+                className="create-menu__item"
+                onClick={() => {
+                  navigate("/create/cybot"); // 路由路径：/create/cybot
+                  close();
+                }}
+              >
+                {/* 若没有 LuBot 图标，可以改为 <LuMessageSquare size={16} /> 或其他已有图标 */}
+                <LuBot size={16} />
+                <span>{t("cybot:create_new_cybot", "创建 AI")}</span>
               </button>
 
               <button
