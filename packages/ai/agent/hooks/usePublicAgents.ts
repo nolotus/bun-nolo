@@ -6,6 +6,7 @@ import { useAppSelector } from "app/store";
 import { selectCurrentServer } from "app/settings/settingSlice";
 import { useDispatch } from "react-redux";
 import { remove } from "database/dbSlice";
+import { SERVERS } from "database/requests";
 
 export interface UsePublicAgentsOptions {
   limit?: number;
@@ -189,11 +190,11 @@ function mergeAgents(localData: Agent[], remoteData: Agent[]) {
 
 /******** 远程获取（支持 Abort） ********/
 async function fetchRemoteAgents(
-  currentServer: string,
+  serverUrl: string,
   options: UsePublicAgentsOptions,
   signal?: AbortSignal
 ) {
-  const response = await fetch(`${currentServer}/rpc/getPublicAgents`, {
+  const response = await fetch(`${serverUrl}/rpc/getPublicAgents`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(options),
@@ -244,13 +245,30 @@ export function usePublicAgents({
       // 本地失败不阻塞
     }
 
-    // 2) 无远程则结束
-    if (!currentServer) {
+    // 2) 组装远程服务器列表（currentServer + SERVERS，去重）
+    const serverSet = new Set<string>();
+
+    if (currentServer) {
+      serverSet.add(String(currentServer).replace(/\/+$/, ""));
+    }
+
+    if (SERVERS && typeof SERVERS === "object") {
+      Object.values(SERVERS).forEach((url) => {
+        if (url) {
+          serverSet.add(String(url).replace(/\/+$/, ""));
+        }
+      });
+    }
+
+    const servers = Array.from(serverSet);
+
+    // 若没有任何可用远程，则结束
+    if (servers.length === 0) {
       setState((prev) => ({ ...prev, loading: false }));
       return;
     }
 
-    // 3) 远程稍后：成功后合并 + 条件化删除
+    // 3) 远程稍后：成功后合并 + 条件化删除（对多个服务器并发）
     try {
       abortRef.current?.abort();
       abortRef.current = new AbortController();
@@ -265,14 +283,32 @@ export function usePublicAgents({
         limit: pruneLimit,
       };
 
-      const remoteResult = await fetchRemoteAgents(
-        currentServer,
-        remoteOptions,
-        abortRef.current.signal
+      // 并发请求多个服务器，单个失败不影响整体
+      const remoteResults = await Promise.allSettled(
+        servers.map((server) =>
+          fetchRemoteAgents(server, remoteOptions, abortRef.current!.signal)
+        )
       );
+
       if (myReqId !== requestIdRef.current) return;
 
-      const remoteData: Agent[] = remoteResult?.data ?? [];
+      // 合并多个服务器返回的数据，并按 id 去重
+      const remoteMap = new Map<string, Agent>();
+
+      remoteResults.forEach((res) => {
+        if (res.status !== "fulfilled") return;
+        const result = res.value as { data?: Agent[] };
+        const list: Agent[] = result?.data ?? [];
+        for (const agent of list) {
+          const id = String(agent.id);
+          // 若需要某个 server 优先，可在这里加优先级判断
+          if (!remoteMap.has(id)) {
+            remoteMap.set(id, agent);
+          }
+        }
+      });
+
+      const remoteData: Agent[] = Array.from(remoteMap.values());
 
       const { merged, toDelete } = mergeAgents(
         localResult.data ?? [],

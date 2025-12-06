@@ -32,23 +32,25 @@ const SpinnerStyles = () => (
   `}</style>
 );
 
-const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
+function LoadingSpinner({
   size = 16,
   thickness = 2,
   className = "",
-}) => (
-  <>
-    <SpinnerStyles />
-    <span
-      className={`loading-spinner ${className}`.trim()}
-      style={{
-        width: size,
-        height: size,
-        borderWidth: thickness,
-      }}
-      aria-hidden="true"
-    />
-  </>
-);
+}: LoadingSpinnerProps) {
+  return (
+    <>
+      <SpinnerStyles />
+      <span
+        className={`loading-spinner ${className}`.trim()}
+        style={{
+          width: size,
+          height: size,
+          borderWidth: thickness,
+        }}
+        aria-hidden="true"
+      />
+    </>
+  );
+}
 
 export default LoadingSpinner;
