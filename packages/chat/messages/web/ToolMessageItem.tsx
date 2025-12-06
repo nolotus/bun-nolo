@@ -1,12 +1,12 @@
 import React, { useState, memo } from "react";
 import {
-  ChevronDownIcon,
-  ChevronRightIcon,
-  CheckCircleIcon,
-  SyncIcon,
-  CopyIcon,
-  CheckIcon,
-} from "@primer/octicons-react";
+  LuChevronDown,
+  LuChevronRight,
+  LuCircleCheck,
+  LuLoaderCircle,
+  LuCopy,
+  LuCheck,
+} from "react-icons/lu";
 import { MessageContent } from "./MessageItem";
 import { Tooltip } from "render/web/ui/Tooltip";
 import copyToClipboard from "utils/clipboard";
@@ -17,7 +17,6 @@ interface ToolMessageProps {
   message: any;
 }
 
-// 简化版：把 tool message 的内容转成纯文本，用于复制
 const getContentString = (content: any): string => {
   if (!content) return "";
 
@@ -37,7 +36,6 @@ const getContentString = (content: any): string => {
       .join("\n");
   }
 
-  // 兜底：JSON pretty print
   try {
     return JSON.stringify(content, null, 2);
   } catch {
@@ -47,14 +45,15 @@ const getContentString = (content: any): string => {
 
 export const ToolMessageItem = memo(({ message }: ToolMessageProps) => {
   const { content, toolName, isStreaming = false } = message || {};
-  const isPlan = toolName === "createPlan"; // ✅ 是否为 plan 工具
-  const [collapsed, setCollapsed] = useState(!isPlan); // ✅ plan 默认展开
+  const isPlan = toolName === "createPlan";
+
+  // ✅ createPlan 默认折叠，其它工具默认展开
+  const [collapsed, setCollapsed] = useState(isPlan);
   const [isHovered, setIsHovered] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const { t } = useTranslation("chat");
 
-  // 普通 tool 显示原始名称，plan 显示更友好的名字
   const displayName = isPlan ? "Plan (createPlan)" : toolName || "System Tool";
 
   const toggleCollapse = (e: React.MouseEvent) => {
@@ -104,9 +103,9 @@ export const ToolMessageItem = memo(({ message }: ToolMessageProps) => {
                 } ${isPlan ? "plan-status" : ""}`}
               >
                 {isStreaming ? (
-                  <SyncIcon size={14} />
+                  <LuLoaderCircle size={14} />
                 ) : (
-                  <CheckCircleIcon size={14} />
+                  <LuCircleCheck size={14} />
                 )}
               </span>
               <span className={`tool-name ${isPlan ? "plan-name" : ""}`}>
@@ -120,7 +119,6 @@ export const ToolMessageItem = memo(({ message }: ToolMessageProps) => {
             </div>
 
             <div className="tool-header-right">
-              {/* 内联的极简操作栏：目前只保留复制 */}
               <div
                 className={`tool-actions ${
                   isHovered || !collapsed ? "visible" : ""
@@ -135,11 +133,7 @@ export const ToolMessageItem = memo(({ message }: ToolMessageProps) => {
                       className={`mini-btn ${copied ? "active" : ""}`}
                       onClick={handleCopy}
                     >
-                      {copied ? (
-                        <CheckIcon size={14} />
-                      ) : (
-                        <CopyIcon size={14} />
-                      )}
+                      {copied ? <LuCheck size={14} /> : <LuCopy size={14} />}
                     </button>
                   </Tooltip>
                 </div>
@@ -147,9 +141,9 @@ export const ToolMessageItem = memo(({ message }: ToolMessageProps) => {
 
               <button className="collapse-btn">
                 {collapsed ? (
-                  <ChevronRightIcon size={14} />
+                  <LuChevronRight size={14} />
                 ) : (
-                  <ChevronDownIcon size={14} />
+                  <LuChevronDown size={14} />
                 )}
               </button>
             </div>
@@ -166,6 +160,7 @@ export const ToolMessageItem = memo(({ message }: ToolMessageProps) => {
         </div>
       </div>
 
+      {/* 原来的样式可以沿用，不需要为换图标改动 */}
       <style href="tool-message-item" precedence="high">{`
         .tool-msg-wrapper {
           position: relative;
@@ -184,10 +179,9 @@ export const ToolMessageItem = memo(({ message }: ToolMessageProps) => {
           background: var(--backgroundSecondary);
           border: 1px solid var(--border);
           border-radius: 8px;
-          overflow: visible; /* 允许 Tooltip 溢出 */
+          overflow: visible;
         }
 
-        /* ===== Plan 专用外观增强 ===== */
         .tool-msg-wrapper.plan .tool-msg-inner {
           border-color: var(--borderAccent, var(--primary));
           box-shadow: 0 0 0 1px var(--primaryGhost, rgba(22,119,255,0.08));
@@ -202,7 +196,7 @@ export const ToolMessageItem = memo(({ message }: ToolMessageProps) => {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 6px 10px; /* 更紧凑 */
+          padding: 6px 10px;
           cursor: pointer;
           min-height: 32px;
         }
@@ -220,9 +214,7 @@ export const ToolMessageItem = memo(({ message }: ToolMessageProps) => {
 
         .tool-status-icon.success { color: var(--success, #10B981); }
         .tool-status-icon.spinning { color: var(--primary); animation: spin 2s linear infinite; }
-        .tool-status-icon.plan-status {
-          color: var(--primary);
-        }
+        .tool-status-icon.plan-status { color: var(--primary); }
 
         .tool-name {
           font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -230,19 +222,15 @@ export const ToolMessageItem = memo(({ message }: ToolMessageProps) => {
           font-weight: 600;
           color: var(--textSecondary);
         }
-
-        .tool-name.plan-name {
-          color: var(--primary);
-        }
+        .tool-name.plan-name { color: var(--primary); }
 
         .tool-tag {
-           font-size: 10px;
-           color: var(--textQuaternary);
-           background: rgba(0,0,0,0.03);
-           padding: 1px 5px;
-           border-radius: 4px;
+          font-size: 10px;
+          color: var(--textQuaternary);
+          background: rgba(0,0,0,0.03);
+          padding: 1px 5px;
+          border-radius: 4px;
         }
-
         .tool-tag.plan-tag {
           color: var(--primaryDark, #0958D9);
           background: var(--primaryGhost, rgba(22,119,255,0.08));
@@ -250,22 +238,22 @@ export const ToolMessageItem = memo(({ message }: ToolMessageProps) => {
         }
 
         .tool-actions {
-            opacity: 0;
-            transition: opacity 0.2s;
-            pointer-events: none;
+          opacity: 0;
+          transition: opacity 0.2s;
+          pointer-events: none;
         }
         .tool-actions.visible {
-            opacity: 1;
-            pointer-events: auto;
+          opacity: 1;
+          pointer-events: auto;
         }
 
         .collapse-btn {
-            background: none;
-            border: none;
-            color: var(--textQuaternary);
-            padding: 2px;
-            display: flex;
-            cursor: pointer;
+          background: none;
+          border: none;
+          color: var(--textQuaternary);
+          padding: 2px;
+          display: flex;
+          cursor: pointer;
         }
         .collapse-btn:hover { color: var(--text); }
 
@@ -286,14 +274,8 @@ export const ToolMessageItem = memo(({ message }: ToolMessageProps) => {
           color: var(--textSecondary);
         }
 
-        .tool-msg-wrapper.collapsed .tool-body {
-            display: none;
-        }
-        .tool-msg-wrapper.collapsed .tool-msg-inner {
-            border-bottom-color: var(--border);
-        }
+        .tool-msg-wrapper.collapsed .tool-body { display: none; }
 
-        /* 极简工具栏样式，直接搬运自 MessageActions 的 mini 样式 */
         .actions-mini {
           display: flex;
           align-items: center;
@@ -321,9 +303,7 @@ export const ToolMessageItem = memo(({ message }: ToolMessageProps) => {
           background: var(--backgroundHover);
           color: var(--text);
         }
-        .mini-btn.active {
-          color: var(--success, #10B981);
-        }
+        .mini-btn.active { color: var(--success, #10B981); }
 
         @keyframes spin { 100% { transform: rotate(360deg); } }
       `}</style>
