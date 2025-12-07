@@ -1,3 +1,4 @@
+// chat/messages/web/MessageList.tsx
 import React, {
   useRef,
   useLayoutEffect,
@@ -18,7 +19,6 @@ import TopLoadingIndicator from "./TopLoadingIndicator";
 import { ScrollToBottomButton } from "chat/web/ScrollToBottomButton";
 
 const LOAD_THRESHOLD = 50;
-// 定义新的滚动容器类名常量，方便维护
 const SCROLL_CONTAINER_SELECTOR = ".MainLayout__main";
 
 interface MessagesListProps {
@@ -42,31 +42,31 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
     prevMessagesLength: 0,
     isLoadingOlder: false,
     hasMoreOlder: true,
-    scrollContainer: null as HTMLElement | null, // 类型修正为 HTMLElement
+    scrollContainer: null as HTMLElement | null,
     isNearBottom: true,
   });
   stateRef.current.isLoadingOlder = isLoadingOlder;
   stateRef.current.hasMoreOlder = hasMoreOlder;
 
-  // --- 1. 查找滚动容器的辅助函数 ---
+  // 查找滚动容器（MainLayout__main）
   const getScroller = useCallback(() => {
-    // 尝试查找最近的滚动容器
     return listRef.current?.closest(SCROLL_CONTAINER_SELECTOR) as HTMLElement;
   }, []);
 
-  // --- 2. 布局副作用：处理自动滚动 ---
+  // 自动滚动逻辑
   useLayoutEffect(() => {
     const scroller = getScroller();
     if (!scroller) return;
 
-    // 初始加载：直接滚到底部
+    // 首次加载：滚到底部
     if (stateRef.current.isInitialLoad && messages.length > 0) {
       scroller.scrollTop = scroller.scrollHeight;
       stateRef.current.isInitialLoad = false;
+      stateRef.current.prevMessagesLength = messages.length;
       return;
     }
 
-    // 新消息到达：如果是 AI 生成的流式消息或用户就在底部，自动跟随
+    // 新消息：如果接近底部，则自动跟随
     if (messages.length > stateRef.current.prevMessagesLength) {
       if (stateRef.current.isNearBottom) {
         scroller.scrollTo({ top: scroller.scrollHeight, behavior: "smooth" });
@@ -76,7 +76,7 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
     stateRef.current.prevMessagesLength = messages.length;
   }, [messages, lastStreamTimestamp, getScroller]);
 
-  // --- 3. 加载旧消息逻辑 ---
+  // 加载旧消息
   const handleLoadOlder = useCallback(() => {
     if (
       stateRef.current.isLoadingOlder ||
@@ -95,7 +95,6 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
 
       if (beforeKey) {
         dispatch(loadOlderMessages({ dialogId, beforeKey })).then(() => {
-          // 加载完成后，恢复滚动位置，保持视觉稳定
           const currentScroller = getScroller();
           if (currentScroller) {
             const heightDiff = currentScroller.scrollHeight - prevScrollHeight;
@@ -106,7 +105,7 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
     }
   }, [dispatch, messages, dialogId, getScroller]);
 
-  // --- 4. 滚动监听处理 ---
+  // 滚动监听
   const handleScroll = useCallback(() => {
     const scroller = stateRef.current.scrollContainer;
     if (!scroller) return;
@@ -116,20 +115,19 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
       handleLoadOlder();
     }
 
-    // 判断是否接近底部 (误差容忍度 150px)
+    // 是否接近底部
     const isAtBottomNow =
       scroller.scrollHeight - scroller.clientHeight <= scroller.scrollTop + 150;
     stateRef.current.isNearBottom = isAtBottomNow;
 
-    // 决定是否显示“回到底部”按钮 (稍微上滑一点就显示)
+    // 是否显示“回到底部”按钮
     const shouldShowButton =
       scroller.scrollHeight - scroller.clientHeight > scroller.scrollTop + 100;
 
-    // 如果已经在底部，强制不显示
     setShowScrollToBottom(isAtBottomNow ? false : shouldShowButton);
   }, [handleLoadOlder]);
 
-  // --- 5. 绑定事件监听 ---
+  // 绑定滚动事件
   useEffect(() => {
     const scroller = getScroller();
     if (scroller) {
@@ -139,7 +137,6 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
     }
   }, [handleScroll, getScroller]);
 
-  // --- 6. 点击回到底部 ---
   const scrollToBottom = useCallback(() => {
     stateRef.current.scrollContainer?.scrollTo({
       top: stateRef.current.scrollContainer.scrollHeight,
@@ -147,68 +144,62 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
     });
   }, []);
 
+  // 样式：这里只负责「垂直列表」，不管页面宽度
   const css = `
     .chat-messages__list-wrapper {
-      /* 这里的修改是为了配合 main 的流动布局 */
+      flex: 1;
       display: flex;
       flex-direction: column;
-      justify-content: flex-end; /* 消息少时靠下，如果不想要可以改成 flex-start */
       width: 100%;
-      min-height: 100%; /* 确保撑满高度 */
+      min-height: 0;
     }
+
     .chat-messages__list {
+      display: flex;
+      flex-direction: column;
       width: 100%;
-      margin: 0 auto;
-      padding: var(--space-4) var(--space-3);
-      padding-bottom: var(--space-8); /* 底部留白，避免贴底 */
+      padding-block: var(--space-4);
       gap: var(--space-2);
     }
-    
+
     @media (min-width: 768px) {
       .chat-messages__list {
-        padding: var(--space-5) var(--space-8);
+        padding-block: var(--space-5);
         gap: var(--space-3);
       }
     }
 
     @media (min-width: 1024px) {
       .chat-messages__list {
-        padding: var(--space-6) var(--space-12);
+        padding-block: var(--space-6);
         gap: var(--space-4);
       }
     }
 
-    @media (min-width: 1440px) {
-      .chat-messages__list {
-        max-width: 1080px;
-      }
-    }
-    @media (min-width: 1600px) {
-      .chat-messages__list {
-        max-width: 1280px;
-      }
-    }
-    
     .chat-messages__item-wrapper {
       opacity: 0;
       transform: translateY(15px);
       animation: chat-messages__message-appear 0.3s ease-out forwards;
       will-change: transform, opacity;
     }
+
     .top-loading {
       animation: slide-down 0.3s ease-out;
       display: flex;
       justify-content: center;
       padding: var(--space-2);
     }
+
     @keyframes chat-messages__message-appear {
       from { opacity: 0; transform: translateY(15px); }
       to { opacity: 1; transform: translateY(0); }
     }
+
     @keyframes slide-down {
       from { opacity: 0; transform: translateY(-20px); }
       to { opacity: 1; transform: translateY(0); }
     }
+
     @media (prefers-reduced-motion: reduce) {
       .chat-messages__item-wrapper, .top-loading {
         animation-duration: 0.01ms !important;
@@ -243,7 +234,6 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
         })}
       </div>
 
-      {/* 滚动按钮现在会根据 handleScroll 的状态正确显示 */}
       <ScrollToBottomButton
         isVisible={showScrollToBottom}
         onClick={scrollToBottom}

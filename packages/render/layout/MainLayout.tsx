@@ -220,7 +220,7 @@ const MainLayout: React.FC = () => {
           flex-direction: column;
           height: 100dvh;
           min-width: 0;
-          background: var(--backgroundSecondary);
+        background: var(--background);
           overflow-y: auto;
           overflow-x: hidden;
           position: relative;

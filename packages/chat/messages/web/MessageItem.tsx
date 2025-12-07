@@ -1,4 +1,3 @@
-// chat/messages/web/MessageItem.tsx
 import React, { useState, useMemo, useCallback, memo } from "react";
 import { useAppSelector, useAppDispatch } from "app/store";
 import { selectUserId } from "auth/authSlice";
@@ -15,7 +14,7 @@ import { ThinkingSection } from "./ThinkingSection";
 import ImagePreviewModal from "chat/web/ImagePreviewModal";
 import StreamingIndicator from "render/web/ui/StreamingIndicator";
 
-// --- 子组件：文本/Markdown 渲染 ---
+// --- 文本渲染 ---
 const MessageText = memo(({ content, role, isStreaming = false }: any) => {
   const slateData = useMemo(
     () => (role === "self" ? [] : markdownToSlate(content)),
@@ -38,7 +37,6 @@ const MessageText = memo(({ content, role, isStreaming = false }: any) => {
   );
 });
 
-// --- 子组件：消息流中的图片缩略图 ---
 const ImagePreview = memo(({ src, alt, onPreview }: any) => {
   const handleClick = useCallback(() => onPreview(src), [src, onPreview]);
 
@@ -63,7 +61,7 @@ const ImagePreview = memo(({ src, alt, onPreview }: any) => {
   );
 });
 
-// --- 子组件：消息内容聚合 ---
+// --- 内容聚合 ---
 export const MessageContent = memo(
   ({ content, thinkContent, role, isStreaming = false }: any) => {
     const [filePreview, setFilePreview] = useState<any | null>(null);
@@ -196,7 +194,7 @@ export const MessageContent = memo(
   }
 );
 
-// --- 主组件：MessageItem ---
+// --- 主组件 ---
 export const MessageItem = memo(({ message }: any) => {
   const dispatch = useAppDispatch();
   const currentUserId = useAppSelector(selectUserId);
@@ -249,6 +247,7 @@ export const MessageItem = memo(({ message }: any) => {
       >
         {!isTouch && (
           <div className="msg-inner desktop">
+            {/* flex 布局：默认 avatar 在左，self 时 row-reverse 让 avatar 到右边 */}
             <div className="avatar-area">
               <div className="avatar-wrapper">
                 <Avatar
@@ -262,6 +261,7 @@ export const MessageItem = memo(({ message }: any) => {
                   </div>
                 )}
               </div>
+
               <MessageActions
                 isRobot={isRobot}
                 isSelf={isSelf}
@@ -348,47 +348,40 @@ export const MessageItem = memo(({ message }: any) => {
       </div>
 
       <style href="message-item" precedence="high">{`
-/* --- 布局容器 --- */
+/* === 外层：不加横向 padding，由 DialogPage 控制安全区 === */
 .msg {
-  padding: 0 var(--space-4);
-  /* 增加自然间距，避免内容过于紧凑 */
-  margin-bottom: var(--space-6); 
+  margin-bottom: var(--space-4);
   position: relative;
   z-index: 1;
 }
 
-/* --- 桌面端结构 --- */
+/* === 桌面端：左右两块，使用 flex 布局 === */
 .msg-inner.desktop {
-  max-width: 900px;
-  margin: 0 auto;
   display: flex;
-  gap: 16px; /* 适中的头像距离 */
+  flex-direction: row;
   align-items: flex-start;
+  gap: 12px;
 }
 
+/* 自己的消息：反转主轴方向，让头像到右边 */
 .msg.self .msg-inner.desktop {
   flex-direction: row-reverse;
-  max-width: 85%;
-  margin-left: auto;
-  margin-right: 0;
 }
 
-.msg.robot .msg-inner.desktop { max-width: 98%; }
-
-/* --- 头像与状态 --- */
+/* === 头像列 === */
 .avatar-area {
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: var(--space-2);
-  position: sticky;
-  top: 20px;
+  position: relative;
 }
 
-.avatar-wrapper { position: relative; }
+.avatar-wrapper {
+  position: relative;
+}
 
-/* 状态指示器悬浮定位 (Badge Style) */
 .avatar-indicator-pos {
   position: absolute;
   bottom: -4px;
@@ -397,11 +390,16 @@ export const MessageItem = memo(({ message }: any) => {
   transform: scale(0.8);
 }
 .avatar-indicator-pos.mobile {
-  right: -6px; bottom: -4px;
+  right: -6px;
+  bottom: -4px;
   transform: scale(0.7);
 }
 
-.content-area { flex: 1; min-width: 0; }
+/* === 内容列 === */
+.content-area {
+  flex: 1;
+  min-width: 0;
+}
 
 .robot-name {
   font-size: 11px;
@@ -411,85 +409,106 @@ export const MessageItem = memo(({ message }: any) => {
   opacity: 0.8;
 }
 
-/* --- 消息气泡 (核心减负) --- */
+/* === 气泡 === */
 .msg-body {
   color: var(--text);
-  line-height: 1.75; /* 保持优秀的阅读体验 */
+  line-height: 1.75;
   font-size: 15px;
   word-wrap: break-word;
+  max-width: 72ch; /* 基于阅读体验，而不是整个页面百分比 */
 }
 
-/* User 气泡：极简色块 */
-.msg-body.self {
-  /* 自动适配：亮色用浅蓝/浅灰，暗色用深色，依赖 var(--primaryBg) */
-  background: var(--primaryBg); 
-  
-  border-radius: 16px; /* 稍微减小圆角，更现代 */
-  padding: 12px 18px;
-  
-  /* 极微弱的阴影，仅为了防止在某些背景下融入，完全移除边框 */
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-}
-
-/* 暗色模式下气泡阴影加深一点点 */
-@media (prefers-color-scheme: dark) {
-  .msg-body.self {
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-  }
-}
-:global(.dark) .msg-body.self {
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-}
-
+/* 机器人：靠左自然排布 */
 .msg-body.robot {
   background: transparent;
-  padding: 0; /* 机器人消息不需要内边距，直接流式排版 */
+  padding: 0;
 }
 
-/* --- 移动端 --- */
-@media (hover: none) and (pointer: coarse) {
+/* 用户：右对齐气泡，头像在最右，气泡在头像左侧 */
+.msg-body.self {
+  background: var(--primaryBg);
+  border-radius: 16px;
+  padding: 10px 16px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  margin-left: auto; /* 在 content-area 内把气泡推到右边 */
+}
+
+/* === 移动端保持原有两套 DOM === */
+@media (hover: none) && (pointer: coarse) {
   .msg {
-    padding: var(--space-3);
-    margin-bottom: var(--space-2);
+    margin-bottom: var(--space-3);
   }
+
   .msg-inner.mobile {
     display: flex;
     flex-direction: column;
     gap: 6px;
   }
+
   .msg-header {
     display: flex;
     align-items: center;
     gap: 10px;
     margin-bottom: 2px;
   }
-  .msg.self .msg-header { flex-direction: row-reverse; }
-  
-  .msg-header .avatar-wrapper { width: 28px; height: 28px; }
-  .robot-name.mobile { font-size: 12px; margin: 0; }
-  
+  .msg.self .msg-header {
+    flex-direction: row-reverse;
+  }
+
+  .msg-header .avatar-wrapper {
+    width: 28px;
+    height: 28px;
+  }
+
+  .robot-name.mobile {
+    font-size: 12px;
+    margin: 0;
+  }
+
   .msg-body.self.mobile {
     background: var(--primaryBg);
     border-radius: 16px 16px 4px 16px;
     padding: 10px 14px;
     margin-left: auto;
-    max-width: 90%;
+    max-width: 100%;
+  }
+
+  .msg-body.robot.mobile {
+    max-width: 100%;
   }
 }
 
-/* --- 附件与图片 --- */
-.msg-content { display: flex; flex-direction: column; gap: 8px; }
-.empty-content { color: var(--textTertiary); font-style: italic; font-size: 13px; }
-.message-text { line-height: inherit; }
-.simple-text { white-space: pre-wrap; margin: 0; }
+/* === 内容细节 === */
+.msg-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 
-.msg-image-wrap { display: inline-block; vertical-align: top; }
+.empty-content {
+  color: var(--textTertiary);
+  font-style: italic;
+  font-size: 13px;
+}
+
+.message-text {
+  line-height: inherit;
+}
+.simple-text {
+  white-space: pre-wrap;
+  margin: 0;
+}
+
+/* 图片 */
+.msg-image-wrap {
+  display: inline-block;
+  vertical-align: top;
+}
 .msg-image {
   border-radius: 8px;
   max-width: 100%;
   max-height: 400px;
   object-fit: contain;
-  /* 移除投影，只保留极细的分割线 */
   border: 1px solid var(--border);
   cursor: pointer;
 }
@@ -500,13 +519,19 @@ export const MessageItem = memo(({ message }: any) => {
   gap: 8px;
   margin-top: 8px;
 }
-.msg-images .msg-image { max-height: 200px; }
-
-/* --- 交互态 --- */
-@media (hover: hover) and (pointer: fine) {
-  .msg:hover .actions { opacity: 1; visibility: visible; }
+.msg-images .msg-image {
+  max-height: 200px;
 }
 
+/* hover 显示操作区（桌面） */
+@media (hover: hover) and (pointer: fine) {
+  .msg:hover .actions {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+/* 折叠态 */
 .msg.collapsed .msg-content {
   max-height: 56px;
   overflow: hidden;
@@ -515,14 +540,18 @@ export const MessageItem = memo(({ message }: any) => {
 .msg.collapsed .msg-content::after {
   content: "";
   position: absolute;
-  bottom: 0; left: 0; right: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
   height: 32px;
   background: linear-gradient(transparent, var(--background));
 }
 
 @media (max-width: 480px) {
-  .msg-body.self.mobile, 
-  .msg-body.robot.mobile { font-size: 15px; }
+  .msg-body.self.mobile,
+  .msg-body.robot.mobile {
+    font-size: 15px;
+  }
 }
       `}</style>
     </>
