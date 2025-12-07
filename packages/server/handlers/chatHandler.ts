@@ -128,7 +128,9 @@ const checkEstimatedCost = (
 ) => {
   if (estimatedCost > 0 && estimatedCost > balance * 0.5) {
     logger.warn(
-      `警告：预估成本 $${estimatedCost.toFixed(6)} 超过余额的50% (${(balance * 0.5).toFixed(2)})`,
+      `警告：预估成本 $${estimatedCost.toFixed(6)} 超过余额的50% (${(
+        balance * 0.5
+      ).toFixed(2)})`,
       {
         estimatedCost,
         balance,
@@ -227,6 +229,9 @@ const performRequestChecks = async (
 };
 
 export async function handleChatRequest(req: Request, extraHeaders = {}) {
+  // ✅ 修复点 1：将 TIMEOUT 提到函数顶部，try/catch 都能访问
+  const TIMEOUT = 300_000; // 全部都用 300s
+
   const auth = await authenticateRequest(req);
   // 先判断是否需要直接返回鉴权失败的 Response
   if (auth instanceof Response) return auth;
@@ -236,7 +241,7 @@ export async function handleChatRequest(req: Request, extraHeaders = {}) {
   logger.info("用户余额检查", { userId, balance });
 
   try {
-    const { url, KEY, ...body } = await req.json();
+    const { url, KEY, provider, ...body } = await req.json();
 
     logger.info("处理聊天请求", {
       url,
@@ -245,7 +250,7 @@ export async function handleChatRequest(req: Request, extraHeaders = {}) {
       bodyKeys: Object.keys(body),
     });
 
-    const { model, messages, provider } = body;
+    const { model, messages } = body;
 
     // 正确显示messages，包含格式化输出
     logger.info("=== Messages Debug Info ===", {
@@ -306,9 +311,12 @@ export async function handleChatRequest(req: Request, extraHeaders = {}) {
       apiKey = KEY?.trim();
     } else if (typeof provider === "object") {
       apiKey = getNoloKey("openrouter");
+      // ✅ 修复点 2：把 provider 对象安插回 body，转发给上游
+      body.provider = provider;
     } else {
       apiKey = getNoloKey(provider);
     }
+
     if (!apiKey) {
       logger.warn("API密钥缺失", { provider, userId });
       return new Response(
@@ -338,8 +346,6 @@ export async function handleChatRequest(req: Request, extraHeaders = {}) {
     //     }
     //   :
 
-    // 全部都用 300s
-    const TIMEOUT = 300_000;
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort("timeout"), TIMEOUT);
 
