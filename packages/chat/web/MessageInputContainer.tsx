@@ -60,6 +60,7 @@ const MESSAGE_INPUT_STYLES = `
 
   .message-input__wrapper {
     width: 100%;
+    max-width: 880px;      /* 在 DialogPage-root 内再收窄一点，桌面更精致 */
     margin: 0 auto;
     position: relative;
   }
@@ -70,7 +71,7 @@ const MESSAGE_INPUT_STYLES = `
     align-items: flex-end;
   }
 
- .message-input__textarea {
+  .message-input__textarea {
     flex: 1;
     max-height: ${DESKTOP_TEXTAREA_MAX_HEIGHT}px;
     padding: 22px var(--container-padding);
@@ -209,19 +210,22 @@ const MESSAGE_INPUT_STYLES = `
     color: var(--hover);
   }
 
+  /* 小屏手机：输入框占满外壳宽度，少量内边距即可 */
   @media (max-width: ${MOBILE_BREAKPOINT}px) {
     .message-input {
       --container-padding: var(--space-3);
     }
+
     .message-input__textarea {
       min-height: 66px;
       max-height: ${MOBILE_TEXTAREA_MAX_HEIGHT}px;
       padding: 20px var(--space-3);
     }
+
     .message-input__wrapper {
-      padding-left: 0;
-      padding-right: 0;
+      max-width: 100%; /* 不再额外收窄，跟随 DialogPage-root */
     }
+
     .skel-container,
     .err-container {
       padding: var(--space-3);
@@ -232,35 +236,11 @@ const MESSAGE_INPUT_STYLES = `
     }
   }
 
+  /* >= 平板：外壳宽度交给 DialogPage-root，
+     这里只控制内部 max-width，让输入框略窄于对话区即可 */
   @media (min-width: ${MOBILE_BREAKPOINT}px) {
     .message-input__wrapper {
-      padding-left: var(--space-8);
-      padding-right: var(--space-8);
-    }
-  }
-
-  @media (min-width: 1024px) {
-    .message-input__wrapper {
-     -left: var(--space-12);
-      padding-right: var(--space-12);
-    }
-  }
-
-  @media (min-width: 1280px) {
-    .message-input__wrapper {
-      max-width: 940px;
-    }
-  }
-
-  @media (min-width: 1440px) {
-    .message-input__wrapper {
-      max-width: 980px;
-    }
-  }
-
-  @media (min-width: 1600px) {
-    .message-input__wrapper {
-      max-width: 1080px;
+      /* 已有 max-width: 880px; margin: 0 auto; */
     }
   }
 `;
@@ -645,7 +625,7 @@ const BaseShell: React.FC<{
     <style href="message-input" precedence="medium">
       {MESSAGE_INPUT_STYLES}
     </style>
-    {/* 直接复用 message-input__wrapper 的宽度和响应式布局 */}
+    {/* 复用与主输入框相同的横向布局 */}
     <div className="message-input__wrapper">{children}</div>
   </div>
 );
