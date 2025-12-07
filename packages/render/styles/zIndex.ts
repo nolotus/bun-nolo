@@ -18,6 +18,7 @@ export const zIndex = {
   // --- 1. 基础布局层 ---
 
   messageInputContainerZIndex: 100,
+  scrollButton: 101,
   topbar: 101,
   // 页面顶栏，作为基础的固定/粘性元素
 

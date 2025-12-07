@@ -1,5 +1,6 @@
 import React, { memo } from "react";
 import { LuChevronDown } from "react-icons/lu";
+import { zIndex } from "render/styles/zIndex";
 
 interface ScrollToBottomButtonProps {
   isVisible: boolean;
@@ -46,7 +47,7 @@ const ScrollToBottomButtonComponent: React.FC<ScrollToBottomButtonProps> = ({
           transform: translateY(10px);
           animation: button-appear 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
           
-          z-index: 100; /* 确保层级足够高 */
+          z-index: ${zIndex.scrollButton};
           transition: background-color 0.2s, transform 0.2s;
         }
 
@@ -62,7 +63,7 @@ const ScrollToBottomButtonComponent: React.FC<ScrollToBottomButtonProps> = ({
         @media (max-width: 768px) {
           .scroll-to-bottom-button {
             right: var(--space-4);
-            bottom: 100px; /* 移动端调整 */
+            bottom: 130px; /* 移动端调整 */
           }
         }
       `}</style>
