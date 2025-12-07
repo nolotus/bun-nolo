@@ -38,9 +38,10 @@ export const zIndex = {
   // 全局模态框的遮罩层
   modalBackdrop: 990,
   // 全局模态框（例如确认删除对话框）
-  modal: 1000,
 
   // TopBar 上的移动端菜单，属于最高优先级交互，需要覆盖一切，包括可能打开的侧边栏
+  ///topbar 的移动菜单 可能呼叫出modal
   topbarMenuBackdrop: 1010,
+  modal: 1012,
   topbarMenu: 1020,
 };
