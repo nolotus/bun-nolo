@@ -8,7 +8,8 @@ import {
   LuLoaderCircle,
   LuCopy,
   LuCheck,
-  LuCode, // ✅ 用 LuCode 替代 LuCode2
+  LuCode,
+  LuWrench,
 } from "react-icons/lu";
 import { MessageContent } from "./MessageItem";
 import { Tooltip } from "render/web/ui/Tooltip";
@@ -22,9 +23,7 @@ interface ToolMessageProps {
 
 const getContentString = (content: any): string => {
   if (!content) return "";
-
   if (typeof content === "string") return content;
-
   if (Array.isArray(content)) {
     return content
       .map((item: any) => {
@@ -38,7 +37,6 @@ const getContentString = (content: any): string => {
       .filter(Boolean)
       .join("\n");
   }
-
   try {
     return JSON.stringify(content, null, 2);
   } catch {
@@ -47,50 +45,28 @@ const getContentString = (content: any): string => {
 };
 
 export const ToolMessageItem = memo(({ message }: ToolMessageProps) => {
-  const {
-    content,
-    toolName,
-    isStreaming = false,
-    toolPayload, // 结构化工具调用快照
-  } = message || {};
+  const { content, toolName, isStreaming = false, toolPayload } = message || {};
 
   const isPlan = toolName === "createPlan";
-
-  // createPlan 默认折叠，其它工具默认展开
   const [collapsed, setCollapsed] = useState(isPlan);
   const [isHovered, setIsHovered] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
 
   const { t } = useTranslation("chat");
-
-  const displayName = isPlan ? "Plan (createPlan)" : toolName || "System Tool";
-
+  const displayName = isPlan ? "Plan" : toolName || "Tool";
   const fullContentString = getContentString(content);
-
-  // 从 toolPayload 中拿状态（没有的话就退化为原来的简单逻辑）
   const statusFromPayload: string | undefined = toolPayload?.status;
   const isError = statusFromPayload === "failed";
-
   const statusClass = isStreaming ? "spinning" : isError ? "error" : "success";
 
-  const tagLabel = (() => {
-    if (isStreaming) return t("toolStatusRunning", "Running");
-    if (statusFromPayload === "pending") {
-      return t("toolStatusPending", "Pending");
-    }
-    if (statusFromPayload === "running") {
-      return t("toolStatusRunning", "Running");
-    }
-    if (statusFromPayload === "succeeded") {
-      return isPlan ? "Plan" : "Completed";
-    }
-    if (statusFromPayload === "failed") {
-      return t("toolStatusFailed", "Failed");
-    }
-    // 没有 toolPayload 或 status 时的兼容逻辑
-    return isPlan ? "Plan" : "Completed";
-  })();
+  const renderStatusIcon = () => {
+    if (isStreaming)
+      return <LuLoaderCircle size={14} className="animate-spin" />;
+    if (isError) return <LuCircleCheck size={14} />; // 失败也可暂用叉号或感叹号，这里保持一致风格
+    if (isPlan) return <LuWrench size={14} />;
+    return <LuCircleCheck size={14} />;
+  };
 
   const toggleCollapse = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -104,58 +80,39 @@ export const ToolMessageItem = memo(({ message }: ToolMessageProps) => {
       toast.error(t("copyFailed"));
       return;
     }
-
     copyToClipboard(text, {
       onSuccess: () => {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
         toast.success(t("copySuccess"));
       },
-      onError: () => {
-        toast.error(t("copyFailed"));
-      },
+      onError: () => toast.error(t("copyFailed")),
     });
   };
 
   return (
     <>
       <div
-        className={`tool-msg-wrapper ${
-          collapsed ? "collapsed" : ""
-        } ${isPlan ? "plan" : ""}`}
+        className={`tool-msg-wrapper ${collapsed ? "collapsed" : ""} ${
+          isError ? "error" : ""
+        }`}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
         <div className="tool-msg-inner">
-          {/* Header */}
-          <div
-            className={`tool-header ${isPlan ? "is-plan" : ""}`}
-            onClick={toggleCollapse}
-          >
+          {/* Header 也可以点击折叠 */}
+          <div className="tool-header" onClick={toggleCollapse}>
             <div className="tool-header-left">
-              <span
-                className={`tool-status-icon ${statusClass} ${
-                  isPlan ? "plan-status" : ""
-                }`}
-              >
-                {isStreaming ? (
-                  <LuLoaderCircle size={14} />
-                ) : (
-                  <LuCircleCheck size={14} />
-                )}
+              {/* 纯图标状态指示，更极简 */}
+              <span className={`tool-icon ${statusClass}`}>
+                {renderStatusIcon()}
               </span>
-              <span className={`tool-name ${isPlan ? "plan-name" : ""}`}>
-                {displayName}
+
+              <span className="tool-name">
+                {isPlan ? "Thinking Plan" : `Use Tool: ${displayName}`}
               </span>
-              {!isStreaming && (
-                <span
-                  className={`tool-tag ${isPlan ? "plan-tag" : ""} ${
-                    isError ? "error-tag" : ""
-                  }`}
-                >
-                  {tagLabel}
-                </span>
-              )}
+
+              {isError && <span className="error-badge">Failed</span>}
             </div>
 
             <div className="tool-header-right">
@@ -168,25 +125,17 @@ export const ToolMessageItem = memo(({ message }: ToolMessageProps) => {
                   className="actions-mini"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  {/* 复制当前消息内容（面向用户 / AI 的文本） */}
                   <Tooltip content={t("copyContent")} placement="top">
                     <button
                       className={`mini-btn ${copied ? "active" : ""}`}
                       onClick={handleCopy}
                     >
-                      {copied ? <LuCheck size={14} /> : <LuCopy size={14} />}
+                      {copied ? <LuCheck size={13} /> : <LuCopy size={13} />}
                     </button>
                   </Tooltip>
 
-                  {/* 调试信息：只有有 toolPayload 时才显示 */}
                   {toolPayload && (
-                    <Tooltip
-                      content={t(
-                        "viewDebug",
-                        "查看调试信息（原始输入 / 输出 / 错误）"
-                      )}
-                      placement="top"
-                    >
+                    <Tooltip content="Debug Info" placement="top">
                       <button
                         className={`mini-btn ${showDebug ? "active" : ""}`}
                         onClick={(e) => {
@@ -194,8 +143,7 @@ export const ToolMessageItem = memo(({ message }: ToolMessageProps) => {
                           setShowDebug((prev) => !prev);
                         }}
                       >
-                        {/* ✅ 使用 LuCode */}
-                        <LuCode size={14} />
+                        <LuCode size={13} />
                       </button>
                     </Tooltip>
                   )}
@@ -212,23 +160,20 @@ export const ToolMessageItem = memo(({ message }: ToolMessageProps) => {
             </div>
           </div>
 
-          {/* Body：给普通用户 / 模型看的内容 */}
-          <div className={`tool-body ${isPlan ? "plan-body" : ""}`}>
+          {/* Body */}
+          <div className="tool-body">
             <MessageContent
               content={content || ""}
-              role="other" // ✅ 工具消息按「机器人」一侧渲染
+              role="other"
               thinkContent={""}
               isStreaming={isStreaming}
             />
           </div>
 
-          {/* Debug：给开发者看的结构化工具调用快照 */}
+          {/* Debug */}
           {showDebug && toolPayload && (
             <div className="tool-debug">
-              <details open>
-                <summary>{t("debugInfo", "调试信息（工具调用快照）")}</summary>
-                <pre>{JSON.stringify(toolPayload, null, 2)}</pre>
-              </details>
+              <pre>{JSON.stringify(toolPayload, null, 2)}</pre>
             </div>
           )}
         </div>
@@ -237,85 +182,100 @@ export const ToolMessageItem = memo(({ message }: ToolMessageProps) => {
       <style href="tool-message-item" precedence="high">{`
         .tool-msg-wrapper {
           position: relative;
-          margin-bottom: var(--space-2);
-          padding-right: var(--space-4);
+          margin-bottom: 6px;
+          /* 核心视觉改动：不再全宽背景，而是左侧细条，且不强行缩进太多 */
           width: 100%;
-        }
-        @media (min-width: 768px) {
-          .tool-msg-wrapper {
-            margin-left: 56px;
-            max-width: calc(95% - 56px);
-          }
+          font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
         }
 
         .tool-msg-inner {
-          background: var(--backgroundSecondary);
-          border: 1px solid var(--border);
-          border-radius: 8px;
-          overflow: visible;
+          /* 极简风格：透明背景，左侧 accent border */
+          background: transparent;
+          border-left: 2px solid var(--border);
+          padding-left: 12px;
+          transition: border-color 0.2s;
         }
 
-        .tool-msg-wrapper.plan .tool-msg-inner {
-          border-color: var(--borderAccent, var(--primary));
-          box-shadow: 0 0 0 1px var(--primaryGhost, rgba(22,119,255,0.08));
-          background: linear-gradient(
-            135deg,
-            rgba(22,119,255,0.04),
-            rgba(22,119,255,0.01)
-          );
+        /* 鼠标悬停加深左侧线条，增加交互感 */
+        .tool-msg-wrapper:hover .tool-msg-inner {
+          border-left-color: var(--primary);
+        }
+        
+        /* 错误状态红色线条 */
+        .tool-msg-wrapper.error .tool-msg-inner {
+          border-left-color: var(--danger, #EF4444);
         }
 
         .tool-header {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 6px 10px;
+          padding: 4px 0;
           cursor: pointer;
-          min-height: 32px;
+          min-height: 28px;
+          user-select: none;
         }
 
-        .tool-header.is-plan {
-          background: radial-gradient(
-            circle at 0 0,
-            rgba(22,119,255,0.15),
-            transparent 55%
-          );
-        }
-
-        .tool-header-left { display: flex; align-items: center; gap: 8px; }
-        .tool-header-right { display: flex; align-items: center; gap: 8px; }
-
-        .tool-status-icon.success { color: var(--success, #10B981); }
-        .tool-status-icon.spinning { color: var(--primary); animation: spin 2s linear infinite; }
-        .tool-status-icon.plan-status { color: var(--primary); }
-        .tool-status-icon.error { color: var(--danger, #EF4444); }
-
-        .tool-name {
-          font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-          font-size: 12px;
-          font-weight: 600;
+        .tool-header-left {
+          display: flex;
+          align-items: center;
+          gap: 8px;
           color: var(--textSecondary);
         }
-        .tool-name.plan-name { color: var(--primary); }
 
-        .tool-tag {
+        .tool-icon {
+          display: flex;
+          align-items: center;
+          color: var(--textTertiary);
+        }
+        .tool-icon.spinning { color: var(--primary); }
+        .tool-icon.error { color: var(--danger); }
+
+        .tool-name {
+          font-size: 13px;
+          font-weight: 500;
+          opacity: 0.9;
+        }
+        
+        .error-badge {
           font-size: 10px;
-          color: var(--textQuaternary);
-          background: rgba(0,0,0,0.03);
-          padding: 1px 5px;
+          color: var(--danger);
+          background: rgba(239, 68, 68, 0.1);
+          padding: 1px 4px;
           border-radius: 4px;
         }
-        .tool-tag.plan-tag {
-          color: var(--primaryDark, #0958D9);
-          background: var(--primaryGhost, rgba(22,119,255,0.08));
-          border: 1px solid var(--borderAccent, rgba(22,119,255,0.3));
-        }
-        .tool-tag.error-tag {
-          color: var(--dangerDark, #B91C1C);
-          background: rgba(239,68,68,0.08);
-          border: 1px solid rgba(239,68,68,0.4);
+
+        .tool-header-right {
+          display: flex;
+          align-items: center;
+          gap: 6px;
         }
 
+        .collapse-btn {
+          background: none;
+          border: none;
+          color: var(--textQuaternary);
+          padding: 2px;
+          display: flex;
+          cursor: pointer;
+          transition: color 0.15s;
+        }
+        .collapse-btn:hover { color: var(--text); }
+
+        /* 内容区域 */
+        .tool-body {
+          padding-top: 4px;
+          padding-bottom: 4px;
+          font-size: 13px;
+          color: var(--textSecondary);
+          /* 与 Header 保持一致的字体 */
+          font-family: inherit;
+        }
+
+        .tool-msg-wrapper.collapsed .tool-body { display: none; }
+        .tool-msg-wrapper.collapsed .tool-debug { display: none; }
+
+        /* Actions 悬浮显示 */
         .tool-actions {
           opacity: 0;
           transition: opacity 0.2s;
@@ -326,89 +286,47 @@ export const ToolMessageItem = memo(({ message }: ToolMessageProps) => {
           pointer-events: auto;
         }
 
-        .collapse-btn {
-          background: none;
-          border: none;
-          color: var(--textQuaternary);
-          padding: 2px;
-          display: flex;
-          cursor: pointer;
-        }
-        .collapse-btn:hover { color: var(--text); }
-
-        .tool-body {
-          padding: 10px 12px;
-          font-size: 12px;
-          border-top: 1px solid var(--borderLight);
-          background: var(--backgroundGhost);
-          color: var(--textTertiary);
-          font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-        }
-
-        .tool-body.plan-body {
-          font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
-          font-size: 13px;
-          line-height: 1.6;
-          background: var(--background);
-          color: var(--textSecondary);
-        }
-
-        .tool-msg-wrapper.collapsed .tool-body { display: none; }
-        .tool-msg-wrapper.collapsed .tool-debug { display: none; }
-
         .actions-mini {
           display: flex;
           align-items: center;
-          gap: 4px;
+          gap: 2px;
           background: var(--background);
           border: 1px solid var(--border);
-          border-radius: 6px;
-          padding: 2px;
-          box-shadow: 0 2px 4px var(--shadowLight);
+          border-radius: 4px;
+          padding: 1px;
         }
+        
         .mini-btn {
+          width: 20px;
+          height: 20px;
           display: flex;
           align-items: center;
           justify-content: center;
-          width: 24px;
-          height: 24px;
           border: none;
           background: transparent;
           color: var(--textTertiary);
-          border-radius: 4px;
+          border-radius: 3px;
           cursor: pointer;
-          transition: all 0.2s;
         }
         .mini-btn:hover {
           background: var(--backgroundHover);
           color: var(--text);
         }
-        .mini-btn.active { color: var(--success, #10B981); }
 
         .tool-debug {
-          padding: 8px 12px 10px;
-          border-top: 1px dashed var(--borderLight);
-          background: var(--background);
-          font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-          font-size: 12px;
-          color: var(--textQuaternary);
-        }
-
-        .tool-debug details summary {
-          cursor: pointer;
-          font-weight: 500;
-          color: var(--textSecondary);
-          margin-bottom: 4px;
-        }
-
-        .tool-debug pre {
-          margin: 4px 0 0;
-          white-space: pre-wrap;
-          word-break: break-all;
-          max-height: 260px;
+          margin-top: 6px;
+          background: var(--backgroundSecondary);
+          padding: 8px;
+          border-radius: 6px;
+          font-size: 11px;
+          color: var(--textTertiary);
           overflow: auto;
+          max-height: 200px;
         }
-
+        
+        .animate-spin {
+          animation: spin 2s linear infinite;
+        }
         @keyframes spin { 100% { transform: rotate(360deg); } }
       `}</style>
     </>

@@ -265,6 +265,15 @@ export const MessageItem = memo(({ message }: { message: any }) => {
 
   return (
     <>
+      {/* 
+        ⚠️ 注意： 
+        Robot 消息 (.msg-body.robot) 不设置固定 max-width (例如 880px)，
+        而是允许其撑满父容器宽度，以适应 代码块生成、网页预览(Preview) 等
+        需要宽幅展示的场景。
+        
+        仅对 User 消息 (.msg-body.self) 进行了宽度限制，以优化阅读体验。
+        请勿删除此布局逻辑。
+      */}
       <div
         className={`msg ${type} ${collapsed ? "collapsed" : ""} ${
           showActions ? "actions-visible" : ""
@@ -275,10 +284,8 @@ export const MessageItem = memo(({ message }: { message: any }) => {
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        {/* 桌面端：头像 + actions 使用 sticky，内容区域正常滚动 */}
         {!isTouch && (
           <div className="msg-inner desktop">
-            {/* 头像 + 操作区列：在桌面端 sticky 在视口上方一定位置 */}
             <div className="avatar-area">
               <div className="avatar-wrapper">
                 <Avatar
@@ -326,7 +333,6 @@ export const MessageItem = memo(({ message }: { message: any }) => {
           </div>
         )}
 
-        {/* 移动端：保持原有结构，不做 sticky，避免遮挡 */}
         {isTouch && (
           <div className="msg-inner mobile">
             <div className="msg-header">
@@ -380,22 +386,22 @@ export const MessageItem = memo(({ message }: { message: any }) => {
       </div>
 
       <style href="message-item" precedence="high">{`
-/* === 外层：不加横向 padding，由 DialogPage 控制安全区 === */
+/* === 外层 === */
 .msg {
   margin-bottom: var(--space-4);
   position: relative;
   z-index: 1;
 }
 
-/* === 桌面端：左右两块，使用 flex 布局 === */
+/* === 桌面端布局 === */
 .msg-inner.desktop {
   display: flex;
   flex-direction: row;
   align-items: flex-start;
-  gap: 12px;
+  /* 调整：增加间距，避免内容离头像太近 */
+  gap: 20px;
 }
 
-/* 自己的消息：反转主轴方向，让头像到右边 */
 .msg.self .msg-inner.desktop {
   flex-direction: row-reverse;
 }
@@ -408,27 +414,23 @@ export const MessageItem = memo(({ message }: { message: any }) => {
   align-items: center;
   gap: var(--space-2);
   position: relative;
+  width: 40px; /* 固定宽度，防止抖动 */
 }
 
-/* 头像 + actions 在桌面端 sticky：随着滚动向上，抵达 top 后固定，直到被下一条顶走 */
 @media (hover: hover) and (pointer: fine) {
   .msg-inner.desktop .avatar-area {
     position: sticky;
-    /* 根据你的顶部导航 / 工具栏高度微调这个值 */
-    top: 72px;
+    /* 使用变量，默认 72px */
+    top: var(--header-height, 72px);
     align-self: flex-start;
     z-index: 5;
   }
-
-  /* 自己的消息时头像在右侧，对齐到右边更自然 */
   .msg.self .msg-inner.desktop .avatar-area {
     align-items: flex-end;
   }
 }
 
-.avatar-wrapper {
-  position: relative;
-}
+.avatar-wrapper { position: relative; }
 
 .avatar-indicator-pos {
   position: absolute;
@@ -457,7 +459,7 @@ export const MessageItem = memo(({ message }: { message: any }) => {
   opacity: 0.8;
 }
 
-/* === 气泡 === */
+/* === 气泡通用 === */
 .msg-body {
   color: var(--text);
   line-height: 1.75;
@@ -465,64 +467,59 @@ export const MessageItem = memo(({ message }: { message: any }) => {
   word-wrap: break-word;
 }
 
-/* 机器人：靠左自然排布 */
+/* 🤖 AI 消息：不限制宽度 (100%)，适应代码/Preview */
 .msg-body.robot {
   background: transparent;
   padding: 0;
+  width: 100%;
 }
 
-/* 用户：右对齐气泡，头像在最右，气泡在头像左侧 */
+/* 👤 用户消息：限制宽度，增加聊天感 */
 .msg-body.self {
   background: var(--primaryBg);
   border-radius: 16px;
   padding: 10px 16px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-  margin-left: auto; /* 在 content-area 内把气泡推到右边 */
+  
+  /* 关键修改：收窄气泡，避免像 Banner */
+  margin-left: auto;
+  width: fit-content;
+  max-width: 80%;
+}
+@media (min-width: 1024px) {
+  .msg-body.self {
+    max-width: 760px; /* 大屏下有个上限，更精致 */
+  }
 }
 
-/* === 移动端保持原有两套 DOM === */
+/* === 移动端适配 === */
 @media (hover: none) and (pointer: coarse) {
-  .msg {
-    margin-bottom: var(--space-3);
-  }
-
+  .msg { margin-bottom: var(--space-3); }
   .msg-inner.mobile {
     display: flex;
     flex-direction: column;
     gap: 6px;
   }
-
   .msg-header {
     display: flex;
     align-items: center;
     gap: 10px;
     margin-bottom: 2px;
   }
-  .msg.self .msg-header {
-    flex-direction: row-reverse;
-  }
-
-  .msg-header .avatar-wrapper {
-    width: 28px;
-    height: 28px;
-  }
-
-  .robot-name.mobile {
-    font-size: 12px;
-    margin: 0;
-  }
+  .msg.self .msg-header { flex-direction: row-reverse; }
+  .msg-header .avatar-wrapper { width: 28px; height: 28px; }
+  .robot-name.mobile { font-size: 12px; margin: 0; }
 
   .msg-body.self.mobile {
     background: var(--primaryBg);
     border-radius: 16px 16px 4px 16px;
     padding: 10px 14px;
     margin-left: auto;
-    max-width: 100%;
+    /* 移动端保持较高的利用率 */
+    max-width: 90%;
+    width: fit-content;
   }
-
-  .msg-body.robot.mobile {
-    max-width: 100%;
-  }
+  .msg-body.robot.mobile { max-width: 100%; }
 }
 
 /* === 内容细节 === */
@@ -531,26 +528,15 @@ export const MessageItem = memo(({ message }: { message: any }) => {
   flex-direction: column;
   gap: 8px;
 }
-
 .empty-content {
   color: var(--textTertiary);
   font-style: italic;
   font-size: 13px;
 }
+.message-text { line-height: inherit; }
+.simple-text { white-space: pre-wrap; margin: 0; }
 
-.message-text {
-  line-height: inherit;
-}
-.simple-text {
-  white-space: pre-wrap;
-  margin: 0;
-}
-
-/* 图片 */
-.msg-image-wrap {
-  display: inline-block;
-  vertical-align: top;
-}
+.msg-image-wrap { display: inline-block; vertical-align: top; }
 .msg-image {
   border-radius: 8px;
   max-width: 100%;
@@ -559,18 +545,14 @@ export const MessageItem = memo(({ message }: { message: any }) => {
   border: 1px solid var(--border);
   cursor: pointer;
 }
-
 .msg-images {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: 8px;
   margin-top: 8px;
 }
-.msg-images .msg-image {
-  max-height: 200px;
-}
+.msg-images .msg-image { max-height: 200px; }
 
-/* hover 显示操作区（桌面） */
 @media (hover: hover) and (pointer: fine) {
   .msg:hover .actions {
     opacity: 1;
@@ -578,7 +560,6 @@ export const MessageItem = memo(({ message }: { message: any }) => {
   }
 }
 
-/* 折叠态 */
 .msg.collapsed .msg-content {
   max-height: 56px;
   overflow: hidden;
@@ -596,9 +577,7 @@ export const MessageItem = memo(({ message }: { message: any }) => {
 
 @media (max-width: 480px) {
   .msg-body.self.mobile,
-  .msg-body.robot.mobile {
-    font-size: 15px;
-  }
+  .msg-body.robot.mobile { font-size: 15px; }
 }
       `}</style>
     </>

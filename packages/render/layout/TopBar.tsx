@@ -241,11 +241,11 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
 
       <style href="topbar-styles" precedence="default">{`
         :root {
-          --topbar-blur: 12px;
-          --topbar-bg-opacity: 20%;
+          /* 调整：提高背景不透明度，防止消息内容在滚动时穿透 TopBar 造成视觉干扰 */
+          --topbar-blur: 20px;
+          --topbar-bg-opacity: 85%;
         }
 
-        /* 顶部栏：固定 56px 高度 + 不允许 flex 收缩 */
         .topbar {
           display: grid;
           grid-template-columns: 1fr auto 1fr;
@@ -256,7 +256,6 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
           top: 0;
           height: 56px;
 
-          /* 关键：作为 flex 子元素时，不要被压缩 */
           flex: 0 0 56px;
 
           padding: 0 var(--space-4);
@@ -265,7 +264,7 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
           background: color-mix(
             in srgb,
             var(--background),
-            transparent var(--topbar-bg-opacity)
+            transparent calc(100% - var(--topbar-bg-opacity))
           );
 
           backdrop-filter: blur(var(--topbar-blur));
@@ -277,21 +276,17 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
 
         .topbar--scrolled {
           border-bottom-color: var(--border);
+          /* 滚动时稍微加深一点阴影感 */
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
         }
 
-        /* 布局分区 */
         .topbar__section {
           display: flex;
           align-items: center;
           gap: var(--space-2);
         }
-        .topbar__section--left {
-          justify-content: flex-start;
-        }
-        .topbar__section--right {
-          justify-content: flex-end;
-        }
-
+        .topbar__section--left { justify-content: flex-start; }
+        .topbar__section--right { justify-content: flex-end; }
         .topbar__center {
           display: flex;
           align-items: center;
@@ -299,42 +294,29 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
           min-width: 0;
           justify-content: center;
         }
-
         .topbar__actions {
           display: flex;
           align-items: center;
           gap: var(--space-3);
         }
 
-        /* 按钮样式 */
         .topbar__button {
           display: flex;
           align-items: center;
           justify-content: center;
           flex-shrink: 0;
-
           width: var(--space-8);
           height: var(--space-8);
           background: transparent;
           border: none;
           border-radius: 6px;
-
           cursor: pointer;
           color: var(--textSecondary);
           transition: all 0.15s ease;
         }
-        .topbar__button:hover {
-          background: var(--backgroundHover);
-          color: var(--text);
-        }
-        .topbar__button:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-        .topbar__button--delete:hover {
-          background: var(--primaryGhost);
-          color: var(--error);
-        }
+        .topbar__button:hover { background: var(--backgroundHover); color: var(--text); }
+        .topbar__button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .topbar__button--delete:hover { background: var(--primaryGhost); color: var(--error); }
 
         .tooltip-kbd {
           background: var(--background);
@@ -347,7 +329,6 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
           line-height: 1;
         }
 
-        /* 响应式 */
         .topbar__mobile-menu {
           position: relative;
           display: none;
@@ -361,22 +342,13 @@ const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
             padding: 0 var(--space-2);
             gap: var(--space-2);
           }
-          .topbar__center {
-            justify-content: center;
-          }
-          .topbar__actions {
-            display: none !important;
-          }
-          .topbar__mobile-menu {
-            display: flex;
-          }
+          .topbar__center { justify-content: center; }
+          .topbar__actions { display: none !important; }
+          .topbar__mobile-menu { display: flex; }
         }
 
         @media (max-width: 480px) {
-          .topbar__button {
-            width: var(--space-7);
-            height: var(--space-7);
-          }
+          .topbar__button { width: var(--space-7); height: var(--space-7); }
         }
       `}</style>
     </>
