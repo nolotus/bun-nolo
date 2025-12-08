@@ -1,8 +1,5 @@
-// ========================================================================
-// START: 最终修复版的 mdastToSlate.ts（已加入 preview 支持 & 语法修正）
-// ========================================================================
+// create/editor/transforms/fromMarkdown.ts
 
-import { visit } from "unist-util-visit";
 import { processInlineNodes } from "./inline";
 import { transformTable } from "./table";
 
@@ -23,24 +20,28 @@ interface SlateNode {
   start?: number;
   value?: number;
   columns?: any[];
-  // 新增：从 Markdown meta 里解析出来的 preview 标记
-  // 使用字符串是为了兼容 CodeBlock 里 element.preview === "true" 的判断
+  // 从 Markdown meta 里解析出来的 preview 标记
+  // 使用字符串是为了兼容 element.preview === "true" 的判断
   preview?: string;
 }
 
 /**
- * 基础校验，保证 node 至少有 type 和 children 数组
+ * 创建一个空段落节点
  */
-function ensureValidNode(node: any): boolean {
-  if (!node || typeof node !== "object") return false;
-  if (!node.type) return false;
-  if (!Array.isArray(node.children)) {
-    node.children = [{ text: "" }];
-  }
-  if (node.children.length === 0) {
-    node.children = [{ text: "" }];
-  }
-  return true;
+function createEmptyParagraph(): SlateNode {
+  return {
+    type: "paragraph",
+    children: [{ text: "" }],
+  };
+}
+
+/**
+ * 安全获取 children 数组
+ */
+function getChildren(node: any): any[] {
+  if (!node || typeof node !== "object") return [];
+  if (!Array.isArray(node.children)) return [];
+  return node.children;
 }
 
 /**
@@ -50,7 +51,7 @@ function ensureValidNode(node: any): boolean {
  * ```tsx preview=true
  */
 function getPreviewFlagFromMeta(node: any): "true" | undefined {
-  const meta = typeof node.meta === "string" ? node.meta.trim() : "";
+  const meta = typeof node?.meta === "string" ? node.meta.trim() : "";
   if (!meta) return undefined;
 
   const tokens = meta.split(/\s+/);
@@ -67,222 +68,193 @@ function getPreviewFlagFromMeta(node: any): "true" | undefined {
   return hasPreview ? "true" : undefined;
 }
 
-export function mdastToSlate(mdastTree: any): SlateNode[] {
-  if (!mdastTree) {
-    return [{ type: "paragraph", children: [{ text: "" }] }];
-  }
+/**
+ * 将一个 list 节点转换为 Slate list 节点
+ */
+function convertList(node: any): SlateNode {
+  const start = typeof node.start === "number" ? node.start : 1;
+  const items = getChildren(node);
 
-  const slateNodes: SlateNode[] = [];
-  const processedNodes = new Set<any>();
-
-  function processBlockChildren(children: any[]): any[] {
-    if (!Array.isArray(children)) return [{ text: "" }];
-    return children.map((child) => {
-      if (!ensureValidNode(child)) {
-        return { text: "" };
-      }
-      processedNodes.add(child);
-      if (child.type === "paragraph") {
-        return {
-          type: "paragraph",
-          children: processInlineNodes(child.children),
-        };
-      }
-      if (child.type === "blockquote") {
-        return {
-          type: "quote",
-          children: processBlockChildren(child.children),
-        };
-      }
-      return processNode(child) || { text: "" };
-    });
-  }
-
-  function processNode(node: any): SlateNode | null {
-    if (!ensureValidNode(node) || processedNodes.has(node)) {
-      return null;
-    }
-    if (node.type === "blockquote") {
-      processedNodes.add(node);
-      return { type: "quote", children: processBlockChildren(node.children) };
-    }
-    return null;
-  }
-
-  function processListItemChildren(item: any): any[] {
-    if (!ensureValidNode(item) || !Array.isArray(item.children)) {
-      return [{ type: "paragraph", children: [{ text: "" }] }];
-    }
-    const result: SlateNode[] = [];
-    item.children.forEach((child: any) => {
-      if (!ensureValidNode(child)) {
-        return;
-      }
-      switch (child.type) {
-        case "paragraph":
-          result.push({
-            type: "paragraph",
-            children: processInlineNodes(child.children),
-          });
-          break;
-
-        case "code":
-          result.push({
-            type: "code-block",
-            language: child.lang || "text",
-            // 在列表里的代码块，同样从 meta 里解析 preview
-            preview: getPreviewFlagFromMeta(child),
-            children: (child.value || "").split("\n").map((line: string) => ({
-              type: "code-line",
-              children: [{ text: line }],
-            })),
-          });
-          processedNodes.add(child);
-          break;
-
-        case "list":
-          result.push({
-            type: "list",
-            ordered: !!child.ordered,
-            start: child.start || 1,
-            children: (child.children || []).map(
-              (nestedItem: any, index: number) => {
-                processedNodes.add(nestedItem);
-                const listItemNode: SlateNode = {
-                  type: "list-item",
-                  value: (child.start || 1) + index,
-                  children: processListItemChildren(nestedItem),
-                };
-                if (
-                  nestedItem.checked !== null &&
-                  nestedItem.checked !== undefined
-                ) {
-                  listItemNode.checked = nestedItem.checked;
-                }
-                return listItemNode;
-              }
-            ),
-          });
-          processedNodes.add(child);
-          break;
-
-        default:
-          break;
-      }
-    });
-    return result.length > 0
-      ? result
-      : [{ type: "paragraph", children: [{ text: "" }] }];
-  }
-
-  visit(mdastTree, (node, index, parent) => {
-    if (!ensureValidNode(node) || processedNodes.has(node)) {
-      return;
-    }
-    try {
-      switch (node.type) {
-        // =================================================================
-        // 代码块：最终修复版 + preview 支持
-        // =================================================================
-        case "code":
-          slateNodes.push({
-            type: "code-block",
-            language: node.lang || "text",
-            // 顶层代码块，从 meta 里解析 preview
-            preview: getPreviewFlagFromMeta(node),
-            children: (node.value || "").split("\n").map((line: string) => ({
-              type: "code-line",
-              children: [{ text: line }],
-            })),
-          });
-          break;
-        // =================================================================
-
-        case "list":
-          slateNodes.push({
-            type: "list",
-            ordered: !!node.ordered,
-            start: node.start || 1,
-            children: (node.children || []).map((item: any, index: number) => {
-              processedNodes.add(item);
-              const listItemNode: SlateNode = {
-                type: "list-item",
-                value: (node.start || 1) + index,
-                children: processListItemChildren(item),
-              };
-              if (item.checked !== null && item.checked !== undefined) {
-                listItemNode.checked = item.checked;
-              }
-              return listItemNode;
-            }),
-          });
-          break;
-
-        case "blockquote":
-          slateNodes.push({
-            type: "quote",
-            children: processBlockChildren(node.children),
-          });
-          break;
-
-        case "heading": {
-          function getHeadingText(depth: number): string {
-            const headings = ["one", "two", "three", "four", "five", "six"];
-            return headings[depth - 1] || "one";
-          }
-          slateNodes.push({
-            type: `heading-${getHeadingText((node as any).depth || 1)}`,
-            children: node.children.length
-              ? processInlineNodes(node.children)
-              : [{ text: "" }],
-          });
-          break;
-        }
-
-        case "paragraph":
-          // 列表项里的 paragraph 在 processListItemChildren 里处理，这里只处理非 listItem 父级
-          if (!parent || parent.type !== "listItem") {
-            slateNodes.push({
-              type: "paragraph",
-              children: processInlineNodes(node.children),
-            });
-          }
-          break;
-
-        case "table": {
-          const tableNode = transformTable(node);
-          if (tableNode) {
-            slateNodes.push(tableNode);
-          }
-          break;
-        }
-
-        case "thematicBreak":
-          slateNodes.push({ type: "thematic-break", children: [{ text: "" }] });
-          break;
-
-        case "html":
-          // 只处理块级 html（从第一列开始）
-          if (node.position?.start.column === 1) {
-            slateNodes.push({
-              type: "html-block",
-              html: node.value || "",
-              children: [{ text: "" }],
-            });
-          }
-          break;
-      }
-    } catch (error) {
-      console.warn("Error processing node:", error);
-    }
-    processedNodes.add(node);
-  });
-
-  return slateNodes.length
-    ? slateNodes
-    : [{ type: "paragraph", children: [{ text: "" }] }];
+  return {
+    type: "list",
+    ordered: !!node.ordered,
+    start,
+    children: items.map((item: any, index: number) =>
+      convertListItem(item, start + index)
+    ),
+  };
 }
 
-// ========================================================================
-// END: 最终修复版的 mdastToSlate.ts（已加入 preview 支持 & 语法修正）
-// ========================================================================
+/**
+ * 将 listItem 节点转换为 Slate list-item 节点
+ */
+function convertListItem(item: any, value: number): SlateNode {
+  const children = convertListItemChildren(item);
+
+  const listItemNode: SlateNode = {
+    type: "list-item",
+    value,
+    children: children.length ? children : [createEmptyParagraph()],
+  };
+
+  if (item && (item.checked === true || item.checked === false)) {
+    listItemNode.checked = item.checked;
+  }
+
+  return listItemNode;
+}
+
+/**
+ * 将 listItem 里的子节点统一转换
+ * 支持：
+ * - 段落
+ * - 嵌套列表
+ * - 引用
+ * - 代码块
+ * - 表格
+ * - 分割线
+ * - HTML
+ * - 标题等
+ */
+function convertListItemChildren(item: any): SlateNode[] {
+  const children = getChildren(item);
+  if (!children.length) return [createEmptyParagraph()];
+
+  return convertBlockChildren(children);
+}
+
+/**
+ * 转换一组「块级」节点（用于 root / blockquote / listItem 等容器）
+ */
+function convertBlockChildren(nodes: any[]): SlateNode[] {
+  const result: SlateNode[] = [];
+
+  for (const node of nodes || []) {
+    const converted = convertBlockNode(node);
+    if (!converted) continue;
+
+    if (Array.isArray(converted)) {
+      result.push(...converted);
+    } else {
+      result.push(converted);
+    }
+  }
+
+  return result;
+}
+
+/**
+ * 将单个 mdast「块级」节点转换为 Slate 节点
+ * 这里处理所有可以作为块的类型：paragraph / heading / list / blockquote / code / table / html / thematicBreak ...
+ */
+function convertBlockNode(node: any): SlateNode | SlateNode[] | null {
+  if (!node || typeof node !== "object") return null;
+
+  switch (node.type) {
+    // 段落
+    case "paragraph":
+      return {
+        type: "paragraph",
+        children: node.children?.length
+          ? processInlineNodes(node.children)
+          : [{ text: "" }],
+      };
+
+    // 标题
+    case "heading": {
+      const depth = (node as any).depth || 1;
+      const headings = ["one", "two", "three", "four", "five", "six"];
+      const suffix = headings[depth - 1] || "one";
+      return {
+        type: `heading-${suffix}`,
+        children: node.children?.length
+          ? processInlineNodes(node.children)
+          : [{ text: "" }],
+      };
+    }
+
+    // 代码块（支持 preview meta）
+    case "code":
+      return {
+        type: "code-block",
+        language: node.lang || "text",
+        preview: getPreviewFlagFromMeta(node),
+        children: (node.value || "").split("\n").map((line: string) => ({
+          type: "code-line",
+          children: [{ text: line }],
+        })),
+      };
+
+    // 列表
+    case "list":
+      return convertList(node);
+
+    // 引用块（blockquote）
+    case "blockquote": {
+      const children = convertBlockChildren(getChildren(node));
+      return {
+        type: "quote",
+        children: children.length ? children : [createEmptyParagraph()],
+      };
+    }
+
+    // 表格
+    case "table": {
+      const tableNode = transformTable(node);
+      return tableNode || null;
+    }
+
+    // 分割线
+    case "thematicBreak":
+      return { type: "thematic-break", children: [{ text: "" }] };
+
+    // 原始 HTML（块级）
+    case "html": {
+      // 原来的实现只处理 position.start.column === 1 的块级 html
+      // 这里保持同样逻辑，避免行为改变太大
+      const isBlockHtml = !node.position || node.position.start?.column === 1;
+
+      if (!isBlockHtml) return null;
+
+      return {
+        type: "html-block",
+        html: node.value || "",
+        children: [{ text: "" }],
+      };
+    }
+
+    // root：取 children 继续处理
+    case "root":
+      return convertBlockChildren(getChildren(node));
+
+    default:
+      return null;
+  }
+}
+
+/**
+ * 顶层入口：MDAST -> Slate 数组
+ */
+export function mdastToSlate(mdastTree: any): SlateNode[] {
+  if (!mdastTree) {
+    return [createEmptyParagraph()];
+  }
+
+  let rootChildren: any[] = [];
+
+  if (mdastTree.type === "root") {
+    rootChildren = getChildren(mdastTree);
+  } else if (Array.isArray(mdastTree.children)) {
+    // 非 root 但有 children 的场景也兼容一下
+    rootChildren = mdastTree.children;
+  } else {
+    // 单节点也走统一转换
+    const single = convertBlockNode(mdastTree);
+    if (!single) return [createEmptyParagraph()];
+    return Array.isArray(single) ? single : [single];
+  }
+
+  const slateNodes = convertBlockChildren(rootChildren);
+
+  return slateNodes.length ? slateNodes : [createEmptyParagraph()];
+}

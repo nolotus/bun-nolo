@@ -1,13 +1,14 @@
-// 文件: create/editor/processInlineNodes.ts
+// 路径：create/editor/transforms/inline.ts
 
 // 辅助类型定义
-interface SlateTextNode {
+export interface SlateTextNode {
   text: string;
   bold?: boolean;
   italic?: boolean;
   strikethrough?: boolean;
 }
-interface SlateElementNode {
+
+export interface SlateElementNode {
   type: string;
   url?: string;
   alt?: string;
@@ -16,13 +17,14 @@ interface SlateElementNode {
   language?: string; // 代码块语言
   children: SlateChild[];
 }
-type SlateChild = SlateTextNode | SlateElementNode;
-type SlateInlineChild = SlateChild;
+
+export type SlateChild = SlateTextNode | SlateElementNode;
+export type SlateInlineChild = SlateChild;
 
 // 提取 HTML 标签名，例如 "<span>" -> "span"
 function getTagName(html: string): string | null {
   if (!html) return null;
-  const match = html.match(/^<\/?([a-zA-Z0-9]+)/);
+  const match = html.trimStart().match(/^<\/?([a-zA-Z0-9]+)/);
   return match ? match[1].toLowerCase() : null;
 }
 
@@ -41,13 +43,41 @@ function getRawTextFromNodes(nodes: any[]): string {
     .join("");
 }
 
+// 合并相邻且样式完全一致的文本节点
+function mergeTextNodes(nodes: SlateInlineChild[]): SlateInlineChild[] {
+  const merged: SlateInlineChild[] = [];
+  for (const node of nodes) {
+    if (
+      merged.length > 0 &&
+      "text" in node &&
+      "text" in merged[merged.length - 1]
+    ) {
+      const prev = merged[merged.length - 1] as SlateTextNode;
+      const cur = node as SlateTextNode;
+
+      if (
+        prev.bold === cur.bold &&
+        prev.italic === cur.italic &&
+        prev.strikethrough === cur.strikethrough
+      ) {
+        prev.text += cur.text;
+        continue;
+      }
+    }
+    merged.push(node);
+  }
+  return merged;
+}
+
 /**
  * 将 mdast 内联节点转换为 Slate 内联节点列表，
- * 支持加粗、斜体、删除线和内联 HTML。
+ * 支持加粗、斜体、删除线、链接、图片、内联代码以及内联 HTML。
  */
 export function processInlineNodes(mdastChildren: any[]): SlateInlineChild[] {
   if (!Array.isArray(mdastChildren)) return [{ text: "" }];
+
   const result: SlateInlineChild[] = [];
+
   // 当前打开的 HTML 标签状态
   let activeHtmlTag: {
     startTag: string;
@@ -58,6 +88,7 @@ export function processInlineNodes(mdastChildren: any[]): SlateInlineChild[] {
   try {
     for (const child of mdastChildren) {
       if (!child || typeof child !== "object") {
+        // 在 HTML 标签内时收集纯文本
         if (activeHtmlTag && typeof child === "string") {
           activeHtmlTag.contentNodes.push({ type: "text", value: child });
         }
@@ -67,25 +98,30 @@ export function processInlineNodes(mdastChildren: any[]): SlateInlineChild[] {
       // 处理 HTML 节点
       if (child.type === "html" && typeof child.value === "string") {
         const htmlValue = child.value;
+        const trimmedEnd = htmlValue.trimEnd();
         const tagName = getTagName(htmlValue);
 
-        // 自闭合标签
-        if (htmlValue.endsWith("/>") && tagName) {
-          if (activeHtmlTag) activeHtmlTag.contentNodes.push(child);
-          else
+        // 自闭合标签，例如 <br/>、<img ... />
+        if (trimmedEnd.endsWith("/>") && tagName) {
+          if (activeHtmlTag) {
+            activeHtmlTag.contentNodes.push(child);
+          } else {
             result.push({
               type: "html-inline",
               html: htmlValue,
               children: [{ text: "" }],
             });
+          }
           continue;
         }
+
         // 结束标签
-        if (htmlValue.startsWith("</") && tagName) {
+        if (htmlValue.trimStart().startsWith("</") && tagName) {
           if (activeHtmlTag && activeHtmlTag.tagName === tagName) {
             const nodes = processInlineNodes(activeHtmlTag.contentNodes);
             const rawText = getRawTextFromNodes(activeHtmlTag.contentNodes);
             const children = nodes.length ? nodes : [{ text: "" }];
+
             result.push({
               type: "html-inline",
               html: activeHtmlTag.startTag + rawText + htmlValue,
@@ -93,26 +129,39 @@ export function processInlineNodes(mdastChildren: any[]): SlateInlineChild[] {
             });
             activeHtmlTag = null;
           } else if (activeHtmlTag) {
+            // 标签不匹配时，继续当作内容收集
             activeHtmlTag.contentNodes.push(child);
           } else {
+            // 没有打开标签，但遇到结束标签，当作纯文本
             result.push({ text: htmlValue });
           }
           continue;
         }
+
         // 开始标签
-        if (!htmlValue.startsWith("</") && tagName) {
-          if (activeHtmlTag) activeHtmlTag.contentNodes.push(child);
-          else
-            activeHtmlTag = { startTag: htmlValue, tagName, contentNodes: [] };
+        if (!htmlValue.trimStart().startsWith("</") && tagName) {
+          if (activeHtmlTag) {
+            activeHtmlTag.contentNodes.push(child);
+          } else {
+            activeHtmlTag = {
+              startTag: htmlValue,
+              tagName,
+              contentNodes: [],
+            };
+          }
           continue;
         }
-        // 非标准 HTML
-        if (activeHtmlTag) activeHtmlTag.contentNodes.push(child);
-        else result.push({ text: htmlValue });
+
+        // 非标准 / 无法识别的 HTML
+        if (activeHtmlTag) {
+          activeHtmlTag.contentNodes.push(child);
+        } else {
+          result.push({ text: htmlValue });
+        }
         continue;
       }
 
-      // 在 HTML 标签内时收集内容
+      // 在 HTML 标签内时，收集内容节点
       if (activeHtmlTag) {
         activeHtmlTag.contentNodes.push(child);
         continue;
@@ -145,12 +194,14 @@ export function processInlineNodes(mdastChildren: any[]): SlateInlineChild[] {
             children: processInlineNodes(child.children || []),
           });
           break;
+
         case "inlineCode":
           result.push({
             type: "code-inline",
             children: [{ text: child.value || "" }],
           });
           break;
+
         case "image": {
           const img: SlateElementNode = {
             type: "image",
@@ -162,9 +213,11 @@ export function processInlineNodes(mdastChildren: any[]): SlateInlineChild[] {
           result.push(img);
           break;
         }
+
         case "text":
           result.push({ text: child.value || "" });
           break;
+
         default:
           if (child.value && typeof child.value === "string") {
             result.push({ text: child.value });
@@ -172,7 +225,7 @@ export function processInlineNodes(mdastChildren: any[]): SlateInlineChild[] {
       }
     }
 
-    // 处理未闭合的 HTML 标签
+    // 处理未闭合的 HTML 标签：按开始标签 + 内部内容退化
     if (activeHtmlTag) {
       result.push({
         type: "html-inline",
@@ -185,6 +238,6 @@ export function processInlineNodes(mdastChildren: any[]): SlateInlineChild[] {
     return [{ text: "" }];
   }
 
-  // 确保返回非空
-  return result.length ? result : [{ text: "" }];
+  const finalResult = result.length ? result : [{ text: "" }];
+  return mergeTextNodes(finalResult);
 }
