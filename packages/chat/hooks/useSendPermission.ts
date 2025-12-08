@@ -3,7 +3,7 @@
 import { useAppSelector } from "app/store";
 import { selectUserId } from "auth/authSlice";
 import { useTranslation } from "react-i18next";
-import useAgentConfig from "ai/llm/hooks/useAgentConfig";
+import useAgentConfig from "ai/agent/hooks/useAgentConfig";
 import { getModelPricing, getFinalPrice, getPrices } from "ai/llm/getPricing";
 
 export interface SendPermissionCheck {

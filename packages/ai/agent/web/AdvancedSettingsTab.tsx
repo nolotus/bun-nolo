@@ -16,7 +16,7 @@ import {
   DEFAULT_FREQUENCY_PENALTY,
   DEFAULT_PRESENCE_PENALTY,
   DEFAULT_REASONING_EFFORT,
-} from "../common/createAgentSchema";
+} from "../createAgentSchema";
 import { MdRefresh } from "react-icons/md";
 
 const PARAMETER_CONFIGS = [

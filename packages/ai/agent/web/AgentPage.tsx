@@ -14,7 +14,7 @@ import { remove } from "database/dbSlice";
 import Button from "render/web/ui/Button";
 import { Dialog } from "render/web/ui/modal/Dialog";
 import Avatar from "render/web/ui/Avatar";
-import AgentForm from "ai/llm/web/AgentForm";
+import AgentForm from "ai/agent/web/AgentForm";
 import {
   LuPlus,
   LuRefreshCw,

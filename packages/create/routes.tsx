@@ -2,8 +2,8 @@
 import { lazy, Suspense } from "react";
 import { CreateRoutePaths } from "./routePaths";
 
-const AgentForm = lazy(() => import("ai/llm/web/AgentForm"));
-const CreateCustomCybot = lazy(() => import("ai/llm/web/CreateCustomCybot"));
+const AgentForm = lazy(() => import("ai/agent/web/AgentForm"));
+const CreateCustomCybot = lazy(() => import("ai/agent/web/CreateCustomCybot"));
 
 export const createRoutes = [
   {

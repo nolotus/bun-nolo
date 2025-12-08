@@ -8,7 +8,7 @@ import spaceRecer from "create/space/spaceSlice";
 
 import dialogReducer from "chat/dialog/dialogSlice";
 import messageReducer from "chat/messages/messageSlice";
-import planSlice from "ai/llm/planSlice";
+import planSlice from "ai/agent/planSlice";
 
 // 新增：工具调用 trace
 import toolRunReducer from "ai/tools/toolRunSlice";

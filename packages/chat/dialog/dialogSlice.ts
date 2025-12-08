@@ -21,7 +21,7 @@ import {
 } from "create/space/spaceSlice";
 import { streamAgentChatTurn } from "ai/cybot/cybotSlice";
 import { DialogConfig } from "app/types";
-import { clearPlan } from "ai/llm/planSlice";
+import { clearPlan } from "ai/agent/planSlice";
 
 // 外部 Actions
 import { createDialogAction } from "./actions/createDialogAction";

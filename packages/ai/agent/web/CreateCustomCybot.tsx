@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "app/theme";
-import { useAgentValidation } from "../common/useAgentFormValidation";
+import { useAgentValidation } from "../hooks/useAgentFormValidation";
 import { FormField } from "render/web/form/FormField";
 
 import FormTitle from "render/web/form/FormTitle";
@@ -15,7 +15,7 @@ import { TagsInput } from "render/web/form/TagsInput";
 import { useAppSelector } from "app/store";
 import { selectCurrentSpace } from "create/space/spaceSlice";
 import ToggleSwitch from "render/web/ui/ToggleSwitch";
-import PublishSettingsTab from "../../agent/web/PublishSettingsTab";
+import PublishSettingsTab from "./PublishSettingsTab";
 import ReferencesSelector from "./ReferencesSelector"; // 确保路径正确
 
 const CreateCustomCybot: React.FC = () => {

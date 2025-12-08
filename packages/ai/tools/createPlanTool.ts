@@ -11,7 +11,7 @@ import {
   selectSteps,
   type Step,
   type ToolCall,
-} from "ai/llm/planSlice";
+} from "ai/agent/planSlice";
 import { runLlm, streamLlm, runAgent, streamAgent } from "ai/cybot/cybotSlice";
 import { toolExecutors, toolDefinitionsByName } from "ai/tools/toolRegistry";
 import {

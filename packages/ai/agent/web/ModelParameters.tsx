@@ -16,7 +16,7 @@ import {
   DEFAULT_PRESENCE_PENALTY,
   DEFAULT_MAX_TOKENS,
   DEFAULT_REASONING_EFFORT,
-} from "../common/createAgentSchema";
+} from "../createAgentSchema";
 
 // 1. [封装] 常量现在是组件的内部细节，无需导出
 const PARAMETER_CONFIGS = [

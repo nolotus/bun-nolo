@@ -30,7 +30,7 @@ interface AgentBlockProps {
   reload: () => Promise<void>;
 }
 
-const loadAgentForm = () => import("ai/llm/web/AgentForm");
+const loadAgentForm = () => import("ai/agent/web/AgentForm");
 const AgentFormLazy = lazy(loadAgentForm);
 
 const preloadEditBundle = () => {

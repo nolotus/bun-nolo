@@ -16,7 +16,7 @@ import {
   getCreateAgentSchema,
   FormData,
   normalizeReferences,
-} from "./createAgentSchema";
+} from "../createAgentSchema";
 
 // extractCybotId 函数保持不变
 const extractCybotId = (path: string): string =>

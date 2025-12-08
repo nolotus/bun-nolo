@@ -1,21 +1,21 @@
-// ai/llm/web/AgentForm.tsx
+// ai/llm/agent/AgentForm.tsx
 import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 // 如果 space 未使用，可删除以下两行，避免未使用警告
 // import { useAppSelector } from "app/store";
 // import { selectCurrentSpace } from "create/space/spaceSlice";
 
-import useModelPricing from "../hooks/useModelPricing";
-import { useOllamaSettings } from "../hooks/useOllamaSettings";
-import { useProxySetting } from "../hooks/useProxySetting";
-import { useAgentValidation } from "../common/useAgentFormValidation";
-import { normalizeReferences } from "../common/createAgentSchema";
+import useModelPricing from "../../llm/hooks/useModelPricing";
+import { useOllamaSettings } from "../../llm/hooks/useOllamaSettings";
+import { useProxySetting } from "../../llm/hooks/useProxySetting";
+import { useAgentValidation } from "../hooks/useAgentFormValidation";
+import { normalizeReferences } from "../createAgentSchema";
 
 // 同步导入各 Tab
 import BasicInfoTab from "./BasicInfoTab";
 import ReferencesTab from "./ReferencesTab";
 import ToolsTab from "./ToolsTab";
-import PublishSettingsTab from "../../agent/web/PublishSettingsTab";
+import PublishSettingsTab from "./PublishSettingsTab";
 import AdvancedSettingsTab from "./AdvancedSettingsTab";
 
 import Button from "render/web/ui/Button";

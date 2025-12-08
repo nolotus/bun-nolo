@@ -4,7 +4,7 @@ import { useCouldEdit } from "auth/hooks/useCouldEdit";
 import React from "react";
 import { Dialog as EditDialog } from "render/web/ui/modal/Dialog";
 import { useModal } from "render/ui/Modal";
-import AgentForm from "ai/llm/web/AgentForm";
+import AgentForm from "ai/agent/web/AgentForm";
 
 interface BotNameChipProps {
   botKey: string;
