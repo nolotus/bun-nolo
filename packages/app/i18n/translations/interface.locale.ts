@@ -1,4 +1,3 @@
-// src/locales/common.ts
 import { Language } from "../types";
 
 export default {
@@ -76,42 +75,37 @@ export default {
       "Go Back": "Go Back",
       deleteSuccess: "Delete successful",
       home: "Home",
+
+      // === Combined Welcome Section ===
       welcomeSection: {
-        heroTitle: "Explore, Use, and Create AI",
+        heroTitle: "Everything is Ready.",
         heroDescription:
-          "Dive into a universe of intelligent agents. Instantly use powerful multi-modal AIs, or build your own and share them in our vibrant marketplace.",
-        ctaButton: "Get Started for Free",
-        feature1: {
-          title: "Multi-Modal AI Workspace",
-          description:
-            "Go beyond simple chat. Access top-tier models like GPT-5, Claude, and Gemini. Upload documents, analyze images, and generate video. Orchestrate multiple AIs in a single conversation to execute complex plans.",
-          highlights: {
-            0: "📚 Docs & Image Analysis",
-            1: "🎨 Image & Video Generation",
-            2: "🤖 Multi-AI Orchestration",
+          "Just start chatting. We silently orchestrate the world's best AI to serve your curiosity, your creativity, and your daily life.",
+        ctaButton: "Start Your Journey",
+        cards: {
+          context: {
+            title: "I Know What You Mean",
+            desc: "Upload docs based on projects. I don't just chat; I understand context and route you to the expert model that fits best.",
+            bubble: "Based on 'Project_V1.pdf', I suggest this route:",
           },
-        },
-        feature2: {
-          title: "No-Code AI Builder",
-          description:
-            "Become an AI creator. Visually combine your own prompts, tools, and private knowledge bases to build specialized AI agents for any purpose, from a personal tutor to an automated customer service bot.",
-          highlights: {
-            0: "🧩 Build with Blocks",
-            1: "🛠️ Integrate Your Tools",
-            2: "🧠 Train on Your Data",
+          battle: {
+            title: "Never Decide Alone",
+            desc: "Facing a tough choice? We summon a council of GPT, Claude, and Gemini to debate it for you, giving you the confidence to move forward.",
+            result: "Consensus Reached",
           },
-        },
-        feature3: {
-          title: "The Creator Marketplace",
-          description:
-            "Don't just build for yourself. Publish your custom AIs, tools, or even curated knowledge bases on our marketplace. Share your expertise and create new revenue streams.",
-          highlights: {
-            0: "🌐 Discover & Share",
-            1: "💰 Monetize Your Creations",
-            2: "📚 Trade Knowledge Bases",
+          create: {
+            title: "Words become Worlds",
+            desc: "You bring the wild ideas. We handle the code, the 3D modeling, and the deployment. Just say it, and watch it become real.",
+          },
+          auto: {
+            title: "Reclaim Your Time",
+            desc: "Teach me the logic once—A, then B, then C. I'll handle the repetition forever, so you can enjoy your life.",
+            taskName: "Workflow Active",
           },
         },
       },
+      // === End Welcome Section ===
+
       explorePlaza: "Explore the AI Plaza",
       joinCommunity: "Join Our Community",
       invitedBy: "You've been invited by",
@@ -210,42 +204,37 @@ export default {
       "Go Back": "返回",
       deleteSuccess: "删除成功",
       home: "首页",
+
+      // === Combined Welcome Section ===
       welcomeSection: {
-        heroTitle: "探索、使用、创造 AI",
+        heroTitle: "一切已准备就绪",
         heroDescription:
-          "进入智能体的宇宙。立即使用强大的多模态AI，或构建你自己的专属AI，并在我们充满活力的创作者市场中分享它们。",
-        ctaButton: "立即免费体验",
-        feature1: {
-          title: "多模态AI工作空间",
-          description:
-            "超越简单聊天。在同一个对话中，自由切换并协同包括 GPT-5, Claude, 和 Gemini 在内的多个顶尖AI，上传文档、识别图像，甚至生成视频，执行你设定的复杂任务流。",
-          highlights: {
-            0: "📚 文档与图像识别",
-            1: "🎨 图像与视频生成",
-            2: "🤖 多AI协同执行",
+          "你只需像平常一样聊天。而在屏幕背后，我们为你协调全球顶尖的 AI，服务于你的好奇心、你的创造力，和你宝贵的时间。",
+        ctaButton: "开始体验",
+        cards: {
+          context: {
+            title: "懂文件，更懂你",
+            desc: "你可以上传文档或关联知识库。我不仅能聊天，更能理解你的上下文，并自动为你切换到最懂这个领域的模型。",
+            bubble: "基于文档分析，建议使用 Gemini 模型处理...",
           },
-        },
-        feature2: {
-          title: "无代码AI构建器",
-          description:
-            "成为AI创造者。通过可视化界面，自由组合你的提示词、外部工具和私有知识库，打造从个人导师到自动化客服等任何专属AI。",
-          highlights: {
-            0: "🧩 积木式构建",
-            1: "🛠️ 集成你的工具",
-            2: "🧠 训练你的数据",
+          battle: {
+            title: "决策，不再孤单",
+            desc: "当你不确定时，我们会把 GPT、Claude 和 Gemini 都叫过来。听听不同的声音，找到那个最好的答案。",
+            result: "多模型综合建议",
           },
-        },
-        feature3: {
-          title: "创作者市场",
-          description:
-            "不止于自用。你可以在市场中发布你定制的AI、工具、甚至是知识库。分享你的专业知识，开创全新的收入来源。",
-          highlights: {
-            0: "🌐 发现与分享",
-            1: "💰 将创作变现",
-            2: "📚 知识库亦可交易",
+          create: {
+            title: "你负责天马行空",
+            desc: "想要可交互的网页，还是 3D 模型？你只需提供灵感。我们负责编写代码、建模和落地，把想象瞬间变成现实。",
+          },
+          auto: {
+            title: "把时间留给生活",
+            desc: "教我一次逻辑：先做 A，后做 B，再做 C。剩下的重复工作就交给我，而你可以去享受生活。",
+            taskName: "自动化流程运行中",
           },
         },
       },
+      // === End Welcome Section ===
+
       explorePlaza: "探索 AI 广场",
       joinCommunity: "加入我们的社区",
       invitedBy: "你已被邀请",
@@ -344,42 +333,37 @@ export default {
       "Go Back": "返回",
       deleteSuccess: "刪除成功",
       home: "首頁",
+
+      // === Combined Welcome Section ===
       welcomeSection: {
-        heroTitle: "探索、使用、創造 AI",
+        heroTitle: "一切已準備就緒",
         heroDescription:
-          "進入智能體的宇宙。立即使用強大的多模態AI，或構建您自己的專屬AI，並在我們充滿活力的創作者市集中分享它們。",
-        ctaButton: "立即免費體驗",
-        feature1: {
-          title: "多模態AI工作空間",
-          description:
-            "超越簡單聊天。在同一個對話中，自由切換並協同包括 GPT-5, Claude 和 Gemini 在內的多個頂尖 AI，上傳文件、識別圖像，甚至生成影片，執行您設定的複雜任務流。",
-          highlights: {
-            0: "📚 文件與圖像識別",
-            1: "🎨 圖像與影片生成",
-            2: "🤖 多AI協同執行",
+          "您只需像平常一樣聊天。而在螢幕背後，我們為您協調全球頂尖的 AI，服務於您的好奇心、您的創造力，和您寶貴的時間。",
+        ctaButton: "開始體驗",
+        cards: {
+          context: {
+            title: "懂文件，更懂您",
+            desc: "您可以上傳文件或關聯知識庫。我不僅能聊天，更能理解您的上下文，並自動為您切換到最懂這個領域的模型。",
+            bubble: "基於文檔分析，建議使用 Gemini 模型處理...",
           },
-        },
-        feature2: {
-          title: "無程式碼AI建構器",
-          description:
-            "成為AI創造者。透過視覺化介面，自由組合您的提示詞、外部工具和私有知識庫，打造從個人導師到自動化客服等任何專屬AI。",
-          highlights: {
-            0: "🧩 積木式建構",
-            1: "🛠️ 整合您的工具",
-            2: "🧠 訓練您的數據",
+          battle: {
+            title: "決策，不再孤單",
+            desc: "當您不確定時，我們會把 GPT、Claude 和 Gemini 都叫過來。聽聽不同的聲音，找到那個最好的答案。",
+            result: "多模型綜合建議",
           },
-        },
-        feature3: {
-          title: "創作者市集",
-          description:
-            "不止於自用。您可以在市集中發布您客製化的AI、工具、甚至是知識庫。分享您的專業知識，開創全新的收入來源。",
-          highlights: {
-            0: "🌐 發現與分享",
-            1: "💰 將創作變現",
-            2: "📚 知識庫亦可交易",
+          create: {
+            title: "您負責天馬行空",
+            desc: "想要可交互的網頁，還是 3D 模型？您只需提供靈感。我們負責編寫程式碼、建模和落地，把想像瞬間變成現實。",
+          },
+          auto: {
+            title: "把時間留給生活",
+            desc: "教我一次邏輯：先做 A，後做 B，再做 C。剩下的重複工作就交給我，而您可以去享受生活。",
+            taskName: "自動化流程運行中",
           },
         },
       },
+      // === End Welcome Section ===
+
       explorePlaza: "探索 AI 廣場",
       joinCommunity: "加入我們的社區",
       invitedBy: "您已被邀請",
@@ -481,42 +465,37 @@ export default {
       "Go Back": "戻る",
       deleteSuccess: "削除成功",
       home: "ホーム",
+
+      // === Combined Welcome Section ===
       welcomeSection: {
-        heroTitle: "AIを探索、使用、創造する",
+        heroTitle: "準備はすべて整いました",
         heroDescription:
-          "インテリジェントエージェントの世界へようこそ。強力なマルチモーダルAIをすぐに使用したり、独自のAIを構築して活気あるマーケットプレイスで共有したりできます。",
-        ctaButton: "無料で始める",
-        feature1: {
-          title: "マルチモーダルAIワークスペース",
-          description:
-            "シンプルなチャットを超えましょう。単一の会話でGPT-5、Claude、Geminiといった最先端のAIモデルを自由に切り替え、連携させ、ドキュメントのアップロード、画像の認識、ビデオ生成など、あなたが設定した複雑なプランを実行します。",
-          highlights: {
-            0: "📚 ドキュメント・画像認識",
-            1: "🎨 画像・動画生成",
-            2: "🤖 マルチAI連携実行",
+          "ただ、話しかけるだけ。画面の向こうで、私たちが世界最高のAIを調整し、あなたの好奇心、創造性、そして貴重な時間をサポートします。",
+        ctaButton: "体験を始める",
+        cards: {
+          context: {
+            title: "文脈を理解するAI",
+            desc: "ドキュメントをアップロードすれば、文脈を完全に理解します。ただチャットするだけでなく、最適な専門モデルへ自動で接続します。",
+            bubble: "文書分析に基づき、Geminiモデルでの処理を推奨します...",
           },
-        },
-        feature2: {
-          title: "ノーコードAIビルダー",
-          description:
-            "AIクリエイターになりましょう。独自のプロンプト、外部ツール、プライベートナレッジベースを視覚的に組み合わせ、家庭教師から自動化されたカスタマーサービスまで、あらゆる目的の專用AIを構築します。",
-          highlights: {
-            0: "🧩 ブロックで構築",
-            1: "🛠️ ツールを統合",
-            2: "🧠 あなたのデータで訓練",
+          battle: {
+            title: "もう一人で迷わない",
+            desc: "決断に迷ったら、GPT、Claude、Geminiを呼び出しましょう。多様な視点からの意見を聞き、自信を持って前に進めます。",
+            result: "マルチモデルによる最適解",
           },
-        },
-        feature3: {
-          title: "クリエイターマーケットプレイス",
-          description:
-            "自分だけで使うのではありません。カスタムAI、ツール、さらにはナレッジベースをマーケットプレイスで公開できます。あなたの専門知識を共有し、新たな収益源を創出しましょう。",
-          highlights: {
-            0: "🌐 発見と共有",
-            1: "💰 創作を収益化",
-            2: "📚 ナレッジベースも取引可能",
+          create: {
+            title: "想像を、現実に",
+            desc: "Webサイトや3Dモデルを作りたいですか？アイデアさえあれば大丈夫。コードもモデリングも、私たちが形にします。",
+          },
+          auto: {
+            title: "時間は人生のために",
+            desc: "一度「A、次にB、そしてC」という手順を教えてください。その後の繰り返し作業は私が引き受けます。どうぞ人生を楽しんでください。",
+            taskName: "自動化フロー実行中",
           },
         },
       },
+      // === End Welcome Section ===
+
       explorePlaza: "AIプラザを探索",
       joinCommunity: "コミュニティに参加",
       invitedBy: "招待されました",
