@@ -1,6 +1,5 @@
 import { LuSend } from "react-icons/lu";
 import { useAppDispatch, useAppSelector } from "app/store";
-import { selectTheme } from "app/settings/settingSlice";
 import {
   abortAllMessages,
   selectActiveControllers,
@@ -17,7 +16,6 @@ interface SendButtonProps {
 
 const SendButton: React.FC<SendButtonProps> = ({ onClick, disabled }) => {
   const dispatch = useAppDispatch();
-  const theme = useAppSelector(selectTheme);
   const { t } = useTranslation("chat");
   const activeControllers = useAppSelector(selectActiveControllers);
   const canAbort = Object.keys(activeControllers).length > 0;

@@ -6,8 +6,6 @@ import {
   SlateTableCell as SlateTableCellType,
 } from "create/editor/transforms/fromMarkdown/table";
 import { useTranslation } from "react-i18next";
-import { useAppSelector } from "app/store";
-import { selectTheme } from "app/settings/settingSlice";
 import * as XLSX from "xlsx";
 import { LuDownload, LuFileText, LuTable } from "react-icons/lu";
 
@@ -110,7 +108,6 @@ export const Table: React.FC<TableProps> = ({
   style,
 }) => {
   const { t } = useTranslation("chat");
-  const theme = useAppSelector(selectTheme);
   const { columns = [] } = element || {};
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [selectedFormat, setSelectedFormat] = useState("csv");

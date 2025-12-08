@@ -6,7 +6,6 @@ import {
   changeDarkMode,
   setThemeFollowsSystem,
   selectIsDark,
-  selectTheme,
   selectThemeFollowsSystem,
 } from "app/settings/settingSlice";
 import { SunIcon, MoonIcon, DeviceDesktopIcon } from "@primer/octicons-react";
@@ -16,7 +15,6 @@ type ThemeOption = "light" | "dark" | "system";
 export const DarkModeSwitch: React.FC = () => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
-  const theme = useAppSelector(selectTheme);
   const isDark = useAppSelector(selectIsDark);
   const themeFollowsSystem = useAppSelector(selectThemeFollowsSystem);
 

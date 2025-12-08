@@ -1,23 +1,20 @@
 // render/ui/LanguageSwitcher.tsx
 import React, { useState, useRef, useEffect, memo } from "react";
 import { useTranslation } from "react-i18next";
-import { useAppSelector } from "app/store";
-import { selectTheme } from "app/settings/settingSlice";
-import { GlobeIcon, CheckIcon } from "@primer/octicons-react";
 import { Language } from "app/i18n/types";
 
-// 使用场景：多语言切换选择器
+import { LuLanguages, LuCheck } from "react-icons/lu";
 
+// 使用场景：多语言切换选择器
 const languages = [
-  { code: Language.EN, name: "English", flag: "🇬🇧" },
-  { code: Language.ZH_CN, name: "简体中文", flag: "🇨🇳" },
-  { code: Language.ZH_HANT, name: "繁體中文", flag: "🇹🇼" },
-  { code: Language.JA, name: "日本語", flag: "🇯🇵" },
+  { code: Language.EN, name: "English" },
+  { code: Language.ZH_CN, name: "简体中文" },
+  { code: Language.ZH_HANT, name: "繁體中文" },
+  { code: Language.JA, name: "日本語" },
 ];
 
 const LanguageSwitcher = memo(() => {
   const { i18n } = useTranslation();
-  const theme = useAppSelector(selectTheme);
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -50,10 +47,8 @@ const LanguageSwitcher = memo(() => {
         onClick={() => setIsOpen(!isOpen)}
         aria-label="切换语言"
       >
-        <GlobeIcon size={16} />
-        <span className="lang-current">
-          {currentLanguage.flag} {currentLanguage.name}
-        </span>
+        <LuLanguages size={16} className="lang-icon" />
+        <span className="lang-current">{currentLanguage.name}</span>
       </button>
 
       {isOpen && (
@@ -66,15 +61,15 @@ const LanguageSwitcher = memo(() => {
                 className={`lang-option ${isActive ? "active" : ""}`}
                 onClick={() => handleLanguageChange(lang.code)}
               >
-                <span>{lang.flag}</span>
-                <span>{lang.name}</span>
-                {isActive && <CheckIcon size={14} />}
+                <span className="lang-name">{lang.name}</span>
+                {isActive && <LuCheck size={14} />}
               </button>
             );
           })}
         </div>
       )}
 
+      {/* 使用 CSS 变量，而不是 theme 对象 */}
       <style href="language-switcher" precedence="high">{`
         .lang-switcher {
           position: relative;
@@ -84,11 +79,11 @@ const LanguageSwitcher = memo(() => {
         .lang-button {
           display: flex;
           align-items: center;
-          gap: ${theme.space[2]};
-          padding: ${theme.space[2]} ${theme.space[3]};
-          background: ${theme.backgroundSecondary};
-          color: ${theme.textSecondary};
-          border: 1px solid ${theme.border};
+          gap: var(--space-2);
+          padding: var(--space-2) var(--space-3);
+          background: var(--backgroundSecondary);
+          color: var(--textSecondary);
+          border: 1px solid var(--border);
           border-radius: 8px;
           font-size: 0.875rem;
           cursor: pointer;
@@ -97,27 +92,31 @@ const LanguageSwitcher = memo(() => {
         }
 
         .lang-button:hover {
-          background: ${theme.backgroundHover};
-          border-color: ${theme.primary};
-          color: ${theme.text};
+          background: var(--backgroundHover);
+          border-color: var(--primary);
+          color: var(--text);
+        }
+
+        .lang-icon {
+          flex-shrink: 0;
         }
 
         .lang-current {
           display: flex;
           align-items: center;
-          gap: ${theme.space[2]};
+          gap: var(--space-2);
           white-space: nowrap;
         }
 
         .lang-dropdown {
           position: absolute;
           right: 0;
-          top: calc(100% + ${theme.space[2]});
+          top: calc(100% + var(--space-2));
           width: 180px;
-          background: ${theme.background};
-          border: 1px solid ${theme.border};
+          background: var(--background);
+          border: 1px solid var(--border);
           border-radius: 10px;
-          box-shadow: 0 8px 24px ${theme.shadowMedium};
+          box-shadow: 0 8px 24px var(--shadowMedium);
           overflow: hidden;
           z-index: 1000;
           animation: fadeIn 0.18s ease-out;
@@ -127,28 +126,29 @@ const LanguageSwitcher = memo(() => {
           display: flex;
           align-items: center;
           width: 100%;
-          padding: ${theme.space[3]} ${theme.space[4]};
+          padding: var(--space-3) var(--space-4);
           background: transparent;
-          color: ${theme.textSecondary};
+          color: var(--textSecondary);
           border: none;
           cursor: pointer;
           transition: all 0.15s ease;
-          gap: ${theme.space[3]};
+          gap: var(--space-3);
           font-size: 0.875rem;
         }
 
         .lang-option:hover {
-          background: ${theme.backgroundHover};
-          color: ${theme.text};
+          background: var(--backgroundHover);
+          color: var(--text);
         }
 
         .lang-option.active {
-          background: ${theme.primaryGhost};
-          color: ${theme.primary};
+          background: var(--primaryGhost);
+          color: var(--primary);
         }
 
-        .lang-option span:nth-child(2) {
+        .lang-name {
           flex-grow: 1;
+          text-align: left;
         }
 
         @keyframes fadeIn {

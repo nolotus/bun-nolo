@@ -2,11 +2,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "app/store";
 // 从合并后的 settingSlice 中导入新的 action 和 selectors
-import {
-  changeTheme,
-  selectTheme,
-  selectThemeName,
-} from "app/settings/settingSlice";
+import { changeTheme, selectThemeName } from "app/settings/settingSlice";
 import { CheckCircleFillIcon } from "@primer/octicons-react";
 // 确保颜色导入路径正确
 import * as themePalettes from "app/theme/colors";
@@ -23,7 +19,6 @@ export const ThemePicker: React.FC = () => {
   const dispatch = useAppDispatch();
 
   // 使用新的 selectors 获取所需状态
-  const theme = useAppSelector(selectTheme); // 获取完整的主题对象，用于样式
   const currentThemeName = useAppSelector(selectThemeName); // 获取当前主题名称，用于逻辑判断
 
   // 处理函数更新：调用新的异步 action
