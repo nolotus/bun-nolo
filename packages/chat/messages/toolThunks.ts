@@ -16,7 +16,7 @@ import {
 } from "ai/tools/toolRunSlice";
 import { streamAgentChatTurn } from "ai/cybot/cybotSlice";
 
-import type { Message } from "./types";
+import type { Message, ToolPayload, ToolErrorPayload } from "./types"; // ✅ 从 types 引入
 import { addToolMessage } from "./messageSlice"; // 只导入 action，避免循环依赖过重
 
 // ========= 类型：与原实现保持一致 ===========
@@ -231,6 +231,20 @@ const processToolData = createAsyncThunk(
           toolRunId
         );
 
+        // ✅ 构造可持久化的 toolPayload（预览状态）
+        const toolPayload: ToolPayload = {
+          toolName: canonicalName,
+          status: "pending",
+          input: toolArgs,
+          rawToolCall: toolCall,
+          rawResult: {
+            previewOnly: true,
+            filePath,
+            diffPreview: preview,
+          },
+          toolRunId,
+        };
+
         return {
           displayContent,
           rawResult: {
@@ -242,6 +256,7 @@ const processToolData = createAsyncThunk(
           hasHandedOff: false,
           toolName: canonicalName,
           toolRunId,
+          toolPayload,
         };
       } catch (e: any) {
         const errorMessage = e.message || "Unknown error in applyDiff preview";
@@ -262,11 +277,28 @@ const processToolData = createAsyncThunk(
           })
         );
 
+        const errorPayload: ToolErrorPayload = {
+          type: e.name || "Error",
+          message: errorMessage,
+          code: e.code,
+          retryable: e.retryable ?? true,
+        };
+
+        const toolPayload: ToolPayload = {
+          toolName: canonicalName,
+          status: "failed",
+          input: toolArgs,
+          rawToolCall: toolCall,
+          error: errorPayload,
+          toolRunId,
+        };
+
         return rejectWithValue({
           displayContent: errorContent,
           rawResult: { error: errorMessage },
           toolName: canonicalName,
           toolRunId,
+          toolPayload,
         });
       }
     }
@@ -299,10 +331,22 @@ const processToolData = createAsyncThunk(
             toolRunId
           );
 
+          const toolPayload: ToolPayload = {
+            toolName: canonicalName,
+            status: "succeeded",
+            input: toolArgs,
+            rawToolCall: toolCall,
+            rawResult: {
+              handedOff: true,
+            },
+            toolRunId,
+          };
+
           return {
             hasHandedOff: true,
             toolName: canonicalName,
             toolRunId,
+            toolPayload,
           };
         } catch (e: any) {
           const errorContent = {
@@ -322,10 +366,27 @@ const processToolData = createAsyncThunk(
             })
           );
 
+          const errorPayload: ToolErrorPayload = {
+            type: e.name || "Error",
+            message: e.message || String(e),
+            code: e.code,
+            retryable: e.retryable ?? false,
+          };
+
+          const toolPayload: ToolPayload = {
+            toolName: canonicalName,
+            status: "failed",
+            input: toolArgs,
+            rawToolCall: toolCall,
+            error: errorPayload,
+            toolRunId,
+          };
+
           return rejectWithValue({
             displayContent: errorContent,
             toolName: canonicalName,
             toolRunId,
+            toolPayload,
           });
         }
       }
@@ -397,12 +458,22 @@ const processToolData = createAsyncThunk(
       );
       console.log("[ToolThunks/processToolData] ===== END (success) =====");
 
+      const toolPayload: ToolPayload = {
+        toolName: canonicalName,
+        status: "succeeded",
+        input: toolArgs,
+        rawToolCall: toolCall,
+        rawResult: toolResult.rawData,
+        toolRunId,
+      };
+
       return {
         displayContent,
         rawResult: toolResult.rawData,
         hasHandedOff: false,
         toolName: canonicalName,
         toolRunId,
+        toolPayload,
       };
     } catch (e: any) {
       const errorMessage = e.message || "Unknown error";
@@ -429,11 +500,28 @@ const processToolData = createAsyncThunk(
 
       console.log("[ToolThunks/processToolData] ===== END (error path) =====");
 
+      const errorPayload: ToolErrorPayload = {
+        type: e.name || "Error",
+        message: errorMessage,
+        code: e.code,
+        retryable: e.retryable ?? true,
+      };
+
+      const toolPayload: ToolPayload = {
+        toolName: canonicalName,
+        status: "failed",
+        input: toolArgs,
+        rawToolCall: toolCall,
+        error: errorPayload,
+        toolRunId,
+      };
+
       return rejectWithValue({
         displayContent: errorContent,
         rawResult: { error: errorMessage },
         toolName: canonicalName,
         toolRunId,
+        toolPayload,
       });
     }
   }
@@ -536,10 +624,12 @@ export const handleToolCalls = createAsyncThunk(
             thinkContent: "",
             cybotKey: cybotConfig.dbKey,
             isStreaming: false,
+            // ✅ 这里直接填进 Message
+            toolName: result.toolName,
+            parentMessageId: messageId,
+            toolRunId: result.toolRunId,
+            toolPayload: result.toolPayload,
           };
-
-          (toolMessage as any).toolName = result.toolName;
-          (toolMessage as any).parentMessageId = messageId;
 
           // 1) 先更新 Redux 内存
           dispatch(addToolMessage(toolMessage));
@@ -610,10 +700,12 @@ export const handleToolCalls = createAsyncThunk(
             thinkContent: "",
             cybotKey: cybotConfig.dbKey,
             isStreaming: false,
+            // ✅ 同样挂上
+            toolName: rejectedValue.toolName,
+            parentMessageId: messageId,
+            toolRunId: rejectedValue.toolRunId,
+            toolPayload: rejectedValue.toolPayload,
           };
-
-          (toolMessage as any).toolName = rejectedValue.toolName;
-          (toolMessage as any).parentMessageId = messageId;
 
           dispatch(addToolMessage(toolMessage));
 

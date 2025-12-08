@@ -15,7 +15,7 @@ import { sqliteRoutes } from "./sqliteRoutes";
 import { handleBrowserTool } from "./handlers/browserToolHandler";
 import { handleGetTransactions } from "./handlers/getTransactionsHandler";
 import { handleApplyDiff } from "./handlers/applyDiffHandler"; // ✅ apply-diff 处理器
-
+import { handleApifyActor } from "./handlers/apifyActorHandler";
 // 端口常量，方便后续统一修改
 const HTTP_PORT = 80;
 const HTTPS_PORT = 443;
@@ -66,6 +66,10 @@ const apiRoutes = {
 
   "/api/fetch-webpage": {
     POST: handleFetchWebpage,
+    OPTIONS: () => createOptionsResponse(),
+  },
+  "/api/apify-actor": {
+    POST: (req: Request) => handleApifyActor(req),
     OPTIONS: () => createOptionsResponse(),
   },
 

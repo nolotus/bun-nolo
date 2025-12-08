@@ -15,60 +15,90 @@ import ImagePreviewModal from "chat/web/ImagePreviewModal";
 import StreamingIndicator from "render/web/ui/StreamingIndicator";
 
 // --- 文本渲染 ---
-const MessageText = memo(({ content, role, isStreaming = false }: any) => {
-  const slateData = useMemo(
-    () => (role === "self" ? [] : markdownToSlate(content)),
-    [content, role]
-  );
+const MessageText = memo(
+  ({
+    content,
+    role,
+    isStreaming = false,
+  }: {
+    content: string;
+    role: string;
+    isStreaming?: boolean;
+  }) => {
+    const slateData = useMemo(
+      () => (role === "self" ? [] : markdownToSlate(content)),
+      [content, role]
+    );
 
-  return (
-    <div className="message-text">
-      {role === "self" ? (
-        <div className="simple-text">{content}</div>
-      ) : (
-        <Editor
-          key={content}
-          initialValue={slateData}
-          readOnly
-          isStreaming={isStreaming}
+    return (
+      <div className="message-text">
+        {role === "self" ? (
+          <div className="simple-text">{content}</div>
+        ) : (
+          <Editor
+            key={content}
+            initialValue={slateData}
+            readOnly
+            isStreaming={isStreaming}
+          />
+        )}
+      </div>
+    );
+  }
+);
+
+const ImagePreview = memo(
+  ({
+    src,
+    alt,
+    onPreview,
+  }: {
+    src: string;
+    alt?: string;
+    onPreview: (src: string) => void;
+  }) => {
+    const handleClick = useCallback(() => onPreview(src), [src, onPreview]);
+
+    return (
+      <div className="msg-image-wrap">
+        <img
+          src={src}
+          alt={alt || "消息图片"}
+          className="msg-image"
+          onClick={handleClick}
+          role="button"
+          tabIndex={0}
+          loading="lazy"
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              handleClick();
+            }
+          }}
         />
-      )}
-    </div>
-  );
-});
-
-const ImagePreview = memo(({ src, alt, onPreview }: any) => {
-  const handleClick = useCallback(() => onPreview(src), [src, onPreview]);
-
-  return (
-    <div className="msg-image-wrap">
-      <img
-        src={src}
-        alt={alt || "消息图片"}
-        className="msg-image"
-        onClick={handleClick}
-        role="button"
-        tabIndex={0}
-        loading="lazy"
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            handleClick();
-          }
-        }}
-      />
-    </div>
-  );
-});
+      </div>
+    );
+  }
+);
 
 // --- 内容聚合 ---
 export const MessageContent = memo(
-  ({ content, thinkContent, role, isStreaming = false }: any) => {
+  ({
+    content,
+    thinkContent,
+    role,
+    isStreaming = false,
+  }: {
+    content: any;
+    thinkContent: any;
+    role: "self" | "other";
+    isStreaming?: boolean;
+  }) => {
     const [filePreview, setFilePreview] = useState<any | null>(null);
     const [imgPreview, setImgPreview] = useState<string | null>(null);
 
-    const onFile = useCallback((fd) => setFilePreview(fd), []);
-    const onImg = useCallback((src) => setImgPreview(src), []);
+    const onFile = useCallback((fd: any) => setFilePreview(fd), []);
+    const onImg = useCallback((src: string) => setImgPreview(src), []);
     const closeFile = useCallback(() => setFilePreview(null), []);
     const closeImg = useCallback(() => setImgPreview(null), []);
 
@@ -77,7 +107,7 @@ export const MessageContent = memo(
       const segs: any[] = [];
       let cur: any = null;
 
-      content.forEach((it) => {
+      content.forEach((it: any) => {
         const isImg = it.type === "image_url" && it.image_url?.url;
         if (isImg) {
           if (cur?.type === "images") {
@@ -105,18 +135,18 @@ export const MessageContent = memo(
         return (
           <MessageText
             content={content}
-            role={role}
+            role={role === "self" ? "self" : "other"}
             isStreaming={isStreaming}
           />
         );
       }
 
-      return segments.map((seg, i) => {
+      return segments.map((seg: any, i: number) => {
         if (seg.type === "images") {
           if (seg.items.length > 1) {
             return (
               <div key={i} className="msg-images">
-                {seg.items.map((it, idx) => (
+                {seg.items.map((it: any, idx: number) => (
                   <ImagePreview
                     key={idx}
                     src={it.image_url.url}
@@ -138,13 +168,13 @@ export const MessageContent = memo(
           );
         }
 
-        return seg.items.map((it, idx) => {
+        return seg.items.map((it: any, idx: number) => {
           if (it.type === "text" && it.text) {
             return (
               <MessageText
                 key={`${i}-${idx}`}
                 content={it.text}
-                role={role}
+                role={role === "self" ? "self" : "other"}
                 isStreaming={isStreaming}
               />
             );
@@ -195,7 +225,7 @@ export const MessageContent = memo(
 );
 
 // --- 主组件 ---
-export const MessageItem = memo(({ message }: any) => {
+export const MessageItem = memo(({ message }: { message: any }) => {
   const dispatch = useAppDispatch();
   const currentUserId = useAppSelector(selectUserId);
   const [collapsed, setCollapsed] = useState(false);
@@ -230,7 +260,7 @@ export const MessageItem = memo(({ message }: any) => {
     handleTouchEnd,
   } = useMessageInteraction({
     messageId: message?.id,
-    onToggleActions: () => setShowActions((v) => !v),
+    onToggleActions: () => setShowActions((v: boolean) => !v),
   });
 
   return (
@@ -245,9 +275,10 @@ export const MessageItem = memo(({ message }: any) => {
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
+        {/* 桌面端：头像 + actions 使用 sticky，内容区域正常滚动 */}
         {!isTouch && (
           <div className="msg-inner desktop">
-            {/* flex 布局：默认 avatar 在左，self 时 row-reverse 让 avatar 到右边 */}
+            {/* 头像 + 操作区列：在桌面端 sticky 在视口上方一定位置 */}
             <div className="avatar-area">
               <div className="avatar-wrapper">
                 <Avatar
@@ -295,6 +326,7 @@ export const MessageItem = memo(({ message }: any) => {
           </div>
         )}
 
+        {/* 移动端：保持原有结构，不做 sticky，避免遮挡 */}
         {isTouch && (
           <div className="msg-inner mobile">
             <div className="msg-header">
@@ -378,6 +410,22 @@ export const MessageItem = memo(({ message }: any) => {
   position: relative;
 }
 
+/* 头像 + actions 在桌面端 sticky：随着滚动向上，抵达 top 后固定，直到被下一条顶走 */
+@media (hover: hover) and (pointer: fine) {
+  .msg-inner.desktop .avatar-area {
+    position: sticky;
+    /* 根据你的顶部导航 / 工具栏高度微调这个值 */
+    top: 72px;
+    align-self: flex-start;
+    z-index: 5;
+  }
+
+  /* 自己的消息时头像在右侧，对齐到右边更自然 */
+  .msg.self .msg-inner.desktop .avatar-area {
+    align-items: flex-end;
+  }
+}
+
 .avatar-wrapper {
   position: relative;
 }
@@ -415,7 +463,6 @@ export const MessageItem = memo(({ message }: any) => {
   line-height: 1.75;
   font-size: 15px;
   word-wrap: break-word;
-  max-width: 72ch; /* 基于阅读体验，而不是整个页面百分比 */
 }
 
 /* 机器人：靠左自然排布 */
@@ -434,7 +481,7 @@ export const MessageItem = memo(({ message }: any) => {
 }
 
 /* === 移动端保持原有两套 DOM === */
-@media (hover: none) && (pointer: coarse) {
+@media (hover: none) and (pointer: coarse) {
   .msg {
     margin-bottom: var(--space-3);
   }

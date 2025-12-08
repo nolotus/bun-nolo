@@ -40,8 +40,6 @@ import {
   queryContentsByCategoryFunc,
 } from "./category/queryContentsByCategoryTool";
 
-// import { updateContentTitleFunctionSchema, updateContentTitleFunc } from "./updateContentTitleTool";
-
 // 数据操作
 import { importDataFunctionSchema, importDataFunc } from "./importDataTool";
 import { executeSqlFunctionSchema, executeSqlFunc } from "./executeSqlTool";
@@ -60,20 +58,43 @@ import {
   browser_selectOption_Func,
 } from "./browserTools/selectOption";
 
-// ✅ 新增：applyDiff 工具
+// ✅ applyDiff 工具
 import { applyDiffFunctionSchema, applyDiffFunc } from "./applyDiffTool";
 
-// ✅ 新增：generateDocx 工具（前端生成并下载 DOCX）
+// ✅ generateDocx 工具（前端生成并下载 DOCX）
 import {
   generateDocxFunctionSchema,
   generateDocxFunc,
 } from "./generateDocxTool";
 
+// ✅ Apify / 抓取相关工具
+import {
+  youtubeScraperFunctionSchema,
+  youtubeScraperFunc,
+} from "./youtubeScraperTool";
+import {
+  ecommerceScraperFunctionSchema,
+  ecommerceScraperFunc,
+} from "./ecommerceScraperTool";
+import {
+  websiteContentCrawlerFunctionSchema,
+  websiteContentCrawlerFunc,
+} from "./websiteContentCrawlerTool";
+import {
+  googleSearchScraperFunctionSchema,
+  googleSearchScraperFunc,
+} from "./googleSearchScraperTool";
+import {
+  amazonProductScraperFunctionSchema,
+  amazonProductScraperFunc,
+} from "./amazonProductScraperTool";
+import { webScraperFunctionSchema, webScraperFunc } from "./webScraperTool";
+
 // ---------- 2. 定义工具规范接口 ----------
 
 export type ToolBehavior = "orchestrator" | "data" | "action" | "answer";
 
-// [新增] 交互模式：目前只需要 auto / confirm 两种
+// 交互模式：目前只需要 auto / confirm 两种
 export type ToolInteraction = "auto" | "confirm";
 
 interface ToolDefinition {
@@ -90,9 +111,7 @@ interface ToolDefinition {
     category: string;
   };
   behavior?: ToolBehavior; // 工具在系统中的角色
-
-  // [新增] 工具需要的交互模式，不写时默认视为 "auto"
-  interaction?: ToolInteraction;
+  interaction?: ToolInteraction; // 工具需要的交互模式，不写时默认视为 "auto"
 }
 
 /* ==================================================================
@@ -301,6 +320,82 @@ const toolDefinitions: ToolDefinition[] = [
     },
     behavior: "data",
   },
+
+  // === Apify 抓取工具 ===
+  {
+    id: "youtubeScraper",
+    schema: youtubeScraperFunctionSchema,
+    executor: youtubeScraperFunc,
+    description: {
+      name: "youtubeScraper",
+      description:
+        "使用 Apify YouTube Scraper 抓取指定视频、频道或搜索结果的详细数据（支持字幕）。",
+      category: "网络与智能",
+    },
+    behavior: "data",
+  },
+  {
+    id: "ecommerceScraper",
+    schema: ecommerceScraperFunctionSchema,
+    executor: ecommerceScraperFunc,
+    description: {
+      name: "ecommerceScraper",
+      description:
+        "使用 Apify E-commerce Scraping Tool 抓取电商产品、评论和卖家信息。",
+      category: "网络与智能",
+    },
+    behavior: "data",
+  },
+  {
+    id: "websiteContentCrawler",
+    schema: websiteContentCrawlerFunctionSchema,
+    executor: websiteContentCrawlerFunc,
+    description: {
+      name: "websiteContentCrawler",
+      description:
+        "使用 Apify Website Content Crawler 抓取站点文本/Markdown 内容，用于知识库与 RAG。",
+      category: "网络与智能",
+    },
+    behavior: "data",
+  },
+  {
+    id: "webScraper",
+    schema: webScraperFunctionSchema,
+    executor: webScraperFunc,
+    description: {
+      name: "webScraper",
+      description:
+        "使用 Apify Web Scraper + 自定义 pageFunction 抓取任意网站的结构化数据。",
+      category: "网络与智能",
+    },
+    behavior: "data",
+  },
+  {
+    id: "googleSearchScraper",
+    schema: googleSearchScraperFunctionSchema,
+    executor: googleSearchScraperFunc,
+    description: {
+      name: "googleSearchScraper",
+      description:
+        "使用 Apify Google Search Scraper 抓取 Google SERP，用于发现文章、政策、新闻等 URL。",
+      category: "网络与智能",
+    },
+    behavior: "data",
+  },
+  {
+    id: "amazonProductScraper",
+    schema: amazonProductScraperFunctionSchema,
+    executor: amazonProductScraperFunc,
+    description: {
+      name: "amazonProductScraper",
+      description:
+        "使用 Apify Amazon Product Scraper 抓取亚马逊商品和类目数据。",
+      category: "网络与智能",
+    },
+    behavior: "data",
+  },
+
+  // 浏览器会话工具
   {
     id: "browserOpenSession",
     schema: browser_openSession_Schema,
@@ -336,7 +431,7 @@ const toolDefinitions: ToolDefinition[] = [
       category: "网络与智能", // 也可以换成 "代码编辑"
     },
     behavior: "action",
-    interaction: "confirm", // [新增] 标记为需要确认
+    interaction: "confirm", // 标记为需要确认
   },
 
   // --- 多媒体生成 / 文档生成 ---
