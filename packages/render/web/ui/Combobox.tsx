@@ -4,7 +4,6 @@ import React, {
   useRef,
   useEffect,
   useMemo,
-  useId,
   useLayoutEffect,
 } from "react";
 import { useTranslation } from "react-i18next";
@@ -23,7 +22,11 @@ import {
   useListNavigation,
   size as floatingSize,
 } from "@floating-ui/react";
+import { zIndex } from "../../styles/zIndex";
 
+/**
+ * 样式：只负责 Combobox 自身外观
+ */
 const COMBOBOX_STYLES = `
   .cbx-combobox {
     display: flex;
@@ -57,7 +60,7 @@ const COMBOBOX_STYLES = `
     box-shadow: 0 1px 2px rgba(0,0,0,0.05);
   }
 
-  /* --- Variant Restored --- */
+  /* --- Variant: ghost --- */
   .cbx-combobox__trigger[data-variant="ghost"] {
     background: transparent;
     border-color: transparent;
@@ -67,12 +70,13 @@ const COMBOBOX_STYLES = `
     background: var(--backgroundHover);
   }
 
+  /* --- Variant: filled --- */
   .cbx-combobox__trigger[data-variant="filled"] {
     background: var(--backgroundSecondary);
     border-color: transparent;
   }
 
-  /* --- Size Restored --- */
+  /* --- Size --- */
   .cbx-combobox__trigger[data-size="small"] {
     min-height: 32px;
     font-size: 0.8125rem;
@@ -96,7 +100,7 @@ const COMBOBOX_STYLES = `
   .cbx-combobox__trigger[data-open] {
     border-color: var(--primary);
     box-shadow: 0 0 0 2px var(--primary-light, rgba(59, 130, 246, 0.15));
-    z-index: 2; /* 确保打开时浮起 */
+    z-index: 2;
   }
   
   .cbx-combobox__trigger:disabled {
@@ -148,12 +152,13 @@ const COMBOBOX_STYLES = `
     color: var(--text);
   }
 
+  /* ★ 提升 z-index，避免被上层覆盖 */
   .cbx-combobox__panel {
-    z-index: 1000;
+    z-index: ${zIndex.modalBackdrop};
     background: var(--background);
     border: 1px solid var(--border);
     border-radius: 8px;
-    overflow: hidden; 
+    overflow: hidden;
     box-shadow: 
       0 4px 6px -1px rgba(0, 0, 0, 0.1), 
       0 10px 15px -3px rgba(0, 0, 0, 0.1);
@@ -195,10 +200,10 @@ const COMBOBOX_STYLES = `
   }
   
   .cbx-combobox__list {
-    max-height: 300px; /* 稍微加大一点高度 */
+    max-height: 300px;
     overflow-y: auto;
     padding: 4px;
-    scroll-behavior: auto; 
+    scroll-behavior: auto;
   }
 
   .cbx-combobox__item {
@@ -212,7 +217,7 @@ const COMBOBOX_STYLES = `
     justify-content: space-between;
     transition: background 0.1s;
     user-select: none;
-    scroll-margin: 40px; /* 辅助滚动定位 */
+    scroll-margin: 40px;
   }
 
   .cbx-combobox__item[data-highlighted] {
@@ -242,6 +247,9 @@ const COMBOBOX_STYLES = `
   .cbx-combobox__list::-webkit-scrollbar-thumb:hover { background: var(--textTertiary); }
 `;
 
+/**
+ * Props
+ */
 interface ComboboxProps<T = any> {
   items: T[];
   onChange?: (selectedItem: T | null) => void;
@@ -263,7 +271,7 @@ interface ComboboxProps<T = any> {
   clearable?: boolean;
   loading?: boolean;
   size?: "small" | "medium" | "large";
-  variant?: "default" | "filled" | "ghost"; // 恢复 variant 定义
+  variant?: "default" | "filled" | "ghost";
   ref?: React.Ref<HTMLButtonElement>;
 }
 
@@ -305,11 +313,18 @@ function Combobox<T = any>(props: ComboboxProps<T>) {
   } = props;
 
   const { t } = useTranslation();
+
   const [open, setOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const [searchTerm, setSearchTerm] = useState("");
+
   const searchInputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<(HTMLElement | null)[]>([]);
+
+  // 调试：open 状态
+  useEffect(() => {
+    console.log("[Combobox] open state:", open);
+  }, [open]);
 
   const getItemLabel = (item: T | null | undefined): string =>
     item ? String((item as any)?.[labelField as any] ?? "") : "";
@@ -329,6 +344,7 @@ function Combobox<T = any>(props: ComboboxProps<T>) {
     return items.filter((it) => getItemLabel(it).toLowerCase().includes(term));
   }, [items, searchTerm, searchable, labelField]);
 
+  // Floating UI
   const { x, y, strategy, context, refs } = useFloating({
     open,
     onOpenChange: setOpen,
@@ -348,9 +364,17 @@ function Combobox<T = any>(props: ComboboxProps<T>) {
     whileElementsMounted: autoUpdate,
   });
 
+  // 调试：观察坐标
+  useEffect(() => {
+    console.log("[Combobox] floating position:", { x, y, strategy });
+  }, [x, y, strategy]);
+
+  // 交互
+  const click = useClick(context, { enabled: !disabled });
+
   const { getReferenceProps, getFloatingProps, getItemProps } = useInteractions(
     [
-      useClick(context),
+      click,
       useDismiss(context),
       useRole(context, { role: "listbox" }),
       useListNavigation(context, {
@@ -362,43 +386,35 @@ function Combobox<T = any>(props: ComboboxProps<T>) {
     ]
   );
 
-  // 1. 关闭重置搜索
   useEffect(() => {
-    if (!open) {
-      setSearchTerm("");
-    }
+    if (!open) setSearchTerm("");
   }, [open]);
 
-  // 2. 打开瞬间定位逻辑
   useLayoutEffect(() => {
-    if (open) {
-      let index = -1;
+    if (!open) return;
 
-      if (!searchTerm && selectedItem) {
-        index = filteredItems.findIndex((it) => isSameItem(it, selectedItem));
-      }
+    let index = -1;
 
-      if (index < 0 && filteredItems.length > 0) {
-        index = 0;
-      }
-
-      setHighlightedIndex(index);
-
-      requestAnimationFrame(() => {
-        // --- 核心改动：block: "center" ---
-        // 这样选中项会尽可能出现在列表的正中间
-        if (index >= 0 && listRef.current[index]) {
-          listRef.current[index]?.scrollIntoView({
-            block: "center",
-            inline: "nearest",
-          });
-        }
-        if (searchable) {
-          searchInputRef.current?.focus();
-        }
-      });
+    if (!searchTerm && selectedItem) {
+      index = filteredItems.findIndex((it) => isSameItem(it, selectedItem));
     }
-  }, [open, filteredItems.length, selectedItem]);
+
+    if (index < 0 && filteredItems.length > 0) index = 0;
+
+    setHighlightedIndex(index);
+
+    requestAnimationFrame(() => {
+      if (index >= 0 && listRef.current[index]) {
+        listRef.current[index]?.scrollIntoView({
+          block: "center",
+          inline: "nearest",
+        });
+      }
+      if (searchable) {
+        searchInputRef.current?.focus();
+      }
+    });
+  }, [open, filteredItems.length, selectedItem, searchTerm]);
 
   const displayLabel = selectedItem ? getItemLabel(selectedItem) : "";
   const composedRef = mergeRefs(refs.setReference, ref);
@@ -410,6 +426,7 @@ function Combobox<T = any>(props: ComboboxProps<T>) {
       <div className="cbx-combobox">
         {label && <label className="cbx-combobox__label">{label}</label>}
 
+        {/* 触发按钮 */}
         <button
           ref={composedRef}
           type="button"
@@ -421,7 +438,6 @@ function Combobox<T = any>(props: ComboboxProps<T>) {
             "data-variant": variant,
             "aria-expanded": open,
             "aria-invalid": error,
-            onClick: () => !disabled && setOpen(!open),
           })}
         >
           {icon && <span className="cbx-combobox__icon-prefix">{icon}</span>}
@@ -436,19 +452,28 @@ function Combobox<T = any>(props: ComboboxProps<T>) {
           </span>
 
           <div className="cbx-combobox__ctrl">
+            {/* 用 span + role=button，避免 button 嵌套 button */}
             {clearable && selectedItem && !disabled && !loading && (
-              <button
-                type="button"
+              <span
+                role="button"
+                tabIndex={0}
                 className="cbx-combobox__clear"
                 onClick={(e) => {
                   e.stopPropagation();
-                  // 顺手优化：清除后不应该打开下拉面板？视情况而定，这里阻止冒泡即可
                   onChange?.(null);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onChange?.(null);
+                  }
                 }}
               >
                 <LuX size={14} />
-              </button>
+              </span>
             )}
+
             <LuChevronDown
               size={size === "small" ? 14 : 16}
               style={{
@@ -459,6 +484,19 @@ function Combobox<T = any>(props: ComboboxProps<T>) {
           </div>
         </button>
 
+        {helperText && (
+          <div
+            style={{
+              marginTop: 4,
+              fontSize: "0.75rem",
+              color: error ? "var(--danger)" : "var(--textSecondary)",
+            }}
+          >
+            {helperText}
+          </div>
+        )}
+
+        {/* 浮层 */}
         <FloatingPortal>
           {open && (
             <div
