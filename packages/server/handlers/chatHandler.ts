@@ -350,7 +350,6 @@ export async function handleChatRequest(req: Request, extraHeaders = {}) {
     const timer = setTimeout(() => controller.abort("timeout"), TIMEOUT);
 
     logger.info("发送上游请求", { url, provider, model, timeout: TIMEOUT });
-    console.log("body", body);
     const upstream = await fetch(url, {
       method: "POST",
       headers,

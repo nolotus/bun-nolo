@@ -422,6 +422,21 @@ export const openrouterModels = [
     contextWindow: 262144,
     supportsTool: true,
   },
+  // =================================================================
+  // [NEW] Mistral: Devstral 2 2512 (Free)
+  // =================================================================
+  {
+    name: "mistralai/devstral-2512:free",
+    displayName: "Mistral: Devstral 2 2512 (free)",
+    hasVision: false,
+    price: {
+      input: 0,
+      output: 0,
+    },
+    maxOutputTokens: 262144,
+    contextWindow: 262144,
+    supportsTool: true,
+  },
 
   // --- xAI Models ---
   {
