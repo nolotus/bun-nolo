@@ -21,10 +21,17 @@ export interface ConvertExcelToSlateOptions {
   locale?: string;
 
   /**
-   * 需要按「日期」渲染的列名（不区分大小写）。
-   * 默认包含：交期 / 日期 / 交货日期 / date / delivery date 等。
+   * 用来识别“哪些表头看起来是日期列”的关键字（不区分大小写，使用 includes 匹配）。
+   * 例如：["date", "交期", "交货", "发货", "ETD", "ETA"]。
+   * 如果未传，将使用 DEFAULT_DATE_KEYWORDS。
    */
-  dateHeaders?: string[];
+  dateKeywords?: string[];
+
+  /**
+   * 自定义“某个表头是否是日期列”的判断函数。
+   * 如果提供，将优先于 dateKeywords / 默认关键字。
+   */
+  isDateHeader?: (header: string) => boolean;
 }
 
 // --- 工具函数 ---
@@ -44,24 +51,40 @@ const buildSimpleInfoContent = (
 ];
 
 /**
- * 默认需要按日期处理的列名（不区分大小写）。
+ * 默认用于识别「日期列」的关键字（不区分大小写，使用 includes 匹配）。
+ * 注意：这是启发式规则，只是帮助在用户不配置时尽可能识别常见日期列。
  */
-const DEFAULT_DATE_HEADERS = [
+const DEFAULT_DATE_KEYWORDS = [
   "交期",
   "日期",
-  "交货日期",
+  "交货",
+  "下单",
+  "发货",
+  "收货",
+  "到货",
   "date",
-  "delivery date",
-  "delivery_date",
-  "ship date",
+  "delivery",
+  "ship",
+  "etd",
+  "eta",
+  "due",
 ];
 
 /**
- * 判断某个表头是否是「日期列」。
+ * 根据一组关键字，创建一个默认的“表头是否为日期列”的判断函数。
+ * 匹配规则：header.toLowerCase() 中包含任意一个关键字（includes）。
  */
-const isDateHeader = (header: string, dateHeaders: string[]): boolean => {
-  const lower = header.toLowerCase();
-  return dateHeaders.some((h) => h.toLowerCase() === lower);
+const createIsDateHeaderFromKeywords = (keywords: string[]) => {
+  const loweredKeywords = keywords
+    .filter(Boolean)
+    .map((k) => k.toLowerCase().trim())
+    .filter((k) => k.length > 0);
+
+  return (header: string): boolean => {
+    const lower = (header ?? "").toLowerCase().trim();
+    if (!lower) return false;
+    return loweredKeywords.some((k) => lower.includes(k));
+  };
 };
 
 /**
@@ -102,11 +125,11 @@ const formatCellValue = (
   header: string,
   value: any,
   locale: string,
-  dateHeaders: string[]
+  isDateHeader: (header: string) => boolean
 ): string => {
   if (value == null) return "";
 
-  const headerIsDate = isDateHeader(header, dateHeaders);
+  const headerIsDate = isDateHeader(header);
 
   // 如果是日期列，尽量把各种类型统一转成 Date 再格式化
   if (headerIsDate) {
@@ -155,7 +178,13 @@ export const convertExcelToSlate = (
   options: ConvertExcelToSlateOptions = {}
 ): EditorContent => {
   const locale = options.locale ?? getDefaultLocale();
-  const dateHeaders = options.dateHeaders ?? DEFAULT_DATE_HEADERS;
+
+  // 先从配置或默认关键字生成一个“日期列判断函数”
+  const keywords = options.dateKeywords ?? DEFAULT_DATE_KEYWORDS;
+  const defaultIsDateHeader = createIsDateHeaderFromKeywords(keywords);
+
+  // 如果用户传入了 isDateHeader，则优先使用；否则用默认关键字规则
+  const isDateHeader = options.isDateHeader ?? defaultIsDateHeader;
 
   // 1. 早返回：无效或空数据
   if (!excelData || !Array.isArray(excelData) || excelData.length === 0) {
@@ -194,7 +223,7 @@ export const convertExcelToSlate = (
       const rawValue =
         row && typeof row === "object" ? (row as any)[header] : undefined;
 
-      const text = formatCellValue(header, rawValue, locale, dateHeaders);
+      const text = formatCellValue(header, rawValue, locale, isDateHeader);
 
       return {
         type: "table-cell",
