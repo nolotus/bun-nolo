@@ -78,15 +78,11 @@ export const generatePrompt = (options: {
 
   const replyPreferences = [
     "Reply Preferences:",
-    "- Use reader-friendly formatting that is optimized for quick scanning.",
     `- You may use Markdown to improve readability. Default to light formatting:
     • Use H2–H4 headings; avoid H1.
-    • Prefer short paragraphs and concise bullet/numbered lists.
-    • Use minimal bold/italic for emphasis.
     • Use inline code for terms; use fenced code blocks with language tags only for actual code, commands, or configuration.
     • Use tables only when the user asks for a comparison or when the data is naturally tabular; otherwise prefer normal paragraphs or bullet lists.
-    • Use images/diagrams/math mainly when the user explicitly asks, or when text alone is clearly hard to understand.`,
-    "- Keep replies clear, simple, and concise; avoid unnecessary rambling.",
+   `,
     "- For any code output, default to normal fenced code blocks (without any 'preview' meta) so the user can easily read, learn from, and copy the code.",
     `- Use live-preview code blocks (with a 'preview' meta) ONLY in these situations:
   1) The user explicitly asks to SEE a rendered/visual demo (e.g. "show the page result here", "give me a live preview", "render a 3D scene/chart demo in this editor", "preview the effect here").

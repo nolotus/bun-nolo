@@ -10,13 +10,15 @@ import {
   LuCheck,
   LuCode,
   LuWrench,
+  LuTrash2,
 } from "react-icons/lu";
 import { MessageContent } from "./MessageItem";
 import { Tooltip } from "render/web/ui/Tooltip";
 import copyToClipboard from "utils/clipboard";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
-
+import { deleteMessage } from "../messageSlice";
+import { useAppDispatch } from "app/store";
 interface ToolMessageProps {
   message: any;
 }
@@ -45,8 +47,25 @@ const getContentString = (content: any): string => {
 };
 
 export const ToolMessageItem = memo(({ message }: ToolMessageProps) => {
-  const { content, toolName, isStreaming = false, toolPayload } = message || {};
+  const {
+    content,
+    toolName,
+    isStreaming = false,
+    toolPayload,
+    dbKey,
+  } = message || {};
 
+  const dispatch = useAppDispatch();
+
+  const onDeleteMessage = (e) => {
+    e?.stopPropagation?.();
+    if (dbKey) {
+      dispatch(deleteMessage(dbKey));
+      toast.success(t("deleteSuccess"));
+    } else {
+      toast.error(t("deleteFailed"));
+    }
+  };
   const isPlan = toolName === "createPlan";
   const [collapsed, setCollapsed] = useState(isPlan);
   const [isHovered, setIsHovered] = useState(false);
@@ -63,7 +82,7 @@ export const ToolMessageItem = memo(({ message }: ToolMessageProps) => {
   const renderStatusIcon = () => {
     if (isStreaming)
       return <LuLoaderCircle size={14} className="animate-spin" />;
-    if (isError) return <LuCircleCheck size={14} />; // 失败也可暂用叉号或感叹号，这里保持一致风格
+    if (isError) return <LuCircleCheck size={14} />;
     if (isPlan) return <LuWrench size={14} />;
     return <LuCircleCheck size={14} />;
   };
@@ -88,6 +107,24 @@ export const ToolMessageItem = memo(({ message }: ToolMessageProps) => {
       },
       onError: () => toast.error(t("copyFailed")),
     });
+  };
+
+  // 新增：删除当前 Tool 消息
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!message?.id) return;
+
+    // 有 i18n 就用，没有就用默认文案
+    const ok = window.confirm(
+      t(
+        "confirmDeleteToolMessage",
+        "确认删除这条工具消息吗？（不影响正常对话消息）"
+      )
+    );
+    if (!ok) return;
+
+    // 真正的删除逻辑交给外部（例如 dispatch 删除 messageId）
+    onDeleteMessage?.(message.id);
   };
 
   return (
@@ -147,6 +184,16 @@ export const ToolMessageItem = memo(({ message }: ToolMessageProps) => {
                       </button>
                     </Tooltip>
                   )}
+
+                  {/* 新增：删除按钮 */}
+                  <Tooltip
+                    content={t("deleteMessage", "删除这条工具消息")}
+                    placement="top"
+                  >
+                    <button className="mini-btn danger" onClick={handleDelete}>
+                      <LuTrash2 size={13} />
+                    </button>
+                  </Tooltip>
                 </div>
               </div>
 
@@ -183,25 +230,21 @@ export const ToolMessageItem = memo(({ message }: ToolMessageProps) => {
         .tool-msg-wrapper {
           position: relative;
           margin-bottom: 6px;
-          /* 核心视觉改动：不再全宽背景，而是左侧细条，且不强行缩进太多 */
           width: 100%;
           font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
         }
 
         .tool-msg-inner {
-          /* 极简风格：透明背景，左侧 accent border */
           background: transparent;
           border-left: 2px solid var(--border);
           padding-left: 12px;
           transition: border-color 0.2s;
         }
 
-        /* 鼠标悬停加深左侧线条，增加交互感 */
         .tool-msg-wrapper:hover .tool-msg-inner {
           border-left-color: var(--primary);
         }
         
-        /* 错误状态红色线条 */
         .tool-msg-wrapper.error .tool-msg-inner {
           border-left-color: var(--danger, #EF4444);
         }
@@ -262,20 +305,17 @@ export const ToolMessageItem = memo(({ message }: ToolMessageProps) => {
         }
         .collapse-btn:hover { color: var(--text); }
 
-        /* 内容区域 */
         .tool-body {
           padding-top: 4px;
           padding-bottom: 4px;
           font-size: 13px;
           color: var(--textSecondary);
-          /* 与 Header 保持一致的字体 */
           font-family: inherit;
         }
 
         .tool-msg-wrapper.collapsed .tool-body { display: none; }
         .tool-msg-wrapper.collapsed .tool-debug { display: none; }
 
-        /* Actions 悬浮显示 */
         .tool-actions {
           opacity: 0;
           transition: opacity 0.2s;
@@ -311,6 +351,15 @@ export const ToolMessageItem = memo(({ message }: ToolMessageProps) => {
         .mini-btn:hover {
           background: var(--backgroundHover);
           color: var(--text);
+        }
+
+        /* 新增：删除按钮的红色态 */
+        .mini-btn.danger {
+          color: var(--danger, #EF4444);
+        }
+        .mini-btn.danger:hover {
+          background: rgba(239, 68, 68, 0.08);
+          color: var(--danger, #EF4444);
         }
 
         .tool-debug {

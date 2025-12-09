@@ -12,6 +12,9 @@ import {
   selectMessagesLoadingState,
   loadOlderMessages,
   selectLastStreamTimestamp,
+  // ⬇️ 假设你有一个删除消息的 action，名字可能不一样
+  // import 之后在下面 handleDeleteToolMessage 里用
+  // deleteMessageById,
 } from "chat/messages/messageSlice";
 import MessageItem from "./MessageItem";
 import { ToolMessageItem } from "./ToolMessageItem";
@@ -53,28 +56,46 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
     return listRef.current?.closest(SCROLL_CONTAINER_SELECTOR) as HTMLElement;
   }, []);
 
+  // 统一一个带轻微延迟的滚到底部方法
+  const scrollToBottomWithDelay = useCallback(
+    (opts?: { behavior?: ScrollBehavior; delayMs?: number }) => {
+      const scroller = getScroller() ?? stateRef.current.scrollContainer;
+      if (!scroller) return;
+
+      const { behavior = "smooth", delayMs = 60 } = opts || {};
+
+      window.setTimeout(() => {
+        scroller.scrollTo({
+          top: scroller.scrollHeight,
+          behavior,
+        });
+      }, delayMs);
+    },
+    [getScroller]
+  );
+
   // 自动滚动逻辑
   useLayoutEffect(() => {
     const scroller = getScroller();
     if (!scroller) return;
 
-    // 首次加载：滚到底部
+    // 首次加载：滚到底部（加一点点延迟）
     if (stateRef.current.isInitialLoad && messages.length > 0) {
-      scroller.scrollTop = scroller.scrollHeight;
+      scrollToBottomWithDelay({ behavior: "auto", delayMs: 60 });
       stateRef.current.isInitialLoad = false;
       stateRef.current.prevMessagesLength = messages.length;
       return;
     }
 
-    // 新消息：如果接近底部，则自动跟随
+    // 新消息：如果接近底部，则自动跟随（同样加一点延迟）
     if (messages.length > stateRef.current.prevMessagesLength) {
       if (stateRef.current.isNearBottom) {
-        scroller.scrollTo({ top: scroller.scrollHeight, behavior: "smooth" });
+        scrollToBottomWithDelay({ behavior: "smooth", delayMs: 60 });
       }
     }
 
     stateRef.current.prevMessagesLength = messages.length;
-  }, [messages, lastStreamTimestamp, getScroller]);
+  }, [messages, lastStreamTimestamp, getScroller, scrollToBottomWithDelay]);
 
   // 加载旧消息
   const handleLoadOlder = useCallback(() => {
@@ -98,6 +119,7 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
           const currentScroller = getScroller();
           if (currentScroller) {
             const heightDiff = currentScroller.scrollHeight - prevScrollHeight;
+            // 这里直接恢复旧位置，不需要额外延迟
             currentScroller.scrollTop = prevScrollTop + heightDiff;
           }
         });
@@ -137,12 +159,10 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
     }
   }, [handleScroll, getScroller]);
 
+  // 回到底部按钮：也轻微延迟一下
   const scrollToBottom = useCallback(() => {
-    stateRef.current.scrollContainer?.scrollTo({
-      top: stateRef.current.scrollContainer.scrollHeight,
-      behavior: "smooth",
-    });
-  }, []);
+    scrollToBottomWithDelay({ behavior: "smooth", delayMs: 80 });
+  }, [scrollToBottomWithDelay]);
 
   // 样式：这里只负责「垂直列表」，不管页面宽度
   const css = `
