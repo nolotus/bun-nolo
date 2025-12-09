@@ -9,7 +9,7 @@ export const DEFAULT_TEMPERATURE = 1.0;
 export const DEFAULT_TOP_P = 1.0;
 export const DEFAULT_FREQUENCY_PENALTY = 0.0;
 export const DEFAULT_PRESENCE_PENALTY = 0.0;
-export const DEFAULT_MAX_TOKENS = 8192;
+export const DEFAULT_MAX_TOKENS = 1024;
 export const DEFAULT_REASONING_EFFORT = "medium";
 
 export const REASONING_EFFORT_OPTIONS = ["low", "medium", "high"] as const;
