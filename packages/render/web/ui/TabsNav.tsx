@@ -25,6 +25,7 @@ const TabsNav: React.FC<TabsNavProps> = ({
         <button
           key={tab.id}
           role="tab"
+          type="button"
           disabled={tab.disabled}
           onClick={() => !tab.disabled && onChange(tab.id)}
           data-active={activeTab === tab.id}

@@ -1,9 +1,6 @@
 // ai/llm/agent/AgentForm.tsx
-import React, { useEffect } from "react";
+import React, { useEffect, Activity } from "react";
 import { useTranslation } from "react-i18next";
-// 如果 space 未使用，可删除以下两行，避免未使用警告
-// import { useAppSelector } from "app/store";
-// import { selectCurrentSpace } from "create/space/spaceSlice";
 
 import useModelPricing from "../../llm/hooks/useModelPricing";
 import { useOllamaSettings } from "../../llm/hooks/useOllamaSettings";
@@ -11,7 +8,6 @@ import { useProxySetting } from "../../llm/hooks/useProxySetting";
 import { useAgentValidation } from "../hooks/useAgentFormValidation";
 import { normalizeReferences } from "../createAgentSchema";
 
-// 同步导入各 Tab
 import BasicInfoTab from "./BasicInfoTab";
 import ReferencesTab from "./ReferencesTab";
 import ToolsTab from "./ToolsTab";
@@ -22,10 +18,8 @@ import Button from "render/web/ui/Button";
 import FormTitle from "render/web/form/FormTitle";
 import TabsNav from "render/web/ui/TabsNav";
 
-// 改用 react-icons/lu
 import { LuPlus, LuRefreshCw } from "react-icons/lu";
 
-// [保持] i18n key
 const TABS = [
   { id: 0, key: "tabs.basicInfo" },
   { id: 1, key: "tabs.references" },
@@ -60,9 +54,6 @@ const AgentForm: React.FC<AgentFormProps> = ({
     formState: { errors, isSubmitting },
   } = form;
 
-  // 若未使用 space，可删除
-  // const space = useAppSelector(selectCurrentSpace);
-
   const { apiSource, setApiSource, isOllama } = useOllamaSettings(
     provider,
     setValue
@@ -95,7 +86,8 @@ const AgentForm: React.FC<AgentFormProps> = ({
   };
 
   const tabs = TABS.map((tab) => ({ ...tab, label: t(tab.key) }));
-  const activeTab = watch("activeTab") ?? 0;
+  // 强制转成 number，避免 "0" 和 0 不相等导致判断异常
+  const activeTab: number = Number(watch("activeTab") ?? 0);
 
   const sharedProps = {
     errors,
@@ -106,8 +98,9 @@ const AgentForm: React.FC<AgentFormProps> = ({
     initialValues,
   };
 
-  const renderActiveTab = (idx: number) => {
-    switch (idx) {
+  // 抽成一个函数，按 id 返回对应面板
+  const renderTabById = (id: number) => {
+    switch (id) {
       case 0:
         return <BasicInfoTab {...sharedProps} />;
       case 1:
@@ -149,16 +142,29 @@ const AgentForm: React.FC<AgentFormProps> = ({
       {isCreate && <FormTitle>{t("createAgent")}</FormTitle>}
 
       <form onSubmit={handleSubmit(handleFormSubmit)} noValidate>
+        {/* 顶部 Tab 导航 */}
         <div className="form-header">
           <TabsNav
             tabs={tabs}
             activeTab={activeTab}
-            onChange={(idx) => setValue("activeTab", idx)}
+            onChange={(id) => setValue("activeTab", id)}
           />
         </div>
 
+        {/* 使用 Activity 的内容区域 */}
         <div className="form-body">
-          <div className="tab-content">{renderActiveTab(activeTab)}</div>
+          <div className="tab-content">
+            {TABS.map((tab) => (
+              <Activity
+                key={tab.id}
+                mode={activeTab === tab.id ? "visible" : "hidden"}
+              >
+                <div className="tab-panel">
+                  {renderTabById(tab.id as number)}
+                </div>
+              </Activity>
+            ))}
+          </div>
         </div>
 
         <div className="form-footer">
@@ -199,12 +205,19 @@ const AgentForm: React.FC<AgentFormProps> = ({
         }
         .form-header { flex-shrink: 0; }
         .form-body { flex: 1; overflow-y: auto; }
-        .tab-content-wrapper {
+
+        .tab-content {
           padding: 32px 24px;
           display: flex;
           flex-direction: column;
           gap: 32px;
         }
+
+        /* 每个面板的包裹容器，可以按需调整 */
+        .tab-panel {
+          display: block;
+        }
+
         .form-footer {
           flex-shrink: 0;
           padding: 24px;
