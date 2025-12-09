@@ -51,27 +51,20 @@ export const cybotSlice = createSliceWithThunks({
   name: "cybot",
   initialState,
   reducers: (create) => ({
+    // 通过 isStreaming 参数控制
     runLlm: create.asyncThunk(
-      (args: { cybotId?: string; content: any }, thunkApi) =>
-        _executeModel(
-          {
-            isStreaming: false,
-            withAgentContext: false,
-            withChatHistory: false,
-          },
-          args,
-          thunkApi
-        )
-    ),
-
-    streamLlm: create.asyncThunk(
       (
-        args: { cybotId?: string; content: any; parentMessageId?: string },
+        args: {
+          cybotId?: string;
+          content: any;
+          isStreaming?: boolean;
+          parentMessageId?: string;
+        },
         thunkApi
       ) =>
         _executeModel(
           {
-            isStreaming: true,
+            isStreaming: args.isStreaming ?? false,
             withAgentContext: false,
             withChatHistory: false,
           },
@@ -80,26 +73,23 @@ export const cybotSlice = createSliceWithThunks({
         )
     ),
 
+    // 合并 runAgent 和 streamAgent，通过 isStreaming 参数控制
     runAgent: create.asyncThunk(
-      (args: { cybotId: string; content: any }, thunkApi) =>
+      (
+        args: {
+          cybotId: string;
+          content: any;
+          isStreaming?: boolean;
+          parentMessageId?: string;
+        },
+        thunkApi
+      ) =>
         _executeModel(
           {
-            isStreaming: false,
+            isStreaming: args.isStreaming ?? false,
             withAgentContext: true,
             withChatHistory: false,
           },
-          args,
-          thunkApi
-        )
-    ),
-
-    streamAgent: create.asyncThunk(
-      (
-        args: { cybotId: string; content: any; parentMessageId?: string },
-        thunkApi
-      ) =>
-        _executeModel(
-          { isStreaming: true, withAgentContext: true, withChatHistory: false },
           args,
           thunkApi
         )
@@ -295,7 +285,6 @@ export const cybotSlice = createSliceWithThunks({
   }),
 });
 
-export const { runLlm, streamLlm, runAgent, streamAgent, streamAgentChatTurn } =
-  cybotSlice.actions;
+export const { runLlm, runAgent, streamAgentChatTurn } = cybotSlice.actions;
 
 export default cybotSlice.reducer;

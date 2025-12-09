@@ -12,7 +12,7 @@ import {
   type Step,
   type ToolCall,
 } from "ai/agent/planSlice";
-import { runLlm, streamLlm, runAgent, streamAgent } from "ai/cybot/cybotSlice";
+import { runLlm, runAgent } from "ai/cybot/cybotSlice"; // 更新导入，移除已合并的流式函数
 import { toolExecutors, toolDefinitionsByName } from "ai/tools/toolRegistry";
 import {
   toolRunStarted,
@@ -146,7 +146,6 @@ const resolveParameters = (params: any, allSteps: Step[]): any => {
 };
 
 function formatParameters(params: Record<string, any>): string {
-  console.log("formatParameters", formatParameters);
   if (!params || Object.keys(params).length === 0) return "无";
   return Object.entries(params)
     .map(([key, value]) => `  - \`${key}\`: \`${JSON.stringify(value)}\``)
@@ -234,7 +233,7 @@ export const runPlanSteps = createAsyncThunk(
               inputSummary,
             })
           );
-          // === ToolRun: 开始（结束） ===
+          // === ToolRun: 开始（结束）===
 
           let result: { rawData: any; displayData: string };
 
@@ -243,7 +242,11 @@ export const runPlanSteps = createAsyncThunk(
             switch (call.tool_name) {
               case "ask_llm": {
                 const llmResult = await dispatch(
-                  runLlm({ content: task, cybotId: cybotIdToUse })
+                  runLlm({
+                    content: task,
+                    cybotId: cybotIdToUse,
+                    isStreaming: false,
+                  })
                 ).unwrap();
                 result = {
                   rawData: llmResult,
@@ -253,7 +256,11 @@ export const runPlanSteps = createAsyncThunk(
               }
               case "stream_llm": {
                 await dispatch(
-                  streamLlm({ content: task, cybotId: cybotIdToUse })
+                  runLlm({
+                    content: task,
+                    cybotId: cybotIdToUse,
+                    isStreaming: true,
+                  })
                 );
                 result = {
                   rawData: `[Streaming LLM task started]`,
@@ -264,7 +271,11 @@ export const runPlanSteps = createAsyncThunk(
               }
               case "ask_agent": {
                 const agentResult = await dispatch(
-                  runAgent({ content: task, cybotId: cybotIdToUse })
+                  runAgent({
+                    content: task,
+                    cybotId: cybotIdToUse,
+                    isStreaming: false,
+                  })
                 ).unwrap();
                 result = {
                   rawData: agentResult,
@@ -274,7 +285,11 @@ export const runPlanSteps = createAsyncThunk(
               }
               case "stream_agent": {
                 await dispatch(
-                  streamAgent({ content: task, cybotId: cybotIdToUse })
+                  runAgent({
+                    content: task,
+                    cybotId: cybotIdToUse,
+                    isStreaming: true,
+                  })
                 );
                 result = {
                   rawData: `[Streaming Agent task started]`,
