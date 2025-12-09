@@ -1,5 +1,207 @@
 export const openrouterModels = [
-  // --- Anthropic Models ---
+  // --- MoonshotAI Models (Kimi) ---
+  {
+    name: "moonshotai/kimi-k2-thinking",
+    displayName: "MoonshotAI: Kimi K2 Thinking",
+    hasVision: false,
+    price: {
+      input: 0.6 * 9, // 11→9
+      output: 2.5 * 9, // 11→9
+      cachingRead: 0.15 * 9, // 11→9
+    },
+    maxOutputTokens: 262144,
+    contextWindow: 262144,
+    supportsTool: false,
+  },
+
+  // --- OpenAI Models (GPT) ---
+  {
+    name: "openai/gpt-5",
+    displayName: "OpenAI: GPT-5",
+    hasVision: true,
+    price: {
+      input: 1.25 * 9, // 11→9
+      output: 10 * 9, // 11→9
+      webSearch: 10 * 9, // 11→9
+    },
+    maxOutputTokens: 200000,
+    contextWindow: 400000,
+    supportsTool: true,
+  },
+  {
+    name: "openai/gpt-5.1",
+    displayName: "OpenAI: GPT-5.1",
+    hasVision: true,
+    price: {
+      input: 1.25 * 9, // 11→9
+      output: 10 * 9, // 11→9
+      webSearch: 10 * 9, // 11→9
+    },
+    maxOutputTokens: 200000,
+    contextWindow: 400000,
+    supportsTool: true,
+  },
+  {
+    name: "openai/gpt-5.1-codex",
+    displayName: "OpenAI: GPT-5.1-Codex",
+    hasVision: true,
+    price: {
+      input: 1.25 * 9, // 11→9
+      output: 10 * 9, // 11→9
+      webSearch: 10 * 9, // 11→9
+    },
+    maxOutputTokens: 200000,
+    contextWindow: 400000,
+    supportsTool: true,
+  },
+  // =================================================================
+  // [NEW] OpenAI: GPT-5.1-Codex-Max
+  // =================================================================
+  {
+    name: "openai/gpt-5.1-codex-max",
+    displayName: "OpenAI: GPT-5.1-Codex-Max",
+    hasVision: true,
+    price: {
+      input: 1.25 * 9,
+      output: 10 * 9,
+      webSearch: 10 * 9,
+    },
+    maxOutputTokens: 200000,
+    contextWindow: 400000,
+    supportsTool: true,
+  },
+  {
+    name: "openai/gpt-5:online",
+    displayName: "OpenAI: GPT-5 (Online)",
+    hasVision: true,
+    price: {
+      input: 1.25 * 10, // 13→10
+      output: 10 * 10, // 13→10
+      webSearch: 10 * 10, // 13→10
+    },
+    maxOutputTokens: 200000,
+    contextWindow: 400000,
+    supportsTool: true,
+  },
+  {
+    name: "openai/gpt-5-mini",
+    displayName: "OpenAI: GPT-5 Mini",
+    hasVision: true,
+    price: {
+      input: 0.25 * 9, // 11→9
+      output: 2 * 9, // 11→9
+      webSearch: 10 * 9, // 11→9
+    },
+    maxOutputTokens: 200000,
+    contextWindow: 400000,
+    supportsTool: true,
+  },
+  {
+    name: "openai/gpt-5-mini:online",
+    displayName: "OpenAI: GPT-5 Mini (Online)",
+    hasVision: true,
+    price: {
+      input: 0.25 * 10, // 13→10
+      output: 2 * 10, // 13→10
+      webSearch: 10 * 10, // 13→10
+    },
+    maxOutputTokens: 200000,
+    contextWindow: 400000,
+    supportsTool: true,
+  },
+  {
+    name: "openai/gpt-5-pro",
+    displayName: "OpenAI: GPT-5 Pro",
+    hasVision: true,
+    price: {
+      input: 15 * 9, // 11→9
+      output: 120 * 9, // 11→9
+      webSearch: 10 * 9, // 11→9
+    },
+    maxOutputTokens: 200000,
+    contextWindow: 400000,
+    supportsTool: true,
+  },
+  {
+    name: "openai/gpt-5-pro:online",
+    displayName: "OpenAI: GPT-5 Pro (Online)",
+    hasVision: true,
+    price: {
+      input: 15 * 10, // 13→10
+      output: 120 * 10, // 13→10
+      webSearch: 10 * 10, // 13→10
+    },
+    maxOutputTokens: 200000,
+    contextWindow: 400000,
+    supportsTool: true,
+  },
+  {
+    name: "openai/o3-deep-research",
+    displayName: "OpenAI: o3 Deep Research",
+    hasVision: true,
+    price: {
+      input: 10 * 9, // 11→9
+      output: 40 * 9, // 11→9
+      webSearch: 10 * 9, // 11→9
+    },
+    maxOutputTokens: 200000,
+    contextWindow: 200000,
+    supportsTool: true,
+    pricePerImage: 7.65 * 9, // 11→9
+  },
+
+  // --- Google Models (Gemini) ---
+  {
+    name: "google/gemini-2.5-pro",
+    displayName: "Google: Gemini 2.5 Pro",
+    hasVision: true,
+    price: {
+      input: 1.25 * 9, // 11→9
+      output: 10 * 9, // 11→9
+      cachingRead: 0.31 * 9, // 11→9
+      cachingWrite: 1.625 * 9, // 11→9
+    },
+    maxOutputTokens: 65500,
+    contextWindow: 1050000,
+    supportsTool: true,
+  },
+  // =================================================================
+  // [NEW] Google: Gemini 3 Pro Preview (Released Nov 18, 2025)
+  // =================================================================
+  {
+    name: "google/gemini-3-pro-preview",
+    displayName: "Google: Gemini 3 Pro Preview",
+    hasVision: true,
+    maxOutputTokens: 65500,
+    contextWindow: 1048576,
+    supportsTool: true,
+
+    // Tier 1: Context ≤ 200K
+    price: {
+      input: 2 * 9, // ≤200K: $2/M
+      output: 12 * 9, // ≤200K: $12/M
+      cachingRead: 0.2 * 9, // ≤200K: $0.20/M
+      cachingWrite: 2.375 * 9, // ≤200K: $2.375/M
+    },
+
+    // Tier 2: Context > 200K
+    pricingStrategy: {
+      type: "tiered_context",
+      tiers: [
+        {
+          minContext: 200001,
+          price: {
+            input: 4 * 9, // >200K: $4/M
+            output: 18 * 9, // >200K: $18/M
+            cachingRead: 0.4 * 9, // >200K: $0.40/M
+            cachingWrite: 4.375 * 9, // >200K: $4.375/M
+          },
+        },
+      ],
+    },
+  },
+
+  // --- Anthropic Models (Claude) ---
   {
     name: "anthropic/claude-haiku-4.5",
     displayName: "Anthropic: Claude Haiku 4.5",
@@ -154,236 +356,6 @@ export const openrouterModels = [
     },
   },
 
-  // --- Google Models ---
-  {
-    name: "google/gemini-2.5-pro",
-    displayName: "Google: Gemini 2.5 Pro",
-    hasVision: true,
-    price: {
-      input: 1.25 * 9, // 11→9
-      output: 10 * 9, // 11→9
-      cachingRead: 0.31 * 9, // 11→9
-      cachingWrite: 1.625 * 9, // 11→9
-    },
-    maxOutputTokens: 65500,
-    contextWindow: 1050000,
-    supportsTool: true,
-  },
-  // =================================================================
-  // [NEW] Google: Gemini 3 Pro Preview (Released Nov 18, 2025)
-  // =================================================================
-  {
-    name: "google/gemini-3-pro-preview",
-    displayName: "Google: Gemini 3 Pro Preview",
-    hasVision: true,
-    maxOutputTokens: 65500,
-    contextWindow: 1048576,
-    supportsTool: true,
-
-    // Tier 1: Context ≤ 200K
-    price: {
-      input: 2 * 9, // ≤200K: $2/M
-      output: 12 * 9, // ≤200K: $12/M
-      cachingRead: 0.2 * 9, // ≤200K: $0.20/M
-      cachingWrite: 2.375 * 9, // ≤200K: $2.375/M
-    },
-
-    // Tier 2: Context > 200K
-    pricingStrategy: {
-      type: "tiered_context",
-      tiers: [
-        {
-          minContext: 200001,
-          price: {
-            input: 4 * 9, // >200K: $4/M
-            output: 18 * 9, // >200K: $18/M
-            cachingRead: 0.4 * 9, // >200K: $0.40/M
-            cachingWrite: 4.375 * 9, // >200K: $4.375/M
-          },
-        },
-      ],
-    },
-  },
-
-  // --- MiniMax Models ---
-  {
-    name: "minimax/minimax-m2",
-    displayName: "MiniMax: MiniMax M2",
-    hasVision: false,
-    price: {
-      input: 0.15 * 9, // 11→9
-      output: 0.45 * 9, // 11→9
-    },
-    maxOutputTokens: 196608,
-    contextWindow: 196608,
-    supportsTool: true,
-  },
-
-  // --- MoonshotAI Models ---
-  {
-    name: "moonshotai/kimi-k2-thinking",
-    displayName: "MoonshotAI: Kimi K2 Thinking",
-    hasVision: false,
-    price: {
-      input: 0.6 * 9, // 11→9
-      output: 2.5 * 9, // 11→9
-      cachingRead: 0.15 * 9, // 11→9
-    },
-    maxOutputTokens: 262144,
-    contextWindow: 262144,
-    supportsTool: false,
-  },
-
-  // --- OpenAI Models ---
-  {
-    name: "openai/gpt-5",
-    displayName: "OpenAI: GPT-5",
-    hasVision: true,
-    price: {
-      input: 1.25 * 9, // 11→9
-      output: 10 * 9, // 11→9
-      webSearch: 10 * 9, // 11→9
-    },
-    maxOutputTokens: 200000,
-    contextWindow: 400000,
-    supportsTool: true,
-  },
-  {
-    name: "openai/gpt-5.1",
-    displayName: "OpenAI: GPT-5.1",
-    hasVision: true,
-    price: {
-      input: 1.25 * 9, // 11→9
-      output: 10 * 9, // 11→9
-      webSearch: 10 * 9, // 11→9
-    },
-    maxOutputTokens: 200000,
-    contextWindow: 400000,
-    supportsTool: true,
-  },
-  {
-    name: "openai/gpt-5.1-codex",
-    displayName: "OpenAI: GPT-5.1-Codex",
-    hasVision: true,
-    price: {
-      input: 1.25 * 9, // 11→9
-      output: 10 * 9, // 11→9
-      webSearch: 10 * 9, // 11→9
-    },
-    maxOutputTokens: 200000,
-    contextWindow: 400000,
-    supportsTool: true,
-  },
-  // =================================================================
-  // [NEW] OpenAI: GPT-5.1-Codex-Max
-  // =================================================================
-  {
-    name: "openai/gpt-5.1-codex-max",
-    displayName: "OpenAI: GPT-5.1-Codex-Max",
-    hasVision: true,
-    price: {
-      input: 1.25 * 9,
-      output: 10 * 9,
-      webSearch: 10 * 9,
-    },
-    maxOutputTokens: 200000,
-    contextWindow: 400000,
-    supportsTool: true,
-  },
-  {
-    name: "openai/gpt-5:online",
-    displayName: "OpenAI: GPT-5 (Online)",
-    hasVision: true,
-    price: {
-      input: 1.25 * 10, // 13→10
-      output: 10 * 10, // 13→10
-      webSearch: 10 * 10, // 13→10
-    },
-    maxOutputTokens: 200000,
-    contextWindow: 400000,
-    supportsTool: true,
-  },
-  {
-    name: "openai/gpt-5-mini",
-    displayName: "OpenAI: GPT-5 Mini",
-    hasVision: true,
-    price: {
-      input: 0.25 * 9, // 11→9
-      output: 2 * 9, // 11→9
-      webSearch: 10 * 9, // 11→9
-    },
-    maxOutputTokens: 200000,
-    contextWindow: 400000,
-    supportsTool: true,
-  },
-  {
-    name: "openai/gpt-5-mini:online",
-    displayName: "OpenAI: GPT-5 Mini (Online)",
-    hasVision: true,
-    price: {
-      input: 0.25 * 10, // 13→10
-      output: 2 * 10, // 13→10
-      webSearch: 10 * 10, // 13→10
-    },
-    maxOutputTokens: 200000,
-    contextWindow: 400000,
-    supportsTool: true,
-  },
-  {
-    name: "openai/gpt-5-pro",
-    displayName: "OpenAI: GPT-5 Pro",
-    hasVision: true,
-    price: {
-      input: 15 * 9, // 11→9
-      output: 120 * 9, // 11→9
-      webSearch: 10 * 9, // 11→9
-    },
-    maxOutputTokens: 200000,
-    contextWindow: 400000,
-    supportsTool: true,
-  },
-  {
-    name: "openai/gpt-5-pro:online",
-    displayName: "OpenAI: GPT-5 Pro (Online)",
-    hasVision: true,
-    price: {
-      input: 15 * 10, // 13→10
-      output: 120 * 10, // 13→10
-      webSearch: 10 * 10, // 13→10
-    },
-    maxOutputTokens: 200000,
-    contextWindow: 400000,
-    supportsTool: true,
-  },
-  {
-    name: "openai/o3-deep-research",
-    displayName: "OpenAI: o3 Deep Research",
-    hasVision: true,
-    price: {
-      input: 10 * 9, // 11→9
-      output: 40 * 9, // 11→9
-      webSearch: 10 * 9, // 11→9
-    },
-    maxOutputTokens: 200000,
-    contextWindow: 200000,
-    supportsTool: true,
-    pricePerImage: 7.65 * 9, // 11→9
-  },
-  {
-    name: "openai/o4-mini-deep-research",
-    displayName: "OpenAI: o4 Mini Deep Research",
-    hasVision: true,
-    price: {
-      input: 2 * 9, // 11→9
-      output: 8 * 9, // 11→9
-      webSearch: 10 * 9, // 11→9
-    },
-    maxOutputTokens: 200000,
-    contextWindow: 200000,
-    supportsTool: true,
-    pricePerImage: 1.53 * 9, // 11→9
-  },
-
   // --- Qwen Models ---
   {
     name: "qwen/qwen3-max",
@@ -408,6 +380,20 @@ export const openrouterModels = [
     },
     maxOutputTokens: 32800,
     contextWindow: 262144,
+    supportsTool: true,
+  },
+
+  // --- MiniMax Models ---
+  {
+    name: "minimax/minimax-m2",
+    displayName: "MiniMax: MiniMax M2",
+    hasVision: false,
+    price: {
+      input: 0.15 * 9, // 11→9
+      output: 0.45 * 9, // 11→9
+    },
+    maxOutputTokens: 196608,
+    contextWindow: 196608,
     supportsTool: true,
   },
 
@@ -448,6 +434,21 @@ export const openrouterModels = [
     },
     maxOutputTokens: 65536,
     contextWindow: 2000000,
+    supportsTool: true,
+  },
+
+  // --- EssentialAI Models ---
+  // Created Dec 7, 2025
+  {
+    name: "essentialai/rnj-1-instruct",
+    displayName: "EssentialAI: Rnj 1 Instruct",
+    hasVision: false,
+    price: {
+      input: 0.15 * 9,
+      output: 0.15 * 9,
+    },
+    maxOutputTokens: 8192,
+    contextWindow: 32768,
     supportsTool: true,
   },
 ];
