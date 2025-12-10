@@ -15,7 +15,8 @@ import { toast } from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { LuGlobe, LuChevronRight, LuBot, LuArrowDown } from "react-icons/lu";
 import WelcomeSection from "./WelcomeSection";
-import Tabs, { TabItem } from "render/web/ui/Tabs";
+// ✅ 使用新的 TabsNav
+import TabsNav from "render/web/ui/TabsNav";
 import PublicAgents from "ai/agent/web/PublicAgents";
 import AgentListView from "ai/agent/web/AgentListView";
 import StreamingIndicator from "render/web/ui/StreamingIndicator";
@@ -122,6 +123,7 @@ const Home = () => {
     });
   };
 
+  // tab 配置：带 icon + label + 对应内容 component
   const tabsConfig = [
     ...(isLoggedIn
       ? [
@@ -141,10 +143,15 @@ const Home = () => {
     },
   ];
 
-  const tabItems: TabItem[] = tabsConfig.map(({ id, label, icon }) => ({
+  // 映射成 TabsNav 需要的 tabs（label 里放 icon + 文本）
+  const tabs = tabsConfig.map(({ id, label, icon }) => ({
     id,
-    label,
-    icon,
+    label: (
+      <span className="tab-label-with-icon">
+        {icon}
+        <span>{label}</span>
+      </span>
+    ),
   }));
 
   return (
@@ -170,11 +177,13 @@ const Home = () => {
 
           <section id="ai-plaza-section" className="content-section">
             <header className="content-header">
-              <Tabs
-                items={tabItems}
+              {/* ✅ 使用新的 TabsNav */}
+              <TabsNav
+                tabs={tabs}
                 activeTab={activeTab}
-                onTabChange={setActiveTab}
+                onChange={(id) => setActiveTab(id as string)}
               />
+
               {isLoggedIn && (
                 <NavLink
                   to={
@@ -369,6 +378,13 @@ const Home = () => {
         .empty-action-button:focus-visible {
           outline: 2px solid var(--focus);
           outline-offset: 2px;
+        }
+
+        /* ⭐ TabsNav 里 label 的 icon + 文本 布局 */
+        .tab-label-with-icon {
+          display: inline-flex;
+          align-items: center;
+          gap: var(--space-2);
         }
 
         @media (max-width: 480px) {

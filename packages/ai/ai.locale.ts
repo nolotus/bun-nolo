@@ -41,7 +41,6 @@ export default {
       createAgent: "Create a New AI",
       editAgent: "Edit AI",
 
-      // Tabs
       tabs: {
         basicInfo: "Basic Info",
         references: "References",

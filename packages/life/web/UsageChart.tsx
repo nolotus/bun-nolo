@@ -9,7 +9,8 @@ import { TimeRange, processDateRange } from "utils/processDateRange";
 import { ClockIcon, GraphIcon } from "@primer/octicons-react";
 import { useTranslation } from "react-i18next";
 import Combobox from "render/web/ui/Combobox";
-import Tabs from "render/web/ui/Tabs";
+// ✅ 替换为 TabsNav
+import TabsNav from "render/web/ui/TabsNav";
 
 const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 type DataType = "tokens" | "cost";
@@ -60,6 +61,18 @@ const STYLES = `
     background: var(--background);
     min-height: 400px;
   }
+
+  /* ✅ TabsNav 里 label 的 icon + 文本 布局 */
+  .tab-label-with-icon {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* ✅ 模拟原先 Tabs size="small" 的高度 */
+  .usage-tabs-nav .tabs {
+    --tabs-height: 32px;
+  }
 `;
 
 const UsageChart: React.FC = () => {
@@ -88,6 +101,22 @@ const UsageChart: React.FC = () => {
     [t]
   );
 
+  // ✅ 映射为 TabsNav 的 tabs 结构
+  const dataTypeTabs = useMemo(
+    () =>
+      dataTypeOptions.map(({ id, label, icon }) => ({
+        id,
+        label: (
+          <span className="tab-label-with-icon">
+            {/* icon 可能是字符串，也可能是 ReactNode */}
+            {typeof icon === "string" ? <span>{icon}</span> : icon}
+            <span>{label}</span>
+          </span>
+        ),
+      })),
+    [dataTypeOptions]
+  );
+
   const selectedTimeRange = timeRangeOptions.find((o) => o.value === timeRange);
 
   useEffect(() => {
@@ -99,7 +128,9 @@ const UsageChart: React.FC = () => {
 
     getTokenStats({ userId, startDate, endDate })
       .then(setStatsData)
-      .catch(() => {}) // 错误处理逻辑
+      .catch(() => {
+        // TODO: 可按需加 toast
+      })
       .finally(() => setLoading(false));
   }, [userId, timeRange]);
 
@@ -240,11 +271,13 @@ const UsageChart: React.FC = () => {
                 placeholder={t("select_time_range")}
               />
             </div>
-            <Tabs
-              items={dataTypeOptions}
+
+            {/* ✅ 使用 TabsNav 替代 Tabs */}
+            <TabsNav
+              className="usage-tabs-nav"
+              tabs={dataTypeTabs}
               activeTab={dataType}
-              onTabChange={(id) => setDataType(id as DataType)}
-              size="small"
+              onChange={(id) => setDataType(id as DataType)}
             />
           </div>
         </div>
