@@ -11,11 +11,19 @@ import {
   LuMoonStar,
   LuCoffee,
   LuZap,
+  LuArrowDown,
 } from "react-icons/lu";
 import { useTranslation } from "react-i18next";
 
 const WelcomeSection = () => {
   const { t } = useTranslation();
+
+  const handleScrollToPlaza = () => {
+    document.getElementById("ai-plaza-section")?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
 
   return (
     <section className="ws-container">
@@ -29,10 +37,19 @@ const WelcomeSection = () => {
           </span>
         </h1>
         <p className="ws-hero-desc">{t("welcomeSection.heroDescription")}</p>
+
+        {/* Dual CTA Buttons */}
         <div className="ws-cta-wrapper">
-          <NavLink to="/signup" className="ws-cta-btn">
+          <NavLink to="/signup" className="ws-cta-btn ws-cta-primary">
             {t("welcomeSection.ctaButton")}
           </NavLink>
+          <button
+            className="ws-cta-btn ws-cta-secondary"
+            onClick={handleScrollToPlaza}
+          >
+            <LuArrowDown size={18} />
+            <span>{t("explorePlaza")}</span>
+          </button>
         </div>
       </div>
 
@@ -201,7 +218,7 @@ const WelcomeSection = () => {
           --ws-text-sub: var(--textSecondary, #666);
           --ws-border: var(--border, #e5e5e5);
           --ws-radius: 24px;
-          
+
           padding: 80px 24px;
           max-width: 1100px;
           margin: 0 auto;
@@ -224,7 +241,7 @@ const WelcomeSection = () => {
 
         /* === Hero Section === */
         .ws-hero { text-align: center; margin-bottom: 60px; position: relative; z-index: 2; }
-        
+
         .ws-hero-title {
           font-size: 3.5rem;
           font-weight: 800;
@@ -249,18 +266,56 @@ const WelcomeSection = () => {
           line-height: 1.6;
         }
 
+        /* === Dual CTA Buttons === */
+        .ws-cta-wrapper {
+          display: flex;
+          justify-content: center;
+          gap: 16px;
+          flex-wrap: wrap;
+          margin-top: 40px;
+        }
+
         .ws-cta-btn {
-          display: inline-block;
-          padding: 14px 48px;
-          background: var(--ws-text);
-          color: var(--ws-bg);
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          padding: 14px 32px;
           border-radius: 99px;
           font-weight: 600;
           text-decoration: none;
-          transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+          transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
           box-shadow: 0 10px 20px -5px rgba(0,0,0,0.1);
+          border: none;
+          cursor: pointer;
         }
-        .ws-cta-btn:hover { transform: scale(1.05) translateY(-2px); box-shadow: 0 15px 30px -5px rgba(0,0,0,0.2); }
+
+        .ws-cta-primary {
+          background: var(--ws-text);
+          color: var(--ws-bg);
+        }
+
+        .ws-cta-primary:hover {
+          transform: scale(1.05) translateY(-2px);
+          box-shadow: 0 15px 30px -5px rgba(0,0,0,0.2);
+        }
+
+        .ws-cta-secondary {
+          background: var(--backgroundSecondary);
+          color: var(--textSecondary);
+        }
+
+        .ws-cta-secondary:hover {
+          color: var(--primary);
+          background: var(--background);
+          transform: translateY(-3px);
+          box-shadow:
+            0 0 0 1px var(--primaryGhost),
+            0 2px 4px 0 var(--shadowLight),
+            0 8px 20px -2px var(--shadowMedium),
+            0 16px 40px -4px var(--shadowMedium),
+            0 4px 24px -2px var(--primaryGhost);
+        }
 
         /* === Grid Layout === */
         .ws-grid {
@@ -290,7 +345,7 @@ const WelcomeSection = () => {
         }
 
         .ws-card-visual {
-          background: var(--ws-bg); 
+          background: var(--ws-bg);
           border-radius: 18px;
           height: 240px;
           width: 100%;
@@ -302,7 +357,7 @@ const WelcomeSection = () => {
           margin-bottom: 24px;
           border: 1px solid rgba(0,0,0,0.03);
         }
-        
+
         /* Dark visuals overrides */
         .ws-card-night .ws-card-visual {
            background: linear-gradient(160deg, #1e293b, #0f172a);
@@ -320,7 +375,7 @@ const WelcomeSection = () => {
         .ws-input-zone { display: flex; align-items: center; gap: 12px; z-index: 2; }
         .ws-file-pill {
           background: var(--ws-bg); border: 1px solid var(--ws-border);
-          padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; 
+          padding: 6px 12px; border-radius: 8px; font-size: 0.75rem;
           display: flex; gap: 6px; align-items: center; color: var(--ws-text-sub);
           box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
@@ -399,7 +454,7 @@ const WelcomeSection = () => {
         }
         .item-3d { top: 40px; left: 40px; }
         .item-web { top: 40px; right: 40px; }
-        
+
         .ws-card-create:hover .item-3d { top: 30px; left: 30px; opacity: 1; transform: scale(1); }
         .ws-card-create:hover .item-web { top: 30px; right: 30px; opacity: 1; transform: scale(1); }
 
@@ -409,7 +464,6 @@ const WelcomeSection = () => {
            box-shadow: 0 4px 12px rgba(0,0,0,0.1); color: var(--ws-text);
         }
         .ws-label-tiny { font-size: 0.65rem; font-weight: 600; color: var(--ws-text-sub); }
-
 
         /* === Card 4: Night Workflow === */
         .ws-visual-night { display: flex; flex-direction: column; justify-content: center; position: relative; }
@@ -445,7 +499,7 @@ const WelcomeSection = () => {
         @keyframes ws-spin-rev { from { transform: rotate(360deg); } to { transform: rotate(0deg); } }
         @keyframes ws-float { 0%,100% { transform: translate(-50%, 0); } 50% { transform: translate(-50%, -6px); } }
         @keyframes ws-twinkle { 0%,100% { opacity: 0.2; transform: scale(1); } 50% { opacity: 0.8; transform: scale(1.5); } }
-        
+
         .pulse { animation: ws-pulse 2s infinite; }
         @keyframes ws-pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.3); opacity: 0.7; } 100% { transform: scale(1); opacity: 1; } }
 
