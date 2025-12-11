@@ -32,6 +32,13 @@ export interface ConvertExcelToSlateOptions {
    * 如果提供，将优先于 dateKeywords / 默认关键字。
    */
   isDateHeader?: (header: string) => boolean;
+
+  /**
+   * 对应 excelData 的“格式化显示数据”（通常来自 sheet_to_json(raw: false)）。
+   * - 用来保留百分比 / 货币 / 时间等 Excel 的显示文本。
+   * - 数组长度、每行的 key 应该与 excelData 对齐。
+   */
+  displayData?: ExcelRow[];
 }
 
 // --- 工具函数 ---
@@ -115,61 +122,159 @@ const getDefaultLocale = (): string => {
 };
 
 /**
- * 将单元格的值格式化为字符串。
- * - 对「日期列」优先尝试用 Intl.DateTimeFormat 按 locale 输出：
- *   中文：2025年12月30日
- *   英文：December 30, 2025
- * - 其他类型直接转 String。
+ * 对「日期列」的值进行格式化。
+ * - 输入为原始值（Date / Excel 序列号 / string）
+ * - 输出为 locale 对应的日期字符串
  */
-const formatCellValue = (
-  header: string,
-  value: any,
-  locale: string,
-  isDateHeader: (header: string) => boolean
-): string => {
-  if (value == null) return "";
+const formatDateLikeCellValue = (value: any, locale: string): string | null => {
+  if (value == null) return null;
 
-  const headerIsDate = isDateHeader(header);
+  let date: Date | null = null;
 
-  // 如果是日期列，尽量把各种类型统一转成 Date 再格式化
-  if (headerIsDate) {
-    let date: Date | null = null;
-
-    if (value instanceof Date) {
-      date = value;
-    } else if (typeof value === "number" && isLikelyExcelDateNumber(value)) {
-      // Excel 日期序列号
-      date = excelSerialToDate(value);
-    } else if (typeof value === "string") {
-      const parsed = new Date(value);
-      if (!Number.isNaN(parsed.getTime())) {
-        date = parsed;
-      }
-    }
-
-    if (date) {
-      // 用 Intl.DateTimeFormat 按当前语言输出「包含年、月、日」的格式
-      const formatter = new Intl.DateTimeFormat(locale, {
-        year: "numeric",
-        month: "long", // 在中文下会是 “12月”，在英文下是 “December”
-        day: "numeric",
-      });
-      return formatter.format(date);
+  if (value instanceof Date) {
+    date = value;
+  } else if (typeof value === "number" && isLikelyExcelDateNumber(value)) {
+    // Excel 日期序列号
+    date = excelSerialToDate(value);
+  } else if (typeof value === "string") {
+    const parsed = new Date(value);
+    if (!Number.isNaN(parsed.getTime())) {
+      date = parsed;
     }
   }
 
-  // 非日期列或者无法成功解析为 Date 的情况，直接字符串化
-  return String(value);
+  if (!date) return null;
+
+  const formatter = new Intl.DateTimeFormat(locale, {
+    year: "numeric",
+    month: "long", // 中文: “12月”；英文: “December”
+    day: "numeric",
+  });
+  return formatter.format(date);
 };
+
+/**
+ * 非日期列的值格式化逻辑：
+ * - 如果提供了 displayValue（来自 raw:false 的 sheet_to_json），优先使用它：
+ *   这样可以保留百分比 / 货币 / 时间 等 Excel 的显示样式。
+ * - 否则退回到 String(rawValue)。
+ */
+const formatNonDateCellValue = (rawValue: any, displayValue: any): string => {
+  if (displayValue != null && displayValue !== "") {
+    return String(displayValue);
+  }
+  if (rawValue == null) return "";
+  return String(rawValue);
+};
+
+/**
+ * 将单元格的值格式化为字符串。
+ * - 日期列：用 Intl.DateTimeFormat 按 locale 输出。
+ * - 其他列：优先用 displayValue（Excel 的格式化结果），否则用原始值字符串。
+ */
+const formatCellValue = (
+  header: string,
+  rawValue: any,
+  displayValue: any,
+  locale: string,
+  isDateHeader: (header: string) => boolean
+): string => {
+  // 完全空值
+  if (rawValue == null && (displayValue == null || displayValue === "")) {
+    return "";
+  }
+
+  const headerIsDate = isDateHeader(header);
+
+  // 1. 日期列：优先尝试把各种类型统一转成 Date，再用 locale 格式化
+  if (headerIsDate) {
+    const formattedDate = formatDateLikeCellValue(rawValue, locale);
+    if (formattedDate != null) return formattedDate;
+
+    // 原始值无法解析成日期时，退回 displayValue 或 rawValue
+    return formatNonDateCellValue(rawValue, displayValue);
+  }
+
+  // 2. 非日期列：优先采用 Excel 的显示文本（displayValue）
+  return formatNonDateCellValue(rawValue, displayValue);
+};
+
+/**
+ * 从 excel 行数据中收集所有表头。
+ */
+const collectHeaders = (excelData: ExcelRow[]): string[] => {
+  const headerSet = new Set<string>();
+
+  excelData.forEach((row) => {
+    if (row && typeof row === "object") {
+      Object.keys(row).forEach((key) => headerSet.add(key));
+    }
+  });
+
+  return Array.from(headerSet);
+};
+
+/**
+ * 构建表头行节点。
+ */
+const buildHeaderRow = (headers: string[]) => ({
+  type: "table-row",
+  children: headers.map((header) => ({
+    type: "table-cell",
+    isHeader: true,
+    children: [{ text: header || "" }],
+  })),
+});
+
+/**
+ * 构建数据行节点。
+ */
+const buildDataRows = (
+  excelData: ExcelRow[],
+  headers: string[],
+  locale: string,
+  isDateHeader: (header: string) => boolean,
+  displayData?: ExcelRow[]
+) =>
+  excelData.map((row, rowIndex) => {
+    const displayRow = displayData?.[rowIndex];
+
+    return {
+      type: "table-row",
+      children: headers.map((header) => {
+        const rawValue =
+          row && typeof row === "object" ? (row as any)[header] : undefined;
+        const displayValue =
+          displayRow && typeof displayRow === "object"
+            ? (displayRow as any)[header]
+            : undefined;
+
+        const text = formatCellValue(
+          header,
+          rawValue,
+          displayValue,
+          locale,
+          isDateHeader
+        );
+
+        return {
+          type: "table-cell",
+          children: [{ text }],
+        };
+      }),
+    };
+  });
 
 // --- 主函数 ---
 
 /**
  * 将 Excel/CSV 解析后的 JSON 行数据转换为 Slate.js 格式。
  *
- * @param excelData - 由 XLSX.utils.sheet_to_json 生成的行数据数组。
- * @param fileName  - 原始文件名，用作标题。
- * @param options   - 配置项，用于控制 locale / 日期列等。
+ * @param excelData  - 由 XLSX.utils.sheet_to_json(raw: true) 生成的行数据数组。
+ * @param fileName   - 原始文件名，用作标题。
+ * @param options    - 配置项，用于控制 locale / 日期列等；
+ *                     其中 options.displayData 一般来自 sheet_to_json(raw: false)。
+ *
  * @returns 符合 Slate.js 规范的 EditorContent 数组。
  */
 export const convertExcelToSlate = (
@@ -192,14 +297,7 @@ export const convertExcelToSlate = (
   }
 
   // 2. 收集所有可能出现过的列头，避免丢失列
-  const headerSet = new Set<string>();
-  excelData.forEach((row) => {
-    if (row && typeof row === "object") {
-      Object.keys(row).forEach((key) => headerSet.add(key));
-    }
-  });
-
-  const headers = Array.from(headerSet);
+  const headers = collectHeaders(excelData);
 
   // 如果没有任何有效表头（例如所有行都是 {}），也视为无效内容
   if (headers.length === 0) {
@@ -207,30 +305,16 @@ export const convertExcelToSlate = (
   }
 
   // 3. 构建表头行
-  const headerRow = {
-    type: "table-row",
-    children: headers.map((header) => ({
-      type: "table-cell",
-      isHeader: true, // 表头单元格，可用于样式区分
-      children: [{ text: header || "" }],
-    })),
-  };
+  const headerRow = buildHeaderRow(headers);
 
-  // 4. 构建数据行
-  const dataRows = excelData.map((row) => ({
-    type: "table-row",
-    children: headers.map((header) => {
-      const rawValue =
-        row && typeof row === "object" ? (row as any)[header] : undefined;
-
-      const text = formatCellValue(header, rawValue, locale, isDateHeader);
-
-      return {
-        type: "table-cell",
-        children: [{ text }],
-      };
-    }),
-  }));
+  // 4. 构建数据行（这里会用到 raw + displayData）
+  const dataRows = buildDataRows(
+    excelData,
+    headers,
+    locale,
+    isDateHeader,
+    options.displayData
+  );
 
   // 5. 返回最终的 Slate 内容：标题 + 表格
   return [
