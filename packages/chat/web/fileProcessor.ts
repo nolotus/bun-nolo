@@ -24,7 +24,7 @@ const EXCEL_LIKE_EXTENSIONS = [
 
 /**
  * 认为是“纯文本类文件”的扩展名集合
- * - 这些文件不需要特殊结构解析，只需要按纯文本展示即可
+ * - 这些文件不需要复杂结构解析，只需要按纯文本展示即可
  * - JSON 单独处理（见下方 isJsonFile），这里不要包含 .json
  */
 const PLAIN_TEXT_EXTENSIONS = [
@@ -36,6 +36,18 @@ const PLAIN_TEXT_EXTENSIONS = [
   ".cfg",
   ".yaml",
   ".yml",
+  ".env",
+  ".toml",
+  ".xml",
+  ".html",
+  ".htm",
+  ".js",
+  ".jsx",
+  ".ts",
+  ".tsx",
+  ".css",
+  ".scss",
+  ".less",
 ] as const;
 
 interface ProcessDocumentFileArgs {
@@ -101,9 +113,28 @@ const getSheetToJsonOptions = () => ({
 });
 
 /**
- * JSON 文本 -> Slate 数据
+ * 生成一个 code-block 类型的 Slate 节点内容。
+ *
+ * 如果你的 schema 不同（比如 type: "code" 或 data.language），
+ * 在这里统一改结构即可。
+ */
+const createCodeBlockSlate = (
+  text: string,
+  language?: string
+): Descendant[] => {
+  return [
+    {
+      type: "code-block",
+      language,
+      children: [{ text }],
+    } as any,
+  ];
+};
+
+/**
+ * JSON 文本 -> Slate 数据（code-block + pretty print）
  * - 若解析成功，则以缩进 2 的格式美化 JSON 字符串
- * - 若解析失败，则原样作为纯文本展示，不抛出异常
+ * - 若解析失败，则原样作为纯文本展示，不抛异常
  */
 const createSlateFromJsonText = (text: string): Descendant[] => {
   let prettyJson = text;
@@ -115,13 +146,59 @@ const createSlateFromJsonText = (text: string): Descendant[] => {
     // 忽略解析错误，按原始文本展示
   }
 
-  return [
-    {
-      // 如果你的编辑器有专门的 code-block 类型，可以改成 'code-block'
-      type: "paragraph",
-      children: [{ text: prettyJson }],
-    } as any,
-  ];
+  return createCodeBlockSlate(prettyJson, "json");
+};
+
+/**
+ * 根据扩展名猜测适合的代码高亮语言。
+ * 这里只处理“配置 / 数据 / 日志 / 代码”这些适合用 code-block 展示的类型。
+ *
+ * 说明：
+ * - txt / md / mdx 仍然当自然语言文本处理，不在这里返回 language。
+ * - JSON 已在 isJsonFile 分支中单独处理，不在这里判断 .json。
+ */
+const guessCodeLanguageFromExtension = (
+  fileNameLower: string
+): string | undefined => {
+  if (fileNameLower.endsWith(".yaml") || fileNameLower.endsWith(".yml")) {
+    return "yaml";
+  }
+  if (fileNameLower.endsWith(".ini") || fileNameLower.endsWith(".cfg")) {
+    return "ini";
+  }
+  if (fileNameLower.endsWith(".log")) {
+    return "log";
+  }
+  if (fileNameLower.endsWith(".env")) {
+    // 大部分高亮库没有专门的 dotenv 语言，可以按 shell/ini 处理
+    return "bash";
+  }
+  if (fileNameLower.endsWith(".toml")) {
+    return "toml";
+  }
+  if (fileNameLower.endsWith(".xml")) {
+    return "xml";
+  }
+  if (fileNameLower.endsWith(".html") || fileNameLower.endsWith(".htm")) {
+    return "html";
+  }
+  if (fileNameLower.endsWith(".js") || fileNameLower.endsWith(".jsx")) {
+    return "javascript";
+  }
+  if (fileNameLower.endsWith(".ts") || fileNameLower.endsWith(".tsx")) {
+    return "typescript";
+  }
+  if (fileNameLower.endsWith(".css")) {
+    return "css";
+  }
+  if (fileNameLower.endsWith(".scss") || fileNameLower.endsWith(".sass")) {
+    return "scss";
+  }
+  if (fileNameLower.endsWith(".less")) {
+    return "less";
+  }
+
+  return undefined;
 };
 
 // ========= 主函数 =========
@@ -246,22 +323,32 @@ export const processDocumentFile = async ({
         );
         slateData = await convertPdfToSlate(file);
       }
-      // JSON（通过扩展名或 MIME 类型识别，按“格式化文本”展示）
+      // JSON（通过扩展名或 MIME 类型识别，按“格式化 code-block”展示）
       else if (isJsonFile(file, fileNameLower)) {
         fileType = "json";
 
         const textContent = await file.text();
         slateData = createSlateFromJsonText(textContent);
       }
-      // 纯文本类文件（txt / md / log / yaml / 以及 text/* 等）
+      // 纯文本类文件（txt / md / log / yaml / ini / cfg / env / toml / js / ts / css 等）
       else if (isPlainTextFile(file, fileNameLower)) {
-        fileType = "txt";
-
-        const { convertTxtToSlate } = await import(
-          "create/editor/utils/txtToSlate"
-        );
         const textContent = await file.text();
-        slateData = await convertTxtToSlate(textContent);
+        const codeLanguage = guessCodeLanguageFromExtension(fileNameLower);
+
+        // 更偏“配置 / 日志 / 代码 / 数据”的扩展名：用 code-block 高亮展示
+        if (codeLanguage) {
+          fileType = "txt"; // 业务上仍然归为 txt，展示层通过 code-block + language 区分
+          slateData = createCodeBlockSlate(textContent, codeLanguage);
+        }
+        // 更偏“自然语言”的 txt / md / mdx：按普通文本处理
+        else {
+          fileType = "txt";
+
+          const { convertTxtToSlate } = await import(
+            "create/editor/utils/txtToSlate"
+          );
+          slateData = await convertTxtToSlate(textContent);
+        }
       }
 
       if (fileType && slateData) {

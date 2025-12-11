@@ -6,6 +6,7 @@ import React, {
   useEffect,
   lazy,
   Suspense,
+  useMemo,
 } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -20,7 +21,7 @@ import {
 import { compressImage } from "utils/imageUtils";
 import { nanoid } from "nanoid";
 import toast from "react-hot-toast";
-import { UploadIcon } from "@primer/octicons-react";
+import { LuUpload } from "react-icons/lu";
 import StreamingIndicator from "render/web/ui/StreamingIndicator";
 import {
   handleSendMessage,
@@ -128,6 +129,7 @@ const MESSAGE_INPUT_STYLES = `
     color: var(--primary);
     font-weight: 500;
     animation: fadeIn 0.2s forwards;
+    gap: 8px;
   }
 
   .message-input__indicator {
@@ -262,8 +264,9 @@ type FileStatus = {
   error?: string;
 };
 
-function splitFiles(files: FileList) {
-  return Array.from(files).reduce(
+/** File[] 里把图片和其他文档分开 */
+function splitFiles(files: File[]): [File[], File[]] {
+  return files.reduce(
     (acc, file) => {
       const index = file.type.startsWith("image/") ? 0 : 1;
       acc[index].push(file);
@@ -271,6 +274,29 @@ function splitFiles(files: FileList) {
     },
     [[], []] as [File[], File[]]
   );
+}
+
+/** 从 DataTransfer 中提取所有 File（兼容 items & files） */
+function extractFilesFromDataTransfer(dt: DataTransfer | null): File[] {
+  if (!dt) return [];
+
+  const files: File[] = [];
+
+  if (dt.items && dt.items.length > 0) {
+    for (const item of Array.from(dt.items)) {
+      if (item.kind === "file") {
+        const file = item.getAsFile();
+        if (file) files.push(file);
+      }
+    }
+    if (files.length > 0) return files;
+  }
+
+  if (dt.files && dt.files.length > 0) {
+    return Array.from(dt.files);
+  }
+
+  return [];
 }
 
 async function withProcessing(
@@ -402,11 +428,15 @@ const MessageInput: React.FC = () => {
     [dispatch, t]
   );
 
+  /** 所有入口统一走这里：拖拽 / 粘贴 / 文件选择 */
   const processFiles = useCallback(
-    async (files: FileList | null) => {
-      if (!files || files.length === 0) return;
+    async (input: FileList | File[] | null) => {
+      if (!input) return;
 
-      const [images, docs] = splitFiles(files);
+      const filesArray = Array.isArray(input) ? input : Array.from(input);
+      if (!filesArray.length) return;
+
+      const [images, docs] = splitFiles(filesArray);
 
       if (images.length) {
         processImages(images);
@@ -431,12 +461,19 @@ const MessageInput: React.FC = () => {
     }
   }, [dispatch]);
 
-  const processingCount = Array.from(fileStatus.values()).filter(
-    (status) => status.processing
-  ).length;
+  const processingCount = useMemo(
+    () =>
+      Array.from(fileStatus.values()).filter((status) => status.processing)
+        .length,
+    [fileStatus]
+  );
+
   const isDisabled = processingCount > 0;
-  const hasContent =
-    !!text.trim() || imgPreviews.length > 0 || pendingFiles.length > 0;
+
+  const hasContent = useMemo(
+    () => !!text.trim() || imgPreviews.length > 0 || pendingFiles.length > 0,
+    [text, imgPreviews.length, pendingFiles.length]
+  );
 
   const sendMessage = useCallback(async () => {
     const trimmed = text.trim();
@@ -490,16 +527,95 @@ const MessageInput: React.FC = () => {
     t,
   ]);
 
-  const pendingFilesWithStatus = pendingFiles.map((file) => {
-    const status = fileStatus.get(file.id);
-    return { ...file, error: status?.error };
-  });
-
-  const processingFileIds = new Set(
-    Array.from(fileStatus.entries())
-      .filter(([, status]) => status.processing)
-      .map(([id]) => id)
+  const pendingFilesWithStatus = useMemo(
+    () =>
+      pendingFiles.map((file) => {
+        const status = fileStatus.get(file.id);
+        return { ...file, error: status?.error };
+      }),
+    [pendingFiles, fileStatus]
   );
+
+  const processingFileIds = useMemo(
+    () =>
+      new Set(
+        Array.from(fileStatus.entries())
+          .filter(([, status]) => status.processing)
+          .map(([id]) => id)
+      ),
+    [fileStatus]
+  );
+
+  const handleDragOver = useCallback(
+    (event: React.DragEvent<HTMLDivElement>) => {
+      event.preventDefault(); // 为了能触发 drop，统一阻止默认
+      setIsDrag(true);
+    },
+    []
+  );
+
+  const handleDragLeave = useCallback(() => {
+    setIsDrag(false);
+  }, []);
+
+  const handleDrop = useCallback(
+    (event: React.DragEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      setIsDrag(false);
+
+      const droppedFiles = extractFilesFromDataTransfer(event.dataTransfer);
+      if (!droppedFiles.length) return;
+
+      processFiles(droppedFiles);
+    },
+    [processFiles]
+  );
+
+  const handleTextareaChange: React.ChangeEventHandler<HTMLTextAreaElement> =
+    useCallback(
+      (event) => {
+        const value = event.target.value;
+        setText(value);
+
+        const maxHeight = isMobile
+          ? MOBILE_TEXTAREA_MAX_HEIGHT
+          : DESKTOP_TEXTAREA_MAX_HEIGHT;
+
+        event.target.style.height = "auto";
+        event.target.style.height = `${Math.min(
+          event.target.scrollHeight,
+          maxHeight
+        )}px`;
+      },
+      [isMobile]
+    );
+
+  const handleTextareaKeyDown: React.KeyboardEventHandler<HTMLTextAreaElement> =
+    useCallback(
+      (event) => {
+        if (
+          !isMobile &&
+          event.key === "Enter" &&
+          !event.shiftKey &&
+          !(event.nativeEvent as any).isComposing
+        ) {
+          event.preventDefault();
+          sendMessage();
+        }
+      },
+      [isMobile, sendMessage]
+    );
+
+  const handleTextareaPaste: React.ClipboardEventHandler<HTMLTextAreaElement> =
+    useCallback(
+      (event) => {
+        const files = event.clipboardData?.files;
+        if (files && files.length > 0) {
+          processFiles(files);
+        }
+      },
+      [processFiles]
+    );
 
   return (
     <>
@@ -510,16 +626,9 @@ const MessageInput: React.FC = () => {
       <div
         ref={rootRef}
         className={`message-input ${isDisabled ? "is-processing" : ""}`}
-        onDragOver={(e) => {
-          e.preventDefault();
-          setIsDrag(true);
-        }}
-        onDragLeave={() => setIsDrag(false)}
-        onDrop={(e) => {
-          e.preventDefault();
-          setIsDrag(false);
-          processFiles(e.dataTransfer.files);
-        }}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
       >
         <div className="message-input__wrapper">
           <Suspense
@@ -555,30 +664,9 @@ const MessageInput: React.FC = () => {
               placeholder={
                 isDisabled ? t("waitForProcessing") : t("messageOrFileHere")
               }
-              onChange={(e) => {
-                setText(e.target.value);
-                const maxHeight =
-                  window.innerWidth > MOBILE_BREAKPOINT
-                    ? DESKTOP_TEXTAREA_MAX_HEIGHT
-                    : MOBILE_TEXTAREA_MAX_HEIGHT;
-                e.target.style.height = "auto";
-                e.target.style.height = `${Math.min(
-                  e.target.scrollHeight,
-                  maxHeight
-                )}px`;
-              }}
-              onKeyDown={(e) => {
-                if (
-                  !isMobile &&
-                  e.key === "Enter" &&
-                  !e.shiftKey &&
-                  !e.nativeEvent.isComposing
-                ) {
-                  e.preventDefault();
-                  sendMessage();
-                }
-              }}
-              onPaste={(e) => processFiles(e.clipboardData.files)}
+              onChange={handleTextareaChange}
+              onKeyDown={handleTextareaKeyDown}
+              onPaste={handleTextareaPaste}
             />
 
             <SendButton
@@ -600,7 +688,8 @@ const MessageInput: React.FC = () => {
 
           {isDrag && (
             <div className="message-input__drop-zone">
-              <UploadIcon size={20} className="mr-2" /> {t("dropToUpload")}
+              <LuUpload size={20} />
+              {t("dropToUpload")}
             </div>
           )}
         </div>

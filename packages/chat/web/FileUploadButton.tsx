@@ -23,7 +23,7 @@ const ACCEPT_EXCEL = [".xlsx", ".xls", ".csv", ".ods", ".xlsm", ".xlsb"];
 /** 文档类（非纯文本） */
 const ACCEPT_DOC = [".docx", ".pdf"];
 
-/** 纯文本类（所有会按纯文本处理的扩展名） */
+/** 纯文本扩展名（与 fileProcessor 的 PLAIN_TEXT_EXTENSIONS 基本对齐） */
 const ACCEPT_PLAIN_TEXT_EXTENSIONS = [
   ".txt",
   ".md",
@@ -33,10 +33,33 @@ const ACCEPT_PLAIN_TEXT_EXTENSIONS = [
   ".cfg",
   ".yaml",
   ".yml",
+  ".env",
+  ".toml",
+  ".xml",
+  ".html",
+  ".htm",
+  ".js",
+  ".jsx",
+  ".ts",
+  ".tsx",
+  ".css",
+  ".scss",
+  ".less",
 ];
 
-/** 纯文本类 MIME */
-const ACCEPT_PLAIN_TEXT_MIME = ["text/plain"];
+/** 纯文本/代码类 MIME */
+const ACCEPT_PLAIN_TEXT_MIME = [
+  "text/plain",
+  "text/markdown",
+  "text/x-yaml",
+  "application/x-yaml",
+  "text/xml",
+  "application/xml",
+  "text/html",
+  "application/javascript",
+  "text/javascript",
+  "text/css",
+];
 
 /** JSON 类（扩展名 + 常见 MIME） */
 const ACCEPT_JSON = [
@@ -46,7 +69,7 @@ const ACCEPT_JSON = [
   "application/jsonl",
 ];
 
-/** 默认允许的文件类型（已包含 JSON + 各类纯文本） */
+/** 默认允许的文件类型 */
 const DEFAULT_ACCEPT = [
   ...ACCEPT_IMAGE,
   ...ACCEPT_EXCEL,
