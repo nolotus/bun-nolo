@@ -1,4 +1,12 @@
-import React, { useCallback, useRef, useState, useEffect } from "react";
+// packages/chat/web/MessageInputContainer.tsx
+import React, {
+  useCallback,
+  useRef,
+  useState,
+  useEffect,
+  lazy,
+  Suspense,
+} from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { zIndex } from "render/styles/zIndex";
@@ -13,16 +21,18 @@ import { compressImage } from "utils/imageUtils";
 import { nanoid } from "nanoid";
 import toast from "react-hot-toast";
 import { UploadIcon } from "@primer/octicons-react";
+import StreamingIndicator from "render/web/ui/StreamingIndicator";
 import {
   handleSendMessage,
   clearPendingAttachments,
   selectPendingFiles,
-  type PendingFile,
 } from "../dialog/dialogSlice";
-import DocxPreviewDialog from "render/web/DocxPreviewDialog";
-import AttachmentsPreview, { PendingImagePreview } from "./AttachmentsPreview";
 import SendButton from "./ActionButton";
 import FileUploadButton from "./FileUploadButton";
+import type { PendingImagePreview } from "./AttachmentsPreview";
+
+// 懒加载 AttachmentsPreview 组件
+const AttachmentsPreview = lazy(() => import("./AttachmentsPreview"));
 
 const MOBILE_BREAKPOINT = 768;
 const DESKTOP_TEXTAREA_MAX_HEIGHT = 200;
@@ -60,7 +70,7 @@ const MESSAGE_INPUT_STYLES = `
 
   .message-input__wrapper {
     width: 100%;
-    max-width: 880px;      /* 在 DialogPage-root 内再收窄一点，桌面更精致 */
+    max-width: 880px;
     margin: 0 auto;
     position: relative;
   }
@@ -178,27 +188,6 @@ const MESSAGE_INPUT_STYLES = `
     box-shadow: 0 2px 4px var(--shadowLight);
   }
 
-  .loading-dots {
-    display: flex;
-    gap: 6px;
-  }
-
-  .dot {
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background-color: var(--textTertiary);
-    animation: pulse 1.4s infinite ease-in-out both;
-  }
-
-  .dot:nth-child(1) {
-    animation-delay: -0.32s;
-  }
-
-  .dot:nth-child(2) {
-    animation-delay: -0.16s;
-  }
-
   .recharge-link {
     color: var(--primary);
     cursor: pointer;
@@ -210,7 +199,14 @@ const MESSAGE_INPUT_STYLES = `
     color: var(--hover);
   }
 
-  /* 小屏手机：输入框占满外壳宽度，少量内边距即可 */
+  /* 懒加载 AttachmentsPreview 时的占位样式 */
+  .attachments-loading {
+    display: flex;
+    justify-content: center;
+    padding: var(--space-3) 0;
+    min-height: 60px;
+  }
+
   @media (max-width: ${MOBILE_BREAKPOINT}px) {
     .message-input {
       --container-padding: var(--space-3);
@@ -223,7 +219,7 @@ const MESSAGE_INPUT_STYLES = `
     }
 
     .message-input__wrapper {
-      max-width: 100%; /* 不再额外收窄，跟随 DialogPage-root */
+      max-width: 100%;
     }
 
     .skel-container,
@@ -236,11 +232,10 @@ const MESSAGE_INPUT_STYLES = `
     }
   }
 
-  /* >= 平板：外壳宽度交给 DialogPage-root，
-     这里只控制内部 max-width，让输入框略窄于对话区即可 */
   @media (min-width: ${MOBILE_BREAKPOINT}px) {
     .message-input__wrapper {
-      /* 已有 max-width: 880px; margin: 0 auto; */
+      max-width: 880px;
+      margin: 0 auto;
     }
   }
 `;
@@ -315,7 +310,6 @@ const MessageInput: React.FC = () => {
   const [fileStatus, setFileStatus] = useState<Map<string, FileStatus>>(
     new Map()
   );
-  const [previewFile, setPreviewFile] = useState<PendingFile | null>(null);
   const [isDrag, setIsDrag] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -528,16 +522,23 @@ const MessageInput: React.FC = () => {
         }}
       >
         <div className="message-input__wrapper">
-          <AttachmentsPreview
-            imagePreviews={imgPreviews}
-            pendingFiles={pendingFilesWithStatus}
-            onRemoveImage={(id) =>
-              setImgPreviews((prev) => prev.filter((img) => img.id !== id))
+          <Suspense
+            fallback={
+              <div className="attachments-loading">
+                <StreamingIndicator />
+              </div>
             }
-            onPreviewFile={setPreviewFile}
-            processingFiles={processingFileIds}
-            isMobile={isMobile}
-          />
+          >
+            <AttachmentsPreview
+              imagePreviews={imgPreviews}
+              pendingFiles={pendingFilesWithStatus}
+              onRemoveImage={(id) =>
+                setImgPreviews((prev) => prev.filter((img) => img.id !== id))
+              }
+              processingFiles={processingFileIds}
+              isMobile={isMobile}
+            />
+          </Suspense>
 
           <div className="message-input__controls">
             <FileUploadButton
@@ -603,15 +604,6 @@ const MessageInput: React.FC = () => {
             </div>
           )}
         </div>
-
-        {previewFile && (
-          <DocxPreviewDialog
-            isOpen={!!previewFile}
-            onClose={() => setPreviewFile(null)}
-            pageKey={previewFile.pageKey}
-            fileName={previewFile.name}
-          />
-        )}
       </div>
     </>
   );
@@ -625,7 +617,6 @@ const BaseShell: React.FC<{
     <style href="message-input" precedence="medium">
       {MESSAGE_INPUT_STYLES}
     </style>
-    {/* 复用与主输入框相同的横向布局 */}
     <div className="message-input__wrapper">{children}</div>
   </div>
 );
@@ -633,11 +624,7 @@ const BaseShell: React.FC<{
 const LoadingPlaceholder: React.FC = () => (
   <BaseShell containerClassName="skel-container">
     <div className="skel-bar">
-      <div className="loading-dots">
-        <div className="dot" />
-        <div className="dot" />
-        <div className="dot" />
-      </div>
+      <StreamingIndicator />
     </div>
   </BaseShell>
 );

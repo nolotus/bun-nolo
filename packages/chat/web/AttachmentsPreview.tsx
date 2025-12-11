@@ -1,4 +1,4 @@
-// AttachmentsPreview.tsx - 修复版本
+// AttachmentsPreview.tsx - 修改后版本
 import React, { useState, useCallback, memo } from "react";
 import { XIcon, TrashIcon } from "@primer/octicons-react";
 import { useAppDispatch } from "app/store";
@@ -6,6 +6,7 @@ import ImagePreviewModal from "./ImagePreviewModal";
 import { FileItem } from "chat/messages/web/FileItem";
 import type { PendingFile } from "../dialog/dialogSlice";
 import { removePendingFile } from "../dialog/dialogSlice";
+import DocxPreviewDialog from "render/web/DocxPreviewDialog";
 
 export interface PendingImagePreview {
   id: string;
@@ -16,7 +17,6 @@ interface AttachmentsPreviewProps {
   imagePreviews: PendingImagePreview[];
   pendingFiles: (PendingFile & { error?: string })[];
   onRemoveImage: (id: string) => void;
-  onPreviewFile: (file: PendingFile) => void;
   processingFiles?: Set<string>;
   isMobile?: boolean;
 }
@@ -68,12 +68,12 @@ const AttachmentsPreview: React.FC<AttachmentsPreviewProps> = ({
   imagePreviews,
   pendingFiles,
   onRemoveImage,
-  onPreviewFile,
   processingFiles = new Set(),
   isMobile = false,
 }) => {
   const dispatch = useAppDispatch();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [previewFile, setPreviewFile] = useState<PendingFile | null>(null);
 
   const handleRemoveFile = useCallback(
     (id: string) => {
@@ -90,6 +90,14 @@ const AttachmentsPreview: React.FC<AttachmentsPreviewProps> = ({
     setSelectedImage(null);
   }, []);
 
+  const handlePreviewFile = useCallback((file: PendingFile) => {
+    setPreviewFile(file);
+  }, []);
+
+  const handleCloseFilePreview = useCallback(() => {
+    setPreviewFile(null);
+  }, []);
+
   const hasAttachments = imagePreviews.length > 0 || pendingFiles.length > 0;
   if (!hasAttachments) return null;
 
@@ -97,7 +105,6 @@ const AttachmentsPreview: React.FC<AttachmentsPreviewProps> = ({
     <>
       <style href="attachments-preview-fixed" precedence="high">{`
         .attachments-preview {
-          /* 核心布局修复 */
           display: flex;
           flex-wrap: wrap;
           gap: var(--space-2);
@@ -110,7 +117,7 @@ const AttachmentsPreview: React.FC<AttachmentsPreviewProps> = ({
         .attachment-item {
           position: relative;
           transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-          flex-shrink: 0; /* 防止被压缩 */
+          flex-shrink: 0;
           max-width: 120px;
         }
 
@@ -122,7 +129,6 @@ const AttachmentsPreview: React.FC<AttachmentsPreviewProps> = ({
           max-width: 110px;
         }
 
-        /* 图片样式优化 */
         .image-content {
           width: 44px;
           height: 44px;
@@ -146,7 +152,6 @@ const AttachmentsPreview: React.FC<AttachmentsPreviewProps> = ({
           border-color: var(--primary);
         }
 
-        /* 删除按钮优化 */
         .remove-button {
           position: absolute;
           border-radius: 50%;
@@ -173,7 +178,7 @@ const AttachmentsPreview: React.FC<AttachmentsPreviewProps> = ({
         .remove-button.mobile {
           top: -6px;
           right: -6px;
-          width: 26px; /* 增大触摸区域 */
+          width: 26px;
           height: 26px;
           opacity: 1;
           box-shadow: 0 2px 8px var(--shadowHeavy);
@@ -206,33 +211,28 @@ const AttachmentsPreview: React.FC<AttachmentsPreviewProps> = ({
           transform: scale(0.95);
         }
 
-        /* 移动端专门优化 */
         @media (max-width: 768px) {
           .attachments-preview {
             gap: var(--space-1);
             justify-content: flex-start;
             align-items: flex-start;
-            /* 确保不会换行到意外位置 */
             overflow-x: visible;
           }
-          
+
           .attachment-item {
-            /* 确保移动端布局稳定 */
             min-width: 44px;
           }
-          
+
           .attachment-item.mobile {
             max-width: 100px;
           }
-          
-          /* 移动端删除按钮更大 */
+
           .remove-button.mobile {
             width: 28px;
             height: 28px;
           }
         }
 
-        /* 触摸设备优化 */
         @media (hover: none) and (pointer: coarse) {
           .remove-button:not(.mobile) {
             opacity: 1;
@@ -241,32 +241,30 @@ const AttachmentsPreview: React.FC<AttachmentsPreviewProps> = ({
             width: 22px;
             height: 22px;
           }
-          
+
           .attachment-item:hover,
           .image-content:hover {
             transform: none;
           }
         }
 
-        /* 高对比度模式 */
         @media (prefers-contrast: high) {
           .image-content {
             border-width: 2px;
           }
-          
+
           .remove-button {
             border-width: 2px;
           }
         }
 
-        /* 减少动画 */
         @media (prefers-reduced-motion: reduce) {
           .attachment-item,
           .image-content,
           .remove-button {
             transition: none;
           }
-          
+
           .attachment-item:hover,
           .image-content:hover,
           .remove-button:hover {
@@ -274,16 +272,14 @@ const AttachmentsPreview: React.FC<AttachmentsPreviewProps> = ({
           }
         }
 
-        /* 错误状态样式 */
         .attachment-item.error {
           opacity: 0.7;
         }
-        
+
         .attachment-item.error .image-content {
           border-color: var(--error);
         }
-        
-        /* 处理中状态 */
+
         .attachment-item.processing {
           opacity: 0.6;
           pointer-events: none;
@@ -291,7 +287,6 @@ const AttachmentsPreview: React.FC<AttachmentsPreviewProps> = ({
       `}</style>
 
       <div className="attachments-preview" role="group" aria-label="附件预览">
-        {/* 图片预览 */}
         {imagePreviews.map((image, index) => (
           <ImageItem
             key={image.id}
@@ -303,7 +298,6 @@ const AttachmentsPreview: React.FC<AttachmentsPreviewProps> = ({
           />
         ))}
 
-        {/* 文件预览 */}
         {pendingFiles.map((file) => {
           const isProcessing = processingFiles.has(file.id);
 
@@ -321,7 +315,7 @@ const AttachmentsPreview: React.FC<AttachmentsPreviewProps> = ({
                 isProcessing={isProcessing}
                 error={file.error}
                 onPreview={() =>
-                  !isProcessing && !file.error && onPreviewFile(file)
+                  !isProcessing && !file.error && handlePreviewFile(file)
                 }
               />
 
@@ -348,6 +342,15 @@ const AttachmentsPreview: React.FC<AttachmentsPreviewProps> = ({
         onClose={handleCloseImagePreview}
         alt="放大预览图片"
       />
+
+      {previewFile && (
+        <DocxPreviewDialog
+          isOpen={!!previewFile}
+          onClose={handleCloseFilePreview}
+          pageKey={previewFile.pageKey}
+          fileName={previewFile.name}
+        />
+      )}
     </>
   );
 };
