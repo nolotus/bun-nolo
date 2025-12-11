@@ -167,7 +167,7 @@ function parseHyperlinkElement(
   hyperlinkEl: Element,
   ctx: ParagraphParseContext
 ): SlateElementNode | null {
-  // 超链接一般在 w:hyperlink 元素上有 r:id / r:id
+  // 超链接一般在 w:hyperlink 元素上有 r:id / rId
   const relId =
     hyperlinkEl.getAttribute("r:id") || hyperlinkEl.getAttribute("rId") || "";
   const url = (relId && ctx.relsMap[relId]) || (relId && `hyperlink-${relId}`);
@@ -492,3 +492,44 @@ export const convertDocxToSlate = async (file: File): Promise<SlateNode[]> => {
       : new Error("转换 DOCX 到 Slate.js 格式失败");
   }
 };
+
+/*
+ * 未实现的 DOCX 元素转换功能注释
+ * 以下是尚未实现的 DOCX 到 Slate.js 转换功能，基于优先级表中的内容。
+ * 可根据需求后续扩展实现。
+ *
+ * 1. 脚注/尾注 (Footnote/Endnote, 优先级 13)
+ *    - 对应 DOCX 标签：脚注和尾注内容（通常在 word/footnotes.xml, word/endnotes.xml）
+ *    - 目标 Slate.js 格式：type: "footnote"
+ *    - 说明：需提取脚注内容并转换为自定义节点，可能需要 Slate 插件支持。
+ *
+ * 2. 文本对齐 (Alignment, 优先级 14)
+ *    - 对应 DOCX 标签：<w:jc>
+ *    - 目标 Slate.js 格式：例如在块级节点上增加 align: "left" | "center" | "right" | "justify"
+ *    - 说明：需提取段落的对齐方式（如居中、左对齐）并映射到 Slate 节点的属性（或自定义样式）。
+ *
+ * 3. 字体和大小 (Font, Size, 优先级 15)
+ *    - 对应 DOCX 标签：<w:rFonts>, <w:sz>
+ *    - 目标 Slate.js 格式：例如在文本节点上增加 fontFamily, fontSize
+ *    - 说明：需提取字体和大小信息并应用到 Slate 文本节点的样式，可能需要 Slate 自定义渲染逻辑。
+ *
+ * 4. 颜色和背景 (Color, Highlight, 优先级 16)
+ *    - 对应 DOCX 标签：<w:color>, <w:highlight>
+ *    - 目标 Slate.js 格式：例如在文本节点上增加 color, backgroundColor
+ *    - 说明：需提取文本颜色和背景高亮并映射到 Slate 文本节点的样式属性。
+ *
+ * 5. 分节符 (Section Break, 优先级 17)
+ *    - 对应 DOCX 标签：<w:sectPr> 及相关分节符标记
+ *    - 目标 Slate.js 格式：type: "section-break"
+ *    - 说明：可将 DOCX 中的分节符转换为 Slate 中的自定义分节节点，视业务需要决定是否实现。
+ *
+ * 6. 页眉/页脚 (Header/Footer, 优先级 18)
+ *    - 对应 DOCX 标签：word/header*.xml, word/footer*.xml 等
+ *    - 目标 Slate.js 格式：type: "header" / type: "footer"
+ *    - 说明：需提取页眉/页脚内容并转换为 Slate 自定义节点，实现相对复杂，可按需求支持。
+ *
+ * 7. 复杂样式和主题 (Styles, Themes, 优先级 19)
+ *    - 对应 DOCX 标签：word/styles.xml, word/theme/theme1.xml 等
+ *    - 目标 Slate.js 格式：在节点或文本上附加更多样式属性
+ *    - 说明：需将 DOCX 的样式和主题映射到 Slate 渲染层，实现难度高，属于可选增强功能。
+ */
