@@ -7,11 +7,18 @@ on:
       - main
 
 jobs:
+  # -----------------------------
+  # 1) 构建 & 测试（对 main / alpha 共用）
+  # -----------------------------
   build-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v1
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+
       - name: Cache node_modules
         uses: actions/cache@v3
         with:
@@ -21,22 +28,31 @@ jobs:
           key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lockb') }}
           restore-keys: |
             ${{ runner.os }}-bun-
-      - name: Install dependencies
+
+      - name: Install dependencies (dev + prod)
         run: |
           bun install --no-frozen-lockfile
           bun install --production
-      - run: bun run build
-      - run: bun test
 
+      - name: Build
+        run: bun run build
+
+      - name: Test
+        run: bun test
+
+  # -----------------------------
+  # 2) 部署到生产：main → nolo.chat
+  # -----------------------------
   deploy-main:
     needs: build-test
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
       - name: Deploy to nolo.chat
         uses: appleboy/ssh-action@master
         with:
@@ -44,14 +60,22 @@ jobs:
           username: nolotus
           key: ${{ secrets.SERVER_TW_KEY }}
           script: |
+            set -Eeuo pipefail
+
             cd bun-nolo
+
+            echo "📥 更新代码到最新 main..."
             git fetch --all
             git reset --hard origin/main
+
+            echo "📦 安装依赖..."
             /home/nolotus/.bun/bin/bun install --no-frozen-lockfile
             /home/nolotus/.bun/bin/bun install --production
+
+            echo "🛠 运行前端构建（esbuild）..."
             /home/nolotus/.bun/bin/bun run ./scripts/esBuild.js
 
-            # 🔥 PM2热重载 - 0停机部署
+            # 🔥 PM2 热重载 - 0 停机部署
             echo "🔄 开始热重载部署..."
 
             # 检查进程是否存在
@@ -60,11 +84,13 @@ jobs:
               sudo pm2 reload nolo --wait-ready --listen-timeout 15000
             else
               echo "🚀 进程不存在，首次启动..."
-              sudo pm2 start packages/server/entry.ts --interpreter /home/nolotus/.bun/bin/bun --name nolo
+              sudo pm2 start packages/server/entry.ts \
+                --interpreter /home/nolotus/.bun/bin/bun \
+                --name nolo
               sleep 5
             fi
 
-            # 保存 PM2 进程列表
+            echo "💾 保存 PM2 进程列表..."
             sudo pm2 save
 
             echo "🔍 检查部署结果..."
@@ -74,20 +100,24 @@ jobs:
             if sudo pm2 list | grep -q "nolo.*online"; then
               echo "🚀 热重载部署成功！服务无中断运行"
             else
-              echo "❌ 部署失败"
+              echo "❌ 部署失败，输出最近日志..."
               sudo pm2 logs nolo --lines 50
               exit 1
             fi
 
+  # -----------------------------
+  # 3) 部署到美国节点：alpha → us.nolo.chat
+  # -----------------------------
   deploy-alpha-us:
     needs: build-test
     if: github.ref == 'refs/heads/alpha'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
       - name: Deploy to us.nolo.chat
         uses: appleboy/ssh-action@master
         with:
@@ -95,14 +125,22 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
+            set -Eeuo pipefail
+
             cd /root/bun-nolo
+
+            echo "📥 更新代码到最新 alpha..."
             git fetch --all
             git reset --hard origin/alpha
+
+            echo "📦 安装依赖..."
             /root/.bun/bin/bun install --no-frozen-lockfile
             /root/.bun/bin/bun install --production
+
+            echo "🛠 运行前端构建（esbuild）..."
             /root/.bun/bin/bun run ./scripts/esBuild.js
 
-            # 🔥 PM2热重载 - 0停机部署
+            # 🔥 PM2 热重载 - 0 停机部署
             echo "🔄 开始热重载部署..."
 
             # 检查进程是否存在
@@ -111,11 +149,13 @@ jobs:
               /root/.bun/bin/pm2 reload nolo --wait-ready --listen-timeout 15000
             else
               echo "🚀 进程不存在，首次启动..."
-              /root/.bun/bin/pm2 start packages/server/entry.ts --interpreter /root/.bun/bin/bun --name nolo
+              /root/.bun/bin/pm2 start packages/server/entry.ts \
+                --interpreter /root/.bun/bin/bun \
+                --name nolo
               sleep 5
             fi
 
-            # 保存 PM2 进程列表
+            echo "💾 保存 PM2 进程列表..."
             /root/.bun/bin/pm2 save
 
             echo "🔍 检查部署结果..."
@@ -125,20 +165,25 @@ jobs:
             if /root/.bun/bin/pm2 list | grep -q "nolo.*online"; then
               echo "🚀 热重载部署成功！服务无中断运行"
             else
-              echo "❌ 部署失败"
+              echo "❌ 部署失败，输出最近日志..."
               /root/.bun/bin/pm2 logs nolo --lines 50
               exit 1
             fi
 
+  # -----------------------------
+  # 4) 清理旧静态资源目录（main / alpha 共用）
+  # -----------------------------
   cleanup-old-assets:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/alpha'
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Cleanup old assets on nolo.chat (for main)
+
+      # --- main: 清理 nolo.chat 上旧版本 assets ---
+      - name: Cleanup old assets on nolo.chat (main)
         if: github.ref == 'refs/heads/main'
         uses: appleboy/ssh-action@master
         with:
@@ -148,13 +193,13 @@ jobs:
           script: |
             set -Eeuo pipefail
             cd bun-nolo
+
             echo "开始清理旧的 assets 目录..."
 
-            # 当前时间（毫秒）
             CURRENT_TIME_MS=$(( $(date +%s) * 1000 ))
-            THRESHOLD_MS=$(( CURRENT_TIME_MS - 86400000 )) # 24小时=86400000ms
+            THRESHOLD_MS=$(( CURRENT_TIME_MS - 86400000 )) # 24 小时
 
-            # 获取所有 assets-* 目录（按版本号倒序：新→旧）
+            # 获取所有 assets-* 目录（新 → 旧）
             ASSET_DIRS=$(ls -d public/assets-* 2>/dev/null | sort -V -r || true)
 
             if [ -z "$ASSET_DIRS" ]; then
@@ -171,6 +216,7 @@ jobs:
             for dir in $ASSET_DIRS; do
               base=$(basename "$dir")
               TIMESTAMP=${base#assets-}
+
               if [[ "$TIMESTAMP" =~ ^[0-9]+$ ]]; then
                 if [ "$TIMESTAMP" -lt "$THRESHOLD_MS" ]; then
                   if ! echo "$RECENT_DIRS" | grep -Fqx "$dir"; then
@@ -188,7 +234,9 @@ jobs:
             done
 
             echo "清理完成。"
-      - name: Cleanup old assets on us.nolo.chat(for alpha)
+
+      # --- alpha: 清理 us.nolo.chat 上旧版本 assets ---
+      - name: Cleanup old assets on us.nolo.chat (alpha)
         if: github.ref == 'refs/heads/alpha'
         uses: appleboy/ssh-action@master
         with:
@@ -198,10 +246,11 @@ jobs:
           script: |
             set -Eeuo pipefail
             cd /root/bun-nolo
+
             echo "开始清理旧的 assets 目录..."
 
             CURRENT_TIME_MS=$(( $(date +%s) * 1000 ))
-            THRESHOLD_MS=$(( CURRENT_TIME_MS - 86400000 ))
+            THRESHOLD_MS=$(( CURRENT_TIME_MS - 86400000 )) # 24 小时
 
             ASSET_DIRS=$(ls -d public/assets-* 2>/dev/null | sort -V -r || true)
 
@@ -218,6 +267,7 @@ jobs:
             for dir in $ASSET_DIRS; do
               base=$(basename "$dir")
               TIMESTAMP=${base#assets-}
+
               if [[ "$TIMESTAMP" =~ ^[0-9]+$ ]]; then
                 if [ "$TIMESTAMP" -lt "$THRESHOLD_MS" ]; then
                   if ! echo "$RECENT_DIRS" | grep -Fqx "$dir"; then

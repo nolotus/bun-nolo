@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "main": "index.ts",
   "scripts": {
-    "server": "concurrently \"bun run build\" \"bun --watch ./packages/server/entry.ts\"",
-    "dev": "concurrently \"bun ./scripts/esDev\" \"bun server\"",
-    "build": "bun ./scripts/esBuild",
+    "dev": "concurrently \"bun ./scripts/esDev.js\" \"bun --watch ./packages/server/entry.ts\"",
+    "server": "bun --watch ./packages/server/entry.ts",
+    "build": "bun ./scripts/esBuild.js",
     "start": "react-native start",
     "android": "react-native run-android",
     "ios": "react-native run-ios",
