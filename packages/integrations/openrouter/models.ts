@@ -5,9 +5,9 @@ export const openrouterModels = [
     displayName: "MoonshotAI: Kimi K2 Thinking",
     hasVision: false,
     price: {
-      input: 0.6 * 9, // 11→9
-      output: 2.5 * 9, // 11→9
-      cachingRead: 0.15 * 9, // 11→9
+      input: 0.6 * 9,
+      output: 2.5 * 9,
+      cachingRead: 0.15 * 9,
     },
     maxOutputTokens: 262144,
     contextWindow: 262144,
@@ -20,9 +20,9 @@ export const openrouterModels = [
     displayName: "OpenAI: GPT-5.1",
     hasVision: true,
     price: {
-      input: 1.25 * 9, // 11→9
-      output: 10 * 9, // 11→9
-      webSearch: 10 * 9, // 11→9
+      input: 1.25 * 9,
+      output: 10 * 9,
+      webSearch: 10 * 9,
     },
     maxOutputTokens: 200000,
     contextWindow: 400000,
@@ -33,17 +33,14 @@ export const openrouterModels = [
     displayName: "OpenAI: GPT-5.1-Codex",
     hasVision: true,
     price: {
-      input: 1.25 * 9, // 11→9
-      output: 10 * 9, // 11→9
-      webSearch: 10 * 9, // 11→9
+      input: 1.25 * 9,
+      output: 10 * 9,
+      webSearch: 10 * 9,
     },
     maxOutputTokens: 200000,
     contextWindow: 400000,
     supportsTool: true,
   },
-  // =================================================================
-  // [NEW] OpenAI: GPT-5.1-Codex-Max
-  // =================================================================
   {
     name: "openai/gpt-5.1-codex-max",
     displayName: "OpenAI: GPT-5.1-Codex-Max",
@@ -57,49 +54,40 @@ export const openrouterModels = [
     contextWindow: 400000,
     supportsTool: true,
   },
-  // =================================================================
-  // [NEW] OpenAI: GPT-5.2 (Created Dec 10, 2025)
-  // =================================================================
   {
     name: "openai/gpt-5.2",
     displayName: "OpenAI: GPT-5.2",
     hasVision: true,
     price: {
-      input: 1.75 * 9, // $1.75 / M input
-      output: 14 * 9, // $14 / M output
-      webSearch: 10 * 9, // $10 / K web search
+      input: 1.75 * 9,
+      output: 14 * 9,
+      webSearch: 10 * 9,
     },
     maxOutputTokens: 200000,
     contextWindow: 400000,
     supportsTool: true,
   },
-  // =================================================================
-  // [NEW] OpenAI: GPT-5.2 Pro (Created Dec 10, 2025)
-  // =================================================================
   {
     name: "openai/gpt-5.2-pro",
     displayName: "OpenAI: GPT-5.2 Pro",
     hasVision: true,
     price: {
-      input: 21 * 9, // $21 / M input
-      output: 168 * 9, // $168 / M output
-      webSearch: 10 * 9, // $10 / K web search
+      input: 21 * 9,
+      output: 168 * 9,
+      webSearch: 10 * 9,
     },
     maxOutputTokens: 200000,
     contextWindow: 400000,
     supportsTool: true,
   },
-  // =================================================================
-  // [NEW] OpenAI: GPT-5.2 Chat (Created Dec 10, 2025)
-  // =================================================================
   {
     name: "openai/gpt-5.2-chat",
     displayName: "OpenAI: GPT-5.2 Chat",
     hasVision: true,
     price: {
-      input: 1.75 * 9, // $1.75 / M input
-      output: 14 * 9, // $14 / M output
-      webSearch: 10 * 9, // $10 / K web search
+      input: 1.75 * 9,
+      output: 14 * 9,
+      webSearch: 10 * 9,
     },
     maxOutputTokens: 128000,
     contextWindow: 128000,
@@ -112,18 +100,15 @@ export const openrouterModels = [
     displayName: "Google: Gemini 2.5 Pro",
     hasVision: true,
     price: {
-      input: 1.25 * 9, // 11→9
-      output: 10 * 9, // 11→9
-      cachingRead: 0.31 * 9, // 11→9
-      cachingWrite: 1.625 * 9, // 11→9
+      input: 1.25 * 9,
+      output: 10 * 9,
+      cachingRead: 0.31 * 9,
+      cachingWrite: 1.625 * 9,
     },
     maxOutputTokens: 65500,
     contextWindow: 1050000,
     supportsTool: true,
   },
-  // =================================================================
-  // [NEW] Google: Gemini 3 Pro Preview (Released Nov 18, 2025)
-  // =================================================================
   {
     name: "google/gemini-3-pro-preview",
     displayName: "Google: Gemini 3 Pro Preview",
@@ -131,26 +116,22 @@ export const openrouterModels = [
     maxOutputTokens: 65500,
     contextWindow: 1048576,
     supportsTool: true,
-
-    // Tier 1: Context ≤ 200K
     price: {
-      input: 2 * 9, // ≤200K: $2/M
-      output: 12 * 9, // ≤200K: $12/M
-      cachingRead: 0.2 * 9, // ≤200K: $0.20/M
-      cachingWrite: 2.375 * 9, // ≤200K: $2.375/M
+      input: 2 * 9,
+      output: 12 * 9,
+      cachingRead: 0.2 * 9,
+      cachingWrite: 2.375 * 9,
     },
-
-    // Tier 2: Context > 200K
     pricingStrategy: {
       type: "tiered_context",
       tiers: [
         {
           minContext: 200001,
           price: {
-            input: 4 * 9, // >200K: $4/M
-            output: 18 * 9, // >200K: $18/M
-            cachingRead: 0.4 * 9, // >200K: $0.40/M
-            cachingWrite: 4.375 * 9, // >200K: $4.375/M
+            input: 4 * 9,
+            output: 18 * 9,
+            cachingRead: 0.4 * 9,
+            cachingWrite: 4.375 * 9,
           },
         },
       ],
@@ -163,81 +144,40 @@ export const openrouterModels = [
     displayName: "Anthropic: Claude Haiku 4.5",
     hasVision: true,
     price: {
-      input: 1 * 9, // 11→9
-      output: 5 * 9, // 11→9
-      webSearch: 10 * 9, // 11→9
+      input: 1 * 9,
+      output: 5 * 9,
+      webSearch: 10 * 9,
     },
     maxOutputTokens: 32000,
     contextWindow: 200000,
     supportsTool: true,
   },
-  {
-    name: "anthropic/claude-opus-4.1",
-    displayName: "Anthropic: Claude Opus 4.1",
-    hasVision: true,
-    price: {
-      input: 15 * 9, // 11→9
-      output: 75 * 9, // 11→9
-      webSearch: 10 * 9, // 11→9
-      cachingRead: 1.5 * 9, // 11→9
-      cachingWrite: 18.75 * 9, // 11→9
-    },
-    maxOutputTokens: 32000,
-    contextWindow: 200000,
-    supportsTool: true,
-    pricePerImage: 24 * 9, // 11→9
-  },
-  {
-    name: "anthropic/claude-opus-4.1:online",
-    displayName: "Anthropic: Claude Opus 4.1 (Online)",
-    hasVision: true,
-    price: {
-      input: 15 * 10, // 13→10
-      output: 75 * 10, // 13→10
-      webSearch: 10 * 10, // 13→10
-      cachingRead: 1.5 * 10, // 13→10
-      cachingWrite: 18.75 * 10, // 13→10
-    },
-    maxOutputTokens: 32000,
-    contextWindow: 200000,
-    supportsTool: true,
-    pricePerImage: 24 * 10, // 13→10
-  },
-  // =================================================================
-  // [NEW] Anthropic: Claude Opus 4.5 (Released Nov 24, 2025)
-  // =================================================================
   {
     name: "anthropic/claude-opus-4.5",
     displayName: "Anthropic: Claude Opus 4.5",
     hasVision: true,
     price: {
-      input: 5 * 9, // 普通版保持9
-      output: 25 * 9, // 普通版保持9
-      webSearch: 10 * 9, // 普通版保持9
+      input: 5 * 9,
+      output: 25 * 9,
+      webSearch: 10 * 9,
     },
     maxOutputTokens: 32000,
     contextWindow: 200000,
     supportsTool: true,
   },
-  // =================================================================
-  // [NEW] Anthropic: Claude Opus 4.5 Online (Released Nov 24, 2025)
-  // =================================================================
   {
     name: "anthropic/claude-opus-4.5:online",
     displayName: "Anthropic: Claude Opus 4.5 (Online)",
     hasVision: true,
     price: {
-      input: 5 * 10, // online版保持10
-      output: 25 * 10, // online版保持10
-      webSearch: 10 * 10, // online版保持10
+      input: 5 * 10,
+      output: 25 * 10,
+      webSearch: 10 * 10,
     },
     maxOutputTokens: 32000,
     contextWindow: 200000,
     supportsTool: true,
   },
-  // =================================================================
-  // [UPDATED] Anthropic: Claude Sonnet 4.5 (Tiered Pricing)
-  // =================================================================
   {
     name: "anthropic/claude-sonnet-4.5",
     displayName: "Anthropic: Claude Sonnet 4.5",
@@ -245,37 +185,30 @@ export const openrouterModels = [
     maxOutputTokens: 64000,
     contextWindow: 1000000,
     supportsTool: true,
-    pricePerImage: 4.8 * 9, // 11→9
-
-    // Tier 1: Context ≤ 200K
+    pricePerImage: 4.8 * 9,
     price: {
-      input: 3 * 9, // 11→9
-      output: 15 * 9, // 11→9
-      webSearch: 10 * 9, // 11→9
-      cachingRead: 0.3 * 9, // 11→9
-      cachingWrite: 3.75 * 9, // 11→9
+      input: 3 * 9,
+      output: 15 * 9,
+      webSearch: 10 * 9,
+      cachingRead: 0.3 * 9,
+      cachingWrite: 3.75 * 9,
     },
-
-    // Tier 2: Context > 200K
     pricingStrategy: {
       type: "tiered_context",
       tiers: [
         {
           minContext: 200001,
           price: {
-            input: 6 * 9, // 11→9
-            output: 22.5 * 9, // 11→9
-            webSearch: 10 * 9, // 11→9
-            cachingRead: 0.6 * 9, // 11→9
-            cachingWrite: 7.5 * 9, // 11→9
+            input: 6 * 9,
+            output: 22.5 * 9,
+            webSearch: 10 * 9,
+            cachingRead: 0.6 * 9,
+            cachingWrite: 7.5 * 9,
           },
         },
       ],
     },
   },
-  // =================================================================
-  // [UPDATED] Anthropic: Claude Sonnet 4.5 Online (Tiered Pricing)
-  // =================================================================
   {
     name: "anthropic/claude-sonnet-4.5:online",
     displayName: "Anthropic: Claude Sonnet 4.5 (Online)",
@@ -283,29 +216,25 @@ export const openrouterModels = [
     maxOutputTokens: 64000,
     contextWindow: 1000000,
     supportsTool: true,
-    pricePerImage: 4.8 * 10, // 13→10
-
-    // Tier 1: Context ≤ 200K
+    pricePerImage: 4.8 * 10,
     price: {
-      input: 3 * 10, // 13→10
-      output: 15 * 10, // 13→10
-      webSearch: 10 * 10, // 13→10
-      cachingRead: 0.3 * 10, // 13→10
-      cachingWrite: 3.75 * 10, // 13→10
+      input: 3 * 10,
+      output: 15 * 10,
+      webSearch: 10 * 10,
+      cachingRead: 0.3 * 10,
+      cachingWrite: 3.75 * 10,
     },
-
-    // Tier 2: Context > 200K
     pricingStrategy: {
       type: "tiered_context",
       tiers: [
         {
           minContext: 200001,
           price: {
-            input: 6 * 10, // 13→10
-            output: 22.5 * 10, // 13→10
-            webSearch: 10 * 10, // 13→10
-            cachingRead: 0.6 * 10, // 13→10
-            cachingWrite: 7.5 * 10, // 13→10
+            input: 6 * 10,
+            output: 22.5 * 10,
+            webSearch: 10 * 10,
+            cachingRead: 0.6 * 10,
+            cachingWrite: 7.5 * 10,
           },
         },
       ],
@@ -318,9 +247,9 @@ export const openrouterModels = [
     displayName: "Qwen: Qwen3 Max",
     hasVision: false,
     price: {
-      input: 1.2 * 9, // 11→9
-      output: 6 * 9, // 11→9
-      cachingRead: 0.24 * 9, // 11→9
+      input: 1.2 * 9,
+      output: 6 * 9,
+      cachingRead: 0.24 * 9,
     },
     maxOutputTokens: 32800,
     contextWindow: 256000,
@@ -331,8 +260,8 @@ export const openrouterModels = [
     displayName: "Qwen: Qwen3 VL 235B A22B Thinking",
     hasVision: true,
     price: {
-      input: 0.3 * 9, // 11→9
-      output: 1.2 * 9, // 11→9
+      input: 0.3 * 9,
+      output: 1.2 * 9,
     },
     maxOutputTokens: 32800,
     contextWindow: 262144,
@@ -345,8 +274,8 @@ export const openrouterModels = [
     displayName: "MiniMax: MiniMax M2",
     hasVision: false,
     price: {
-      input: 0.15 * 9, // 11→9
-      output: 0.45 * 9, // 11→9
+      input: 0.15 * 9,
+      output: 0.45 * 9,
     },
     maxOutputTokens: 196608,
     contextWindow: 196608,
@@ -378,9 +307,6 @@ export const openrouterModels = [
     contextWindow: 262144,
     supportsTool: true,
   },
-  // =================================================================
-  // [NEW] Mistral: Devstral 2 2512 (Free)
-  // =================================================================
   {
     name: "mistralai/devstral-2512:free",
     displayName: "Mistral: Devstral 2 2512 (free)",
@@ -409,7 +335,6 @@ export const openrouterModels = [
   },
 
   // --- EssentialAI Models ---
-  // Created Dec 7, 2025
   {
     name: "essentialai/rnj-1-instruct",
     displayName: "EssentialAI: Rnj 1 Instruct",
