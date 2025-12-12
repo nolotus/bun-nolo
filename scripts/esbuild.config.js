@@ -11,7 +11,7 @@ const INPUT_ENTRY = "./packages/web/entry.tsx";
  * - 开发：固定为 "dev"，保证 SSR 可稳定指向 /public/assets/entry.js
  */
 const buildId = isProduction ? Date.now().toString() : "dev";
-
+export const timestamp = buildId;
 /**
  * 输出目录名：
  * - 生产：public/assets-<buildId>
@@ -37,6 +37,7 @@ const baseConfig = {
   platform: "browser",
   target: ["es2020"],
   treeShaking: true,
+  metafile: true,
 
   define: {
     "process.env.PLATFORM": JSON.stringify("web"),
@@ -71,7 +72,6 @@ const envSpecificConfig = isProduction
       // 生产：压缩、无 sourcemap（或按需调整），记录 metafile
       minify: true,
       sourcemap: false,
-      metafile: true,
       entryNames: "[name]-[hash]",
       assetNames: "assets/[name]-[hash]",
     }
@@ -79,7 +79,6 @@ const envSpecificConfig = isProduction
       minify: false,
       sourcemap: true,
       sourcesContent: false,
-      metafile: false,
       entryNames: "[name]",
       // ✅ 关键：dev 也让静态资源带 hash，这样可放心强缓存
       assetNames: "assets/[name]-[hash]",
