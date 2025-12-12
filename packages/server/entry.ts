@@ -51,7 +51,7 @@ const startTasks = () => {
 };
 
 const apiRoutes: Record<string, RouteDefinition> = {
-  "/public/*": (req: Request) => {
+  "/public/*": async (req: Request) => {
     const url = new URL(req.url);
     const filePath = url.pathname.substring("/public/".length);
 
@@ -67,18 +67,46 @@ const apiRoutes: Record<string, RouteDefinition> = {
       filePath.startsWith("assets/assets/") &&
       /-[A-Z0-9]{8,}\.[a-z0-9]+$/i.test(filePath);
 
-    // ✅ 新增：dev 的入口文件，如果使用了 ?v=...，也可以放心 immutable
+    // ✅ dev 的入口文件，如果使用了 ?v=...，也可以放心 immutable
     const isDevEntry =
       isDev &&
       (filePath === "assets/entry.js" || filePath === "assets/entry.css") &&
       url.searchParams.has("v");
 
+    // ── 这里完全保留你原来的逻辑 ──
     const headers: Record<string, string> =
       isDevHashedChunk || isDevHashedAsset || isDevEntry
         ? { "Cache-Control": "public, max-age=31536000, immutable" }
         : STATIC_CACHE_HEADERS;
 
-    return new Response(bunFile(`public/${filePath}`), { headers });
+    const file = bunFile(`public/${filePath}`);
+
+    // 如果有可能 404，可以加一层判断（可选）
+    if (!(await file.exists())) {
+      return new Response("Not Found", { status: 404 });
+    }
+
+    // === 下面是新增的缓存增强逻辑（不改你原来的 Cache-Control 选择） ===
+    const stat = await file.stat();
+    const etag = `"${stat.size}-${stat.mtimeMs}"`;
+    const lastModified = stat.mtime.toUTCString();
+
+    headers.ETag = etag;
+    headers["Last-Modified"] = lastModified;
+
+    const ifNoneMatch = req.headers.get("if-none-match");
+    const ifModifiedSince = req.headers.get("if-modified-since");
+
+    // 命中则直接 304，浏览器用本地缓存内容
+    if (ifNoneMatch === etag || ifModifiedSince === lastModified) {
+      return new Response(null, {
+        status: 304,
+        headers,
+      });
+    }
+
+    // 正常返回文件内容
+    return new Response(file, { headers });
   },
 
   // 浏览器 SSE：/dev-reload
