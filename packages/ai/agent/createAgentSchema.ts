@@ -5,11 +5,11 @@ import { TFunction } from "i18next";
 import { z } from "zod";
 
 // --- 所有常量和辅助 schema 保持不变 ---
-export const DEFAULT_TEMPERATURE = 1.0;
-export const DEFAULT_TOP_P = 1.0;
+export const DEFAULT_TEMPERATURE = 0.7;
+export const DEFAULT_TOP_P = 0.95;
 export const DEFAULT_FREQUENCY_PENALTY = 0.0;
 export const DEFAULT_PRESENCE_PENALTY = 0.0;
-export const DEFAULT_MAX_TOKENS = 1024;
+export const DEFAULT_MAX_TOKENS = 4096;
 export const DEFAULT_REASONING_EFFORT = "medium";
 
 export const REASONING_EFFORT_OPTIONS = ["low", "medium", "high"] as const;

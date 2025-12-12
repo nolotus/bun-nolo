@@ -16,19 +16,6 @@ export const openrouterModels = [
 
   // --- OpenAI Models (GPT) ---
   {
-    name: "openai/gpt-5",
-    displayName: "OpenAI: GPT-5",
-    hasVision: true,
-    price: {
-      input: 1.25 * 9, // 11→9
-      output: 10 * 9, // 11→9
-      webSearch: 10 * 9, // 11→9
-    },
-    maxOutputTokens: 200000,
-    contextWindow: 400000,
-    supportsTool: true,
-  },
-  {
     name: "openai/gpt-5.1",
     displayName: "OpenAI: GPT-5.1",
     hasVision: true,
@@ -70,84 +57,53 @@ export const openrouterModels = [
     contextWindow: 400000,
     supportsTool: true,
   },
+  // =================================================================
+  // [NEW] OpenAI: GPT-5.2 (Created Dec 10, 2025)
+  // =================================================================
   {
-    name: "openai/gpt-5:online",
-    displayName: "OpenAI: GPT-5 (Online)",
+    name: "openai/gpt-5.2",
+    displayName: "OpenAI: GPT-5.2",
     hasVision: true,
     price: {
-      input: 1.25 * 10, // 13→10
-      output: 10 * 10, // 13→10
-      webSearch: 10 * 10, // 13→10
+      input: 1.75 * 9, // $1.75 / M input
+      output: 14 * 9, // $14 / M output
+      webSearch: 10 * 9, // $10 / K web search
     },
     maxOutputTokens: 200000,
     contextWindow: 400000,
     supportsTool: true,
   },
+  // =================================================================
+  // [NEW] OpenAI: GPT-5.2 Pro (Created Dec 10, 2025)
+  // =================================================================
   {
-    name: "openai/gpt-5-mini",
-    displayName: "OpenAI: GPT-5 Mini",
+    name: "openai/gpt-5.2-pro",
+    displayName: "OpenAI: GPT-5.2 Pro",
     hasVision: true,
     price: {
-      input: 0.25 * 9, // 11→9
-      output: 2 * 9, // 11→9
-      webSearch: 10 * 9, // 11→9
+      input: 21 * 9, // $21 / M input
+      output: 168 * 9, // $168 / M output
+      webSearch: 10 * 9, // $10 / K web search
     },
     maxOutputTokens: 200000,
     contextWindow: 400000,
     supportsTool: true,
   },
+  // =================================================================
+  // [NEW] OpenAI: GPT-5.2 Chat (Created Dec 10, 2025)
+  // =================================================================
   {
-    name: "openai/gpt-5-mini:online",
-    displayName: "OpenAI: GPT-5 Mini (Online)",
+    name: "openai/gpt-5.2-chat",
+    displayName: "OpenAI: GPT-5.2 Chat",
     hasVision: true,
     price: {
-      input: 0.25 * 10, // 13→10
-      output: 2 * 10, // 13→10
-      webSearch: 10 * 10, // 13→10
+      input: 1.75 * 9, // $1.75 / M input
+      output: 14 * 9, // $14 / M output
+      webSearch: 10 * 9, // $10 / K web search
     },
-    maxOutputTokens: 200000,
-    contextWindow: 400000,
+    maxOutputTokens: 128000,
+    contextWindow: 128000,
     supportsTool: true,
-  },
-  {
-    name: "openai/gpt-5-pro",
-    displayName: "OpenAI: GPT-5 Pro",
-    hasVision: true,
-    price: {
-      input: 15 * 9, // 11→9
-      output: 120 * 9, // 11→9
-      webSearch: 10 * 9, // 11→9
-    },
-    maxOutputTokens: 200000,
-    contextWindow: 400000,
-    supportsTool: true,
-  },
-  {
-    name: "openai/gpt-5-pro:online",
-    displayName: "OpenAI: GPT-5 Pro (Online)",
-    hasVision: true,
-    price: {
-      input: 15 * 10, // 13→10
-      output: 120 * 10, // 13→10
-      webSearch: 10 * 10, // 13→10
-    },
-    maxOutputTokens: 200000,
-    contextWindow: 400000,
-    supportsTool: true,
-  },
-  {
-    name: "openai/o3-deep-research",
-    displayName: "OpenAI: o3 Deep Research",
-    hasVision: true,
-    price: {
-      input: 10 * 9, // 11→9
-      output: 40 * 9, // 11→9
-      webSearch: 10 * 9, // 11→9
-    },
-    maxOutputTokens: 200000,
-    contextWindow: 200000,
-    supportsTool: true,
-    pricePerImage: 7.65 * 9, // 11→9
   },
 
   // --- Google Models (Gemini) ---
