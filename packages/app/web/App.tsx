@@ -1,5 +1,5 @@
 // app/web/App.tsx
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useMemo } from "react";
 import type { RouteObject } from "react-router-dom";
 import { useRoutes } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
@@ -33,13 +33,9 @@ export default function App({ hostname, lng = "en", initialRoutes }: AppProps) {
   const element = useRoutes(initialRoutes);
 
   useEffect(() => {
-    // i18n：语言变化即更新
     if (lng) i18n.changeLanguage(lng);
-
-    // Demo 站点跳过后端初始化与用户数据
     if (hostname === dateUrl) return;
 
-    // 一次性系统初始化（只运行一次）
     if (!initializedRef.current) {
       initializedRef.current = true;
       (async () => {
@@ -52,7 +48,6 @@ export default function App({ hostname, lng = "en", initialRoutes }: AppProps) {
       })();
     }
 
-    // 用户数据（依赖登录态）
     const userId = auth.user?.userId;
     if (!userId) return;
     (async () => {
@@ -69,7 +64,21 @@ export default function App({ hostname, lng = "en", initialRoutes }: AppProps) {
   return (
     <>
       <GlobalThemeController />
-      <Toaster position="top-right" />
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          style: {
+            background: "var(--backgroundGhost)",
+            color: "var(--text)",
+            border: "0.5px solid var(--border)", // ✅ 0.5px
+            boxShadow: "0 12px 30px var(--shadowMedium)",
+            backdropFilter: "blur(12px) saturate(140%)",
+            WebkitBackdropFilter: "blur(12px) saturate(140%)",
+            borderRadius: 14,
+            padding: "var(--space-3) var(--space-4)",
+          },
+        }}
+      />
       {element}
     </>
   );
