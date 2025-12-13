@@ -1,4 +1,4 @@
-// /integrations/openai/generateOpenAIRequestBody.ts
+// 路径: /integrations/openai/generateOpenAIRequestBody.ts
 import { Agent, Message } from "app/types";
 
 import { supportedReasoningModels } from "ai/llm/providers";
@@ -57,17 +57,24 @@ const buildRequestBody = (options: BuildRequestBodyOptions): any => {
   } = options;
 
   const bodyData: any = { model, messages, stream: true };
+
+  // kimi thinking 特判
   if (model.includes("moonshotai/kimi-k2-thinking")) {
     bodyData.provider = {
       only: ["fireworks", "google-vertex"],
     };
   }
+
+  // 支持 usage 的 provider
   if (["google", "openrouter", "xai", "openai"].includes(providerName)) {
     bodyData.stream_options = { include_usage: true };
   }
+
+  // 推理强度（仅部分模型支持）
   if (reasoning_effort && isModelSupportReasoningEffort(model)) {
     bodyData.reasoning_effort = reasoning_effort;
   }
+
   if (typeof temperature === "number") bodyData.temperature = temperature;
   if (typeof top_p === "number") bodyData.top_p = top_p;
   if (typeof frequency_penalty === "number")
@@ -82,13 +89,13 @@ const buildRequestBody = (options: BuildRequestBodyOptions): any => {
 /**
  * 主函数：生成完整的 OpenAI 请求体。
  */
+
 export const generateOpenAIRequestBody = (
   agentConfig: Agent,
   providerName: string,
   messages: Message[],
   contexts?: Contexts
 ) => {
-  // 1. 在消息队头插入 prompt (如果需要)
   const messagesWithPrompt = prependPromptMessage(
     messages,
     agentConfig,
@@ -96,9 +103,16 @@ export const generateOpenAIRequestBody = (
     contexts
   );
 
-  // 2. 构建请求体
+  // ✅ 只看 apiSource，provider 不再参与判断
+  const isCustomApi = agentConfig.apiSource === "custom";
+
+  const resolvedModel =
+    isCustomApi && agentConfig.customModelName?.trim()
+      ? agentConfig.customModelName.trim()
+      : agentConfig.model;
+
   const requestBody = buildRequestBody({
-    model: agentConfig.model,
+    model: resolvedModel,
     messages: messagesWithPrompt,
     providerName,
     temperature: agentConfig.temperature,

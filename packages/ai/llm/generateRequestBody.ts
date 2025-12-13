@@ -1,4 +1,4 @@
-// /ai/llm/generateRequestBody.ts
+// 路径: /ai/llm/generateRequestBody.ts
 import { Agent, Message } from "app/types";
 import { generateOpenAIRequestBody } from "integrations/openai/generateOpenAIRequestBody";
 import { generateResponseRequestBody } from "integrations/openai/generateResponseRequestBody";
@@ -18,7 +18,8 @@ export const generateRequestBody = ({
   messages,
   contexts,
 }: GenerateRequestBodyArgs) => {
-  const provider = agentConfig.provider.toLowerCase();
+  // provider 现在是可选字段，这里需要兜底再 toLowerCase，避免 undefined 报错
+  const provider = (agentConfig.provider || "").toLowerCase();
 
   if (isResponseAPIModel(agentConfig)) {
     // 调新版 /v1/responses

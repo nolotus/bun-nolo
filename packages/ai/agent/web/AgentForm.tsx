@@ -1,9 +1,9 @@
-// ai/llm/agent/AgentForm.tsx
-import React, { useEffect, Activity } from "react";
+// 路径: app/features/ai/llm/agent/AgentForm.tsx
+
+import React, { useEffect, useState, Activity } from "react";
 import { useTranslation } from "react-i18next";
 
 import useModelPricing from "../../llm/hooks/useModelPricing";
-import { useOllamaSettings } from "../../llm/hooks/useOllamaSettings";
 import { useProxySetting } from "../../llm/hooks/useProxySetting";
 import { useAgentValidation } from "../hooks/useAgentFormValidation";
 import { normalizeReferences } from "../createAgentSchema";
@@ -44,6 +44,7 @@ const AgentForm: React.FC<AgentFormProps> = ({
 
   const { form, provider, useServerProxy, isPublic, onSubmit } =
     useAgentValidation(initialValues);
+
   const {
     register,
     handleSubmit,
@@ -54,14 +55,20 @@ const AgentForm: React.FC<AgentFormProps> = ({
     formState: { errors, isSubmitting },
   } = form;
 
-  const { apiSource, setApiSource, isOllama } = useOllamaSettings(
-    provider,
-    setValue
-  );
+  // 本地管理 API 来源（平台 / 自定义）
+  const [apiSource, setApiSource] = useState<"platform" | "custom">("platform");
+
+  // 将本地 apiSource 同步到表单字段 apiSource，保证 schema / 提交时能拿到
+  useEffect(() => {
+    setValue("apiSource", apiSource);
+  }, [apiSource, setValue]);
+
   const { inputPrice, outputPrice, setInputPrice, setOutputPrice } =
     useModelPricing(provider, watch("model"), setValue);
+
   const isProxyDisabled = useProxySetting(provider, setValue);
 
+  // 编辑模式初始化表单 & 推导 apiSource
   useEffect(() => {
     if (mode === "edit" && initialValues.id) {
       const normRefs = normalizeReferences(initialValues.references || []);
@@ -74,11 +81,22 @@ const AgentForm: React.FC<AgentFormProps> = ({
         smartReadEnabled: Boolean(initialValues.smartReadEnabled),
       });
 
+      // 根据历史数据推导：有 apiKey 或 customProviderUrl 则视为自定义 API
       const shouldUseCustom =
-        Boolean(initialValues.apiKey) || initialValues.provider === "ollama";
+        Boolean(initialValues.apiKey) ||
+        Boolean(initialValues.customProviderUrl);
       setApiSource(shouldUseCustom ? "custom" : "platform");
     }
-  }, [mode, initialValues.id, reset, setApiSource]);
+  }, [
+    mode,
+    initialValues.id,
+    initialValues.apiKey,
+    initialValues.customProviderUrl,
+    initialValues.references,
+    initialValues.tags,
+    initialValues.smartReadEnabled,
+    reset,
+  ]);
 
   const handleFormSubmit = async (data: any) => {
     await onSubmit(data);
@@ -86,7 +104,6 @@ const AgentForm: React.FC<AgentFormProps> = ({
   };
 
   const tabs = TABS.map((tab) => ({ ...tab, label: t(tab.key) }));
-  // 强制转成 number，避免 "0" 和 0 不相等导致判断异常
   const activeTab: number = Number(watch("activeTab") ?? 0);
 
   const sharedProps = {
@@ -98,7 +115,6 @@ const AgentForm: React.FC<AgentFormProps> = ({
     initialValues,
   };
 
-  // 抽成一个函数，按 id 返回对应面板
   const renderTabById = (id: number) => {
     switch (id) {
       case 0:
@@ -128,7 +144,6 @@ const AgentForm: React.FC<AgentFormProps> = ({
             apiSource={apiSource}
             setApiSource={setApiSource}
             useServerProxy={useServerProxy}
-            isOllama={isOllama}
             isProxyDisabled={isProxyDisabled}
           />
         );
@@ -142,7 +157,6 @@ const AgentForm: React.FC<AgentFormProps> = ({
       {isCreate && <FormTitle>{t("createAgent")}</FormTitle>}
 
       <form onSubmit={handleSubmit(handleFormSubmit)} noValidate>
-        {/* 顶部 Tab 导航 */}
         <div className="form-header">
           <TabsNav
             tabs={tabs}
@@ -151,7 +165,6 @@ const AgentForm: React.FC<AgentFormProps> = ({
           />
         </div>
 
-        {/* 使用 Activity 的内容区域 */}
         <div className="form-body">
           <div className="tab-content">
             {TABS.map((tab) => (
@@ -213,7 +226,6 @@ const AgentForm: React.FC<AgentFormProps> = ({
           gap: 32px;
         }
 
-        /* 每个面板的包裹容器，可以按需调整 */
         .tab-panel {
           display: block;
         }

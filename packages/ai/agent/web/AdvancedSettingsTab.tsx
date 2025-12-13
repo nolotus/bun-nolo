@@ -1,11 +1,11 @@
-// features/agent/tabs/AdvancedSettingsTab.tsx
+// 路径:ai/agent/web/AdvancedSettingsTab.tsx
 
 import React, { useCallback } from "react";
 import { Controller } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { Input, PasswordInput } from "render/web/form/Input";
 import { FormField } from "render/web/form/FormField";
-import { Slider } from "render/web/form/Slider"; // Slider 组件本身无需修改
+import { Slider } from "render/web/form/Slider";
 import RadioGroup from "render/web/form/RadioGroup";
 import Button from "render/web/ui/Button";
 import ToggleSwitch from "render/web/ui/ToggleSwitch";
@@ -62,15 +62,14 @@ const AdvancedSettingsTab = ({
   control,
   setValue,
   watch,
-  provider,
-  isOllama,
+  provider, // 如后续不用可以移除
+  apiSource,
+  setApiSource,
+  useServerProxy,
   isProxyDisabled,
 }) => {
   const { t } = useTranslation("ai");
   const commonProps = { horizontal: true, labelWidth: "140px" };
-
-  const apiSource = watch("apiSource");
-  const useServerProxy = watch("useServerProxy");
 
   const handleResetParameters = useCallback(() => {
     PARAMETER_CONFIGS.forEach((config) => {
@@ -81,7 +80,7 @@ const AdvancedSettingsTab = ({
 
   return (
     <div className="tab-content-wrapper">
-      {/* --- API 设置部分 (保持不变) --- */}
+      {/* API 来源切换 */}
       <FormField
         label={t("form.apiSource")}
         help={
@@ -96,13 +95,14 @@ const AdvancedSettingsTab = ({
           control={control}
           render={({ field }) => (
             <ToggleSwitch
-              checked={field.value === "custom"}
-              onChange={(checked) =>
-                field.onChange(checked ? "custom" : "platform")
-              }
-              disabled={isOllama}
+              checked={apiSource === "custom"}
+              onChange={(checked) => {
+                const value = checked ? "custom" : "platform";
+                field.onChange(value); // 更新表单字段
+                setApiSource(value); // 同步外部 state
+              }}
               label={t(
-                field.value === "custom"
+                apiSource === "custom"
                   ? "form.useCustomApi"
                   : "form.usePlatformApi"
               )}
@@ -111,7 +111,28 @@ const AdvancedSettingsTab = ({
         />
       </FormField>
 
-      {(provider?.toLowerCase() === "custom" || apiSource === "custom") && (
+      {/* 自定义 API 时：自定义模型名 */}
+      {apiSource === "custom" && (
+        <FormField
+          label={t("form.customModelName")}
+          error={errors.customModelName?.message}
+          {...commonProps}
+        >
+          <Controller
+            name="customModelName"
+            control={control}
+            render={({ field }) => (
+              <Input
+                {...field}
+                placeholder={t("form.customModelNamePlaceholder")}
+              />
+            )}
+          />
+        </FormField>
+      )}
+
+      {/* 自定义 API 时：自定义 Provider URL */}
+      {apiSource === "custom" && (
         <FormField
           label={t("form.customProviderUrl")}
           error={errors.customProviderUrl?.message}
@@ -131,10 +152,11 @@ const AdvancedSettingsTab = ({
         </FormField>
       )}
 
-      {apiSource === "custom" && !isOllama && (
+      {/* 自定义 API 时：API Key（完全可选） */}
+      {apiSource === "custom" && (
         <FormField
           label={t("form.apiKey")}
-          required={!useServerProxy}
+          // 不再 required
           error={errors.apiKey?.message}
           help={t("help.apiKey")}
           {...commonProps}
@@ -152,6 +174,7 @@ const AdvancedSettingsTab = ({
         </FormField>
       )}
 
+      {/* 服务器代理 */}
       <FormField
         label={t("form.useServerProxy")}
         help={
@@ -172,7 +195,7 @@ const AdvancedSettingsTab = ({
         />
       </FormField>
 
-      {/* --- 模型参数部分 (保持不变) --- */}
+      {/* 模型参数 */}
       <div className="model-parameters-container">
         <div className="parameters-header">
           <h3 className="parameters-title">{t("form.modelParameters")}</h3>
@@ -211,14 +234,13 @@ const AdvancedSettingsTab = ({
                         }))}
                       />
                     ) : (
-                      // [已更正] 直接传递 field 属性
                       <Slider
                         value={field.value ?? config.default}
                         onChange={field.onChange}
                         min={config.min}
                         max={config.max}
                         step={config.step}
-                        showValue // 让Slider自己显示值
+                        showValue
                       />
                     )
                   }

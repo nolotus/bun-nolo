@@ -91,6 +91,8 @@ export default {
           greeting:
             "I am an intelligent assistant customized for you by nolo.chat. How can I help you today?",
         },
+        customModelName: "Custom Model Name",
+        customModelNamePlaceholder: "Enter custom model name",
       },
 
       // Help Texts
@@ -258,6 +260,8 @@ export default {
           greeting:
             "我是由 nolo.chat 为你定制的智能助手，今天有什么可以帮到你的？",
         },
+        customModelName: "自定义模型名称",
+        customModelNamePlaceholder: "输入自定义模型名称",
       },
 
       // 帮助提示文本
@@ -421,6 +425,8 @@ export default {
           greeting:
             "我是由 nolo.chat 為您客製化的智慧助理，今天有什麼可以幫到您的？",
         },
+        customModelName: "自訂模型名稱",
+        customModelNamePlaceholder: "輸入自訂模型名稱",
       },
 
       // 幫助文字
@@ -475,7 +481,7 @@ export default {
         selectTitle: "管理知識與指令",
         selectHelp: "選擇此AI可作為知識或指令使用的頁面。",
         searchCurrentSpace: "在目前空間中搜尋...",
-        searchAllSpaces: "在所有空間中搜尋...",
+        searchAllSpaces: "在所有空間中搜尋中...",
         clearSearch: "清除搜尋",
         noResults: "找不到搜尋結果。",
         noContent: "此空間內暫無內容。",
@@ -584,6 +590,8 @@ export default {
           greeting:
             "私はnolo.chatによってカスタマイズされたインテリジェントアシスタントです。今日は何をお手伝いしましょうか？",
         },
+        customModelName: "カスタムモデル名",
+        customModelNamePlaceholder: "カスタムモデル名を入力",
       },
 
       // ヘルプテキスト

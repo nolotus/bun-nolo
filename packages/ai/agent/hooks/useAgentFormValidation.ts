@@ -1,11 +1,10 @@
-// 路径: app/features/ai/common/useAgentValidation.ts (替换后的完整文件)
+// 路径: app/features/ai/agent/hooks/useAgentValidation.ts
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCallback } from "react";
 import { useAppDispatch } from "app/store";
 import { DataType } from "create/types";
-// [修改1] 导入 remove action，为未来的“下架”功能做准备（热修暂时不用）
 import { patch, write, remove } from "database/dbSlice";
 import { useAuth } from "auth/hooks/useAuth";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
@@ -22,7 +21,7 @@ import {
 const extractCybotId = (path: string): string =>
   path.match(/cybot-[^-]+-(\w+)/)?.[1] || path;
 
-// ExtendedFormData 接口保持不变
+// ExtendedFormData 接口保持不变（会自动包含新增字段）
 interface ExtendedFormData extends FormData {
   id?: string;
   createdAt?: number;
@@ -40,34 +39,43 @@ export const useAgentValidation = (initialValues?: ExtendedFormData) => {
 
   const form = useForm<FormData>({
     resolver: zodResolver(getCreateAgentSchema(t)),
-    // [修改2] 更新 defaultValues 以包含 whitelist
     defaultValues: isEditing
       ? {
           ...initialValues,
+          // 如果老数据里没有 apiSource，则默认 platform
+          apiSource: initialValues.apiSource ?? "platform",
           tags: Array.isArray(initialValues.tags)
             ? initialValues.tags.join(", ")
             : initialValues.tags || "",
           references: normalizeReferences(initialValues.references || []),
-          // 如果是编辑模式，从 initialValues 加载 whitelist，否则为空数组
           whitelist: initialValues.whitelist || [],
+          // 自定义模型名：编辑模式下加载已有值，无则空字符串
+          customModelName: initialValues.customModelName ?? "",
         }
       : {
           greeting: t("form.defaults.greeting"),
           useServerProxy: true,
           isPublic: false,
-          // 新建时，whitelist 默认为空数组
           whitelist: [],
+          // 新建时默认为平台 API
+          apiSource: "platform",
+          // 新建时自定义模型名默认为空
+          customModelName: "",
         },
   });
 
   const { watch } = form;
 
-  // [修改3] 增强 processData 函数以处理 whitelist
+  // B 方案：在提交前统一清洗数据
+  // useAgentValidation.ts 中的 processData
+
   const processData = useCallback((data: FormData) => {
-    // 检查 data.isPublic 的值
     const isPublic = !!data.isPublic;
 
-    return {
+    // ✅ 不再依赖 provider，只看 apiSource
+    const isCustomApi = data.apiSource === "custom";
+
+    const result: any = {
       ...data,
       tags: data.tags
         ? data.tags
@@ -76,9 +84,16 @@ export const useAgentValidation = (initialValues?: ExtendedFormData) => {
             .filter(Boolean)
         : [],
       references: normalizeReferences(data.references || []),
-      // 核心逻辑：如果不公开，则强制白名单为空数组，保证数据干净
       whitelist: isPublic ? data.whitelist || [] : [],
     };
+
+    if (isCustomApi) {
+      result.customModelName = data.customModelName?.trim() || "";
+    } else {
+      delete result.customModelName;
+    }
+
+    return result;
   }, []);
 
   const writeData = useCallback(
@@ -88,12 +103,10 @@ export const useAgentValidation = (initialValues?: ExtendedFormData) => {
     [dispatch]
   );
 
-  // [修改4] onSubmit 函数的微调，以处理从“公开”到“私有”的转换
   const onSubmit = useCallback(
     async (data: FormData) => {
       if (!auth.user?.userId) throw new Error(t("errors.noUserId"));
 
-      // 经过 processData 处理后，processedData 已经是我们想要的最终数据形态
       const processedData = processData(data);
       const now = Date.now();
 
@@ -102,13 +115,13 @@ export const useAgentValidation = (initialValues?: ExtendedFormData) => {
         const userPath = createCybotKey.private(auth.user.userId, cybotId);
         const publicPath = createCybotKey.public(cybotId);
 
-        // 1. 更新私有副本 (逻辑不变)
+        // 1. 更新私有副本
         await dispatch(
           patch({ dbKey: userPath, changes: processedData })
         ).unwrap();
 
         if (processedData.isPublic) {
-          // 2a. 如果是公开，则创建或更新公共副本 (逻辑不变)
+          // 2a. 公开：创建或更新公共副本
           await writeData(
             {
               ...initialValues,
@@ -120,8 +133,7 @@ export const useAgentValidation = (initialValues?: ExtendedFormData) => {
             publicPath
           );
         } else if (initialValues?.isPublic) {
-          // 2b. [新增逻辑] 如果是从“公开”变为“不公开”，则删除公共副本
-          // 这是为了防止数据残留，是热修方案的一个重要健壮性提升。
+          // 2b. 从公开变为私有：删除公共副本
           await dispatch(remove({ dbKey: publicPath })).unwrap();
         }
       } else {
@@ -140,15 +152,15 @@ export const useAgentValidation = (initialValues?: ExtendedFormData) => {
           tokenCount: 0,
         };
 
-        // 写入私有副本 (逻辑不变)
+        // 私有副本
         await writeData(cybotData, userPath);
 
-        // 写入公共副本 (逻辑不变)
+        // 公共副本
         if (processedData.isPublic) {
           await writeData(cybotData, createCybotKey.public(id));
         }
 
-        // 创建新对话 (逻辑不变)
+        // 创建新对话
         await createNewDialog({
           agents: [
             processedData.isPublic ? createCybotKey.public(id) : userPath,
@@ -168,7 +180,6 @@ export const useAgentValidation = (initialValues?: ExtendedFormData) => {
     ]
   );
 
-  // 返回值保持不变
   return {
     form,
     provider: watch("provider"),

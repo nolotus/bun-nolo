@@ -125,6 +125,7 @@ export const cybotSlice = createSliceWithThunks({
           }
 
           const isOwner = currentUserId && agentConfig.userId === currentUserId;
+
           if (!isOwner) {
             const hasWhitelist =
               Array.isArray(agentConfig.whitelist) &&
@@ -139,9 +140,12 @@ export const cybotSlice = createSliceWithThunks({
             }
           }
 
-          if (agentConfig.provider !== "Custom") {
+          // ✅ 自定义 API（apiSource === "custom"）不走平台计费
+          const isCustomApi = agentConfig.apiSource === "custom";
+
+          if (!isCustomApi) {
             const serverPrices = getModelPricing(
-              agentConfig.provider,
+              agentConfig.provider || "",
               agentConfig.model
             );
             if (!serverPrices) {
