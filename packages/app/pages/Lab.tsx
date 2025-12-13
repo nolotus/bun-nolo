@@ -3,12 +3,9 @@ import { useForm } from "react-hook-form";
 import { useAppSelector } from "app/store";
 import { selectTheme } from "app/settings/settingSlice";
 import Button from "render/web/ui/Button";
-import {
-  Input,
-  NumberInput,
-  TextArea,
-  PasswordInput,
-} from "render/web/form/Input";
+import { Input, NumberInput, PasswordInput } from "render/web/form/Input";
+import { TextArea } from "render/web/form/TextArea";
+
 import {
   SearchIcon,
   PersonIcon,

@@ -31,4 +31,7 @@ export interface Contexts {
 
   // General knowledge base documents for lookup.
   botKnowledgeContext?: string | null;
+
+  // 🔹 新增：用户级通用提示词
+  userGlobalPrompt?: string;
 }

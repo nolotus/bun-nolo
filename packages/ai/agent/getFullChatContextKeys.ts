@@ -2,11 +2,6 @@ import type { AsyncThunk } from "@reduxjs/toolkit";
 
 import { RootState } from "app/store";
 import { selectAllMsgs } from "chat/messages/messageSlice";
-import { selectCurrentSpace } from "create/space/spaceSlice";
-import { contextCybotId } from "core/init";
-
-import { formatDataForApi } from "./formatDataForApi";
-import { runLlm } from "../cybot/cybotSlice";
 
 /** 简单的数组差集工具：返回 arrA 中不在 arrB 里的元素 */
 const difference = <T>(arrA: T[], arrB: T[]): T[] => {
@@ -58,36 +53,6 @@ export const getFullChatContextKeys = async (
   }
 
   const smartReadKeys = new Set<string>();
-  if (agentConfig.smartReadEnabled === true) {
-    const spaceData = selectCurrentSpace(state);
-    const formattedData = formatDataForApi(spaceData, msgs);
-
-    try {
-      const outputReference = await dispatch(
-        (runLlm as unknown as AsyncThunk<any, any, any>)({
-          cybotId: contextCybotId,
-          content: `User Input: 请提取相关内容的 contentKey ID\n\n${formattedData}`,
-        })
-      ).unwrap();
-
-      const cleanedOutput = String(outputReference)
-        .replace(/```json|```/g, "")
-        .trim();
-      if (cleanedOutput) {
-        const parsed = JSON.parse(cleanedOutput);
-        if (Array.isArray(parsed)) {
-          for (const key of parsed) {
-            if (typeof key === "string") smartReadKeys.add(key);
-          }
-        }
-      }
-    } catch (error) {
-      console.error(
-        "getFullChatContextKeys - Failed to parse smartRead output:",
-        error
-      );
-    }
-  }
 
   const historyKeys = new Set<string>();
   for (const msg of msgs as any[]) {

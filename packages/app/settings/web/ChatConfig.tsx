@@ -1,25 +1,29 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "app/store";
-import { selectTheme } from "app/settings/settingSlice";
-import { VersionsIcon } from "@primer/octicons-react";
-import { IoSparklesOutline, IoDocumentTextOutline } from "react-icons/io5"; // 从 react-icons 导入备用图标
+import {
+  selectGlobalPrompt,
+  setGlobalPrompt,
+  selectEnableReadCurrentSpace,
+  toggleEnableReadCurrentSpace,
+} from "app/settings/settingSlice";
+import { TextArea } from "render/web/form/TextArea"; // 根据你的真实路径调整
+import {
+  LuSparkles,
+  LuCircleUserRound,
+  LuMessagesSquare,
+  LuScanSearch,
+} from "react-icons/lu";
 
 /*
- * TODO: 状态管理集成
- * 建议在 Redux store 中创建一个 `chatSlice.ts` 文件来管理对话设置。
- * ... (slice 示例代码保持不变)
+ * TODO: 下面两个可以后续迁移到 chatSlice
  */
-
-// --- 占位符 Redux 交互 (请替换为真实实现) ---
 const useChatConfig = () => {
   return {
     autoSummarizeTitle: true,
-    titlePrompt: "请为以下对话生成一个简洁的标题：",
     maxMessages: 50,
   };
 };
-// --- 占位符结束 ---
 
 // --- UI 组件 ---
 const SettingSection: React.FC<{
@@ -40,7 +44,6 @@ const ToggleSwitch: React.FC<{ enabled: boolean; onToggle: () => void }> = ({
   enabled,
   onToggle,
 }) => {
-  const theme = useAppSelector(selectTheme);
   return (
     <button
       role="switch"
@@ -49,7 +52,9 @@ const ToggleSwitch: React.FC<{ enabled: boolean; onToggle: () => void }> = ({
       className={`toggle-switch ${enabled ? "enabled" : ""}`}
       style={
         {
-          "--switch-bg": enabled ? theme.primary : theme.backgroundTertiary,
+          "--switch-bg": enabled
+            ? "var(--primary)"
+            : "var(--backgroundTertiary)",
         } as React.CSSProperties
       }
     >
@@ -60,34 +65,167 @@ const ToggleSwitch: React.FC<{ enabled: boolean; onToggle: () => void }> = ({
 
 const ChatConfig: React.FC = () => {
   const { t } = useTranslation();
-  const theme = useAppSelector(selectTheme);
+  const dispatch = useAppDispatch();
+
   const config = useChatConfig();
-  // const dispatch = useAppDispatch(); // 在集成 Redux 后启用
+
+  const globalPrompt = useAppSelector(selectGlobalPrompt);
+  const enableReadCurrentSpace = useAppSelector(selectEnableReadCurrentSpace);
 
   return (
     <>
       <style href="ChatConfig-styles" precedence="low">
         {`
-          .chat-config-page { max-width: 800px; display: flex; flex-direction: column; gap: ${theme.space[8]}; }
-          .page-title { font-size: 1.5rem; font-weight: 600; color: ${theme.text}; margin: 0; padding-bottom: ${theme.space[4]}; border-bottom: 1px solid ${theme.border}; }
-          .setting-section { display: grid; grid-template-columns: minmax(200px, 2fr) 3fr; gap: ${theme.space[8]}; align-items: start; }
-          .section-header { display: flex; flex-direction: column; gap: ${theme.space[1]}; }
-          .section-title { font-size: 1.1rem; font-weight: 500; color: ${theme.text}; margin: 0; }
-          .section-description { font-size: 0.9rem; color: ${theme.textSecondary}; margin: 0; line-height: 1.5; }
-          .section-content { padding-top: ${theme.space[1]}; display: flex; flex-direction: column; gap: ${theme.space[4]}; }
-          .toggle-switch { width: 44px; height: 24px; border-radius: 12px; padding: 2px; position: relative; cursor: pointer; border: none; background-color: var(--switch-bg); transition: background-color 0.2s; }
-          .toggle-knob { width: 20px; height: 20px; background-color: #fff; border-radius: 50%; position: absolute; top: 2px; left: 2px; transition: transform 0.2s ease; }
-          .toggle-switch.enabled .toggle-knob { transform: translateX(20px); }
-          .custom-textarea, .custom-number-input { width: 100%; padding: ${theme.space[2]} ${theme.space[3]}; border-radius: ${theme.borderRadius}; border: 1px solid ${theme.border}; background-color: ${theme.backgroundSecondary}; color: ${theme.text}; font-size: 0.9rem; font-family: inherit; }
-          .custom-textarea { min-height: 80px; resize: vertical; }
-          .custom-textarea:disabled, .custom-number-input:disabled { background-color: ${theme.backgroundDisabled}; color: ${theme.textDisabled}; cursor: not-allowed; }
-          .input-with-icon { display: flex; align-items: center; gap: ${theme.space[3]}; }
-          .input-with-icon > svg { color: ${theme.textSecondary}; flex-shrink: 0; }
+          .chat-config-page {
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-8);
+          }
+
+          .page-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text);
+            margin: 0;
+            padding-bottom: var(--space-4);
+            border-bottom: 1px solid var(--border);
+          }
+
+          .setting-section {
+            display: grid;
+            grid-template-columns: minmax(200px, 2fr) 3fr;
+            gap: var(--space-8);
+            align-items: start;
+          }
+
+          .section-header {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-1);
+          }
+
+          .section-title {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: var(--text);
+            margin: 0;
+          }
+
+          .section-description {
+            font-size: 0.9rem;
+            color: var(--textTertiary);
+            margin: 0;
+            line-height: 1.5;
+          }
+
+          .section-content {
+            padding-top: var(--space-1);
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-4);
+          }
+
+          .toggle-switch {
+            width: 44px;
+            height: 24px;
+            border-radius: 12px;
+            padding: 2px;
+            position: relative;
+            cursor: pointer;
+            border: none;
+            background-color: var(--switch-bg);
+            transition: background-color 0.2s;
+          }
+
+          .toggle-knob {
+            width: 20px;
+            height: 20px;
+            background-color: #fff;
+            border-radius: 50%;
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.2s ease;
+          }
+
+          .toggle-switch.enabled .toggle-knob {
+            transform: translateX(20px);
+          }
+
+          .input-with-icon {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+          }
+
+          .input-with-icon > svg {
+            color: var(--textSecondary);
+            flex-shrink: 0;
+          }
+
+          .custom-number-input {
+            width: 100%;
+            padding: var(--space-2) var(--space-3);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background-color: var(--backgroundSecondary);
+            color: var(--text);
+            font-size: 0.9rem;
+            font-family: inherit;
+          }
+
+          .custom-number-input:disabled {
+            background-color: var(--backgroundTertiary);
+            color: var(--textQuaternary);
+            cursor: not-allowed;
+          }
         `}
       </style>
+
       <div className="chat-config-page">
         <h1 className="page-title">{t("chat.title", "对话设置")}</h1>
 
+        {/* 通用提示词：用于不同 AI 如何认知用户 */}
+        <SettingSection
+          title={t("chat.globalPrompt.title", "通用提示词")}
+          description={t(
+            "chat.globalPrompt.description",
+            "用于向不同的 AI 统一介绍你自己、你的偏好和沟通风格，让所有 AI 在理解你时保持一致。"
+          )}
+        >
+          <TextArea
+            icon={<LuCircleUserRound size={16} />}
+            autoResize
+            value={globalPrompt}
+            onChange={(e) => {
+              dispatch(setGlobalPrompt(e.target.value));
+            }}
+            placeholder={t(
+              "chat.globalPrompt.placeholder",
+              "例如：我是一名开发者，喜欢结构清晰、条理分明的回答；代码部分请尽量使用 TypeScript，并附简短说明；当有不确定的地方请先说明假设再给出答案。"
+            )}
+          />
+        </SettingSection>
+
+        {/* 是否开启读取当前空间内容 */}
+        <SettingSection
+          title={t("chat.readCurrentSpace.title", "读取当前空间内容作为上下文")}
+          description={t(
+            "chat.readCurrentSpace.description",
+            "启用后，助手在回答问题时，可以自动读取当前空间中的文档与笔记，作为补充上下文来理解你的问题。"
+          )}
+        >
+          <div className="input-with-icon">
+            <LuScanSearch size={16} />
+            <ToggleSwitch
+              enabled={enableReadCurrentSpace}
+              onToggle={() => dispatch(toggleEnableReadCurrentSpace())}
+            />
+          </div>
+        </SettingSection>
+
+        {/* 智能标题开关（仍然暂存在本地 hook，将来可迁到 chatSlice） */}
         <SettingSection
           title={t("chat.autoTitle.title", "智能标题")}
           description={t(
@@ -96,36 +234,17 @@ const ChatConfig: React.FC = () => {
           )}
         >
           <div className="input-with-icon">
-            <IoSparklesOutline size={16} /> {/* <-- 图标已替换 */}
+            <LuSparkles size={16} />
             <ToggleSwitch
               enabled={config.autoSummarizeTitle}
               onToggle={() => {
-                /* dispatch(setAutoSummarizeTitle(!config.autoSummarizeTitle)) */
+                /* 将来: dispatch(setAutoSummarizeTitle(!config.autoSummarizeTitle)) */
               }}
             />
           </div>
         </SettingSection>
 
-        <SettingSection
-          title={t("chat.titlePrompt.title", "标题生成提示词")}
-          description={t(
-            "chat.titlePrompt.description",
-            "自定义用于生成标题的指令。一个好的提示词能让标题更符合你的期望。"
-          )}
-        >
-          <div className="input-with-icon">
-            <IoDocumentTextOutline size={16} /> {/* <-- 图标已替换 */}
-            <textarea
-              className="custom-textarea"
-              value={config.titlePrompt}
-              onChange={(e) => {
-                /* dispatch(setTitlePrompt(e.target.value)) */
-              }}
-              disabled={!config.autoSummarizeTitle}
-            />
-          </div>
-        </SettingSection>
-
+        {/* 上下文消息数量 */}
         <SettingSection
           title={t("chat.maxMessages.title", "上下文消息数量")}
           description={t(
@@ -134,13 +253,13 @@ const ChatConfig: React.FC = () => {
           )}
         >
           <div className="input-with-icon">
-            <VersionsIcon size={16} /> {/* <-- 此图标有效，予以保留 */}
+            <LuMessagesSquare size={16} />
             <input
               type="number"
               className="custom-number-input"
               value={config.maxMessages}
               onChange={(e) => {
-                /* dispatch(setMaxMessages(Number(e.target.value))) */
+                /* 将来: dispatch(setMaxMessages(Number(e.target.value))) */
               }}
               min={1}
               max={1000}

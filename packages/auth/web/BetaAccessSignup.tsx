@@ -9,7 +9,8 @@ import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import { NavLink } from "react-router-dom";
-import { Input, TextArea } from "render/web/form/Input";
+import { Input } from "render/web/form/Input";
+import { TextArea } from "render/web/form/TextArea";
 
 import Button from "render/web/ui/Button";
 import z from "zod";

@@ -34,7 +34,7 @@ interface SettingState {
   // 编辑器配置
   editorDefaultMode: "markdown" | "block";
 
-  // 新增：白天 / 夜晚代码主题
+  // 白天 / 夜晚代码主题
   editorLightCodeTheme: string; // 浅色模式下的代码主题（比如 "default"）
   editorDarkCodeTheme: string; // 深色模式下的代码主题（比如 "okaidia"）
 
@@ -55,6 +55,12 @@ interface SettingState {
   editorSpellCheck: boolean;
   editorTabSize: number;
   editorFontFamily: string;
+
+  // 是否允许读取当前空间内容作为上下文
+  enableReadCurrentSpace: boolean;
+
+  // 通用提示词：用于不同 AI 如何认知用户
+  globalPrompt: string;
 
   [key: string]: any;
 }
@@ -99,6 +105,17 @@ const initialState: SettingState = {
   editorSpellCheck: true,
   editorTabSize: 2,
   editorFontFamily: "SF Mono, Monaco, Cascadia Code, Roboto Mono, monospace",
+
+  // 是否允许读取当前空间内容作为上下文（默认可按需要修改）
+  enableReadCurrentSpace: true,
+
+  // 通用提示词默认值
+  globalPrompt:
+    "以下是关于我的通用说明，请在任意场景下都以此来理解和服务我：\n" +
+    "1. 我希望你用清晰、简洁的方式回答问题，并在必要时给出示例。\n" +
+    "2. 如果有多种解决方案，请先给出推荐方案，再简要说明其他方案的优缺点。\n" +
+    "3. 当你不确定答案时，请明确说明不确定，并推测可能的方向，而不是编造事实。\n" +
+    "4. 如果涉及代码，请优先使用现代、通用的最佳实践。",
 };
 
 // --- Slice 创建 ---
@@ -175,6 +192,22 @@ const settingSlice = createSliceWithThunks({
     setSidebarWidth: create.asyncThunk(
       async (sidebarWidth: number, { dispatch }) =>
         dispatch(setSettings({ sidebarWidth })).unwrap()
+    ),
+
+    // 切换「是否读取当前空间内容」开关
+    toggleEnableReadCurrentSpace: create.asyncThunk(
+      async (_, { dispatch, getState }) => {
+        const current = (getState() as RootState).settings
+          .enableReadCurrentSpace;
+        return dispatch(
+          setSettings({ enableReadCurrentSpace: !current })
+        ).unwrap();
+      }
+    ),
+
+    // 设置通用提示词
+    setGlobalPrompt: create.asyncThunk(async (prompt: string, { dispatch }) =>
+      dispatch(setSettings({ globalPrompt: prompt })).unwrap()
     ),
 
     // 编辑器配置相关 actions
@@ -254,6 +287,8 @@ export const {
   toggleShowThinking,
   setThemeFollowsSystem,
   setSidebarWidth,
+  toggleEnableReadCurrentSpace,
+  setGlobalPrompt,
   // 编辑器 actions
   setEditorDefaultMode,
   setEditorLightCodeTheme,
@@ -291,6 +326,14 @@ export const selectThemeFollowsSystem = (state: RootState): boolean =>
   state.settings.themeFollowsSystem;
 export const selectSidebarWidth = (state: RootState): number =>
   state.settings.sidebarWidth;
+
+// 是否允许读取当前空间内容
+export const selectEnableReadCurrentSpace = (state: RootState): boolean =>
+  state.settings.enableReadCurrentSpace;
+
+// 通用提示词
+export const selectGlobalPrompt = (state: RootState): string =>
+  state.settings.globalPrompt;
 
 // --- 编辑器相关 selectors（含白天 / 夜晚代码主题） ---
 export const selectEditorDefaultMode = (

@@ -78,7 +78,6 @@ const AgentForm: React.FC<AgentFormProps> = ({
           ? initialValues.tags.join(", ")
           : initialValues.tags || "",
         references: normRefs,
-        smartReadEnabled: Boolean(initialValues.smartReadEnabled),
       });
 
       // 根据历史数据推导：有 apiKey 或 customProviderUrl 则视为自定义 API
@@ -94,7 +93,6 @@ const AgentForm: React.FC<AgentFormProps> = ({
     initialValues.customProviderUrl,
     initialValues.references,
     initialValues.tags,
-    initialValues.smartReadEnabled,
     reset,
   ]);
 

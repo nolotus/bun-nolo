@@ -4,7 +4,6 @@ import React from "react";
 import { Controller } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { FormField } from "render/web/form/FormField";
-import ToggleSwitch from "render/web/ui/ToggleSwitch";
 import ReferencesSelector from "./ReferencesSelector";
 
 const ReferencesTab = ({ control, errors }) => {
@@ -20,23 +19,6 @@ const ReferencesTab = ({ control, errors }) => {
 
   return (
     <div className="tab-content-wrapper">
-      <FormField
-        label={t("form.smartReadEnabled")}
-        help={t("help.smartRead")}
-        {...commonProps}
-      >
-        <Controller
-          name="smartReadEnabled"
-          control={control}
-          render={({ field }) => (
-            <ToggleSwitch
-              checked={!!field.value}
-              onChange={(checked) => field.onChange(checked)}
-            />
-          )}
-        />
-      </FormField>
-
       <FormField
         label={t("references.selectTitle")}
         help={t("references.selectHelp")}

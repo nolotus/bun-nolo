@@ -7,7 +7,9 @@ import type { ModelWithProvider } from "ai/llm/models";
 
 // web
 import { FormField } from "render/web/form/FormField";
-import { Input, TextArea } from "render/web/form/Input";
+import { Input } from "render/web/form/Input";
+import { TextArea } from "render/web/form/TextArea";
+
 import { TagsInput } from "render/web/form/TagsInput";
 import AllModelsSelector from "ai/llm/AllModelsSelector";
 

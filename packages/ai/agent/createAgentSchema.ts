@@ -102,8 +102,6 @@ export const getCreateAgentSchema = (t: TFunction) =>
           { message: t("validation.duplicateReferences") }
         ),
 
-      smartReadEnabled: z.boolean().default(false),
-
       temperature: z
         .number()
         .min(0, t("validation.temperatureRange"))

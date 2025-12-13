@@ -4,7 +4,9 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { Controller } from "react-hook-form";
 import { FormField } from "render/web/form/FormField";
-import { TextArea, NumberInput } from "render/web/form/Input";
+import { NumberInput } from "render/web/form/Input";
+import { TextArea } from "render/web/form/TextArea";
+
 import ToggleSwitch from "render/web/ui/ToggleSwitch";
 import WhitelistInput from "./WhitelistInput"; // [新增] 导入我们刚刚创建的组件
 
